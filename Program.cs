@@ -20,18 +20,19 @@ namespace RSCacheTool
 		{
 			bool error = false;
 
-			bool help = false, extract = false, combine = false, combineOverwrite = false, combineMergeIncomplete = false;
+			bool help = false, extract = false, combine = false, overwrite = false, combineMergeIncomplete = false;
 			int extractArchive = -1, combineArchive = 40, combineStartFile = 0;
 
 			OptionSet argsParser = new OptionSet() {
 				{ "h", "show this message", val => { help = true; } },
+
+				{ "o", "overwrite existing files, for all actions", val => { overwrite = true; } },
 
 				{ "e", "extract files from cache", val => { extract = true; } },
 				{ "a=", "single archive to extract, if not given all archives will be extracted", val => { extractArchive = Convert.ToInt32(val); } },
 
 				{ "c", "combine sound", val => { combine = true; } },
 				{ "s=", "archive to combine sounds of, defaults to 40", val => { combineArchive = Convert.ToInt32(val); } },
-				{ "o", "overwrite existing soundfiles", val => { combineOverwrite = true; } },
 				{ "i", "merge incomplete files (into special directory)", val => { combineMergeIncomplete = true; } },
 			};
 
@@ -77,10 +78,10 @@ namespace RSCacheTool
 			else if (!error)
 			{
 				if (extract)
-					ExtractFiles(extractArchive);
+					ExtractFiles(extractArchive, overwrite);
 
 				if (combine)
-					CombineSounds(combineArchive, combineStartFile, combineOverwrite, combineMergeIncomplete);
+					CombineSounds(combineArchive, combineStartFile, overwrite, combineMergeIncomplete);
 			}
 
 			return 0;
@@ -89,7 +90,7 @@ namespace RSCacheTool
 		/// <summary>
 		/// Rips all files from the cachefile and puts them (structured and given a fitting extension where possible) in the fileDir.
 		/// </summary>
-		static void ExtractFiles(int archive)
+		static void ExtractFiles(int archive, bool overwriteExisting)
 		{
 			int startArchive = 0, endArchive = 255;
 
@@ -294,11 +295,17 @@ namespace RSCacheTool
 									if (!Directory.Exists(outFileDir))
 										Directory.CreateDirectory(outFileDir);
 
-									using (FileStream outFile = File.Open(outFileDir + outFileName, FileMode.Create, FileAccess.Write))
+									//(over)write file
+									if (!File.Exists(outFileDir + outFileName) || overwriteExisting)
 									{
-										outFile.Write(buffer, 0, buffer.Length);
-										Console.WriteLine(outFileDir + outFileName);
+										using (FileStream outFile = File.Open(outFileDir + outFileName, FileMode.Create, FileAccess.Write))
+										{
+											outFile.Write(buffer, 0, buffer.Length);
+											Console.WriteLine(outFileDir + outFileName);
+										}
 									}
+									else
+										Console.WriteLine("Skipping file because it already exists.");
 								}
 							}
 							else
@@ -316,7 +323,7 @@ namespace RSCacheTool
 		/// <summary>
 		/// Combines the sound files (.jag &amp; .ogg) in the specified archive (40 for the build it was made on), and puts them into the soundtracks directory.
 		/// </summary>
-		static void CombineSounds(int archive = 40, int startFile = 0, bool overwriteExisting = false, bool mergeIncomplete = false)
+		static void CombineSounds(int archive, int startFile, bool overwriteExisting, bool mergeIncomplete)
 		{
 			string archiveDir = outDir + archive + "\\";
 			string soundDir = outDir + "sound\\";
