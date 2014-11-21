@@ -121,9 +121,8 @@ namespace RSCacheTool
 							long startChunkOffset = indexFile.ReadBytes(3) * 520L;
 
 							//Console.WriteLine("New file: archive: {0} file: {1} offset: {3} size: {2}", archiveIndex, fileIndex, fileSize, startChunkOffset);
-
-							//filter teeny tiny files (<=1kB) because they gobble up time
-							if (fileSize > 1024 && startChunkOffset > 0 && startChunkOffset + fileSize <= cacheFile.Length)
+ 
+							if (fileSize > 0 && startChunkOffset > 0 && startChunkOffset + fileSize <= cacheFile.Length)
 							{
 								byte[] buffer = new byte[fileSize];
 								int writeOffset = 0;
@@ -180,7 +179,7 @@ namespace RSCacheTool
 									byte[] tempBuffer;
 
 									//decompress gzip
-									if ((buffer[9] << 8) + buffer[10] == 0x1f8b) //gzip
+									if (buffer.Length > 10 && (buffer[9] << 8) + buffer[10] == 0x1f8b) //gzip
 									{
 										//remove the first 9 bytes cause they seem to be descriptors of sorts (no idea what they do but they are not part of the file)
 										tempBuffer = new byte[fileSize - 9];
@@ -209,7 +208,7 @@ namespace RSCacheTool
 									}
 
 									//decompress bzip2
-									if (buffer[9] == 0x31 && buffer[10] == 0x41 && buffer[11] == 0x59 && buffer[12] == 0x26 && buffer[13] == 0x53 && buffer[14] == 0x59) //bzip2
+									if (buffer.Length > 14 && buffer[9] == 0x31 && buffer[10] == 0x41 && buffer[11] == 0x59 && buffer[12] == 0x26 && buffer[13] == 0x53 && buffer[14] == 0x59) //bzip2
 									{
 										//remove the first 9 bytes cause they seem to be descriptors of sorts (no idea what they do but they are not part of the file)
 										tempBuffer = new byte[fileSize - 9];
@@ -250,11 +249,11 @@ namespace RSCacheTool
 									}
 
 									//detect ogg: OggS
-									if ((buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4f676753)
+									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4f676753)
 										outFileName += ".ogg";
 
 									//detect ogg: 5 bytes - OggS
-									if ((buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4f676753)
+									if (buffer.Length > 8 && (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4f676753)
 									{
 										tempBuffer = new byte[fileSize - 5];
 										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
@@ -264,11 +263,11 @@ namespace RSCacheTool
 									}
 
 									//detect jag: JAGA
-									if ((buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4a414741)
+									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4a414741)
 										outFileName += ".jaga";
 
 									//detect jag: 5 bytes - JAGA
-									if ((buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4a414741)
+									if (buffer.Length > 8 && (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4a414741)
 									{
 										tempBuffer = new byte[fileSize - 5];
 										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
@@ -278,11 +277,11 @@ namespace RSCacheTool
 									}
 
 									//detect png: .PNG
-									if ((uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
+									if (buffer.Length > 3 && (uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
 										outFileName += ".png";
 
 									//detect png: 5 bytes - .PNG
-									if ((uint)(buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x89504e47)
+									if (buffer.Length > 8 && (uint)(buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x89504e47)
 									{
 										tempBuffer = new byte[fileSize - 5];
 										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
