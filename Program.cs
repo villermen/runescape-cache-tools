@@ -21,7 +21,7 @@ namespace RSCacheTool
 			bool error = false;
 
 			bool help = false, extract = false, combine = false, overwrite = false, combineMergeIncomplete = false;
-			int extractArchive = -1, combineArchive = 40, combineStartFile = 0;
+			int extractArchive = -1, combineArchive = 40;
 
 			OptionSet argsParser = new OptionSet() {
 				{ "h", "show this message", val => { help = true; } },
@@ -81,7 +81,7 @@ namespace RSCacheTool
 					ExtractFiles(extractArchive, overwrite);
 
 				if (combine)
-					CombineSounds(combineArchive, combineStartFile, overwrite, combineMergeIncomplete);
+					CombineSounds(combineArchive, overwrite, combineMergeIncomplete);
 			}
 
 			return 0;
@@ -323,26 +323,21 @@ namespace RSCacheTool
 		/// <summary>
 		/// Combines the sound files (.jag &amp; .ogg) in the specified archive (40 for the build it was made on), and puts them into the soundtracks directory.
 		/// </summary>
-		static void CombineSounds(int archive, int startFile, bool overwriteExisting, bool mergeIncomplete)
+		static void CombineSounds(int archive, bool overwriteExisting, bool mergeIncomplete)
 		{
 			string archiveDir = outDir + archive + "\\";
 			string soundDir = outDir + "sound\\";
 
 			//gather all index files
-			string[] indexFiles = Directory.GetFiles(archiveDir, "*.jag", SearchOption.TopDirectoryOnly);
+			string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga", SearchOption.TopDirectoryOnly);
 
 			//create directories
 			if (!Directory.Exists(soundDir + "incomplete\\"))
 				Directory.CreateDirectory(soundDir + "incomplete\\");
 
-			int i = 0;
 			foreach (string indexFileString in indexFiles)
 			{
-				if (i < startFile)
-				{
-					i++;
-					continue;
-				}
+				string indexFileIdString = Path.GetFileNameWithoutExtension(indexFileString);
 
 				bool incomplete = false;
 				List<string> chunkFiles = new List<string>();
@@ -385,7 +380,7 @@ namespace RSCacheTool
 
 				if (!incomplete || incomplete && mergeIncomplete)
 				{
-					string outFile = soundDir + (incomplete ? "incomplete\\" : "") + i + ".ogg";
+					string outFile = soundDir + (incomplete ? "incomplete\\" : "") + indexFileIdString + ".ogg";
 
 					if (!overwriteExisting && File.Exists(outFile))
 						Console.WriteLine("Skipping track because it already exists.");
@@ -402,7 +397,7 @@ namespace RSCacheTool
 						{
 							soxProcess.StartInfo.Arguments += " " + str;
 						});
-						soxProcess.StartInfo.Arguments += " " + soundDir + "incomplete\\" + i + ".ogg ";
+						soxProcess.StartInfo.Arguments += " " + soundDir + "incomplete\\" + indexFileIdString + ".ogg ";
 						soxProcess.StartInfo.UseShellExecute = false;
 
 						soxProcess.Start();
@@ -413,13 +408,13 @@ namespace RSCacheTool
 							if (!incomplete)
 							{
 								//clear space
-								if (File.Exists(soundDir + i + ".ogg"))
-									File.Delete(soundDir + i + ".ogg");
+								if (File.Exists(outFile))
+									File.Delete(outFile);
 
-								File.Move(soundDir + "incomplete\\" + i + ".ogg", soundDir + i + ".ogg");
+								File.Move(soundDir + "incomplete\\" + indexFileIdString + ".ogg", outFile);
 							}
 
-							Console.WriteLine(soundDir + (incomplete ? "incomplete\\" : "") + i + ".ogg");
+							Console.WriteLine(outFile);
 						}
 						else
 							Console.WriteLine("SoX encountered error code " + soxProcess.ExitCode + " and probably didn't finish processing the files.");
@@ -427,8 +422,6 @@ namespace RSCacheTool
 				}
 				else
 					Console.WriteLine("Skipping track because it's incomplete.");
-
-				i++;
 			}
 
 			//cleanup on isle 4
