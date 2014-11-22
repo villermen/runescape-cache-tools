@@ -431,6 +431,54 @@ namespace RSCacheTool
 		}
 
 		/// <summary>
+		/// Returns when a certain string is found in the files.
+		/// Used mainly for debugging (this is e.g. how I found where the sound index was located (by searching for "wildwood"))
+		/// Pauses with info whenever a match has been found.
+		/// </summary>
+		public static void FindInFiles(string needle)
+		{
+			int bufferSize = 10000;
+			byte[] buffer = new byte[bufferSize];
+			for (int archive = 0; archive < 256; archive++)
+			{
+				if (Directory.Exists(outDir + archive))
+				{
+					string[] fileNames = Directory.GetFiles(outDir + archive);
+
+					int i = 0;
+					foreach (string fileName in fileNames)
+					{
+						using (FileStream file = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+						{
+							int offset = 0;
+							int readBytes;
+							do
+							{
+								readBytes = file.Read(buffer, 0, bufferSize);
+
+								string readString = Encoding.Default.GetString(buffer, 0, readBytes);
+								int index = readString.IndexOf(needle, StringComparison.CurrentCultureIgnoreCase);
+								if (index != -1)
+								{
+									Console.WriteLine(fileName + " @ " + offset + index + "B");
+									Console.ReadLine();
+								}
+
+								//dont fully add readBytes, so the next string can find the full match if it started on the end of this buffer but couldn't complete
+								offset += readBytes - needle.Length + 1;
+							}
+							while (readBytes == bufferSize);
+						}
+
+						Console.WriteLine("a" + archive + "f" + i + "/" + (fileNames.Length - 1));
+
+						i++;
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// Reads a given amount of bytes from the stream.
 		/// </summary>
 		public static uint ReadBytes(this Stream stream, byte bytes)
