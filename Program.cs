@@ -8,6 +8,7 @@ using System.Threading;
 using System.Diagnostics;
 using ICSharpCode.SharpZipLib.BZip2;
 using NDesk.Options;
+using System.Text.RegularExpressions;
 
 namespace RSCacheTool
 {
@@ -20,7 +21,7 @@ namespace RSCacheTool
 		{
 			bool error = false;
 
-			bool help = false, extract = false, combine = false, overwrite = false, combineMergeIncomplete = false;
+			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false;
 			int extractArchive = -1, combineArchive = 40;
 
 			OptionSet argsParser = new OptionSet() {
@@ -28,12 +29,17 @@ namespace RSCacheTool
 
 				{ "o", "overwrite existing files, for all actions", val => { overwrite = true; } },
 
-				{ "e", "extract files from cache", val => { extract = true; } },
-				{ "a=", "single archive to extract, if not given all archives will be extracted", val => { extractArchive = Convert.ToInt32(val); } },
+				{ "e:", "extract files from cache, supply a number to extract only a specific archive", val => { 
+					extract = true; 
+					if (!String.IsNullOrEmpty(val))
+						int.TryParse(val, out extractArchive); 
+				}},
 
 				{ "c", "combine sound", val => { combine = true; } },
 				{ "s=", "archive to combine sounds of, defaults to 40", val => { combineArchive = Convert.ToInt32(val); } },
-				{ "i", "merge incomplete files (into special directory)", val => { combineMergeIncomplete = true; } },
+				{ "i", "merge incomplete files (into special directory)", val => { incomplete = true; } },
+
+				{ "n", "try to name music (archive 40, needs archive 17 file 5 too), renames incompletes too if i is set", val => { nameMusic = true; } },
 			};
 
 			List<string> otherArgs = argsParser.Parse(args);
@@ -77,11 +83,18 @@ namespace RSCacheTool
 			}
 			else if (!error)
 			{
+				//create outdir
+				if (!Directory.Exists(outDir))
+					Directory.CreateDirectory(outDir);
+
 				if (extract)
 					ExtractFiles(extractArchive, overwrite);
 
 				if (combine)
-					CombineSounds(combineArchive, overwrite, combineMergeIncomplete);
+					CombineSounds(combineArchive, overwrite, incomplete);
+
+				if (nameMusic)
+					NameMusic(incomplete, overwrite);					
 			}
 
 			return 0;
@@ -116,7 +129,7 @@ namespace RSCacheTool
 						{
 							bool fileError = false;
 
-							indexFile.Seek(fileIndex * 6, SeekOrigin.Begin);
+							indexFile.Position = fileIndex * 6L;
 
 							uint fileSize = indexFile.ReadBytes(3);
 							long startChunkOffset = indexFile.ReadBytes(3) * 520L;
@@ -131,7 +144,7 @@ namespace RSCacheTool
 
 								for (int chunkIndex = 0; writeOffset < fileSize && currentChunkOffset > 0; chunkIndex++)
 								{
-									cacheFile.Seek(currentChunkOffset, SeekOrigin.Begin);
+									cacheFile.Position = currentChunkOffset;
 
 									int chunkSize;
 									int checksumFileIndex = 0;
@@ -344,7 +357,7 @@ namespace RSCacheTool
 
 				using (FileStream indexFileStream = File.Open(indexFileString, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					indexFileStream.Seek(32, SeekOrigin.Begin);
+					indexFileStream.Position = 32L;
 
 					while (indexFileStream.ReadBytes(4) != 0x4f676753)
 					{
@@ -358,7 +371,7 @@ namespace RSCacheTool
 					}
 
 					//copy the first chunk to a temp file so SoX can handle the combining
-					indexFileStream.Seek(-4, SeekOrigin.Current);
+					indexFileStream.Position -= 4L;
 
 					//wait till file is available
 					while (true)
@@ -431,59 +444,140 @@ namespace RSCacheTool
 		}
 
 		/// <summary>
-		/// Returns when a certain string is found in the files.
-		/// Used mainly for debugging (this is e.g. how I found where the sound index was located (by searching for "wildwood"))
-		/// Pauses with info whenever a match has been found.
+		/// Tries to parse Archive 17 file 5 to obtain a list of music and their corresponding index file id in archive 40.
+		/// Returns a dictionary that can resolve index file id to the name of the track as it appears in-game.
 		/// </summary>
-		public static void FindInFiles(string needle)
+		public static void NameMusic(bool incomplete, bool overwrite)
 		{
-			int bufferSize = 10000;
-			byte[] buffer = new byte[bufferSize];
-			for (int archive = 0; archive < 256; archive++)
+			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
+			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
+
+			string resolveFileName = outDir + "17\\5";
+
+			if (File.Exists(resolveFileName))
 			{
-				if (Directory.Exists(outDir + archive))
+				using (FileStream resolveFile = File.Open(resolveFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					string[] fileNames = Directory.GetFiles(outDir + archive);
+					Dictionary<int, string> trackIdNames = new Dictionary<int, string>();
+					Dictionary<uint, int> fileIdTracks = new Dictionary<uint, int>();
 
-					int i = 0;
-					foreach (string fileName in fileNames)
+					byte[] magicNumber = new byte[] {
+						0x00,
+						0x01,
+						0x69,
+						0x02
+					};
+
+					//locate start of the music names (8th magic number) and file ids (12th)
+					long namesStartPos = resolveFile.IndexOf(magicNumber, 8);
+					long filesStartPos = resolveFile.IndexOf(magicNumber, 12);
+
+					if (namesStartPos != -1 && filesStartPos != -1)
 					{
-						using (FileStream file = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+						resolveFile.Position = namesStartPos + 8;
+						uint musicCount = resolveFile.ReadBytes(2);
+						
+						//construct trackIdNames
+						Regex regex = new Regex("[" + Regex.Escape(new string(Path.GetInvalidFileNameChars())) + "]");
+						for(int i = 0; i < musicCount; i++)
 						{
-							int offset = 0;
-							int readBytes;
-							do
-							{
-								readBytes = file.Read(buffer, 0, bufferSize);
+							int trackId = (int)resolveFile.ReadBytes(2);
+							string trackName = resolveFile.ReadNullTerminatedString();
 
-								string readString = Encoding.Default.GetString(buffer, 0, readBytes);
-								int index = readString.IndexOf(needle, StringComparison.CurrentCultureIgnoreCase);
-								if (index != -1)
-								{
-									Console.WriteLine(fileName + " @ " + offset + index + "B");
-									Console.ReadLine();
-								}
+							//remove characters that can't be used in files from trackName
+							trackName = regex.Replace(trackName, "");
 
-								//dont fully add readBytes, so the next string can find the full match if it started on the end of this buffer but couldn't complete
-								offset += readBytes - needle.Length + 1;
-							}
-							while (readBytes == bufferSize);
+							//add only if the string is of any use
+							if (!String.IsNullOrWhiteSpace(trackName))
+								trackIdNames.Add(trackId, trackName);
 						}
 
-						Console.WriteLine("a" + archive + "f" + i + "/" + (fileNames.Length - 1));
+						//construct fileIdTracks
+						resolveFile.Position = filesStartPos + 8;
+						uint fileCount = resolveFile.ReadBytes(2);
+						for (int i = 0; i < fileCount; i++)
+						{
+							int trackId = (int)resolveFile.ReadBytes(2);
+							uint fileId = resolveFile.ReadBytes(4);
 
-						i++;
+							//only add if it doesn't exist already
+							if (!fileIdTracks.ContainsKey(fileId))
+								fileIdTracks.Add(fileId, trackId);
+						}
+
+						//let's do this!
+						if (!Directory.Exists(outDir + "sound\\named\\"))
+							Directory.CreateDirectory(outDir + "sound\\named\\");
+
+						foreach (string file in Directory.GetFiles(outDir + "sound\\"))
+						{
+							string fileIdString = Path.GetFileNameWithoutExtension(file);
+							uint fileId;
+							if (uint.TryParse(fileIdString, out fileId))
+							{
+								if (fileIdTracks.ContainsKey(fileId))
+								{
+									int trackId = fileIdTracks[fileId];
+									if (trackIdNames.ContainsKey(trackId))
+									{
+										string trackName = trackIdNames[trackId];
+										string destFile = outDir + "sound\\named\\" + trackName + ".ogg";
+
+										if (!File.Exists(destFile) || overwrite)
+											File.Copy(file, destFile, true);
+
+										Console.WriteLine(destFile);
+									}
+								}
+							}
+						}
+
+						//redundancy, whatever
+						if (incomplete)
+						{
+							if (!Directory.Exists(outDir + "sound\\named\\incomplete\\"))
+								Directory.CreateDirectory(outDir + "sound\\named\\incomplete");
+
+							foreach (string file in Directory.GetFiles(outDir + "sound\\incomplete\\"))
+							{
+								string fileIdString = Path.GetFileNameWithoutExtension(file);
+								uint fileId;
+								if (uint.TryParse(fileIdString, out fileId))
+								{
+									if (fileIdTracks.ContainsKey(fileId))
+									{
+										int trackId = fileIdTracks[fileId];
+										if (trackIdNames.ContainsKey(trackId))
+										{
+											string trackName = trackIdNames[trackId];
+											string destFile = outDir + "sound\\named\\incomplete\\" + trackName + ".ogg";
+
+											if (!File.Exists(destFile) || overwrite)
+												File.Copy(file, destFile, true);
+
+											Console.WriteLine(destFile);
+										}
+									}
+								}
+							}
+						}
 					}
+					else
+						Console.WriteLine("Entry points within resolving file could not be found.");
 				}
 			}
+			else
+				Console.WriteLine("File for resolving music names (" + resolveFileName + ") does not exist.");
+
+			Console.WriteLine("Done naming music.");
 		}
 
 		/// <summary>
-		/// Reads a given amount of bytes from the stream.
+		/// Reads a given amount of unsigned bytes from the stream and combines them into one unsigned integer.
 		/// </summary>
-		public static uint ReadBytes(this Stream stream, byte bytes)
+		public static uint ReadBytes(this Stream stream, int bytes)
 		{
-			if (bytes == 0 || bytes > 4)
+			if (bytes < 1 || bytes > 4)
 				throw new ArgumentOutOfRangeException();
 
 			uint result = 0;
@@ -493,5 +587,72 @@ namespace RSCacheTool
 
 			return result;
 		}
+
+		/// <summary>
+		/// Reads ANSI characters into a string until \0 or EOF occurs.
+		/// </summary>
+		public static string ReadNullTerminatedString(this Stream stream)
+		{
+			string result = "";
+			int readByte = stream.ReadByte();
+
+			while (readByte > 0)
+			{
+				result += Encoding.Default.GetString(new byte[] { (byte)readByte });
+				readByte = stream.ReadByte();
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
+		/// </summary>
+		public static long IndexOf(this Stream stream, byte[] needle, int matchNumber = 1, int bufferSize = 10000)
+		{
+			//for resetting after method
+			long startPosition = stream.Position;
+
+			byte[] buffer = new byte[bufferSize];
+			int offset = 0, readBytes, matches = 0;
+
+			do
+			{
+				stream.Position = offset;
+				readBytes = stream.Read(buffer, 0, bufferSize);
+
+				for (int pos = 0; pos < readBytes - needle.Length + 1; pos++)
+				{
+					//try to find the rest of the match if the first byte matches
+					int matchIndex = 0;
+					while (buffer[pos + matchIndex] == needle[matchIndex])
+					{
+						//full match found
+						if (matchIndex == needle.Length - 1)
+						{
+							//this is the chosen one, return the position
+							if (++matches == matchNumber)
+							{
+								stream.Position = 0;
+								return offset + pos;
+							}
+
+							break;
+						}
+
+						matchIndex++;
+					}
+				}
+
+				//don't fully add readBytes, so the next string can find the full match if it started on the end of this buffer but couldn't complete
+				offset += readBytes - needle.Length + 1;
+			}
+			while (readBytes == bufferSize);
+
+			//no result
+			stream.Position = startPosition;
+			return -1;
+		}
+
 	}
 }
