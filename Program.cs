@@ -410,6 +410,7 @@ namespace RSCacheTool
 						{
 							soxProcess.StartInfo.Arguments += " " + str;
 						});
+						soxProcess.StartInfo.Arguments += " -C 6 --comment \"Created by RSCacheTool, combined by SoX.\"";
 						soxProcess.StartInfo.Arguments += " " + soundDir + "incomplete\\" + indexFileIdString + ".ogg ";
 						soxProcess.StartInfo.UseShellExecute = false;
 
