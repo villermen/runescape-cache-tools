@@ -21,3 +21,7 @@ A pre-compiled binary is available for [download from my website](https://viller
  - [NDesk.Options](http://www.ndesk.org/Options), a command line argument parser.
  - [SharpZipLip](http://icsharpcode.github.io/SharpZipLib/), a .NET zipping library. Used to decompress archive files
  - [SoX](http://sox.sourceforge.net/) (not included in repository), a command line utility for editing sound files. Used to merge soundchunks.
+
+####Be a nice guy and help me out
+
+If you like this tool you can show your appreciation by helping me complete my music archive. If you have any named extraced music files that do not exist in [my archive](https://villermen.com/browser/?d=music/Runescape%203), please share them with me in whatever way possible (dropbox, drive, puush, you name it). A small PayPal donation (villermen@gmail.com) wouldn't hurt either too!
