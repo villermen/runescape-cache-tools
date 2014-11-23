@@ -94,6 +94,8 @@ namespace RSCacheTool
 				);
 
 				argsParser.WriteOptionDescriptions(Console.Out);
+
+				Console.ReadLine();
 			}
 			else if (!error)
 			{
