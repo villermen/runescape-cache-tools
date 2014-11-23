@@ -391,12 +391,23 @@ namespace RSCacheTool
 							incomplete = true;
 					}
 
-					//copy the index's audio chunk to a temp file so SoX can handle the combining
-					using (FileStream tempIndexFile = File.Open("~index.ogg", FileMode.Create, FileAccess.Write, FileShare.None))
+					//make sure ~index.ogg is not still being used by SoX
+					while (true)
 					{
-						indexFileStream.Position -= 4L; //include OggS
-						indexFileStream.CopyTo(tempIndexFile);
-						break;
+						try
+						{
+							//copy the index's audio chunk to a temp file so SoX can handle the combining
+							using (FileStream tempIndexFile = File.Open("~index.ogg", FileMode.Create, FileAccess.Write, FileShare.None))
+							{
+								indexFileStream.Position -= 4L; //include OggS
+								indexFileStream.CopyTo(tempIndexFile);
+								break;
+							}
+						}
+						catch (IOException)
+						{
+							Thread.Sleep(100);
+						}
 					}
 				}
 
