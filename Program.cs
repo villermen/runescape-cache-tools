@@ -21,8 +21,9 @@ namespace RSCacheTool
 		{
 			bool error = false;
 
-			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false;
+			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false, pauseAfterDone = false;
 			int extractArchive = -1, combineArchive = 40;
+			string combineFile = "";
 
 			OptionSet argsParser = new OptionSet() {
 				{ "h", "show this message", val => { help = true; } },
@@ -30,16 +31,24 @@ namespace RSCacheTool
 				{ "o", "overwrite existing files, for all actions", val => { overwrite = true; } },
 
 				{ "e:", "extract files from cache, supply a number to extract only a specific archive", val => { 
-					extract = true; 
-					if (!String.IsNullOrEmpty(val))
+					extract = true;
+
+					//set val only if it consists solely of numbers
+					if (!String.IsNullOrWhiteSpace(val) && val.All(c => c >= '0' && c <= '9'))
 						int.TryParse(val, out extractArchive); 
 				}},
 
-				{ "c", "combine sound", val => { combine = true; } },
-				{ "s=", "archive to combine sounds of, defaults to 40", val => { combineArchive = Convert.ToInt32(val); } },
+				{ "c:", "combine sound, supply a number to extract from a different archive (defaults to 40)", val => { 
+					combine = true;
+					if (!String.IsNullOrWhiteSpace(val) && val.All(c => c >= '0' && c <= '9'))
+						int.TryParse(val, out combineArchive); 
+				}},
+				{ "f=", "single index file (.jaga) to combine sounds of, if you want to fix just one sound", val => { combineFile = val; } },
 				{ "i", "merge incomplete files (into special directory)", val => { incomplete = true; } },
 
 				{ "n", "try to name music (archive 40, needs archive 17 file 5 too), renames incompletes too if i is set", val => { nameMusic = true; } },
+
+				{ "p", "pause after running (mainly for easier debugging in VS)", val => { pauseAfterDone = true; } }
 			};
 
 			List<string> otherArgs = argsParser.Parse(args);
@@ -91,10 +100,13 @@ namespace RSCacheTool
 					ExtractFiles(extractArchive, overwrite);
 
 				if (combine)
-					CombineSounds(combineArchive, overwrite, incomplete);
+					CombineSounds(combineArchive, combineFile, overwrite, incomplete);
 
 				if (nameMusic)
-					NameMusic(incomplete, overwrite);					
+					NameMusic(incomplete, overwrite);
+
+				if (pauseAfterDone)
+					Console.ReadLine();
 			}
 
 			return 0;
@@ -334,9 +346,9 @@ namespace RSCacheTool
 		}
 
 		/// <summary>
-		/// Combines the sound files (.jag &amp; .ogg) in the specified archive (40 for the build it was made on), and puts them into the soundtracks directory.
+		/// Combines the sound files (.jaga &amp; .ogg) in the specified archive (40 for the build it was made on), and puts them into the soundtracks directory.
 		/// </summary>
-		static void CombineSounds(int archive, bool overwriteExisting, bool mergeIncomplete)
+		static void CombineSounds(int archive, string file, bool overwriteExisting, bool mergeIncomplete)
 		{
 			string archiveDir = outDir + archive + "\\";
 			string soundDir = outDir + "sound\\";
@@ -351,6 +363,10 @@ namespace RSCacheTool
 			foreach (string indexFileString in indexFiles)
 			{
 				string indexFileIdString = Path.GetFileNameWithoutExtension(indexFileString);
+
+				//skip all others if file is set
+				if (!String.IsNullOrWhiteSpace(file) && indexFileIdString != file)
+					continue;
 
 				bool incomplete = false;
 				List<string> chunkFiles = new List<string>();
