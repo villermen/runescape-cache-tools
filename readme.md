@@ -7,10 +7,10 @@ A pre-compiled binary is available for [download from my website](https://viller
 ####RSCacheTool can:
 
  - Extract the entire cache or just one archive into separate files in a given directory. Decompressing and handing out extensions where appropriate.
- - Combine sound chunks (.ogg) from a given archive into full-fledged soundtracks.
+ - Combine sound chunks (.ogg) from a given archive into full-fledged soundtracks. It can even give them their in-game name based on another file from the archive.
 
 ####RSCacheTool makes use of the following tools and libraries:
 
  - [NDesk.Options](http://www.ndesk.org/Options), a command line argument parser.
  - [SharpZipLip](http://icsharpcode.github.io/SharpZipLib/), a .NET zipping library. Used to decompress archive files
- - [SoX](http://sox.sourceforge.net/) (not included in source), a cross-platform command line utility for editing sound files. Used to merge .ogg files.
+ - [SoX](http://sox.sourceforge.net/) (not included in repository), a command line utility for editing sound files. Used to merge soundchunks.
