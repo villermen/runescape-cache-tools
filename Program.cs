@@ -391,24 +391,12 @@ namespace RSCacheTool
 							incomplete = true;
 					}
 
-					//copy the first chunk to a temp file so SoX can handle the combining
-					indexFileStream.Position -= 4L;
-
-					//wait till file is available
-					while (true)
+					//copy the index's audio chunk to a temp file so SoX can handle the combining
+					using (FileStream tempIndexFile = File.Open("~index.ogg", FileMode.Create, FileAccess.Write, FileShare.None))
 					{
-						try
-						{
-							using (FileStream tempIndexFile = File.Open("~index.ogg", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
-							{
-								indexFileStream.CopyTo(tempIndexFile);
-								break;
-							}
-						}
-						catch (IOException)
-						{
-							Thread.Sleep(200);
-						}
+						indexFileStream.Position -= 4L; //include OggS
+						indexFileStream.CopyTo(tempIndexFile);
+						break;
 					}
 				}
 
@@ -458,9 +446,6 @@ namespace RSCacheTool
 				else
 					Console.WriteLine("Skipping track because it's incomplete.");
 			}
-
-			//cleanup on isle 4
-			File.Delete("~index.ogg");
 
 			Console.WriteLine("Done combining sound.");
 		}
