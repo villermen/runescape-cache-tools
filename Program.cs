@@ -23,7 +23,7 @@ namespace RSCacheTool
 
 			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false, pauseAfterDone = false;
 			int extractArchive = -1, combineArchive = 40;
-			string combineFile = "";
+			string combineFile = "", nameFile = "";
 
 			OptionSet argsParser = new OptionSet() {
 				{ "h", "show this message", val => { help = true; } },
@@ -46,7 +46,12 @@ namespace RSCacheTool
 				{ "f=", "single index file (.jaga) to combine sounds of, if you want to fix just one sound", val => { combineFile = val; } },
 				{ "i", "merge incomplete files (into special directory)", val => { incomplete = true; } },
 
-				{ "n", "try to name music (archive 40, needs archive 17 file 5 too), renames incompletes too if i is set", val => { nameMusic = true; } },
+				{ "n:", "try to name music (archive 40, needs archive 17 file 5 too), renames incompletes too if i is set. If a number is suplied it will only name a single file.", val => { 
+					nameMusic = true;
+
+					if (!String.IsNullOrWhiteSpace(val) && val.All(c => c >= '0' && c <= '9'))
+						nameFile = val; 
+				}},
 
 				{ "p", "pause after running (mainly for easier debugging in VS)", val => { pauseAfterDone = true; } }
 			};
@@ -103,7 +108,7 @@ namespace RSCacheTool
 					CombineSounds(combineArchive, combineFile, overwrite, incomplete);
 
 				if (nameMusic)
-					NameMusic(incomplete, overwrite);
+					NameMusic(nameFile, incomplete, overwrite);
 
 				if (pauseAfterDone)
 					Console.ReadLine();
@@ -464,7 +469,7 @@ namespace RSCacheTool
 		/// Tries to parse Archive 17 file 5 to obtain a list of music and their corresponding index file id in archive 40.
 		/// Returns a dictionary that can resolve index file id to the name of the track as it appears in-game.
 		/// </summary>
-		public static void NameMusic(bool incomplete, bool overwrite)
+		public static void NameMusic(string file, bool incomplete, bool overwrite)
 		{
 			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
 			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
@@ -526,9 +531,13 @@ namespace RSCacheTool
 						if (!Directory.Exists(outDir + "sound\\named\\"))
 							Directory.CreateDirectory(outDir + "sound\\named\\");
 
-						foreach (string file in Directory.GetFiles(outDir + "sound\\"))
+						foreach (string soundFile in Directory.GetFiles(outDir + "sound\\"))
 						{
-							string fileIdString = Path.GetFileNameWithoutExtension(file);
+							string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
+
+							if (!String.IsNullOrWhiteSpace(file) && fileIdString != file)
+								continue;
+
 							uint fileId;
 							if (uint.TryParse(fileIdString, out fileId))
 							{
@@ -541,7 +550,7 @@ namespace RSCacheTool
 										string destFile = outDir + "sound\\named\\" + trackName + ".ogg";
 
 										if (!File.Exists(destFile) || overwrite)
-											File.Copy(file, destFile, true);
+											File.Copy(soundFile, destFile, true);
 
 										Console.WriteLine(destFile);
 									}
@@ -555,9 +564,13 @@ namespace RSCacheTool
 							if (!Directory.Exists(outDir + "sound\\named\\incomplete\\"))
 								Directory.CreateDirectory(outDir + "sound\\named\\incomplete");
 
-							foreach (string file in Directory.GetFiles(outDir + "sound\\incomplete\\"))
+							foreach (string soundFile in Directory.GetFiles(outDir + "sound\\incomplete\\"))
 							{
-								string fileIdString = Path.GetFileNameWithoutExtension(file);
+								string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
+
+								if (!String.IsNullOrWhiteSpace(file) && fileIdString != file)
+									continue;
+
 								uint fileId;
 								if (uint.TryParse(fileIdString, out fileId))
 								{
@@ -570,7 +583,7 @@ namespace RSCacheTool
 											string destFile = outDir + "sound\\named\\incomplete\\" + trackName + ".ogg";
 
 											if (!File.Exists(destFile) || overwrite)
-												File.Copy(file, destFile, true);
+												File.Copy(soundFile, destFile, true);
 
 											Console.WriteLine(destFile);
 										}
