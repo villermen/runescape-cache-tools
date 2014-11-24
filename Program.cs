@@ -211,12 +211,17 @@ namespace RSCacheTool
 									string outFileName = fileIndex.ToString();
 									byte[] tempBuffer;
 
+									//remove the first 5 bytes because they are not part of the file
+									tempBuffer = new byte[fileSize - 5];
+									Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
+									buffer = tempBuffer;
+
 									//decompress gzip
-									if (buffer.Length > 10 && (buffer[9] << 8) + buffer[10] == 0x1f8b) //gzip
+									if (buffer.Length > 5 && (buffer[4] << 8) + buffer[5] == 0x1f8b) //gzip
 									{
-										//remove the first 9 bytes cause they seem to be descriptors of sorts (no idea what they do but they are not part of the file)
-										tempBuffer = new byte[fileSize - 9];
-										Array.Copy(buffer, 9, tempBuffer, 0, fileSize - 9);
+										//remove another 4 non-file bytes
+										tempBuffer = new byte[fileSize - 4];
+										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
 										buffer = tempBuffer;
 
 										GZipStream decompressionStream = new GZipStream(new MemoryStream(buffer), CompressionMode.Decompress);
@@ -241,11 +246,11 @@ namespace RSCacheTool
 									}
 
 									//decompress bzip2
-									if (buffer.Length > 14 && buffer[9] == 0x31 && buffer[10] == 0x41 && buffer[11] == 0x59 && buffer[12] == 0x26 && buffer[13] == 0x53 && buffer[14] == 0x59) //bzip2
+									if (buffer.Length > 9 && buffer[4] == 0x31 && buffer[5] == 0x41 && buffer[6] == 0x59 && buffer[7] == 0x26 && buffer[8] == 0x53 && buffer[9] == 0x59) //bzip2
 									{
-										//remove the first 9 bytes cause they seem to be descriptors of sorts (no idea what they do but they are not part of the file)
-										tempBuffer = new byte[fileSize - 9];
-										Array.Copy(buffer, 9, tempBuffer, 0, fileSize - 9);
+										//remove another 4 non-file bytes
+										tempBuffer = new byte[fileSize - 4];
+										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
 										buffer = tempBuffer;
 
 										//prepend file header
@@ -285,43 +290,13 @@ namespace RSCacheTool
 									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4f676753)
 										outFileName += ".ogg";
 
-									//detect ogg: 5 bytes - OggS
-									if (buffer.Length > 8 && (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4f676753)
-									{
-										tempBuffer = new byte[fileSize - 5];
-										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
-										buffer = tempBuffer;
-
-										outFileName += ".ogg";
-									}
-
-									//detect jag: JAGA
+									//detect jaga: JAGA
 									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4a414741)
 										outFileName += ".jaga";
-
-									//detect jag: 5 bytes - JAGA
-									if (buffer.Length > 8 && (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x4a414741)
-									{
-										tempBuffer = new byte[fileSize - 5];
-										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
-										buffer = tempBuffer;
-
-										outFileName += ".jaga";
-									}
 
 									//detect png: .PNG
 									if (buffer.Length > 3 && (uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
 										outFileName += ".png";
-
-									//detect png: 5 bytes - .PNG
-									if (buffer.Length > 8 && (uint)(buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8] == 0x89504e47)
-									{
-										tempBuffer = new byte[fileSize - 5];
-										Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
-										buffer = tempBuffer;
-
-										outFileName += ".png";
-									}
 
 									//create and write file
 									if (!Directory.Exists(outFileDir))
