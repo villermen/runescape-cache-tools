@@ -401,10 +401,11 @@ namespace RSCacheTool
 						//combine the files with sox
 						Console.WriteLine("Running SoX to concatenate ogg audio chunks.");
 
-						Process soxProcess = new Process();
-						soxProcess.StartInfo.FileName = "sox.exe";
+						Process soxProcess = new Process
+						{
+							StartInfo = {FileName = "sox.exe", Arguments = "--combine concatenate ~index.ogg"}
+						};
 
-						soxProcess.StartInfo.Arguments = "--combine concatenate ~index.ogg";
 						chunkFiles.ForEach((str) =>
 						{
 							soxProcess.StartInfo.Arguments += " " + str;
@@ -458,20 +459,27 @@ namespace RSCacheTool
 					Dictionary<int, string> trackIdNames = new Dictionary<int, string>();
 					Dictionary<uint, int> fileIdTracks = new Dictionary<uint, int>();
 
-					byte[] magicNumber = {
+					//locate start of names and file ids
+					byte[] namesMagicNumber = {
 						0x00,
-						0x01,
-						0x69,
-						0x02
+						0x66,
+						0x24,
+						0x07
 					};
 
-					//locate start of the music names (8th magic number) and file ids (12th)
-					long namesStartPos = resolveFile.IndexOf(magicNumber, 8);
-					long filesStartPos = resolveFile.IndexOf(magicNumber, 12);
+					byte[] filesMagicNumber = {
+						0x00,
+						0x66,
+						0x0b,
+						0x08
+					};
+
+					long namesStartPos = resolveFile.IndexOf(namesMagicNumber);
+					long filesStartPos = resolveFile.IndexOf(filesMagicNumber);
 
 					if (namesStartPos != -1 && filesStartPos != -1)
 					{
-						resolveFile.Position = namesStartPos + 8;
+						resolveFile.Position = namesStartPos + 6;
 						uint musicCount = resolveFile.ReadBytes(2);
 						
 						//construct trackIdNames
@@ -490,7 +498,7 @@ namespace RSCacheTool
 						}
 
 						//construct fileIdTracks
-						resolveFile.Position = filesStartPos + 8;
+						resolveFile.Position = filesStartPos + 6;
 						uint fileCount = resolveFile.ReadBytes(2);
 						for (int i = 0; i < fileCount; i++)
 						{
