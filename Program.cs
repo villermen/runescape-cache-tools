@@ -209,12 +209,12 @@ namespace RSCacheTool
 									//process file
 									string outFileDir = outDir + archiveIndex + "\\";
 									string outFileName = fileIndex.ToString();
-									byte[] tempBuffer;
 
 									//remove the first 5 bytes because they are not part of the file
-									tempBuffer = new byte[fileSize - 5];
+									byte[] tempBuffer = new byte[fileSize - 5];
 									Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
 									buffer = tempBuffer;
+									fileSize -= 5;
 
 									//decompress gzip
 									if (buffer.Length > 5 && (buffer[4] << 8) + buffer[5] == 0x1f8b) //gzip
@@ -223,6 +223,7 @@ namespace RSCacheTool
 										tempBuffer = new byte[fileSize - 4];
 										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
 										buffer = tempBuffer;
+										fileSize -= 4;
 
 										GZipStream decompressionStream = new GZipStream(new MemoryStream(buffer), CompressionMode.Decompress);
 
@@ -252,9 +253,10 @@ namespace RSCacheTool
 										tempBuffer = new byte[fileSize - 4];
 										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
 										buffer = tempBuffer;
+										fileSize -= 4;
 
 										//prepend file header
-										byte[] magic = new byte[] {
+										byte[] magic = {
 											0x42, 0x5a, //BZ (signature)
 											0x68,		//h (version)
 											0x31		//*100kB block-size
@@ -456,7 +458,7 @@ namespace RSCacheTool
 					Dictionary<int, string> trackIdNames = new Dictionary<int, string>();
 					Dictionary<uint, int> fileIdTracks = new Dictionary<uint, int>();
 
-					byte[] magicNumber = new byte[] {
+					byte[] magicNumber = {
 						0x00,
 						0x01,
 						0x69,
