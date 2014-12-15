@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace RSCacheTool
 {
 	static class Program
 	{
-		static string cacheDir = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\jagexcache\runescape\LIVE\");
-		static string outDir = "cache\\";
+		static string _cacheDir = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\jagexcache\runescape\LIVE\");
+		static string _outDir = "cache\\";
 
 		static int Main(string[] args)
 		{
@@ -25,7 +26,7 @@ namespace RSCacheTool
 			int extractArchive = -1, combineArchive = 40;
 			string combineFile = "", nameFile = "";
 
-			OptionSet argsParser = new OptionSet() {
+			OptionSet argsParser = new OptionSet {
 				{ "h", "show this message", val => { help = true; } },
 
 				{ "o", "overwrite existing files, for all actions", val => { overwrite = true; } },
@@ -68,10 +69,15 @@ namespace RSCacheTool
 
 				if (Directory.Exists(parsedPath))
 				{
-					if (i == 0)
-						outDir = parsedPath;
-					else if (i == 1)
-						cacheDir = parsedPath;
+					switch (i)
+					{
+						case 0:
+							_outDir = parsedPath;
+							break;
+						case 1:
+							_cacheDir = parsedPath;
+							break;
+					}
 				}
 				else
 				{
@@ -100,8 +106,8 @@ namespace RSCacheTool
 			else if (!error)
 			{
 				//create outdir
-				if (!Directory.Exists(outDir))
-					Directory.CreateDirectory(outDir);
+				if (!Directory.Exists(_outDir))
+					Directory.CreateDirectory(_outDir);
 
 				if (extract)
 					ExtractFiles(extractArchive, overwrite);
@@ -132,195 +138,195 @@ namespace RSCacheTool
 				endArchive = archive;
 			}
 
-			using (FileStream cacheFile = File.Open(cacheDir + "main_file_cache.dat2", FileMode.Open, FileAccess.Read))
+			using (FileStream cacheFile = File.Open(_cacheDir + "main_file_cache.dat2", FileMode.Open, FileAccess.Read))
 			{
 				for (int archiveIndex = startArchive; archiveIndex <= endArchive; archiveIndex++)
 				{
-					string indexFileString = cacheDir + "main_file_cache.idx" + archiveIndex.ToString();
+					string indexFileString = _cacheDir + "main_file_cache.idx" + archiveIndex;
 
-					if (File.Exists(indexFileString))
+					if (!File.Exists(indexFileString)) 
+						continue;
+
+					FileStream indexFile = File.Open(indexFileString, FileMode.Open, FileAccess.Read);
+
+					int fileCount = (int)indexFile.Length / 6;
+
+					for (int fileIndex = 0; fileIndex < fileCount; fileIndex++)
 					{
-						FileStream indexFile = File.Open(indexFileString, FileMode.Open, FileAccess.Read);
+						bool fileError = false;
 
-						int fileCount = (int)indexFile.Length / 6;
+						indexFile.Position = fileIndex * 6L;
 
-						for (int fileIndex = 0; fileIndex < fileCount; fileIndex++)
-						{
-							bool fileError = false;
+						uint fileSize = indexFile.ReadBytes(3);
+						long startChunkOffset = indexFile.ReadBytes(3) * 520L;
 
-							indexFile.Position = fileIndex * 6L;
-
-							uint fileSize = indexFile.ReadBytes(3);
-							long startChunkOffset = indexFile.ReadBytes(3) * 520L;
-
-							//Console.WriteLine("New file: archive: {0} file: {1} offset: {3} size: {2}", archiveIndex, fileIndex, fileSize, startChunkOffset);
+						//Console.WriteLine("New file: archive: {0} file: {1} offset: {3} size: {2}", archiveIndex, fileIndex, fileSize, startChunkOffset);
  
-							if (fileSize > 0 && startChunkOffset > 0 && startChunkOffset + fileSize <= cacheFile.Length)
+						if (fileSize > 0 && startChunkOffset > 0 && startChunkOffset + fileSize <= cacheFile.Length)
+						{
+							byte[] buffer = new byte[fileSize];
+							int writeOffset = 0;
+							long currentChunkOffset = startChunkOffset;
+
+							for (int chunkIndex = 0; writeOffset < fileSize && currentChunkOffset > 0; chunkIndex++)
 							{
-								byte[] buffer = new byte[fileSize];
-								int writeOffset = 0;
-								long currentChunkOffset = startChunkOffset;
+								cacheFile.Position = currentChunkOffset;
 
-								for (int chunkIndex = 0; writeOffset < fileSize && currentChunkOffset > 0; chunkIndex++)
+								int chunkSize;
+								int checksumFileIndex = 0;
+
+								if (fileIndex < 65536)
 								{
-									cacheFile.Position = currentChunkOffset;
+									chunkSize = (int)Math.Min(512, fileSize - writeOffset);
+								}
+								else
+								{
+									//if file index exceeds 2 bytes, add 65536 and read 2(?) extra bytes
+									chunkSize = (int)Math.Min(510, fileSize - writeOffset);
 
-									int chunkSize;
-									int checksumFileIndex = 0;
-
-									if (fileIndex < 65536)
-									{
-										chunkSize = (int)Math.Min(512, fileSize - writeOffset);
-									}
-									else
-									{
-										//if file index exceeds 2 bytes, add 65536 and read 2(?) extra bytes
-										chunkSize = (int)Math.Min(510, fileSize - writeOffset);
-
-										cacheFile.ReadByte();
-										checksumFileIndex = (cacheFile.ReadByte() << 16);
-									}
-
-									checksumFileIndex += (int)cacheFile.ReadBytes(2);
-									int checksumChunkIndex = (int)cacheFile.ReadBytes(2);
-									long nextChunkOffset = cacheFile.ReadBytes(3) * 520L;
-									int checksumArchiveIndex = cacheFile.ReadByte();
-
-									//Console.WriteLine("Chunk {2}: archive: {3} file: {1} size: {0} nextoffset: {4}", chunkSize, checksumFileIndex, checksumChunkIndex, checksumArchiveIndex, nextChunkOffset);
-
-									if (checksumFileIndex == fileIndex && checksumChunkIndex == chunkIndex && checksumArchiveIndex == archiveIndex &&
-										nextChunkOffset >= 0 && nextChunkOffset < cacheFile.Length)
-									{
-										cacheFile.Read(buffer, writeOffset, chunkSize);
-										writeOffset += chunkSize;
-										currentChunkOffset = nextChunkOffset;
-									}
-									else
-									{
-										Console.WriteLine("Ignoring file because a chunk's checksum doesn't match, ideally should not happen.");
-
-										fileError = true;
-										break;
-									}
+									cacheFile.ReadByte();
+									checksumFileIndex = (cacheFile.ReadByte() << 16);
 								}
 
-								if (!fileError)
+								checksumFileIndex += (int)cacheFile.ReadBytes(2);
+								int checksumChunkIndex = (int)cacheFile.ReadBytes(2);
+								long nextChunkOffset = cacheFile.ReadBytes(3) * 520L;
+								int checksumArchiveIndex = cacheFile.ReadByte();
+
+								//Console.WriteLine("Chunk {2}: archive: {3} file: {1} size: {0} nextoffset: {4}", chunkSize, checksumFileIndex, checksumChunkIndex, checksumArchiveIndex, nextChunkOffset);
+
+								if (checksumFileIndex == fileIndex && checksumChunkIndex == chunkIndex && checksumArchiveIndex == archiveIndex &&
+								    nextChunkOffset >= 0 && nextChunkOffset < cacheFile.Length)
 								{
-									//process file
-									string outFileDir = outDir + archiveIndex + "\\";
-									string outFileName = fileIndex.ToString();
+									cacheFile.Read(buffer, writeOffset, chunkSize);
+									writeOffset += chunkSize;
+									currentChunkOffset = nextChunkOffset;
+								}
+								else
+								{
+									Console.WriteLine("Ignoring file because a chunk's checksum doesn't match, ideally should not happen.");
 
-									//remove the first 5 bytes because they are not part of the file
-									byte[] tempBuffer = new byte[fileSize - 5];
-									Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
-									buffer = tempBuffer;
-									fileSize -= 5;
+									fileError = true;
+									break;
+								}
+							}
 
-									//decompress gzip
-									if (buffer.Length > 5 && (buffer[4] << 8) + buffer[5] == 0x1f8b) //gzip
-									{
-										//remove another 4 non-file bytes
-										tempBuffer = new byte[fileSize - 4];
-										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
-										buffer = tempBuffer;
-										fileSize -= 4;
+							if (fileError) 
+								continue;
 
-										GZipStream decompressionStream = new GZipStream(new MemoryStream(buffer), CompressionMode.Decompress);
+							//process file
+							string outFileDir = _outDir + archiveIndex + "\\";
+							string outFileName = fileIndex.ToString(CultureInfo.InvariantCulture);
 
-										int readBytes;
-										tempBuffer = new byte[0];
+							//remove the first 5 bytes because they are not part of the file
+							byte[] tempBuffer = new byte[fileSize - 5];
+							Array.Copy(buffer, 5, tempBuffer, 0, fileSize - 5);
+							buffer = tempBuffer;
+							fileSize -= 5;
 
-										do
-										{
-											byte[] readBuffer = new byte[100000];
-											readBytes = decompressionStream.Read(readBuffer, 0, 100000);
+							//decompress gzip
+							if (buffer.Length > 5 && (buffer[4] << 8) + buffer[5] == 0x1f8b) //gzip
+							{
+								//remove another 4 non-file bytes
+								tempBuffer = new byte[fileSize - 4];
+								Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
+								buffer = tempBuffer;
+								fileSize -= 4;
 
-											int storedBytes = tempBuffer.Length;
-											Array.Resize(ref tempBuffer, tempBuffer.Length + readBytes);
-											Array.Copy(readBuffer, 0, tempBuffer, storedBytes, readBytes);
-										}
-										while (readBytes == 100000);
+								GZipStream decompressionStream = new GZipStream(new MemoryStream(buffer), CompressionMode.Decompress);
 
-										buffer = tempBuffer;
+								int readBytes;
+								tempBuffer = new byte[0];
 
-										Console.WriteLine("File decompressed as gzip.");
-									}
+								do
+								{
+									byte[] readBuffer = new byte[100000];
+									readBytes = decompressionStream.Read(readBuffer, 0, 100000);
 
-									//decompress bzip2
-									if (buffer.Length > 9 && buffer[4] == 0x31 && buffer[5] == 0x41 && buffer[6] == 0x59 && buffer[7] == 0x26 && buffer[8] == 0x53 && buffer[9] == 0x59) //bzip2
-									{
-										//remove another 4 non-file bytes
-										tempBuffer = new byte[fileSize - 4];
-										Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
-										buffer = tempBuffer;
-										fileSize -= 4;
+									int storedBytes = tempBuffer.Length;
+									Array.Resize(ref tempBuffer, tempBuffer.Length + readBytes);
+									Array.Copy(readBuffer, 0, tempBuffer, storedBytes, readBytes);
+								}
+								while (readBytes == 100000);
 
-										//prepend file header
-										byte[] magic = {
-											0x42, 0x5a, //BZ (signature)
-											0x68,		//h (version)
-											0x31		//*100kB block-size
-										};
+								buffer = tempBuffer;
 
-										tempBuffer = new byte[magic.Length + buffer.Length];
-										magic.CopyTo(tempBuffer, 0);
-										buffer.CopyTo(tempBuffer, magic.Length);
-										buffer = tempBuffer;
+								Console.WriteLine("File decompressed as gzip.");
+							}
 
-										BZip2InputStream decompressionStream = new BZip2InputStream(new MemoryStream(buffer));
+							//decompress bzip2
+							if (buffer.Length > 9 && buffer[4] == 0x31 && buffer[5] == 0x41 && buffer[6] == 0x59 && buffer[7] == 0x26 && buffer[8] == 0x53 && buffer[9] == 0x59) //bzip2
+							{
+								//remove another 4 non-file bytes
+								tempBuffer = new byte[fileSize - 4];
+								Array.Copy(buffer, 4, tempBuffer, 0, fileSize - 4);
+								buffer = tempBuffer;
+								//fileSize -= 4;
 
-										int readBytes;
-										tempBuffer = new byte[0];
+								//prepend file header
+								byte[] magic = {
+									0x42, 0x5a, //BZ (signature)
+									0x68,		//h (version)
+									0x31		//*100kB block-size
+								};
 
-										do
-										{
-											byte[] readBuffer = new byte[100000];
-											readBytes = decompressionStream.Read(readBuffer, 0, 100000);
+								tempBuffer = new byte[magic.Length + buffer.Length];
+								magic.CopyTo(tempBuffer, 0);
+								buffer.CopyTo(tempBuffer, magic.Length);
+								buffer = tempBuffer;
 
-											int storedBytes = tempBuffer.Length;
-											Array.Resize(ref tempBuffer, tempBuffer.Length + readBytes);
-											Array.Copy(readBuffer, 0, tempBuffer, storedBytes, readBytes);
-										}
-										while (readBytes == 100000);
+								BZip2InputStream decompressionStream = new BZip2InputStream(new MemoryStream(buffer));
 
-										buffer = tempBuffer;
+								int readBytes;
+								tempBuffer = new byte[0];
 
-										Console.WriteLine("File decompressed as bzip2.");														
-									}
+								do
+								{
+									byte[] readBuffer = new byte[100000];
+									readBytes = decompressionStream.Read(readBuffer, 0, 100000);
 
-									//detect ogg: OggS
-									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4f676753)
-										outFileName += ".ogg";
+									int storedBytes = tempBuffer.Length;
+									Array.Resize(ref tempBuffer, tempBuffer.Length + readBytes);
+									Array.Copy(readBuffer, 0, tempBuffer, storedBytes, readBytes);
+								}
+								while (readBytes == 100000);
 
-									//detect jaga: JAGA
-									if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4a414741)
-										outFileName += ".jaga";
+								buffer = tempBuffer;
 
-									//detect png: .PNG
-									if (buffer.Length > 3 && (uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
-										outFileName += ".png";
+								Console.WriteLine("File decompressed as bzip2.");														
+							}
 
-									//create and write file
-									if (!Directory.Exists(outFileDir))
-										Directory.CreateDirectory(outFileDir);
+							//detect ogg: OggS
+							if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4f676753)
+								outFileName += ".ogg";
 
-									//(over)write file
-									if (!File.Exists(outFileDir + outFileName) || overwriteExisting)
-									{
-										using (FileStream outFile = File.Open(outFileDir + outFileName, FileMode.Create, FileAccess.Write))
-										{
-											outFile.Write(buffer, 0, buffer.Length);
-											Console.WriteLine(outFileDir + outFileName);
-										}
-									}
-									else
-										Console.WriteLine("Skipping file because it already exists.");
+							//detect jaga: JAGA
+							if (buffer.Length > 3 && (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x4a414741)
+								outFileName += ".jaga";
+
+							//detect png: .PNG
+							if (buffer.Length > 3 && (uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
+								outFileName += ".png";
+
+							//create and write file
+							if (!Directory.Exists(outFileDir))
+								Directory.CreateDirectory(outFileDir);
+
+							//(over)write file
+							if (!File.Exists(outFileDir + outFileName) || overwriteExisting)
+							{
+								using (FileStream outFile = File.Open(outFileDir + outFileName, FileMode.Create, FileAccess.Write))
+								{
+									outFile.Write(buffer, 0, buffer.Length);
+									Console.WriteLine(outFileDir + outFileName);
 								}
 							}
 							else
-							{
-								Console.WriteLine("Ignoring file because of size or offset.");
-							}
+								Console.WriteLine("Skipping file because it already exists.");
+						}
+						else
+						{
+							Console.WriteLine("Ignoring file because of size or offset.");
 						}
 					}
 				}
@@ -334,8 +340,8 @@ namespace RSCacheTool
 		/// </summary>
 		static void CombineSounds(int archive, string file, bool overwriteExisting, bool mergeIncomplete)
 		{
-			string archiveDir = outDir + archive + "\\";
-			string soundDir = outDir + "sound\\";
+			string archiveDir = _outDir + archive + "\\";
+			string soundDir = _outDir + "sound\\";
 
 			//gather all index files
 			string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga", SearchOption.TopDirectoryOnly);
@@ -406,7 +412,7 @@ namespace RSCacheTool
 							StartInfo = {FileName = "sox.exe", Arguments = "--combine concatenate ~index.ogg"}
 						};
 
-						chunkFiles.ForEach((str) =>
+						chunkFiles.ForEach(str =>
 						{
 							soxProcess.StartInfo.Arguments += " " + str;
 						});
@@ -450,7 +456,7 @@ namespace RSCacheTool
 			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
 			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
 
-			string resolveFileName = outDir + "17\\5";
+			string resolveFileName = _outDir + "17\\5";
 
 			if (File.Exists(resolveFileName))
 			{
@@ -511,10 +517,10 @@ namespace RSCacheTool
 						}
 
 						//let's do this!
-						if (!Directory.Exists(outDir + "sound\\named\\"))
-							Directory.CreateDirectory(outDir + "sound\\named\\");
+						if (!Directory.Exists(_outDir + "sound\\named\\"))
+							Directory.CreateDirectory(_outDir + "sound\\named\\");
 
-						foreach (string soundFile in Directory.GetFiles(outDir + "sound\\"))
+						foreach (string soundFile in Directory.GetFiles(_outDir + "sound\\"))
 						{
 							string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
 
@@ -522,32 +528,33 @@ namespace RSCacheTool
 								continue;
 
 							uint fileId;
-							if (uint.TryParse(fileIdString, out fileId))
-							{
-								if (fileIdTracks.ContainsKey(fileId))
-								{
-									int trackId = fileIdTracks[fileId];
-									if (trackIdNames.ContainsKey(trackId))
-									{
-										string trackName = trackIdNames[trackId];
-										string destFile = outDir + "sound\\named\\" + trackName + ".ogg";
+							if (!uint.TryParse(fileIdString, out fileId)) 
+								continue;
 
-										if (!File.Exists(destFile) || overwrite)
-											File.Copy(soundFile, destFile, true);
+							if (!fileIdTracks.ContainsKey(fileId)) 
+								continue;
 
-										Console.WriteLine(destFile);
-									}
-								}
-							}
+							int trackId = fileIdTracks[fileId];
+							if (!trackIdNames.ContainsKey(trackId))
+								continue;
+
+							string trackName = trackIdNames[trackId];
+							string destFile = _outDir + "sound\\named\\" + trackName + ".ogg";
+
+							if (File.Exists(destFile) && !overwrite) 
+								continue;
+
+							File.Copy(soundFile, destFile, true);
+							Console.WriteLine(destFile);
 						}
 
 						//redundancy, whatever
 						if (incomplete)
 						{
-							if (!Directory.Exists(outDir + "sound\\named\\incomplete\\"))
-								Directory.CreateDirectory(outDir + "sound\\named\\incomplete");
+							if (!Directory.Exists(_outDir + "sound\\named\\incomplete\\"))
+								Directory.CreateDirectory(_outDir + "sound\\named\\incomplete");
 
-							foreach (string soundFile in Directory.GetFiles(outDir + "sound\\incomplete\\"))
+							foreach (string soundFile in Directory.GetFiles(_outDir + "sound\\incomplete\\"))
 							{
 								string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
 
@@ -555,23 +562,24 @@ namespace RSCacheTool
 									continue;
 
 								uint fileId;
-								if (uint.TryParse(fileIdString, out fileId))
-								{
-									if (fileIdTracks.ContainsKey(fileId))
-									{
-										int trackId = fileIdTracks[fileId];
-										if (trackIdNames.ContainsKey(trackId))
-										{
-											string trackName = trackIdNames[trackId];
-											string destFile = outDir + "sound\\named\\incomplete\\" + trackName + ".ogg";
+								if (!uint.TryParse(fileIdString, out fileId)) 
+									continue;
 
-											if (!File.Exists(destFile) || overwrite)
-												File.Copy(soundFile, destFile, true);
+								if (!fileIdTracks.ContainsKey(fileId)) 
+									continue;
 
-											Console.WriteLine(destFile);
-										}
-									}
-								}
+								int trackId = fileIdTracks[fileId];
+								if (!trackIdNames.ContainsKey(trackId)) 
+									continue;
+
+								string trackName = trackIdNames[trackId];
+								string destFile = _outDir + "sound\\named\\incomplete\\" + trackName + ".ogg";
+
+								if (File.Exists(destFile) && !overwrite) 
+									continue;
+
+								File.Copy(soundFile, destFile, true);
+								Console.WriteLine(destFile);
 							}
 						}
 					}
