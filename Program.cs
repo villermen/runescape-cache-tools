@@ -15,8 +15,8 @@ namespace RSCacheTool
 {
 	static class Program
 	{
-		static string _cacheDir = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\jagexcache\runescape\LIVE\");
-		static string _outDir = "cache\\";
+		static string _cacheDir = Path.Combine(Environment.ExpandEnvironmentVariables(@"%USERPROFILE%"), "jagexcache", "runescape", "LIVE");
+		static string _outDir = "cache";
 
 		static int Main(string[] args)
 		{
@@ -62,8 +62,6 @@ namespace RSCacheTool
 			for (int i = 0; i < otherArgs.Count; i++)
 			{
 				string parsedPath = otherArgs[i];
-				if (!parsedPath.EndsWith("\\"))
-					parsedPath += "\\";
 
 				parsedPath = Environment.ExpandEnvironmentVariables(parsedPath);
 
@@ -138,11 +136,11 @@ namespace RSCacheTool
 				endArchive = archive;
 			}
 
-			using (FileStream cacheFile = File.Open(_cacheDir + "main_file_cache.dat2", FileMode.Open, FileAccess.Read))
+			using (FileStream cacheFile = File.Open(Path.Combine(_cacheDir, "main_file_cache.dat2"), FileMode.Open, FileAccess.Read))
 			{
 				for (int archiveIndex = startArchive; archiveIndex <= endArchive; archiveIndex++)
 				{
-					string indexFileString = _cacheDir + "main_file_cache.idx" + archiveIndex;
+					string indexFileString = Path.Combine(_cacheDir, "main_file_cache.idx" + archiveIndex);
 
 					if (!File.Exists(indexFileString)) 
 						continue;
@@ -215,7 +213,7 @@ namespace RSCacheTool
 								continue;
 
 							//process file
-							string outFileDir = _outDir + archiveIndex + "\\";
+							string outFileDir = Path.Combine(_outDir, archiveIndex.ToString());
 							string outFileName = fileIndex.ToString(CultureInfo.InvariantCulture);
 
 							//remove the first 5 bytes because they are not part of the file
@@ -313,12 +311,12 @@ namespace RSCacheTool
 								Directory.CreateDirectory(outFileDir);
 
 							//(over)write file
-							if (!File.Exists(outFileDir + outFileName) || overwriteExisting)
+							if (!File.Exists(Path.Combine(outFileDir, outFileName)) || overwriteExisting)
 							{
-								using (FileStream outFile = File.Open(outFileDir + outFileName, FileMode.Create, FileAccess.Write))
+								using (FileStream outFile = File.Open(Path.Combine(outFileDir, outFileName), FileMode.Create, FileAccess.Write))
 								{
 									outFile.Write(buffer, 0, buffer.Length);
-									Console.WriteLine(outFileDir + outFileName);
+									Console.WriteLine(Path.Combine(outFileDir, outFileName));
 								}
 							}
 							else
@@ -340,15 +338,15 @@ namespace RSCacheTool
 		/// </summary>
 		static void CombineSounds(int archive, string file, bool overwriteExisting, bool mergeIncomplete)
 		{
-			string archiveDir = _outDir + archive + "\\";
-			string soundDir = _outDir + "sound\\";
+			string archiveDir = Path.Combine(_outDir, archive.ToString());
+			string soundDir = Path.Combine(_outDir, "sound");
 
 			//gather all index files
 			string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga", SearchOption.TopDirectoryOnly);
 
 			//create directories
-			if (!Directory.Exists(soundDir + "incomplete\\"))
-				Directory.CreateDirectory(soundDir + "incomplete\\");
+			if (!Directory.Exists(Path.Combine(soundDir, "incomplete")))
+				Directory.CreateDirectory(Path.Combine(soundDir, "incomplete"));
 
 			foreach (string indexFileString in indexFiles)
 			{
@@ -370,8 +368,8 @@ namespace RSCacheTool
 						uint fileId = indexFileStream.ReadBytes(4);
 
 						//check if the file exists and add it to the buffer if it does
-						if (File.Exists(archiveDir + fileId + ".ogg"))
-							chunkFiles.Add(archiveDir + fileId + ".ogg");
+						if (File.Exists(Path.Combine(archiveDir, fileId + ".ogg")))
+							chunkFiles.Add(Path.Combine(archiveDir, fileId + ".ogg"));
 						else
 							incomplete = true;
 					}
@@ -398,7 +396,11 @@ namespace RSCacheTool
 
 				if (!incomplete || incomplete && mergeIncomplete)
 				{
-					string outFile = soundDir + (incomplete ? "incomplete\\" : "") + indexFileIdString + ".ogg";
+					string outFile;
+					if (incomplete)
+						outFile = Path.Combine(soundDir, "incomplete", indexFileIdString + ".ogg");
+					else
+						outFile = Path.Combine(soundDir, indexFileIdString + ".ogg");
 
 					if (!overwriteExisting && File.Exists(outFile))
 						Console.WriteLine("Skipping track because it already exists.");
@@ -409,7 +411,7 @@ namespace RSCacheTool
 
 						Process soxProcess = new Process
 						{
-							StartInfo = {FileName = "sox.exe", Arguments = "--combine concatenate ~index.ogg"}
+							StartInfo = {FileName = "sox", Arguments = "--combine concatenate ~index.ogg"}
 						};
 
 						chunkFiles.ForEach(str =>
@@ -417,7 +419,7 @@ namespace RSCacheTool
 							soxProcess.StartInfo.Arguments += " " + str;
 						});
 						soxProcess.StartInfo.Arguments += " -C 6 --comment \"Created by RSCacheTool, combined by SoX.\"";
-						soxProcess.StartInfo.Arguments += " " + soundDir + "incomplete\\" + indexFileIdString + ".ogg ";
+						soxProcess.StartInfo.Arguments += " " + Path.Combine(soundDir, "incomplete", indexFileIdString + ".ogg ");
 						soxProcess.StartInfo.UseShellExecute = false;
 
 						soxProcess.Start();
@@ -431,7 +433,7 @@ namespace RSCacheTool
 								if (File.Exists(outFile))
 									File.Delete(outFile);
 
-								File.Move(soundDir + "incomplete\\" + indexFileIdString + ".ogg", outFile);
+								File.Move(Path.Combine(soundDir, "incomplete", indexFileIdString + ".ogg"), outFile);
 							}
 
 							Console.WriteLine(outFile);
@@ -456,7 +458,7 @@ namespace RSCacheTool
 			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
 			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
 
-			string resolveFileName = _outDir + "17\\5";
+			string resolveFileName = Path.Combine(_outDir, "17", "5");
 
 			if (File.Exists(resolveFileName))
 			{
@@ -517,10 +519,10 @@ namespace RSCacheTool
 						}
 
 						//let's do this!
-						if (!Directory.Exists(_outDir + "sound\\named\\"))
-							Directory.CreateDirectory(_outDir + "sound\\named\\");
+						if (!Directory.Exists(Path.Combine(_outDir, "sound", "named")))
+							Directory.CreateDirectory(Path.Combine(_outDir, "sound", "named"));
 
-						foreach (string soundFile in Directory.GetFiles(_outDir + "sound\\"))
+						foreach (string soundFile in Directory.GetFiles(Path.Combine(_outDir, "sound")))
 						{
 							string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
 
@@ -539,7 +541,7 @@ namespace RSCacheTool
 								continue;
 
 							string trackName = trackIdNames[trackId];
-							string destFile = _outDir + "sound\\named\\" + trackName + ".ogg";
+							string destFile = Path.Combine(_outDir, "sound", "named", trackName + ".ogg");
 
 							if (File.Exists(destFile) && !overwrite) 
 								continue;
@@ -551,10 +553,10 @@ namespace RSCacheTool
 						//redundancy, whatever
 						if (incomplete)
 						{
-							if (!Directory.Exists(_outDir + "sound\\named\\incomplete\\"))
-								Directory.CreateDirectory(_outDir + "sound\\named\\incomplete");
+							if (!Directory.Exists(Path.Combine(_outDir, "sound", "named", "incomplete")))
+								Directory.CreateDirectory(Path.Combine(_outDir, "sound", "named", "incomplete"));
 
-							foreach (string soundFile in Directory.GetFiles(_outDir + "sound\\incomplete\\"))
+							foreach (string soundFile in Directory.GetFiles(Path.Combine(_outDir, "sound", "incomplete")))
 							{
 								string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
 
@@ -573,7 +575,7 @@ namespace RSCacheTool
 									continue;
 
 								string trackName = trackIdNames[trackId];
-								string destFile = _outDir + "sound\\named\\incomplete\\" + trackName + ".ogg";
+								string destFile = Path.Combine(_outDir,"sound", "named", "incomplete", trackName + ".ogg");
 
 								if (File.Exists(destFile) && !overwrite) 
 									continue;
