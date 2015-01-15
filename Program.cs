@@ -343,6 +343,8 @@ namespace RSCacheTool
 			string archiveDir = _outDir + archive + "/";
 			string soundDir = _outDir + "sound/";
 
+			PlatformID platform = Environment.OSVersion.Platform;
+
 			//gather all index files
 			string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga", SearchOption.TopDirectoryOnly);
 
@@ -407,9 +409,11 @@ namespace RSCacheTool
 						//combine the files with sox
 						Console.WriteLine("Running SoX to concatenate ogg audio chunks.");
 
+						string soxExecutable = (platform == PlatformID.MacOSX) ? "sox.dmg" : "sox";
+
 						Process soxProcess = new Process
 						{
-							StartInfo = {FileName = "sox.exe", Arguments = "--combine concatenate ~index.ogg"}
+							StartInfo = {FileName = soxExecutable, Arguments = "--combine concatenate ~index.ogg"}
 						};
 
 						chunkFiles.ForEach(str =>

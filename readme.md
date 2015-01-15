@@ -26,7 +26,7 @@ A pre-compiled binary is available for [download from my website](https://viller
 
 In Debian and derivatives (Ubuntu, Mint) download the build dependencies and build like this:
 
-	$ apt-get install mono-mcs mono-xbuild
+	$ apt-get install mono-mcs mono-xbuild sox
 	$ xbuild /p:Configuration=Release RSCacheTool.csproj
 
 
