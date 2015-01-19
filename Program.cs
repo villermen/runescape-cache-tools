@@ -22,7 +22,7 @@ namespace RSCacheTool
 		{
 			bool error = false;
 
-			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false, pauseAfterDone = false;
+			bool help = false, extract = false, combine = false, overwrite = false, incomplete = false, nameMusic = false, pauseAfterDone = false, lossless = false;
 			int extractArchive = -1, combineArchive = 40;
 			string combineFile = "", nameFile = "";
 
@@ -42,10 +42,11 @@ namespace RSCacheTool
 				{ "c:", "combine sound, supply a number to extract from a different archive (defaults to 40)", val => { 
 					combine = true;
 					if (!String.IsNullOrWhiteSpace(val) && val.All(c => c >= '0' && c <= '9'))
-						int.TryParse(val, out combineArchive); 
+						int.TryParse(val, out combineArchive);
 				}},
 				{ "f=", "single index file (.jaga) to combine sounds of, if you want to fix just one sound", val => { combineFile = val; } },
 				{ "i", "merge incomplete files (into special directory)", val => { incomplete = true; } },
+				{ "l", "combine files losslessly (.flac format)", val => { lossless = true; } },
 
 				{ "n:", "try to name music (archive 40, needs archive 17 file 5 too), renames incompletes too if i is set. If a number is suplied it will only name a single file.", val => { 
 					nameMusic = true;
@@ -100,8 +101,6 @@ namespace RSCacheTool
 				);
 
 				argsParser.WriteOptionDescriptions(Console.Out);
-
-				Console.ReadLine();
 			}
 			else if (!error)
 			{
@@ -113,14 +112,14 @@ namespace RSCacheTool
 					ExtractFiles(extractArchive, overwrite);
 
 				if (combine)
-					CombineSounds(combineArchive, combineFile, overwrite, incomplete);
+					CombineSounds(combineArchive, combineFile, overwrite, incomplete, lossless);
 
 				if (nameMusic)
 					NameMusic(nameFile, incomplete, overwrite);
-
-				if (pauseAfterDone)
-					Console.ReadLine();
 			}
+
+			if (pauseAfterDone)
+				Console.ReadLine();
 
 			return 0;
 		}
@@ -338,7 +337,7 @@ namespace RSCacheTool
 		/// <summary>
 		/// Combines the sound files (.jaga &amp; .ogg) in the specified archive (40 for the build it was made on), and puts them into the soundtracks directory.
 		/// </summary>
-		static void CombineSounds(int archive, string file, bool overwriteExisting, bool mergeIncomplete)
+		static void CombineSounds(int archive, string file, bool overwriteExisting, bool mergeIncomplete, bool lossless)
 		{
 			string archiveDir = _outDir + archive + "/";
 			string soundDir = _outDir + "sound/";
@@ -400,7 +399,7 @@ namespace RSCacheTool
 
 				if (!incomplete || incomplete && mergeIncomplete)
 				{
-					string outFile = soundDir + (incomplete ? "incomplete/" : "") + indexFileIdString + ".ogg";
+					string outFile = soundDir + (incomplete ? "incomplete/" : "") + indexFileIdString + "." + (lossless ? "flac" : "ogg");
 
 					if (!overwriteExisting && File.Exists(outFile))
 						Console.WriteLine("Skipping track because it already exists.");
@@ -409,19 +408,21 @@ namespace RSCacheTool
 						//combine the files with sox
 						Console.WriteLine("Running SoX to concatenate ogg audio chunks.");
 
-						string soxExecutable = (platform == PlatformID.MacOSX) ? "sox.dmg" : "sox";
-
 						Process soxProcess = new Process
 						{
-							StartInfo = {FileName = soxExecutable, Arguments = "--combine concatenate ~index.ogg"}
+							StartInfo =
+							{
+								FileName = "sox",
+								UseShellExecute = false,
+							}
 						};
 
+						soxProcess.StartInfo.Arguments = "--combine concatenate ~index.ogg";
 						chunkFiles.ForEach(str =>
 						{
 							soxProcess.StartInfo.Arguments += " " + str;
 						});
-						soxProcess.StartInfo.Arguments += " -C 6 --comment \"Created by RSCacheTool, combined by SoX.\"";
-						soxProcess.StartInfo.Arguments += " " + soundDir + "incomplete/" + indexFileIdString + ".ogg ";
+						soxProcess.StartInfo.Arguments += " -C 6 --comment \"Created by RSCacheTool, combined by SoX.\" ~out." + (lossless ? "flac" : "ogg");
 						soxProcess.StartInfo.UseShellExecute = false;
 
 						soxProcess.Start();
@@ -429,14 +430,25 @@ namespace RSCacheTool
 
 						if (soxProcess.ExitCode == 0)
 						{
-							if (!incomplete)
-							{
-								//clear space
-								if (File.Exists(outFile))
-									File.Delete(outFile);
+							//move to it's final destination
+							if (File.Exists(outFile))
+								File.Delete(outFile);
 
-								File.Move(soundDir + "incomplete/" + indexFileIdString + ".ogg", outFile);
-							}
+							//wait until unlocked (if locked)
+							bool moved = false;
+							do
+							{
+								try
+								{
+									File.Move("~out." + (lossless ? "flac" : "ogg"), outFile);
+									moved = true;
+								}
+								catch (IOException)
+								{
+									Console.WriteLine("File was locked for moving, retrying in 100ms.");
+									Thread.Sleep(100);
+								}
+							} while (!moved);				
 
 							Console.WriteLine(outFile);
 						}
@@ -527,6 +539,7 @@ namespace RSCacheTool
 						foreach (string soundFile in Directory.GetFiles(_outDir + "sound/"))
 						{
 							string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
+							string extension = Path.GetExtension(soundFile);
 
 							if (!String.IsNullOrWhiteSpace(file) && fileIdString != file)
 								continue;
@@ -543,7 +556,7 @@ namespace RSCacheTool
 								continue;
 
 							string trackName = trackIdNames[trackId];
-							string destFile = _outDir + "sound/named/" + trackName + ".ogg";
+							string destFile = _outDir + "sound/named/" + trackName + extension;
 
 							if (File.Exists(destFile) && !overwrite) 
 								continue;
@@ -561,6 +574,7 @@ namespace RSCacheTool
 							foreach (string soundFile in Directory.GetFiles(_outDir + "sound/incomplete/"))
 							{
 								string fileIdString = Path.GetFileNameWithoutExtension(soundFile);
+								string extension = Path.GetExtension(soundFile);
 
 								if (!String.IsNullOrWhiteSpace(file) && fileIdString != file)
 									continue;
@@ -577,7 +591,7 @@ namespace RSCacheTool
 									continue;
 
 								string trackName = trackIdNames[trackId];
-								string destFile = _outDir + "sound/named/incomplete/" + trackName + ".ogg";
+								string destFile = _outDir + "sound/named/incomplete/" + trackName + extension;
 
 								if (File.Exists(destFile) && !overwrite) 
 									continue;
