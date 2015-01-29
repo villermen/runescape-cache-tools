@@ -12,7 +12,7 @@ A pre-compiled binary is available for [download from my website](https://viller
 ####Usage examples:
 
  - Get help: `rscachetool`, done.
- - If you're aiming only at ripping named complete music from your cache these are your 2 golden commands: `rscachetool -e=40 -c` and `rscachetool -e=17 -n`.
+ - If you're aiming only at ripping named complete music from your cache these are your 2 golden commands: `rscachetool -e=40 -c` and `rscachetool -e=17 -o -n`.
  - Extract all archives, combine music (including incomplete) and try to name the tracks `rscachetool -e -c -i -n`.
  - Recombine sound 21713.jaga extracted to D:\cache and rename it `rscachetool -c -f=21713 -o -n=21713 D:\cache`. (Basically this tries to fix a file if SoX mangled it before.)
 
