@@ -1,3 +1,5 @@
+#####A big rework of the code and the implementation of a GUI have made this readme pretty dated. I will update it soon.
+
 #RSCacheTool
 
 ######A command line tool written in C# for extracting and manipulating RuneScape's cache files.
