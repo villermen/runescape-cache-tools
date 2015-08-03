@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace RunescapeCacheTools
+namespace RuneScapeCacheTools
 {
 	public static class Soundtrack
 	{

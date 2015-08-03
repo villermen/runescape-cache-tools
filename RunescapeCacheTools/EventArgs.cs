@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RunescapeCacheTools
+namespace RuneScapeCacheTools
 {
 	public class ExtractProgressChangedEventArgs : EventArgs
 	{

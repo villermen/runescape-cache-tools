@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunescapeCacheTools", "RunescapeCacheTools\RunescapeCacheTools.csproj", "{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheTools", "RunescapeCacheTools\RuneScapeCacheTools.csproj", "{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunescapeCacheToolsGUIOld", "RunescapeCacheToolsGUIOld\RunescapeCacheToolsGUIOld.csproj", "{722D3FF9-C3E9-40D9-B68A-3FA1C304A34C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunescapeCacheToolsGUI", "RunescapeCacheToolsGUI\RunescapeCacheToolsGUI.csproj", "{D0C222F1-8E7B-4A84-870C-39A65D2B522B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheToolsGUI", "RunescapeCacheToolsGUI\RuneScapeCacheToolsGUI.csproj", "{D0C222F1-8E7B-4A84-870C-39A65D2B522B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +17,6 @@ Global
 		{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{722D3FF9-C3E9-40D9-B68A-3FA1C304A34C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{722D3FF9-C3E9-40D9-B68A-3FA1C304A34C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{722D3FF9-C3E9-40D9-B68A-3FA1C304A34C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{722D3FF9-C3E9-40D9-B68A-3FA1C304A34C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0C222F1-8E7B-4A84-870C-39A65D2B522B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0C222F1-8E7B-4A84-870C-39A65D2B522B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0C222F1-8E7B-4A84-870C-39A65D2B522B}.Release|Any CPU.ActiveCfg = Release|Any CPU

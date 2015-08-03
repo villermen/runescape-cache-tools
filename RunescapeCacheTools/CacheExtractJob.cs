@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.BZip2;
 
-namespace RunescapeCacheTools
+namespace RuneScapeCacheTools
 {
 	public class CacheExtractJob
 	{
@@ -49,7 +49,7 @@ namespace RunescapeCacheTools
 		/// <summary>
 		/// Fires when a new message has been added to the log.
 		/// </summary>
-		public event EventHandler<string> LogAdded;
+		public event CacheExtractJobEventHandler<string> LogAdded;
 
 		private CacheExtractJob()
 		{
@@ -135,7 +135,7 @@ namespace RunescapeCacheTools
 						{
 							//obtain list of all files in archive
 							if (FileIds == null)
-								FileIds = Enumerable.Range(0, (int)indexFile.Length / 6).ToList();
+								FileIds = Enumerable.Range(65533, (int)indexFile.Length / 6).ToList(); //todo: turn back to 0
 
 							foreach (int fileId in FileIds)
 							{

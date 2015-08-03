@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using RunescapeCacheTools;
+using RuneScapeCacheTools;
 
-namespace RunescapeCacheToolsGUI
+namespace RuneScapeCacheToolsGUI
 {
 	/// <summary>
 	/// Interaction logic for ExtractJobUserControl.xaml
@@ -23,6 +23,7 @@ namespace RunescapeCacheToolsGUI
 			job.ProgressChanged += Job_ProgressChanged;
 			job.Finished += Job_Finished;
 			job.Started += Job_Started;
+			job.LogAdded += Job_LogAdded;
 		}
 
 		private void Job_Started(CacheExtractJob sender, EventArgs args)
@@ -58,8 +59,18 @@ namespace RunescapeCacheToolsGUI
 				return;
 			}
 
-			statusLabel.Content = $"{args.ArchiveId}/{args.FileId}";
 			progressBar.Value = args.Progress;
+		}
+
+		private void Job_LogAdded(CacheExtractJob sender, string message)
+		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.Invoke(() => Job_LogAdded(sender, message));
+				return;
+			}
+
+			statusLabel.Content = message;
 		}
 
 		private void actionButton_Click(object sender, RoutedEventArgs e)

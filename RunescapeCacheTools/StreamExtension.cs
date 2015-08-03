@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace RunescapeCacheTools
+namespace RuneScapeCacheTools
 {
 	public static class StreamExtension
 	{

@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation.Peers;
 using System.Windows.Controls;
-using System.Windows.Input;
-using RunescapeCacheTools;
+using RuneScapeCacheTools;
 using WinForms = System.Windows.Forms;
 
-namespace RunescapeCacheToolsGUI
+namespace RuneScapeCacheToolsGUI
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
