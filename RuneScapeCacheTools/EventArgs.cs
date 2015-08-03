@@ -2,18 +2,14 @@
 
 namespace RuneScapeCacheTools
 {
-	public class ExtractProgressChangedEventArgs : EventArgs
+	public class ProgressChangedEventArgs : EventArgs
 	{
-		public readonly int ArchiveId;
-		public readonly int FileId;
 		public readonly int Done;
 		public readonly int Total;
 		public readonly float Progress;
 
-		public ExtractProgressChangedEventArgs(int archiveId, int fileId, int done, int total)
+		public ProgressChangedEventArgs(int done, int total)
 		{
-			ArchiveId = archiveId;
-			FileId = fileId;
 			Done = done;
 			Total = total;
 

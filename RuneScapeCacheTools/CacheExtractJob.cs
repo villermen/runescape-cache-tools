@@ -10,7 +10,7 @@ using ICSharpCode.SharpZipLib.BZip2;
 
 namespace RuneScapeCacheTools
 {
-	public class CacheExtractJob
+	public class CacheExtractJob : CacheJob
 	{
 		/// <summary>
 		/// The archives to extract files of.
@@ -24,38 +24,9 @@ namespace RuneScapeCacheTools
 
 		public bool OverwriteExistingFiles { get; set; }
 
-		public bool IsStarted { get; private set; }
-		public bool IsFinished { get; private set; }
-		public bool IsCanceled { get; private set; }
-
-		public bool CanCancel => IsStarted && !IsFinished;
-
-		public delegate void CacheExtractJobEventHandler(CacheExtractJob sender, EventArgs args);
-		public delegate void CacheExtractJobEventHandler<TEventArgs>(CacheExtractJob sender, TEventArgs args);
-
-		/// <summary>
-		/// Will fire when a new job is created.
-		/// </summary>
-		public static event CacheExtractJobEventHandler JobCreated;
-
-		public event CacheExtractJobEventHandler Started;
-		public event CacheExtractJobEventHandler Finished;
-		public event CacheExtractJobEventHandler Canceled;
-
-		/// <summary>
-		/// Fires when progress on the current job has changed.
-		/// When a file has been processed (not necessarily extracted).
-		/// </summary>
-		public event CacheExtractJobEventHandler<ExtractProgressChangedEventArgs> ProgressChanged;
-
-		/// <summary>
-		/// Fires when a new message has been added to the log.
-		/// </summary>
-		public event CacheExtractJobEventHandler<string> LogAdded;
-
 		private CacheExtractJob()
 		{
-			JobCreated?.Invoke(this, EventArgs.Empty);
+			OnJobCreated(this, EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -117,7 +88,7 @@ namespace RuneScapeCacheTools
 				throw new ArgumentException("At least one archive must be set for extraction."); 
 
 			IsStarted = true;
-			Started?.Invoke(this, EventArgs.Empty);
+			OnStarted(this, EventArgs.Empty);
 
 			//obtain total amount of files (in multi-archive mode)
 			int totalFiles = FileIds?.Count ??
@@ -144,7 +115,7 @@ namespace RuneScapeCacheTools
 								//exit loop when canceled
 								if (IsCanceled)
 								{
-									Canceled?.Invoke(this, EventArgs.Empty);
+									OnCanceled(this, EventArgs.Empty);
 									break;
 								}
 
@@ -240,7 +211,7 @@ namespace RuneScapeCacheTools
 								else
 									Log(fileDisplayName + ": Ignored because of size or offset.");
 
-								ProgressChanged?.Invoke(this, new ExtractProgressChangedEventArgs(archiveId, fileId, ++processedFiles, totalFiles));
+								OnProgressChanged(this, new ProgressChangedEventArgs(++processedFiles, totalFiles));
 							}
 						}
 					}
@@ -248,15 +219,7 @@ namespace RuneScapeCacheTools
 			});
 
 			IsFinished = true;
-			Finished?.Invoke(this, EventArgs.Empty);
-		}
-
-		public void Cancel()
-		{
-			if (!CanCancel)
-				throw new InvalidOperationException("Job must be cancelable.");
-
-			IsCanceled = true;
+			OnFinished(this, EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -348,7 +311,7 @@ namespace RuneScapeCacheTools
 		/// </summary>
 		private void Log(string message)
 		{
-			LogAdded?.Invoke(this, message);
+			OnLogAdded(this, message);
 		}
 	}
 }

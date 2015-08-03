@@ -32,7 +32,7 @@ namespace RuneScapeCacheToolsGUI
 			outputDirectoryTextBox.Text = Cache.OutputDirectory;
 			UpdateCacheView();
 
-			CacheExtractJob.JobCreated += RegisterNewJob;
+			CacheJob.Created += RegisterNewJob;
 		}
 
 		/// <summary>
@@ -258,9 +258,9 @@ namespace RuneScapeCacheToolsGUI
 		/// <summary>
 		/// Creates a new user control for the job and adds it to the stackpanel
 		/// </summary>
-		private void RegisterNewJob(CacheExtractJob sender, EventArgs args)
+		private void RegisterNewJob(CacheJob sender, EventArgs args)
 		{
-			var userControl = new ExtractJobUserControl(sender);
+			var userControl = new CacheJobUserControl(sender);
 			jobsStackPanel.Children.Add(userControl);
 		}
 

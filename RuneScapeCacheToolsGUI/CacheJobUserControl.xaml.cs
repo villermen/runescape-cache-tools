@@ -7,13 +7,13 @@ using RuneScapeCacheTools;
 namespace RuneScapeCacheToolsGUI
 {
 	/// <summary>
-	/// Interaction logic for ExtractJobUserControl.xaml
+	/// Interaction logic for CacheJobUserControl.xaml
 	/// </summary>
-	public partial class ExtractJobUserControl
+	public partial class CacheJobUserControl
 	{
-		public readonly CacheExtractJob Job;
+		public readonly CacheJob Job;
 
-		public ExtractJobUserControl(CacheExtractJob job)
+		public CacheJobUserControl(CacheJob job)
 		{
 			InitializeComponent();
 
@@ -26,7 +26,7 @@ namespace RuneScapeCacheToolsGUI
 			job.LogAdded += Job_LogAdded;
 		}
 
-		private void Job_Started(CacheExtractJob sender, EventArgs args)
+		private void Job_Started(CacheJob sender, EventArgs args)
 		{
 			if (!Dispatcher.CheckAccess())
 			{
@@ -38,7 +38,7 @@ namespace RuneScapeCacheToolsGUI
 			actionButton.Content = "Cancel";
 		}
 
-		private void Job_Finished(CacheExtractJob sender, EventArgs args)
+		private void Job_Finished(CacheJob sender, EventArgs args)
 		{
 			if (!Dispatcher.CheckAccess())
 			{
@@ -51,7 +51,7 @@ namespace RuneScapeCacheToolsGUI
 			actionButton.Content = "Close";
 		}
 
-		private void Job_ProgressChanged(CacheExtractJob sender, ExtractProgressChangedEventArgs args)
+		private void Job_ProgressChanged(CacheJob sender, ProgressChangedEventArgs args)
 		{
 			if (!Dispatcher.CheckAccess())
 			{
@@ -62,7 +62,7 @@ namespace RuneScapeCacheToolsGUI
 			progressBar.Value = args.Progress;
 		}
 
-		private void Job_LogAdded(CacheExtractJob sender, string message)
+		private void Job_LogAdded(CacheJob sender, string message)
 		{
 			if (!Dispatcher.CheckAccess())
 			{
