@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -114,7 +115,8 @@ namespace RuneScapeCacheTools
 
 		private static string FindFile(int archiveId, int fileId)
 		{
-			var files = Directory.EnumerateFiles(archiveId + "/" + fileId + "*").Where(file => Regex.IsMatch(file,
+			//find it by the start of the file first, and then do a more robust check to see if it's actually the desired file
+			var files = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/{fileId}*").Where(file => Regex.IsMatch(file,
 				$@"[^\d]{archiveId}(/|\\){fileId}(\..+)$")).ToList();
 
 			return files.FirstOrDefault();

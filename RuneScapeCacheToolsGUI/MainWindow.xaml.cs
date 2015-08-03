@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RuneScapeCacheTools;
 using WinForms = System.Windows.Forms;
 
@@ -17,9 +19,12 @@ namespace RuneScapeCacheToolsGUI
 	public partial class MainWindow
 	{
 		private bool _canExtract;
+		private Dictionary<string, object> _config = new Dictionary<string, object>(); 
 
 		public MainWindow()
 		{
+			LoadConfig();
+
 			InitializeComponent();
 
 			//initialize view
@@ -122,6 +127,10 @@ namespace RuneScapeCacheToolsGUI
 				Cache.OutputDirectory = dirDialog.SelectedPath;
 
 			outputDirectoryTextBox.Text = Cache.OutputDirectory;
+
+			_config["outputDirectory"] = Cache.OutputDirectory;
+
+			SaveConfig();
 		}
 
 		private void UpdateCacheView()
@@ -259,6 +268,24 @@ namespace RuneScapeCacheToolsGUI
 		{
 			Cache.CacheDirectory = Cache.DefaultCacheDirectory;
 			UpdateCacheView();
+		}
+
+		private void SaveConfig()
+		{
+			File.WriteAllText(Cache.TempDirectory + "config.json", JsonConvert.SerializeObject(_config));
+		}
+
+		private void LoadConfig()
+		{
+			try
+			{
+				_config = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+					File.ReadAllText(Cache.TempDirectory + "config.json"));
+
+				if (_config.ContainsKey("outputDirectory"))
+					Cache.OutputDirectory = (string)_config["outputDirectory"];
+			}
+			catch (FileNotFoundException) { }
 		}
 	}
 }

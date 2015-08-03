@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 
 namespace RuneScapeCacheTools
@@ -8,7 +9,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Reads a given amount of unsigned bytes from the stream and combines them into one unsigned integer.
 		/// </summary>
-		public static uint ReadBytes(this System.IO.Stream stream, int bytes)
+		public static uint ReadBytes(this Stream stream, int bytes)
 		{
 			if (bytes < 1 || bytes > 4)
 				throw new ArgumentOutOfRangeException();
@@ -24,7 +25,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Reads ANSI characters into a string until \0 or EOF occurs.
 		/// </summary>
-		public static string ReadNullTerminatedString(this System.IO.Stream stream)
+		public static string ReadNullTerminatedString(this Stream stream)
 		{
 			string result = "";
 			int readByte = stream.ReadByte();
@@ -41,7 +42,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
 		/// </summary>
-		public static long IndexOf(this System.IO.Stream stream, byte[] needle, int matchNumber = 1, int bufferSize = 10000)
+		public static long IndexOf(this Stream stream, byte[] needle, int matchNumber = 1, int bufferSize = 10000)
 		{
 			//for resetting after method
 			long startPosition = stream.Position;

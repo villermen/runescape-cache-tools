@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.BZip2;
 
@@ -135,11 +137,11 @@ namespace RuneScapeCacheTools
 						{
 							//obtain list of all files in archive
 							if (FileIds == null)
-								FileIds = Enumerable.Range(65533, (int)indexFile.Length / 6).ToList(); //todo: turn back to 0
+								FileIds = Enumerable.Range(0, (int)indexFile.Length / 6).ToList(); //todo: turn back to 0
 
 							foreach (int fileId in FileIds)
 							{
-								//exit loop when cancelled
+								//exit loop when canceled
 								if (IsCanceled)
 								{
 									Canceled?.Invoke(this, EventArgs.Empty);
@@ -158,7 +160,7 @@ namespace RuneScapeCacheTools
 								if (fileSize > 0 && startChunkOffset > 0 && startChunkOffset + fileSize <= cacheFile.Length)
 								{
 									byte[] buffer = new byte[fileSize];
-									int writeOffset = 0;
+									int writeOffset = 0; //point to which we are writing to the buffer
 									long currentChunkOffset = startChunkOffset;
 
 									for (int chunkIndex = 0; writeOffset < fileSize && currentChunkOffset > 0; chunkIndex++)
@@ -177,7 +179,7 @@ namespace RuneScapeCacheTools
 											//if file index exceeds 2 bytes, add 65536 and read 2(?) extra bytes
 											chunkSize = (int)Math.Min(510, fileSize - writeOffset);
 
-											//cacheFile.ReadByte();
+											cacheFile.ReadByte(); //this appears to always be 0
 											checksumFileIndex = (cacheFile.ReadByte() << 16);
 										}
 
