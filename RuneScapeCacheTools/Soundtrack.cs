@@ -15,14 +15,7 @@ namespace RuneScapeCacheTools
 			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
 			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
 
-			string resolveFileName = Cache.OutputDirectory + "17/5";
-
-			//extract resolvefile, forcing an update
-			new CacheExtractJob(17, 5, true).Start();
-
-			//if it still doesn't exist after extracting, throw exception
-			if (!File.Exists(resolveFileName))
-				throw new FileNotFoundException("Archive 17 file 5 did not get extracted properly.");
+			string resolveFileName = Cache.GetFile(17, 5, true);
 
 			using (FileStream resolveFile = File.OpenRead(resolveFileName))
 			{

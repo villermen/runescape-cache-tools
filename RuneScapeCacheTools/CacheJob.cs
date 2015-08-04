@@ -1,12 +1,77 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace RuneScapeCacheTools
 {
 	public abstract class CacheJob
 	{
-		public bool IsStarted { get; protected set; }
-		public bool IsFinished { get; protected set; }
-		public bool IsCanceled { get; protected set; }
+		private bool _isStarted;
+		private bool _isFinished;
+		private bool _isCanceled;
+
+		public bool IsStarted
+		{
+			get
+			{
+				return _isStarted;
+			}
+
+			protected set
+			{
+				if (value && _isStarted)
+					throw new InvalidOperationException("Job is already started.");
+
+				if (!value)
+					throw new InvalidOperationException("Cannot unstart job.");
+
+				_isStarted = true;
+				Started?.Invoke(this, EventArgs.Empty);
+			}
+		}
+
+		public bool IsFinished
+		{
+			get
+			{
+				return _isFinished;
+			}
+
+			protected set
+			{
+				if (value && _isFinished)
+					throw new InvalidOperationException("Job has already finished.");
+
+				if (!value)
+					throw new InvalidOperationException("Cannot unfinish job.");
+
+				_isFinished = true;
+				Finished?.Invoke(this, EventArgs.Empty);
+			}
+		}
+
+		public bool IsCanceled
+		{
+			get
+			{
+				return _isCanceled;
+			}
+
+			protected set
+			{
+				if (value && _isCanceled)
+					throw new InvalidOperationException("Job has already been canceled.");
+
+				if (!value)
+					throw new InvalidOperationException("Cannot uncancel job.");
+
+				_isCanceled = true;
+				Canceled?.Invoke(this, EventArgs.Empty);
+			}
+		}
+
+		public bool IsRunning => IsStarted && !IsFinished;
+
+		public bool CanCancel => IsRunning;
 
 		public delegate void CacheJobEventHandler(CacheJob sender, EventArgs args);
 		public delegate void CacheJobEventHandler<TEventArgs>(CacheJob sender, TEventArgs args);
@@ -30,47 +95,34 @@ namespace RuneScapeCacheTools
 		/// </summary>
 		public event CacheJobEventHandler<string> LogAdded;
 
+		protected CacheJob()
+		{
+			Created?.Invoke(this, EventArgs.Empty);
+		}
+
+		public void Start()
+		{
+			StartAsync().ConfigureAwait(true);
+		}
+
+		public abstract Task StartAsync();
+
 		public void Cancel()
 		{
-			if (!CanCancel())
+			if (!CanCancel)
 				throw new InvalidOperationException("Job must be cancelable.");
 
 			IsCanceled = true;
 		}
 
-		public bool CanCancel()
+		protected void ReportProgress(int done, int total)
 		{
-			return IsStarted && !IsFinished;
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(done, total));
 		}
 
-		protected void OnJobCreated(CacheJob sender, EventArgs args)
+		protected void Log(string args)
 		{
-			Created?.Invoke(sender, args);
-		}
-
-		protected void OnStarted(CacheJob sender, EventArgs args)
-		{
-			Started?.Invoke(sender, args);
-		}
-
-		protected void OnFinished(CacheJob sender, EventArgs args)
-		{
-			Finished?.Invoke(sender, args);
-		}
-
-		protected void OnCanceled(CacheJob sender, EventArgs args)
-		{
-			Canceled?.Invoke(sender, args);
-		}
-
-		protected void OnProgressChanged(CacheJob sender, ProgressChangedEventArgs args)
-		{
-			ProgressChanged?.Invoke(sender, args);
-		}
-
-		protected void OnLogAdded(CacheJob sender, string args)
-		{
-			LogAdded?.Invoke(sender, args);
+			LogAdded?.Invoke(this, args);
 		}
 	}
 }

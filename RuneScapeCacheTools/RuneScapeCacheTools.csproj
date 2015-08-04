@@ -51,6 +51,7 @@
     <Compile Include="CacheJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Soundtrack.cs" />
+    <Compile Include="SoundtrackCombineJob.cs" />
     <Compile Include="StreamExtension.cs" />
   </ItemGroup>
   <ItemGroup>

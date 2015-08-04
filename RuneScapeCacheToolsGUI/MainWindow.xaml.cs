@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RuneScapeCacheTools;
 using WinForms = System.Windows.Forms;
 
@@ -33,59 +32,6 @@ namespace RuneScapeCacheToolsGUI
 			UpdateCacheView();
 
 			CacheJob.Created += RegisterNewJob;
-		}
-
-		/// <summary>
-		/// Exports and shows obtained track names.
-		/// </summary>
-		private void exportNamesSoundtrackToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				//obtain track list
-				var tracks = Soundtrack.GetTrackNames();
-
-				//export to file
-				using (var tracklistFile = new StreamWriter(File.Open(Cache.OutputDirectory + "tracknames.csv", FileMode.Create)))
-				{
-					//write headers
-
-					tracklistFile.WriteLine("File Id,Name");
-
-					foreach (var track in tracks)
-						tracklistFile.WriteLine($"{track.Key},\"{track.Value}\"");
-				}
-
-				//show file
-				Process.Start(Cache.OutputDirectory + "tracknames.csv");
-			}
-			catch (Exception ex)
-			{
-				DisplayError("Could not create track list.", ex);
-			}
-		}
-
-		private void showMissingTracksToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				string namedSoundtrackDir = Cache.OutputDirectory + "soundtrack/named/";
-				var tracks = Soundtrack.GetTrackNames();
-
-				List<string> missingTracks = new List<string>();
-
-				foreach (var track in tracks)
-				{
-					if (!Directory.EnumerateFiles(namedSoundtrackDir, track.Value + ".*").Any())
-						missingTracks.Add(track.Value);
-				}
-
-				MessageBox.Show("The following tracks are missing: \n" + missingTracks.Aggregate((acc, track) => acc + track + "\n"));
-			}
-			catch (Exception ex)
-			{
-				DisplayError("Could not create missing track list.", ex);
-			}
 		}
 
 		private static void DisplayError(string message, Exception exception)
@@ -260,6 +206,12 @@ namespace RuneScapeCacheToolsGUI
 		/// </summary>
 		private void RegisterNewJob(CacheJob sender, EventArgs args)
 		{
+			if (!Dispatcher.CheckAccess())
+			{
+				Dispatcher.Invoke(() => RegisterNewJob(sender, args));
+				return;
+			}
+
 			var userControl = new CacheJobUserControl(sender);
 			jobsStackPanel.Children.Add(userControl);
 		}
@@ -286,6 +238,92 @@ namespace RuneScapeCacheToolsGUI
 					Cache.OutputDirectory = (string)_config["outputDirectory"];
 			}
 			catch (FileNotFoundException) { }
+		}
+
+		private async void createSoundtrackDefaultMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			if (!_canExtract)
+			{
+				MessageBox.Show("Cannot extract at this time.");
+				return;
+			}
+
+			await new SoundtrackCombineJob().StartAsync();
+		}
+
+		private async void createSoundtrackLosslessMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			if (!_canExtract)
+			{
+				MessageBox.Show("Cannot extract at this time.");
+				return;
+			}
+
+			await new SoundtrackCombineJob(true, true).StartAsync();
+		}
+
+		/// <summary>
+		/// Exports and shows obtained track names.
+		/// </summary>
+		private void showSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				//obtain track list
+				var tracks = Soundtrack.GetTrackNames();
+
+				//export to file
+				using (var tracklistFile = new StreamWriter(File.Open(Cache.OutputDirectory + "tracknames.csv", FileMode.Create)))
+				{
+					//write headers
+
+					tracklistFile.WriteLine("File Id,Name");
+
+					foreach (var track in tracks)
+						tracklistFile.WriteLine($"{track.Key},\"{track.Value}\"");
+				}
+
+				//show file
+				Process.Start(Cache.OutputDirectory + "tracknames.csv");
+			}
+			catch (Exception ex)
+			{
+				DisplayError("Could not create track list.", ex);
+			}
+		}
+
+		private void showMissingSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				string namedSoundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var tracks = Soundtrack.GetTrackNames();
+
+				List<string> missingTracks = new List<string>();
+
+				foreach (var track in tracks)
+				{
+					if (!Directory.EnumerateFiles(namedSoundtrackDir, track.Value + ".*").Any())
+						missingTracks.Add(track.Value);
+				}
+
+				MessageBox.Show("The following tracks are missing: \n" + missingTracks.Aggregate((acc, track) => acc + track + "\n"));
+			}
+			catch (Exception ex)
+			{
+				DisplayError("Could not create missing track list.", ex);
+			}
+		}
+
+		private void showSoundtrackDirectoryMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			{
+				MessageBox.Show("Soundtrack directory hasn't been created yet.");
+				return;
+			}
+
+			Process.Start(Cache.OutputDirectory + "soundtrack/");
 		}
 	}
 }

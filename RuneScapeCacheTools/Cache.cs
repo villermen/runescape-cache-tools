@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -92,7 +91,7 @@ namespace RuneScapeCacheTools
 		/// Returns a path to a specified output file.
 		/// </summary>
 		/// <exception cref="FileNotFoundException"></exception>
-		public static string GetFile(int archiveId, int fileId, bool extractOnFailure)
+		public static string GetFile(int archiveId, int fileId, bool extractOnFailure = false)
 		{
 			//quick filter and then regex filter to decide whether the file is actually what we're looking for
 			string file = FindFile(archiveId, fileId);
@@ -115,9 +114,9 @@ namespace RuneScapeCacheTools
 
 		private static string FindFile(int archiveId, int fileId)
 		{
-			//find it by the start of the file first, and then do a more robust check to see if it's actually the desired file
-			var files = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/{fileId}*").Where(file => Regex.IsMatch(file,
-				$@"[^\d]{archiveId}(/|\\){fileId}(\..+)$")).ToList();
+			//find it by the start of the file first, then do a regex filter against the result to filter out false positives (e.g. 5 would match 534.ogg)
+			var files = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
+				.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$")).ToList();
 
 			return files.FirstOrDefault();
 		}

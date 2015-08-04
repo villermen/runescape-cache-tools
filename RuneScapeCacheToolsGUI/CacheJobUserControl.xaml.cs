@@ -22,21 +22,15 @@ namespace RuneScapeCacheToolsGUI
 			//bind events to control
 			job.ProgressChanged += Job_ProgressChanged;
 			job.Finished += Job_Finished;
-			job.Started += Job_Started;
+			//job.Started += Job_Started;
 			job.LogAdded += Job_LogAdded;
 		}
 
-		private void Job_Started(CacheJob sender, EventArgs args)
-		{
-			if (!Dispatcher.CheckAccess())
-			{
-				Dispatcher.Invoke(() => Job_Started(sender, args));
-				return;
-			}
-
-			//set action button to cancel
-			actionButton.Content = "Cancel";
-		}
+		//private void Job_Started(CacheJob sender, EventArgs args)
+		//{
+		//	if (!Dispatcher.CheckAccess())
+		//		Dispatcher.Invoke(() => Job_Started(sender, args));
+		//}
 
 		private void Job_Finished(CacheJob sender, EventArgs args)
 		{
@@ -46,9 +40,7 @@ namespace RuneScapeCacheToolsGUI
 				return;
 			}
 
-			//change action button into close button
-			statusLabel.Content = "Finished";
-			actionButton.Content = "Close";
+			Destroy();
 		}
 
 		private void Job_ProgressChanged(CacheJob sender, ProgressChangedEventArgs args)
@@ -73,21 +65,22 @@ namespace RuneScapeCacheToolsGUI
 			statusLabel.Content = message;
 		}
 
-		private void actionButton_Click(object sender, RoutedEventArgs e)
+		private void cancelButton_Click(object sender, RoutedEventArgs e)
 		{
-			//take action depending on Content
-			switch ((string)actionButton.Content)
-			{
-				case "Cancel":
-					Job.Cancel();
-					break;
+			//if job hasn't started yet, just dispose of it
+			if (!Job.CanCancel)
+				Destroy();
+			else
+				Job.Cancel();
+		}
 
-				case "Close":
-					//remove from parent
-					var parentControl = VisualTreeHelper.GetParent(this) as Panel;
-					parentControl?.Children.Remove(this);
-					break;
-			}
+		/// <summary>
+		/// Removes the control from it's parent panel.
+		/// </summary>
+		private void Destroy()
+		{
+			var parentControl = VisualTreeHelper.GetParent(this) as Panel;
+			parentControl?.Children.Remove(this);
 		}
 	}
 }

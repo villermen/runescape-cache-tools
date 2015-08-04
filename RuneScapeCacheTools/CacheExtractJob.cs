@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.BZip2;
 
@@ -12,27 +10,45 @@ namespace RuneScapeCacheTools
 {
 	public class CacheExtractJob : CacheJob
 	{
+		private List<int> _archiveIds;
+		private List<int> _fileIds;
+
 		/// <summary>
 		/// The archives to extract files of.
 		/// </summary>
-		public List<int> ArchiveIds { get; set; }
+		public List<int> ArchiveIds
+		{
+			get { return _archiveIds; }
+			set
+			{
+				if (IsStarted)
+					throw new InvalidOperationException("Can't change archives, job has already started.");
+
+				_archiveIds = value;
+			}
+		}
 
 		/// <summary>
 		/// The files to extract, if null all files of specified archives will be extracted.
 		/// </summary>
-		public List<int> FileIds { get; set; }
+		public List<int> FileIds
+		{
+			get { return _fileIds; }
+			set
+			{
+				if (IsStarted)
+					throw new InvalidOperationException("Can't change files, job has already started.");
+
+				_fileIds = value;
+			}
+		}
 
 		public bool OverwriteExistingFiles { get; set; }
-
-		private CacheExtractJob()
-		{
-			OnJobCreated(this, EventArgs.Empty);
-		}
 
 		/// <summary>
 		/// Creates a new job to extract all archives fully.
 		/// </summary>
-		public CacheExtractJob(bool overwrite = false) : this()
+		public CacheExtractJob(bool overwrite = false)
 		{
 			ArchiveIds = Cache.GetArchiveIds().ToList();
 			OverwriteExistingFiles = overwrite;
@@ -41,7 +57,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Creates a new job to extract one archive fully.
 		/// </summary>
-		public CacheExtractJob(int archiveId, bool overwrite = false) : this()
+		public CacheExtractJob(int archiveId, bool overwrite = false)
 		{
 			ArchiveIds = new List<int> { archiveId };
 			OverwriteExistingFiles = overwrite;
@@ -50,7 +66,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Creates a new job to extract a list of archives fully.
 		/// </summary>
-		public CacheExtractJob(IEnumerable<int> archiveIds, bool overwrite = false) : this()
+		public CacheExtractJob(IEnumerable<int> archiveIds, bool overwrite = false)
 		{
 			ArchiveIds = archiveIds.ToList();
 			OverwriteExistingFiles = overwrite;
@@ -59,7 +75,7 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Creates a job to extract a list of files out of a single archive.
 		/// </summary>
-		public CacheExtractJob(int archiveId, IEnumerable<int> fileIds, bool overwrite = false) : this()
+		public CacheExtractJob(int archiveId, IEnumerable<int> fileIds, bool overwrite = false)
 		{
 			ArchiveIds = new List<int> { archiveId };
 			FileIds = fileIds.ToList();
@@ -69,26 +85,20 @@ namespace RuneScapeCacheTools
 		/// <summary>
 		/// Creates a job to extract one file of one archive.
 		/// </summary>
-		public CacheExtractJob(int archiveId, int fileId, bool overwrite = false) : this()
+		public CacheExtractJob(int archiveId, int fileId, bool overwrite = false)
 		{
 			ArchiveIds = new List<int> { archiveId };
 			FileIds = new List<int> { fileId };
 			OverwriteExistingFiles = overwrite;
 		}
 
-		public void Start()
-		{
-			StartAsync().ConfigureAwait(true);
-		}
-
-		public async Task StartAsync()
+		public override async Task StartAsync()
 		{
 			//confirm properties are valid
 			if (ArchiveIds == null || ArchiveIds.Count == 0)
 				throw new ArgumentException("At least one archive must be set for extraction."); 
 
 			IsStarted = true;
-			OnStarted(this, EventArgs.Empty);
 
 			//obtain total amount of files (in multi-archive mode)
 			int totalFiles = FileIds?.Count ??
@@ -108,14 +118,13 @@ namespace RuneScapeCacheTools
 						{
 							//obtain list of all files in archive
 							if (FileIds == null)
-								FileIds = Enumerable.Range(0, (int)indexFile.Length / 6).ToList(); //todo: turn back to 0
+								_fileIds = Enumerable.Range(0, (int)indexFile.Length / 6).ToList(); //todo: turn back to 0
 
 							foreach (int fileId in FileIds)
 							{
 								//exit loop when canceled
 								if (IsCanceled)
 								{
-									OnCanceled(this, EventArgs.Empty);
 									break;
 								}
 
@@ -211,7 +220,7 @@ namespace RuneScapeCacheTools
 								else
 									Log(fileDisplayName + ": Ignored because of size or offset.");
 
-								OnProgressChanged(this, new ProgressChangedEventArgs(++processedFiles, totalFiles));
+								ReportProgress(++processedFiles, totalFiles);
 							}
 						}
 					}
@@ -219,7 +228,6 @@ namespace RuneScapeCacheTools
 			});
 
 			IsFinished = true;
-			OnFinished(this, EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -303,15 +311,6 @@ namespace RuneScapeCacheTools
 				extension = ".jaga";
 			else if (buffer.Length > 3 && (uint)(buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] == 0x89504e47)
 				extension = ".png";
-		}
-
-
-		/// <summary>
-		/// Adds a message to the log, currently only fires the event.
-		/// </summary>
-		private void Log(string message)
-		{
-			OnLogAdded(this, message);
 		}
 	}
 }
