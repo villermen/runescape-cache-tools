@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace RuneScapeCacheTools
@@ -20,7 +21,7 @@ namespace RuneScapeCacheTools
 			using (FileStream resolveFile = File.OpenRead(resolveFileName))
 			{
 				Dictionary<int, string> trackIdNames = new Dictionary<int, string>();
-				Dictionary<uint, int> fileIdTrackIds = new Dictionary<uint, int>();
+				Dictionary<int, int> fileIdTrackIds = new Dictionary<int, int>();
 
 				//to locate the start of names and file ids tables
 				byte[] namesMagicNumber = { 0x00, 0x66, 0x24, 0x07 };
@@ -50,20 +51,26 @@ namespace RuneScapeCacheTools
 						trackIdNames.Add(trackId, trackName);
 				}
 
-				//construct fileIdTracks
+				//construct fileIdTrackIds
 				resolveFile.Position = filesStartPos + 6;
 				uint fileCount = resolveFile.ReadBytes(2);
 				for (int i = 0; i < fileCount; i++)
 				{
 					int trackId = (int)resolveFile.ReadBytes(2);
-					uint fileId = resolveFile.ReadBytes(4);
+					int fileId = (int)resolveFile.ReadBytes(4);
 
 					//only add if it doesn't exist already
 					if (!fileIdTrackIds.ContainsKey(fileId))
 						fileIdTrackIds.Add(fileId, trackId);
 				}
 
-				return trackIdNames;
+				//combine the two to form fileIdNames
+				var fileIdNames = fileIdTrackIds.ToDictionary(
+					pair => pair.Key, 
+					pair => trackIdNames.ContainsKey(pair.Value) ? trackIdNames[pair.Value] : null)
+					.Where(pair => pair.Value != null).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+				return fileIdNames;
 			}
 		}
 	}
