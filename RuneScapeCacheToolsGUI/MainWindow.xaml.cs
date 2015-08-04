@@ -294,16 +294,22 @@ namespace RuneScapeCacheToolsGUI
 
 		private void showMissingSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
 		{
+			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			{
+				MessageBox.Show("Soundtrack directory hasn't been created yet.");
+				return;
+			}
+
 			try
 			{
-				string namedSoundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
 				List<string> missingTracks = new List<string>();
 
 				foreach (var track in tracks)
 				{
-					if (!Directory.EnumerateFiles(namedSoundtrackDir, track.Value + ".*").Any())
+					if (!Directory.EnumerateFiles(soundtrackDir, track.Value + ".*").Any())
 						missingTracks.Add(track.Value);
 				}
 
@@ -324,6 +330,48 @@ namespace RuneScapeCacheToolsGUI
 			}
 
 			Process.Start(Cache.OutputDirectory + "soundtrack/");
+		}
+
+		private void updateSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			{
+				MessageBox.Show("Soundtrack directory hasn't been created yet.");
+				return;
+			}
+
+			try
+			{
+				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var tracks = Soundtrack.GetTrackNames();
+
+				int namedTracks = 0;
+
+				foreach (var trackPair in tracks)
+				{
+					var foundFiles = Directory.GetFiles(soundtrackDir, trackPair.Key + ".*");
+
+					if (foundFiles.Length > 0)
+					{
+						string extension = Path.GetExtension(foundFiles[0]);
+						string destination = soundtrackDir + trackPair.Value + extension;
+
+						//delete destination if it exists
+						if (File.Exists(destination))
+							File.Delete(destination);
+
+						File.Move(foundFiles[0], destination);
+
+						namedTracks++;
+					}
+				}
+
+				MessageBox.Show($"Named {namedTracks} tracks.");
+			}
+			catch (Exception ex)
+			{
+				DisplayError("Could not update all track names.", ex);
+			}
 		}
 	}
 }

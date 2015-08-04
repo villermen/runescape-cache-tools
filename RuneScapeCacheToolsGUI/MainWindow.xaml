@@ -28,7 +28,7 @@
                 <MenuItem x:Name="showSoundtrackDirectoryMenuItem" Header="Show" Click="showSoundtrackDirectoryMenuItem_Click"/>
                 <MenuItem x:Name="createSoundtrackDefaultMenuItem" Header="Create" Click="createSoundtrackDefaultMenuItem_Click"/>
                 <MenuItem x:Name="createSoundtrackLosslessMenuItem" Header="Create (flac)" Click="createSoundtrackLosslessMenuItem_Click"/>
-                <MenuItem x:Name="updateSoundtrackNamesMenuItem" Header="Update Names (unfinished)" IsEnabled="False"/>
+                <MenuItem x:Name="updateSoundtrackNamesMenuItem" Header="Update Names" Click="updateSoundtrackNamesMenuItem_Click" />
                 <MenuItem x:Name="showSoundtrackNamesMenuItem" Header="Show Names" Click="showSoundtrackNamesMenuItem_Click"/>
                 <MenuItem x:Name="showMissingSoundtrackNamesMenuItem" Header="Show Missing Names (unfinished)" IsEnabled="False" Click="showMissingSoundtrackNamesMenuItem_Click"/>
             </MenuItem>
