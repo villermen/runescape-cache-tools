@@ -1,37 +1,19 @@
-#####A big rework of the code and the implementation of a GUI have made this readme pretty dated. I will update it soon.
+#Viller's RuneScapeCacheTools
 
-#RSCacheTool
+######A .NET library and interface for extracting and manipulating RuneScape's cache files.
 
-######A command line tool written in C# for extracting and manipulating RuneScape's cache files.
+A pre-compiled executable of the latest release is available from the [releases page on GitHub](https://github.com/Villermen/RuneScapeCacheTools/releases). Extract the archive and run RuneScapeCacheToolsGUI.exe to open the user interface.
 
-A pre-compiled binary is available for [download from my website](https://villermen.com/browser/?d=rscachetool). Just run the tool without arguments and it will tell you the available options.
+####RuneScapeCacheTools can:
 
-####RSCacheTool can:
+ - Extract the entire cache or single archives into separate files in a given directory. Decompressing and handing out extensions where appropriate.
+ - Combine sound chunks from the soundtrack archive into full-fledged, named tracks.
+ - Show a list of all soundtrack names, or a list of all the ones not present in the output directory (so you know what to load into the cache in-game).
 
- - Extract the entire cache or just one archive into separate files in a given directory. Decompressing and handing out extensions where appropriate.
- - Combine sound chunks (.ogg) from a given archive into full-fledged soundtracks. It can even give them their in-game name based on another file from the archive.
- 
-####Usage examples:
+####Soundtrack download
 
- - Get help: `rscachetool`, done.
- - If you're aiming only at ripping named complete music from your cache these are your 2 golden commands: `rscachetool -e=40 -c` and `rscachetool -e=17 -o -n`.
- - Extract all archives, combine music (including incomplete) and try to name the tracks `rscachetool -e -c -i -n`.
- - Recombine sound 21713.jaga extracted to D:\cache and rename it `rscachetool -c -f=21713 -o -n=21713 D:\cache`. (Basically this tries to fix a file if SoX mangled it before.)
+You can download the soundtrack we have created together with the tool from [my website](https://villermen.com/browser/?d=music). It's as complete as possible. If you have extracted any tracks that are not (yet) downloadable in the file browser, you can contact me at any time. [An email](mailto:villermen@gmail.com) would probably be the best way to contact me.
 
-####RSCacheTool makes use of the following tools and libraries:
+####Show your support!
 
- - [NDesk.Options](http://www.ndesk.org/Options), a command line argument parser.
- - [SharpZipLip](http://icsharpcode.github.io/SharpZipLib/), a .NET zipping library. Used to decompress archive files
- - [SoX](http://sox.sourceforge.net/) (not included in repository), a command line utility for editing sound files. Used to merge soundchunks.
-
-####Compiling under Linux
-
-In Debian and derivatives (Ubuntu, Mint) download the build dependencies and build like this:
-
-	$ apt-get install mono-mcs mono-xbuild sox
-	$ xbuild /p:Configuration=Release RSCacheTool.csproj
-
-
-####Be a nice guy and help me out
-
-If you like this tool you can show your appreciation by helping me complete my music archive. If you have any named extraced music files that do not exist in [my archive](https://villermen.com/browser/?d=music/Runescape%203), please share them with me in whatever way possible (dropbox, drive, puush, you name it). A small PayPal donation (villermen@gmail.com) wouldn't hurt either!
+I've put a lot of love and hard work into this project. If you like what you see, you can show your appreciation via a small PayPal donation (villermen@gmail.com).
