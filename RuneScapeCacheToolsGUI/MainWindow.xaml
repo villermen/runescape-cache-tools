@@ -30,7 +30,7 @@
                 <MenuItem x:Name="createSoundtrackLosslessMenuItem" Header="Create (flac)" Click="createSoundtrackLosslessMenuItem_Click"/>
                 <MenuItem x:Name="updateSoundtrackNamesMenuItem" Header="Update Names" Click="updateSoundtrackNamesMenuItem_Click" />
                 <MenuItem x:Name="showSoundtrackNamesMenuItem" Header="Show Names" Click="showSoundtrackNamesMenuItem_Click"/>
-                <MenuItem x:Name="showMissingSoundtrackNamesMenuItem" Header="Show Missing Names (unfinished)" IsEnabled="False" Click="showMissingSoundtrackNamesMenuItem_Click"/>
+                <MenuItem x:Name="showMissingSoundtrackNamesMenuItem" Header="Show Missing Names" Click="showMissingSoundtrackNamesMenuItem_Click"/>
             </MenuItem>
         </Menu>
         <TextBox x:Name="cacheDirectoryTextBox" Margin="10,10,170,5" TextWrapping="Wrap" Text="cacheDirectoryTextBox" Grid.ColumnSpan="2" Height="20" IsReadOnly="True" Grid.Row="1" Grid.Column="0"/>

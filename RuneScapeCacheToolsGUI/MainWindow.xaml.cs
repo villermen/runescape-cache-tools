@@ -305,15 +305,26 @@ namespace RuneScapeCacheToolsGUI
 				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
-				List<string> missingTracks = new List<string>();
+				Dictionary<int, string> missingTracks = new Dictionary<int, string>();
 
 				foreach (var track in tracks)
 				{
 					if (!Directory.EnumerateFiles(soundtrackDir, track.Value + ".*").Any())
-						missingTracks.Add(track.Value);
+						missingTracks.Add(track.Key, track.Value);
 				}
 
-				MessageBox.Show("The following tracks are missing: \n" + missingTracks.Aggregate((acc, track) => acc + track + "\n"));
+				//export to file
+				using (var missingTracklistFile = new StreamWriter(File.Open(Cache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
+				{
+					//write headers
+					missingTracklistFile.WriteLine("File Id,Name");
+
+					foreach (var track in missingTracks)
+						missingTracklistFile.WriteLine($"{track.Key},\"{track.Value}\"");
+				}
+
+				//show file
+				Process.Start(Cache.OutputDirectory + "missingtracknames.csv");
 			}
 			catch (Exception ex)
 			{
