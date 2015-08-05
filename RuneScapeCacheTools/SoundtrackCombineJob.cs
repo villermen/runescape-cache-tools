@@ -58,11 +58,10 @@ namespace RuneScapeCacheTools
 				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				Directory.CreateDirectory(soundtrackDir);
 				int filesProcessed = 0;
+				List<Task> soxTasks = new List<Task>();
 
 				//gather all index files
 				string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga");
-				string workFile = Cache.TempDirectory + "~out." + (Lossless ? "flac" : "ogg");
-				string indexChunkFile = Cache.TempDirectory + "~index.ogg";
 
 				foreach (string indexFileString in indexFiles)
 				{
@@ -74,18 +73,23 @@ namespace RuneScapeCacheTools
 					//create output file name
 					string outFileName = trackNames.ContainsKey(indexFileId) ? trackNames[indexFileId] : indexFileId.ToString();
 					string outFile = soundtrackDir + outFileName + "." + (Lossless ? "flac" : "ogg");
+					string workFile = Cache.TempDirectory + outFileName + "." + (Lossless ? "flac" : "ogg");
+					string indexChunkFile = Cache.TempDirectory + "index" + indexFileId + ".ogg";
 
 					//skip existing files
 					if (File.Exists(outFile))
 					{
 						Log($"{indexFileId}: Already exists.");
-						goto skipFile;
+						ReportProgress(++filesProcessed, indexFiles.Length);
+						continue;
 					}
 
 					List<string> chunkFiles = new List<string>();
 
 					using (FileStream indexFileStream = File.OpenRead(indexFileString))
 					{
+						bool skipFile = false;
+
 						//read 4-byte file indexes from bye 33 up to OggS magic number (the first chunk)
 						indexFileStream.Position = 32L;
 
@@ -100,31 +104,24 @@ namespace RuneScapeCacheTools
 							{
 								//...or cancel construction of track
 								Log($"{indexFileId}: Incomplete.");
-								goto skipFile;
+								skipFile = true;
+								break;
 							}
 						}
 
-						//make sure ~index.ogg is not still being used by SoX
-						while (true)
+						if (skipFile)
 						{
-							try
-							{
-								//copy the index's audio chunk to a temp file so SoX can handle the combining
-								using (FileStream tempIndexFile = File.Open(indexChunkFile, FileMode.Create, FileAccess.Write))
-								{
-									indexFileStream.Position -= 4L; //include OggS
-									indexFileStream.CopyTo(tempIndexFile);
-									break;
-								}
-							}
-							catch (IOException)
-							{
-								Thread.Sleep(100);
-							}
+							ReportProgress(++filesProcessed, indexFiles.Length);
+							continue;
+						}
+
+						//copy the index's audio chunk to a temp file so SoX can handle the combining
+						using (FileStream tempIndexFile = File.Open(indexChunkFile, FileMode.Create, FileAccess.Write))
+						{
+							indexFileStream.Position -= 4L; //include OggS
+							indexFileStream.CopyTo(tempIndexFile);
 						}
 					}
-
-					Log($"{indexFileId}{(outFileName != indexFileId.ToString() ? $" ({outFileName})" : "")}: Combining with SoX.");
 
 					Process soxProcess = new Process
 					{
@@ -142,38 +139,51 @@ namespace RuneScapeCacheTools
 						soxProcess.StartInfo.Arguments += " " + str;
 					});
 					soxProcess.StartInfo.Arguments +=
-						$" -C 6 --comment \"Created by Viller's RuneScapeCacheTools, combined by SoX.\" {workFile}";
+						$" -C 6 --comment \"Created by Viller's RuneScapeCacheTools, combined by SoX.\" \"{workFile}\"";
 
-					soxProcess.Start();
-					soxProcess.WaitForExit();
-
-					if (soxProcess.ExitCode == 0)
+					//do the time consuming part on a task
+					var soxTask = new Task(() =>
 					{
-						//wait until unlocked (if locked)
-						bool moved = false;
-						do
+                        soxProcess.Start();
+						soxProcess.WaitForExit();
+
+						if (soxProcess.ExitCode == 0)
 						{
-							try
+							//wait until unlocked (if locked)
+							bool moved = false;
+							do
 							{
-								File.Move(workFile, outFile);
-								moved = true;
-							}
-							catch (IOException)
-							{
-								Thread.Sleep(100);
-							}
-						} while (!moved);
-					}
-					else
-					{
-						Log($"{indexFileId}: SoX error code \"{soxProcess.ExitCode}\".");
-						//goto skipFile;
-					}
+								try
+								{
+									File.Move(workFile, outFile);
+									moved = true;
+								}
+								catch (IOException)
+								{
+									Thread.Sleep(100);
+								}
+							} while (!moved);
 
-					skipFile:
+							Log($"{indexFileId}{(outFileName != indexFileId.ToString() ? $" ({outFileName})" : "")}: Combined by SoX.");
+						}
+						else
+						{
+							//remove the leftover index file
+							File.Delete(indexChunkFile);
+							Log($"{indexFileId}: SoX error code \"{soxProcess.ExitCode}\".");
+						}
+						ReportProgress(++filesProcessed, indexFiles.Length);
+					});
 
-					ReportProgress(++filesProcessed, indexFiles.Length);
+					soxTasks.Add(soxTask);
+					soxTask.Start();
 				}
+
+				//wait for all tasks to exit
+				foreach (var soxTask in soxTasks)
+					soxTask.Wait();
+
+				IsFinished = true;
 			});
 		}
 	}
