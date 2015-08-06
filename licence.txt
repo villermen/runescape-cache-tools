@@ -1,4 +1,4 @@
-RSCacheTool is available under the zlib license:
+RuneScapeCacheTools is available under the zlib license:
 
 Copyright (c) 2014-2015 Villermen
 
@@ -18,4 +18,4 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
-RSCacheTool's original source can be found at https://github.com/Villermen/RSCacheTool
+RuneScapeCacheTools' original source can always be found at https://github.com/Villermen/RuneScapeCacheTools
