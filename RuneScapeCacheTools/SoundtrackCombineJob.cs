@@ -51,6 +51,12 @@ namespace RuneScapeCacheTools
 		{
 			await Task.Run(() =>
 			{
+				if (!Cache.ArchiveExtracted(40))
+					throw new DirectoryNotFoundException("Archive 40 needs to be extracted at this point.");
+
+				if (NameTracks && !Cache.ArchiveExtracted(17))
+					throw new DirectoryNotFoundException("Archive 17 needs to be extracted at this point.");
+
 				//get trackname lookup list
 				var trackNames = NameTracks ? Soundtrack.GetTrackNames() : new Dictionary<int, string>();
 

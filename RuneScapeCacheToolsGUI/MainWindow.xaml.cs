@@ -34,7 +34,7 @@ namespace RuneScapeCacheToolsGUI
 			CacheJob.Created += RegisterNewJob;
 		}
 
-		private static void DisplayError(string message, Exception exception)
+		private static void DisplayError(Exception exception, string message = null)
 		{
 			//show innerexception if it's an aggregate exception
 			if (exception is AggregateException)
@@ -248,7 +248,14 @@ namespace RuneScapeCacheToolsGUI
 				return;
 			}
 
-			await new SoundtrackCombineJob().StartAsync();
+			try
+			{
+				await new SoundtrackCombineJob().StartAsync();
+			}
+			catch (Exception ex)
+			{
+				DisplayError(ex);
+			}
 		}
 
 		private async void createSoundtrackLosslessMenuItem_Click(object sender, RoutedEventArgs e)
@@ -259,7 +266,14 @@ namespace RuneScapeCacheToolsGUI
 				return;
 			}
 
-			await new SoundtrackCombineJob(true, true).StartAsync();
+			try
+			{
+				await new SoundtrackCombineJob(true, true).StartAsync();
+			}
+			catch (Exception ex)
+			{
+                DisplayError(ex);
+			}
 		}
 
 		/// <summary>
@@ -288,7 +302,7 @@ namespace RuneScapeCacheToolsGUI
 			}
 			catch (Exception ex)
 			{
-				DisplayError("Could not create track list.", ex);
+				DisplayError(ex, "Could not create track list.");
 			}
 		}
 
@@ -328,7 +342,7 @@ namespace RuneScapeCacheToolsGUI
 			}
 			catch (Exception ex)
 			{
-				DisplayError("Could not create missing track list.", ex);
+				DisplayError(ex, "Could not create missing track list.");
 			}
 		}
 
@@ -381,7 +395,7 @@ namespace RuneScapeCacheToolsGUI
 			}
 			catch (Exception ex)
 			{
-				DisplayError("Could not update all track names.", ex);
+				DisplayError(ex, "Could not update all track names.");
 			}
 		}
 	}

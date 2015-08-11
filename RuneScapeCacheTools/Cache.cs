@@ -88,6 +88,14 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
+		/// Checks for existence of the archive directory in the output directory.
+		/// </summary>
+		public static bool ArchiveExtracted(int archiveId)
+		{
+			return Directory.Exists(OutputDirectory + "cache/" + archiveId);
+		}
+
+		/// <summary>
 		/// Returns a path to a specified output file.
 		/// </summary>
 		/// <exception cref="FileNotFoundException"></exception>
