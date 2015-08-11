@@ -9,13 +9,19 @@ using System.Threading.Tasks;
 namespace RuneScapeCacheTools
 {
 	/// <summary>
-	/// Job for concatenating the sound files (.jaga &amp; .ogg) of archive 40 into a single .ogg file.
-	/// Names files where possible (if set).
+	///     Job for concatenating the sound files (.jaga &amp; .ogg) of archive 40 into a single .ogg file.
+	///     Names files where possible (if set).
 	/// </summary>
 	public class SoundtrackCombineJob : CacheJob
 	{
-		private bool _nameTracks;
 		private bool _lossless;
+		private bool _nameTracks;
+
+		public SoundtrackCombineJob(bool nameTracks = true, bool lossless = false)
+		{
+			NameTracks = nameTracks;
+			Lossless = lossless;
+		}
 
 		public bool NameTracks
 		{
@@ -41,13 +47,6 @@ namespace RuneScapeCacheTools
 			}
 		}
 
-		public SoundtrackCombineJob(bool nameTracks = true, bool lossless = false)
-		{
-			NameTracks = nameTracks;
-			Lossless = lossless;
-		}
-
-
 		public override async Task StartAsync()
 		{
 			await Task.Run(() =>
@@ -61,27 +60,27 @@ namespace RuneScapeCacheTools
 				//get trackname lookup list
 				var trackNames = NameTracks ? Soundtrack.GetTrackNames() : new Dictionary<int, string>();
 
-				string archiveDir = Cache.OutputDirectory + "cache/40/";
-				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var archiveDir = Cache.OutputDirectory + "cache/40/";
+				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				Directory.CreateDirectory(soundtrackDir);
-				int filesProcessed = 0;
-				List<Task> soxTasks = new List<Task>();
+				var filesProcessed = 0;
+				var soxTasks = new List<Task>();
 
 				//gather all index files
-				string[] indexFiles = Directory.GetFiles(archiveDir, "*.jaga");
+				var indexFiles = Directory.GetFiles(archiveDir, "*.jaga");
 
-				foreach (string indexFileString in indexFiles)
+				foreach (var indexFileString in indexFiles)
 				{
 					if (IsCanceled)
 						break;
 
-					int indexFileId = int.Parse(Path.GetFileNameWithoutExtension(indexFileString));
+					var indexFileId = int.Parse(Path.GetFileNameWithoutExtension(indexFileString));
 
 					//create output file name
-					string outFileName = trackNames.ContainsKey(indexFileId) ? trackNames[indexFileId] : indexFileId.ToString();
-					string outFile = soundtrackDir + outFileName + "." + (Lossless ? "flac" : "ogg");
-					string workFile = Cache.TempDirectory + outFileName + "." + (Lossless ? "flac" : "ogg");
-					string indexChunkFile = Cache.TempDirectory + "index" + indexFileId + ".ogg";
+					var outFileName = trackNames.ContainsKey(indexFileId) ? trackNames[indexFileId] : indexFileId.ToString();
+					var outFile = soundtrackDir + outFileName + "." + (Lossless ? "flac" : "ogg");
+					var workFile = Cache.TempDirectory + outFileName + "." + (Lossless ? "flac" : "ogg");
+					var indexChunkFile = Cache.TempDirectory + "index" + indexFileId + ".ogg";
 
 					//skip existing files
 					if (File.Exists(outFile))
@@ -91,18 +90,18 @@ namespace RuneScapeCacheTools
 						continue;
 					}
 
-					List<string> chunkFiles = new List<string>();
+					var chunkFiles = new List<string>();
 
-					using (FileStream indexFileStream = File.OpenRead(indexFileString))
+					using (var indexFileStream = File.OpenRead(indexFileString))
 					{
-						bool skipFile = false;
+						var skipFile = false;
 
 						//read 4-byte file indexes from bye 33 up to OggS magic number (the first chunk)
 						indexFileStream.Position = 32L;
 
 						while (indexFileStream.ReadBytes(4) != 0x4f676753)
 						{
-							uint fileId = indexFileStream.ReadBytes(4);
+							var fileId = indexFileStream.ReadBytes(4);
 
 							//check if the file exists and add it to the buffer if it does
 							if (File.Exists(archiveDir + fileId + ".ogg"))
@@ -123,30 +122,19 @@ namespace RuneScapeCacheTools
 						}
 
 						//copy the index's audio chunk to a temp file so SoX can handle the combining
-						using (FileStream tempIndexFile = File.Open(indexChunkFile, FileMode.Create, FileAccess.Write))
+						using (var tempIndexFile = File.Open(indexChunkFile, FileMode.Create, FileAccess.Write))
 						{
 							indexFileStream.Position -= 4L; //include OggS
 							indexFileStream.CopyTo(tempIndexFile);
 						}
 					}
 
-					Process soxProcess = new Process
-					{
-						StartInfo =
-						{
-							FileName = "sox",
-							UseShellExecute = false,
-							CreateNoWindow = true
-						}
-					};
+					var soxProcess = new Process { StartInfo = { FileName = "sox", UseShellExecute = false, CreateNoWindow = true } };
 
 					soxProcess.StartInfo.Arguments = $"--combine concatenate {indexChunkFile}";
-					chunkFiles.ForEach(str =>
-					{
-						soxProcess.StartInfo.Arguments += " " + str;
-					});
+					chunkFiles.ForEach(str => { soxProcess.StartInfo.Arguments += " " + str; });
 					soxProcess.StartInfo.Arguments +=
-						$" -C 6 --comment \"Created by Viller's RuneScapeCacheTools, combined by SoX.\" \"{workFile}\"";
+					$" -C 6 --comment \"Created by Viller's RuneScapeCacheTools, combined by SoX.\" \"{workFile}\"";
 
 					//do the time consuming part on a task
 					var soxTask = new Task(() =>
@@ -165,7 +153,7 @@ namespace RuneScapeCacheTools
 						if (soxProcess.ExitCode == 0)
 						{
 							//wait until unlocked (if locked)
-							bool moved = false;
+							var moved = false;
 							do
 							{
 								try

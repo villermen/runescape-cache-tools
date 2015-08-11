@@ -5,16 +5,22 @@ namespace RuneScapeCacheTools
 {
 	public abstract class CacheJob
 	{
-		private bool _isStarted;
-		private bool _isFinished;
+		public delegate void CacheJobEventHandler(CacheJob sender, EventArgs args);
+
+		public delegate void CacheJobEventHandler<TEventArgs>(CacheJob sender, TEventArgs args);
+
 		private bool _isCanceled;
+		private bool _isFinished;
+		private bool _isStarted;
+
+		protected CacheJob()
+		{
+			Created?.Invoke(this, EventArgs.Empty);
+		}
 
 		public bool IsStarted
 		{
-			get
-			{
-				return _isStarted;
-			}
+			get { return _isStarted; }
 
 			protected set
 			{
@@ -31,10 +37,7 @@ namespace RuneScapeCacheTools
 
 		public bool IsFinished
 		{
-			get
-			{
-				return _isFinished;
-			}
+			get { return _isFinished; }
 
 			protected set
 			{
@@ -51,10 +54,7 @@ namespace RuneScapeCacheTools
 
 		public bool IsCanceled
 		{
-			get
-			{
-				return _isCanceled;
-			}
+			get { return _isCanceled; }
 
 			protected set
 			{
@@ -70,14 +70,10 @@ namespace RuneScapeCacheTools
 		}
 
 		public bool IsRunning => IsStarted && !IsFinished;
-
 		public bool CanCancel => IsRunning;
 
-		public delegate void CacheJobEventHandler(CacheJob sender, EventArgs args);
-		public delegate void CacheJobEventHandler<TEventArgs>(CacheJob sender, TEventArgs args);
-
 		/// <summary>
-		/// Will fire when a new job is created.
+		///     Will fire when a new job is created.
 		/// </summary>
 		public static event CacheJobEventHandler Created;
 
@@ -86,19 +82,14 @@ namespace RuneScapeCacheTools
 		public event CacheJobEventHandler Canceled;
 
 		/// <summary>
-		/// Fires when progress on the current job has changed.
+		///     Fires when progress on the current job has changed.
 		/// </summary>
 		public event CacheJobEventHandler<ProgressChangedEventArgs> ProgressChanged;
 
 		/// <summary>
-		/// Fires when a new message has been added to the log.
+		///     Fires when a new message has been added to the log.
 		/// </summary>
 		public event CacheJobEventHandler<string> LogAdded;
-
-		protected CacheJob()
-		{
-			Created?.Invoke(this, EventArgs.Empty);
-		}
 
 		public void Start()
 		{

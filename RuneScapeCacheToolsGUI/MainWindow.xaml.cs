@@ -13,12 +13,12 @@ using WinForms = System.Windows.Forms;
 namespace RuneScapeCacheToolsGUI
 {
 	/// <summary>
-	/// Interaction logic for MainWindow.xaml
+	///     Interaction logic for MainWindow.xaml
 	/// </summary>
 	public partial class MainWindow
 	{
 		private bool _canExtract;
-		private Dictionary<string, object> _config = new Dictionary<string, object>(); 
+		private Dictionary<string, object> _config = new Dictionary<string, object>();
 
 		public MainWindow()
 		{
@@ -104,11 +104,11 @@ namespace RuneScapeCacheToolsGUI
 
 			cacheTreeItem.ExpandSubtree();
 
-			foreach (int archiveId in Cache.GetArchiveIds())
+			foreach (var archiveId in Cache.GetArchiveIds())
 			{
 				var archiveTreeItem = new TreeViewItem
 				{
-					Header = $"Archive {archiveId}", 
+					Header = $"Archive {archiveId}",
 					Tag = archiveId,
 					ContextMenu = (ContextMenu)Resources["ExtractContextMenu"]
 				};
@@ -123,7 +123,7 @@ namespace RuneScapeCacheToolsGUI
 		}
 
 		/// <summary>
-		/// Returns the archive id of the tree view item the context menu is bound to.
+		///     Returns the archive id of the tree view item the context menu is bound to.
 		/// </summary>
 		private static int GetArchiveIdFromContextItem(object sender)
 		{
@@ -136,19 +136,19 @@ namespace RuneScapeCacheToolsGUI
 
 		private void showOutputDirectoryMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			int selectedArchive = GetArchiveIdFromContextItem(sender);
+			var selectedArchive = GetArchiveIdFromContextItem(sender);
 			OpenArchiveDirectory(selectedArchive);
 		}
 
 		private async void extractDefaultToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			int selectedArchive = GetArchiveIdFromContextItem(sender);
+			var selectedArchive = GetArchiveIdFromContextItem(sender);
 			await StartExtractionAsync(selectedArchive, false);
 		}
 
 		private async void extractOverwriteToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			int selectedArchive = GetArchiveIdFromContextItem(sender);
+			var selectedArchive = GetArchiveIdFromContextItem(sender);
 			await StartExtractionAsync(selectedArchive, true);
 		}
 
@@ -159,9 +159,9 @@ namespace RuneScapeCacheToolsGUI
 
 		private void OpenArchiveDirectory(int archiveId)
 		{
-			string openFile = archiveId == -1 
-				? Cache.OutputDirectory + "cache/"
-				: Cache.OutputDirectory + "cache/" + archiveId + "/";
+			var openFile = archiveId == -1
+			? Cache.OutputDirectory + "cache/"
+			: Cache.OutputDirectory + "cache/" + archiveId + "/";
 
 			if (!File.Exists(openFile) && !Directory.Exists(openFile))
 				MessageBox.Show("That location hasn't been extracted yet.\n" + openFile);
@@ -177,15 +177,13 @@ namespace RuneScapeCacheToolsGUI
 				return;
 			}
 
-			var job = archiveId == -1 
-				? new CacheExtractJob(overwrite) 
-				: new CacheExtractJob(archiveId, overwrite);
+			var job = archiveId == -1 ? new CacheExtractJob(overwrite) : new CacheExtractJob(archiveId, overwrite);
 
 			await job.StartAsync();
 		}
 
 		/// <summary>
-		/// Invoke default contextmenu event when treeview is double clicked.
+		///     Invoke default contextmenu event when treeview is double clicked.
 		/// </summary>
 		private void cacheTreeViewItem_DoubleClick(object sender, EventArgs e)
 		{
@@ -202,7 +200,7 @@ namespace RuneScapeCacheToolsGUI
 		}
 
 		/// <summary>
-		/// Creates a new user control for the job and adds it to the stackpanel
+		///     Creates a new user control for the job and adds it to the stackpanel
 		/// </summary>
 		private void RegisterNewJob(CacheJob sender, EventArgs args)
 		{
@@ -231,8 +229,8 @@ namespace RuneScapeCacheToolsGUI
 		{
 			try
 			{
-				_config = JsonConvert.DeserializeObject<Dictionary<string, object>>(
-					File.ReadAllText(Cache.TempDirectory + "config.json"));
+				_config =
+				JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(Cache.TempDirectory + "config.json"));
 
 				if (_config.ContainsKey("outputDirectory"))
 					Cache.OutputDirectory = (string)_config["outputDirectory"];
@@ -272,12 +270,12 @@ namespace RuneScapeCacheToolsGUI
 			}
 			catch (Exception ex)
 			{
-                DisplayError(ex);
+				DisplayError(ex);
 			}
 		}
 
 		/// <summary>
-		/// Exports and shows obtained track names.
+		///     Exports and shows obtained track names.
 		/// </summary>
 		private void showSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
 		{
@@ -316,10 +314,10 @@ namespace RuneScapeCacheToolsGUI
 
 			try
 			{
-				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
-				Dictionary<int, string> missingTracks = new Dictionary<int, string>();
+				var missingTracks = new Dictionary<int, string>();
 
 				foreach (var track in tracks)
 				{
@@ -328,7 +326,9 @@ namespace RuneScapeCacheToolsGUI
 				}
 
 				//export to file
-				using (var missingTracklistFile = new StreamWriter(File.Open(Cache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
+				using (
+				var missingTracklistFile =
+				new StreamWriter(File.Open(Cache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
 				{
 					//write headers
 					missingTracklistFile.WriteLine("File Id,Name");
@@ -367,10 +367,10 @@ namespace RuneScapeCacheToolsGUI
 
 			try
 			{
-				string soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
-				int namedTracks = 0;
+				var namedTracks = 0;
 
 				foreach (var trackPair in tracks)
 				{
@@ -378,8 +378,8 @@ namespace RuneScapeCacheToolsGUI
 
 					if (foundFiles.Length > 0)
 					{
-						string extension = Path.GetExtension(foundFiles[0]);
-						string destination = soundtrackDir + trackPair.Value + extension;
+						var extension = Path.GetExtension(foundFiles[0]);
+						var destination = soundtrackDir + trackPair.Value + extension;
 
 						//delete destination if it exists
 						if (File.Exists(destination))

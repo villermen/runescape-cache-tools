@@ -7,7 +7,7 @@ using RuneScapeCacheTools;
 namespace RuneScapeCacheToolsGUI
 {
 	/// <summary>
-	/// Interaction logic for CacheJobUserControl.xaml
+	///     Interaction logic for CacheJobUserControl.xaml
 	/// </summary>
 	public partial class CacheJobUserControl
 	{
@@ -22,6 +22,7 @@ namespace RuneScapeCacheToolsGUI
 			//bind events to control
 			job.ProgressChanged += Job_ProgressChanged;
 			job.Finished += Job_Finished;
+
 			//job.Started += Job_Started;
 			job.LogAdded += Job_LogAdded;
 		}
@@ -75,7 +76,7 @@ namespace RuneScapeCacheToolsGUI
 		}
 
 		/// <summary>
-		/// Removes the control from it's parent panel.
+		///     Removes the control from it's parent panel.
 		/// </summary>
 		private void Destroy()
 		{

@@ -5,43 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Viller's Runescape Cache Tools" Height="511" Width="750">
-    <Window.Resources>
-        <ContextMenu x:Key="ExtractContextMenu">
-            <MenuItem x:Name="showExtractedMenuItem" Header="Show" Click="showOutputDirectoryMenuItem_Click"/>
-            <MenuItem Header="Extract" Click="extractDefaultToolStripMenuItem_Click"/>
-            <MenuItem Header="Extract (Overwrite Existing)" Click="extractOverwriteToolStripMenuItem_Click"/>
-        </ContextMenu>
-    </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Menu x:Name="menu" Margin="0,0,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Grid.Row="0">
-            <MenuItem Header="Soundtrack">
-                <MenuItem x:Name="showSoundtrackDirectoryMenuItem" Header="Show" Click="showSoundtrackDirectoryMenuItem_Click"/>
-                <MenuItem x:Name="createSoundtrackDefaultMenuItem" Header="Create" Click="createSoundtrackDefaultMenuItem_Click"/>
-                <MenuItem x:Name="createSoundtrackLosslessMenuItem" Header="Create (flac)" Click="createSoundtrackLosslessMenuItem_Click"/>
-                <MenuItem x:Name="updateSoundtrackNamesMenuItem" Header="Update Names" Click="updateSoundtrackNamesMenuItem_Click" />
-                <MenuItem x:Name="showSoundtrackNamesMenuItem" Header="Show Names" Click="showSoundtrackNamesMenuItem_Click"/>
-                <MenuItem x:Name="showMissingSoundtrackNamesMenuItem" Header="Show Missing Names" Click="showMissingSoundtrackNamesMenuItem_Click"/>
-            </MenuItem>
-        </Menu>
-        <TextBox x:Name="cacheDirectoryTextBox" Margin="10,10,170,5" TextWrapping="Wrap" Text="cacheDirectoryTextBox" Grid.ColumnSpan="2" Height="20" IsReadOnly="True" Grid.Row="1" Grid.Column="0"/>
-        <Button x:Name="defaultCacheDirectoryButton" Content="Default" Grid.Column="1" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Click="defaultCacheDirectoryButton_Click" Grid.Row="1"/>
-        <Button x:Name="changeCacheDirectoryButton" Content="Change..." Grid.Column="1" HorizontalAlignment="Right" Margin="0,10,90,0" VerticalAlignment="Top" Width="75" Click="changeCacheDirectoryButton_Click" Grid.Row="1"/>
-        <TextBox x:Name="outputDirectoryTextBox" Margin="10,5,170,5" TextWrapping="Wrap" Text="outputDirectoryTextBox" Grid.ColumnSpan="2" Grid.Row="2" Height="20" IsReadOnly="True" Grid.Column="0"/>
-        <Button x:Name="showOutputDirectoryButton" Content="Show" Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,10,5" VerticalAlignment="Top" Width="75" Grid.Row="2" Click="showOutputDirectoryButton_Click"/>
-        <Button x:Name="changeOutputDirectoryButton" Content="Change..." Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,90,5" VerticalAlignment="Top" Width="75" Grid.Row="2" Click="changeOutputDirectoryButton_Click"/>
-        <TreeView x:Name="cacheTreeView" Margin="10,5,5,10" Grid.Row="3" BorderBrush="#FF828790" Grid.Column="0"/>
-        <Border BorderBrush="#FF828790" BorderThickness="1" Margin="5,5,10,10" Grid.Row="3" Grid.Column="1">
-            <StackPanel x:Name="jobsStackPanel"/>
-        </Border>
-    </Grid>
+	<Window.Resources>
+		<ContextMenu x:Key="ExtractContextMenu">
+			<MenuItem x:Name="showExtractedMenuItem" Header="Show" Click="showOutputDirectoryMenuItem_Click" />
+			<MenuItem Header="Extract" Click="extractDefaultToolStripMenuItem_Click" />
+			<MenuItem Header="Extract (Overwrite Existing)" Click="extractOverwriteToolStripMenuItem_Click" />
+		</ContextMenu>
+	</Window.Resources>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Menu x:Name="menu" Margin="0,0,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Grid.Row="0">
+			<MenuItem Header="Soundtrack">
+				<MenuItem x:Name="showSoundtrackDirectoryMenuItem" Header="Show" Click="showSoundtrackDirectoryMenuItem_Click" />
+				<MenuItem x:Name="createSoundtrackDefaultMenuItem" Header="Create" Click="createSoundtrackDefaultMenuItem_Click" />
+				<MenuItem x:Name="createSoundtrackLosslessMenuItem" Header="Create (flac)"
+				          Click="createSoundtrackLosslessMenuItem_Click" />
+				<MenuItem x:Name="updateSoundtrackNamesMenuItem" Header="Update Names" Click="updateSoundtrackNamesMenuItem_Click" />
+				<MenuItem x:Name="showSoundtrackNamesMenuItem" Header="Show Names" Click="showSoundtrackNamesMenuItem_Click" />
+				<MenuItem x:Name="showMissingSoundtrackNamesMenuItem" Header="Show Missing Names"
+				          Click="showMissingSoundtrackNamesMenuItem_Click" />
+			</MenuItem>
+		</Menu>
+		<TextBox x:Name="cacheDirectoryTextBox" Margin="10,10,170,5" TextWrapping="Wrap" Text="cacheDirectoryTextBox"
+		         Grid.ColumnSpan="2" Height="20" IsReadOnly="True" Grid.Row="1" Grid.Column="0" />
+		<Button x:Name="defaultCacheDirectoryButton" Content="Default" Grid.Column="1" HorizontalAlignment="Right"
+		        Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Click="defaultCacheDirectoryButton_Click" Grid.Row="1" />
+		<Button x:Name="changeCacheDirectoryButton" Content="Change..." Grid.Column="1" HorizontalAlignment="Right"
+		        Margin="0,10,90,0" VerticalAlignment="Top" Width="75" Click="changeCacheDirectoryButton_Click" Grid.Row="1" />
+		<TextBox x:Name="outputDirectoryTextBox" Margin="10,5,170,5" TextWrapping="Wrap" Text="outputDirectoryTextBox"
+		         Grid.ColumnSpan="2" Grid.Row="2" Height="20" IsReadOnly="True" Grid.Column="0" />
+		<Button x:Name="showOutputDirectoryButton" Content="Show" Grid.Column="1" HorizontalAlignment="Right"
+		        Margin="0,5,10,5" VerticalAlignment="Top" Width="75" Grid.Row="2" Click="showOutputDirectoryButton_Click" />
+		<Button x:Name="changeOutputDirectoryButton" Content="Change..." Grid.Column="1" HorizontalAlignment="Right"
+		        Margin="0,5,90,5" VerticalAlignment="Top" Width="75" Grid.Row="2" Click="changeOutputDirectoryButton_Click" />
+		<TreeView x:Name="cacheTreeView" Margin="10,5,5,10" Grid.Row="3" BorderBrush="#FF828790" Grid.Column="0" />
+		<Border BorderBrush="#FF828790" BorderThickness="1" Margin="5,5,10,10" Grid.Row="3" Grid.Column="1">
+			<StackPanel x:Name="jobsStackPanel" />
+		</Border>
+	</Grid>
 </Window>

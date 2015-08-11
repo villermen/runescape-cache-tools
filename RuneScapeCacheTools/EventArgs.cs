@@ -5,8 +5,8 @@ namespace RuneScapeCacheTools
 	public class ProgressChangedEventArgs : EventArgs
 	{
 		public readonly int Done;
-		public readonly int Total;
 		public readonly float Progress;
+		public readonly int Total;
 
 		public ProgressChangedEventArgs(int done, int total)
 		{

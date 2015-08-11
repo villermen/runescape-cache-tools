@@ -10,16 +10,23 @@ namespace RuneScapeCacheTools
 		public const string CacheFileName = "main_file_cache.dat2";
 		public const string IndexFilePrefix = "main_file_cache.idx";
 
-		public static readonly string DefaultCacheDirectory = DirectoryHelper.FormatDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
-		public static readonly string DefaultOutputDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
+		public static readonly string DefaultCacheDirectory =
+		DirectoryHelper.FormatDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
 
+		public static readonly string DefaultOutputDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
 		private static string _cacheDirectory = DefaultCacheDirectory;
 		private static string _outputDirectory = DefaultOutputDirectory;
 		private static string _tempDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
 
+		static Cache()
+		{
+			//create temporary directory if it doesn't exist yet
+			Directory.CreateDirectory(_tempDirectory);
+		}
+
 		/// <summary>
-		/// Directory from which the cache is read.
-		/// This directory should contain the cache file 'main_file_cache.dat2' and index files like 'main_file_cache.idx#'.
+		///     Directory from which the cache is read.
+		///     This directory should contain the cache file 'main_file_cache.dat2' and index files like 'main_file_cache.idx#'.
 		/// </summary>
 		public static string CacheDirectory
 		{
@@ -35,7 +42,7 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Directory where the cache will be extracted to.
+		///     Directory where the cache will be extracted to.
 		/// </summary>
 		public static string OutputDirectory
 		{
@@ -51,7 +58,7 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Directory for temporary files, used in processing.
+		///     Directory for temporary files, used in processing.
 		/// </summary>
 		public static string TempDirectory
 		{
@@ -66,14 +73,8 @@ namespace RuneScapeCacheTools
 			set { _tempDirectory = DirectoryHelper.FormatDirectory(value); }
 		}
 
-		static Cache()
-		{
-			//create temporary directory if it doesn't exist yet
-			Directory.CreateDirectory(_tempDirectory);
-		}
-
 		/// <summary>
-		/// Obtains the ids of all the present index files.
+		///     Obtains the ids of all the present index files.
 		/// </summary>
 		public static IEnumerable<int> GetArchiveIds()
 		{
@@ -88,7 +89,7 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Checks for existence of the archive directory in the output directory.
+		///     Checks for existence of the archive directory in the output directory.
 		/// </summary>
 		public static bool ArchiveExtracted(int archiveId)
 		{
@@ -96,13 +97,13 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Returns a path to a specified output file.
+		///     Returns a path to a specified output file.
 		/// </summary>
 		/// <exception cref="FileNotFoundException"></exception>
 		public static string GetFile(int archiveId, int fileId, bool extractOnFailure = false)
 		{
 			//quick filter and then regex filter to decide whether the file is actually what we're looking for
-			string file = FindFile(archiveId, fileId);
+			var file = FindFile(archiveId, fileId);
 
 			if (file != null)
 				return file;
@@ -123,8 +124,10 @@ namespace RuneScapeCacheTools
 		private static string FindFile(int archiveId, int fileId)
 		{
 			//find it by the start of the file first, then do a regex filter against the result to filter out false positives (e.g. 5 would match 534.ogg)
-			var files = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
-				.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$")).ToList();
+			var files =
+			Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
+			.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"))
+			.ToList();
 
 			return files.FirstOrDefault();
 		}
