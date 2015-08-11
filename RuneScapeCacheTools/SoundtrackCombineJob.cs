@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -150,7 +151,15 @@ namespace RuneScapeCacheTools
 					//do the time consuming part on a task
 					var soxTask = new Task(() =>
 					{
-                        soxProcess.Start();
+						try
+						{
+							soxProcess.Start();
+						}
+						catch (Win32Exception ex)
+						{
+							throw new FileNotFoundException("SoX not found, can't combine audio.", ex);
+						}
+
 						soxProcess.WaitForExit();
 
 						if (soxProcess.ExitCode == 0)
