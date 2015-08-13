@@ -44,7 +44,7 @@ namespace RuneScapeCacheTools
 					var trackName = resolveFile.ReadNullTerminatedString();
 
 					//replace characters that can't be used in files from trackName
-					trackName = regex.Replace(trackName, "");
+					trackName = regex.Replace(trackName, "").Trim();
 
 					//add only if the string is of any use
 					if (!string.IsNullOrWhiteSpace(trackName))
