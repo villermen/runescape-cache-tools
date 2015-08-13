@@ -233,7 +233,11 @@ namespace RuneScapeCacheToolsGUI
 				JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(Cache.TempDirectory + "config.json"));
 
 				if (_config.ContainsKey("outputDirectory"))
-					Cache.OutputDirectory = (string)_config["outputDirectory"];
+				{
+					string outputDirectory = (string)_config["outputDirectory"];
+					if (Directory.Exists(outputDirectory))
+						Cache.OutputDirectory = outputDirectory;
+				}
 			}
 			catch (FileNotFoundException) { }
 		}
