@@ -43,7 +43,7 @@ namespace RuneScapeCacheTools
 					var trackId = (int)resolveFile.ReadBytes(2);
 					var trackName = resolveFile.ReadNullTerminatedString();
 
-					//replace characters that can't be used in files from trackName
+					//make tracknames file-safe
 					trackName = regex.Replace(trackName, "").Trim();
 
 					//add only if the string is of any use
