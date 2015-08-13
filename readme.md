@@ -10,9 +10,10 @@ A pre-compiled executable of the latest release is available from the [releases 
  - Combine sound chunks from the soundtrack archive into full-fledged, named tracks.
  - Show a list of all soundtrack names, or a list of all the ones not present in the output directory (so you know what to load into the cache in-game).
 
-####Soundtrack download
+####Soundtrack
 
-You can download the soundtrack we have created together with the tool from [my website](https://villermen.com/browser/?d=music). It's as complete as possible. If you have extracted any tracks that are not (yet) downloadable in the file browser, you can contact me at any time. [An email](mailto:villermen@gmail.com) would probably be the best way to contact me.
+I've uploaded all named tracks to youtube. Playlist can be found [here](https://www.youtube.com/playlist?list=PLLCViMm56RAFqVJKXi13VEFwz7Q_Bi4gR).
+You can download the soundtrack we have created together with the tool from [my website](https://villermen.com/browser/music). It's as complete as possible. If you have extracted any tracks that are not (yet) downloadable in the file browser, you can contact me at any time. [An email](mailto:villermen@gmail.com) would probably be the best way to contact me.
 
 ####Show your support!
 
