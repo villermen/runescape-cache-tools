@@ -32,10 +32,6 @@ namespace RuneScapeCacheTools
 		{
 			get
 			{
-				//check if directory exists/is readable
-				if (!Directory.Exists(_cacheDirectory))
-					throw new DirectoryNotFoundException("The given cache directory does not exist or is not readable.");
-
 				return _cacheDirectory;
 			}
 			set { _cacheDirectory = DirectoryHelper.FormatDirectory(value); }
@@ -48,10 +44,6 @@ namespace RuneScapeCacheTools
 		{
 			get
 			{
-				//check if directory exists/is readable
-				if (!Directory.Exists(_outputDirectory))
-					throw new DirectoryNotFoundException("The given output directory does not exist or is not readable.");
-
 				return _outputDirectory;
 			}
 			set { _outputDirectory = DirectoryHelper.FormatDirectory(value); }
