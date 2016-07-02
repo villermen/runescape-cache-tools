@@ -129,7 +129,7 @@ namespace RuneScapeCacheTools
 						}
 					}
 
-					var soxProcess = new Process { StartInfo = { FileName = "sox", UseShellExecute = false, CreateNoWindow = true } };
+					var soxProcess = new Process { StartInfo = { FileName = "lib/sox", UseShellExecute = false, CreateNoWindow = true } };
 
 					soxProcess.StartInfo.Arguments = $"--combine concatenate {indexChunkFile}";
 					chunkFiles.ForEach(str => { soxProcess.StartInfo.Arguments += " " + str; });
