@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -55,6 +55,10 @@ namespace RuneScapeCacheToolsGUI
 
 			if (dialogResult == WinForms.DialogResult.OK)
 				Cache.CacheDirectory = dirDialog.SelectedPath;
+
+			_config["cacheDirectory"] = Cache.CacheDirectory;
+
+			SaveConfig();
 
 			UpdateCacheView();
 		}
@@ -237,6 +241,13 @@ namespace RuneScapeCacheToolsGUI
 					string outputDirectory = (string)_config["outputDirectory"];
 					if (Directory.Exists(outputDirectory))
 						Cache.OutputDirectory = outputDirectory;
+				}
+
+				if (_config.ContainsKey("cacheDirectory"))
+				{
+					string cacheDirectory = (string)_config["cacheDirectory"];
+					if (Directory.Exists(cacheDirectory))
+						Cache.CacheDirectory = cacheDirectory;
 				}
 			}
 			catch (FileNotFoundException) { }
