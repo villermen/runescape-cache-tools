@@ -11,12 +11,12 @@ namespace RuneScapeCacheTools
 		public const string IndexFilePrefix = "main_file_cache.idx";
 
 		public static readonly string DefaultCacheDirectory =
-		DirectoryHelper.FormatDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
+		DirectoryHelper.NormalizeDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
 
-		public static readonly string DefaultOutputDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
+		public static readonly string DefaultOutputDirectory = DirectoryHelper.NormalizeDirectory(@"%TEMP%/rscachetools/");
 		private static string _cacheDirectory = DefaultCacheDirectory;
 		private static string _outputDirectory = DefaultOutputDirectory;
-		private static string _tempDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
+		private static string _tempDirectory = DirectoryHelper.NormalizeDirectory(@"%TEMP%/rscachetools/");
 
 		static LegacyCache()
 		{
@@ -34,7 +34,7 @@ namespace RuneScapeCacheTools
 			{
 				return _cacheDirectory;
 			}
-			set { _cacheDirectory = DirectoryHelper.FormatDirectory(value); }
+			set { _cacheDirectory = DirectoryHelper.NormalizeDirectory(value); }
 		}
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace RuneScapeCacheTools
 			{
 				return _outputDirectory;
 			}
-			set { _outputDirectory = DirectoryHelper.FormatDirectory(value); }
+			set { _outputDirectory = DirectoryHelper.NormalizeDirectory(value); }
 		}
 
 		/// <summary>
@@ -62,7 +62,7 @@ namespace RuneScapeCacheTools
 
 				return _tempDirectory;
 			}
-			set { _tempDirectory = DirectoryHelper.FormatDirectory(value); }
+			set { _tempDirectory = DirectoryHelper.NormalizeDirectory(value); }
 		}
 
 		/// <summary>

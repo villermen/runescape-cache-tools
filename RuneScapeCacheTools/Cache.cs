@@ -14,44 +14,20 @@ namespace Villermen.RuneScapeCacheTools
 		/// </summary>
 		public abstract string DefaultCacheDirectory { get; }
 
-		private string _cacheDirectory;
-		public string CacheDirectory
-		{
-			get
-			{
-				return _cacheDirectory;
-			}
-			set
-			{
-				_cacheDirectory = DirectoryHelper.FormatDirectory(value);
-			}
-		}
+		/// <summary>
+		/// The location where the cache is located.
+		/// </summary>
+		public string CacheDirectory { get; set; }
 
-		private string _outputDirectory;
-		public string OutputDirectory
-		{
-			get
-			{
-				return _outputDirectory;
-			}
-			set
-			{
-				_outputDirectory = DirectoryHelper.FormatDirectory(value);
-			}
-		}
+		/// <summary>
+		/// The location where the processed cache will be stored.
+		/// </summary>
+		public string OutputDirectory { get; set; }
 
-		private string _temporaryDirectory;
-		public string TemporaryDirectory
-		{
-			get
-			{
-				return _temporaryDirectory;
-			}
-			set
-			{
-				_temporaryDirectory = DirectoryHelper.FormatDirectory(value);
-			}
-		}
+		/// <summary>
+		/// Temporary files used while processing will be stored here.
+		/// </summary>
+		public string TemporaryDirectory { get; set; }
 
 		protected Cache()
 		{
@@ -82,9 +58,20 @@ namespace Villermen.RuneScapeCacheTools
 		/// <returns></returns>
 		public abstract Task ExtractFileAsync(int archiveId, int fileId);
 
-		public virtual bool IsArchiveExtracted(int archiveId)
+		/// <summary> 
+		/// </summary>
+		/// <param name="archiveId"></param>
+		/// <returns>The path to the directory of the given archive, or null if it does not exist.</returns>
+		public virtual string getArchivePath(int archiveId)
 		{
-			return Directory.Exists(OutputDirectory + "cache/" + archiveId);
+			string archivePath = $"{OutputDirectory}cache/{archiveId}/";
+
+			if (Directory.Exists(archivePath))
+			{
+				return archivePath;
+			}
+
+			return null;
 		}
 
 		/// <summary>
