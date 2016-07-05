@@ -1,127 +1,152 @@
-﻿using System.Collections.Generic;
+﻿using RuneScapeCacheTools;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
-namespace RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools
 {
-	public static class Cache
+	public abstract class Cache
 	{
-		public const string CacheFileName = "main_file_cache.dat2";
-		public const string IndexFilePrefix = "main_file_cache.idx";
-
-		public static readonly string DefaultCacheDirectory =
-		DirectoryHelper.FormatDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
-
-		public static readonly string DefaultOutputDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
-		private static string _cacheDirectory = DefaultCacheDirectory;
-		private static string _outputDirectory = DefaultOutputDirectory;
-		private static string _tempDirectory = DirectoryHelper.FormatDirectory(@"%TEMP%/rscachetools/");
-
-		static Cache()
-		{
-			//create temporary directory if it doesn't exist yet
-			Directory.CreateDirectory(_tempDirectory);
-		}
-
 		/// <summary>
-		///     Directory from which the cache is read.
-		///     This directory should contain the cache file 'main_file_cache.dat2' and index files like 'main_file_cache.idx#'.
+		/// The directory that is the default location for this type of cache.
 		/// </summary>
-		public static string CacheDirectory
+		public abstract string DefaultCacheDirectory { get; }
+
+		private string _cacheDirectory;
+		public string CacheDirectory
 		{
 			get
 			{
 				return _cacheDirectory;
 			}
-			set { _cacheDirectory = DirectoryHelper.FormatDirectory(value); }
+			set
+			{
+				_cacheDirectory = DirectoryHelper.FormatDirectory(value);
+			}
 		}
 
-		/// <summary>
-		///     Directory where the cache will be extracted to.
-		/// </summary>
-		public static string OutputDirectory
+		private string _outputDirectory;
+		public string OutputDirectory
 		{
 			get
 			{
 				return _outputDirectory;
 			}
-			set { _outputDirectory = DirectoryHelper.FormatDirectory(value); }
+			set
+			{
+				_outputDirectory = DirectoryHelper.FormatDirectory(value);
+			}
 		}
 
-		/// <summary>
-		///     Directory for temporary files, used in processing.
-		/// </summary>
-		public static string TempDirectory
+		private string _temporaryDirectory;
+		public string TemporaryDirectory
 		{
 			get
 			{
-				//check if directory exists/is readable
-				if (!Directory.Exists(_tempDirectory))
-					throw new DirectoryNotFoundException("The given temp directory does not exist or is not readable.");
-
-				return _tempDirectory;
+				return _temporaryDirectory;
 			}
-			set { _tempDirectory = DirectoryHelper.FormatDirectory(value); }
-		}
-
-		/// <summary>
-		///     Obtains the ids of all the present index files.
-		/// </summary>
-		public static IEnumerable<int> GetArchiveIds()
-		{
-			return Directory.EnumerateFiles(CacheDirectory, IndexFilePrefix + "???").Select(file =>
+			set
 			{
-				int archiveId;
-				if (int.TryParse(file.Substring(file.LastIndexOf(IndexFilePrefix) + IndexFilePrefix.Length), out archiveId))
-					return archiveId;
-
-				return -1;
-			}).Where(id => id != -1).OrderBy(id => id);
+				_temporaryDirectory = DirectoryHelper.FormatDirectory(value);
+			}
 		}
 
+		protected Cache()
+		{
+			CacheDirectory = DefaultCacheDirectory;
+			TemporaryDirectory = Path.GetTempPath() + "rsct/";
+		}
+
+		public abstract IEnumerable<int> getArchiveIds();
+
 		/// <summary>
-		///     Checks for existence of the archive directory in the output directory.
+		/// Extracts every file in every archive.
 		/// </summary>
-		public static bool ArchiveExtracted(int archiveId)
+		/// <returns></returns>
+		public abstract Task ExtractAllAsync();
+
+		/// <summary>
+		/// Extracts every file in the given archive.
+		/// </summary>
+		/// <param name="archiveId"></param>
+		/// <returns></returns>
+		public abstract Task ExtractArchiveAsync(int archiveId);
+
+		/// <summary>
+		/// Extracts the given file in the given archive.
+		/// </summary>
+		/// <param name="archiveId"></param>
+		/// <param name="fileId"></param>
+		/// <returns></returns>
+		public abstract Task ExtractFileAsync(int archiveId, int fileId);
+
+		public virtual bool IsArchiveExtracted(int archiveId)
 		{
 			return Directory.Exists(OutputDirectory + "cache/" + archiveId);
 		}
 
 		/// <summary>
-		///     Returns a path to a specified output file.
+		/// Finds the path for the given extracted file.
 		/// </summary>
-		/// <exception cref="FileNotFoundException"></exception>
-		public static string GetFile(int archiveId, int fileId, bool extractOnFailure = false)
+		/// <param name="archiveId"></param>
+		/// <param name="fileId"></param>
+		/// <param name="extractIfMissing">Try to extract the file if it hasn't been extracted yet.</param>
+		/// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
+		public virtual string GetFilePath(int archiveId, int fileId, bool extractIfMissing = false)
 		{
-			//quick filter and then regex filter to decide whether the file is actually what we're looking for
-			var file = FindFile(archiveId, fileId);
+			string path = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
+				.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"))
+				.FirstOrDefault();
 
-			if (file != null)
-				return file;
+			if (!string.IsNullOrWhiteSpace(path))
+			{
+				return path;
+			}
 
-			if (!extractOnFailure)
-				throw new FileNotFoundException();
+			if (extractIfMissing)
+			{
+				ExtractFileAsync(archiveId, fileId).Wait();
+				return GetFilePath(archiveId, fileId);
+			}
 
-			new CacheExtractJob(archiveId, fileId).Start();
-
-			file = FindFile(archiveId, fileId);
-
-			if (file == null)
-				throw new FileNotFoundException();
-
-			return file;
+			return null;
 		}
 
-		private static string FindFile(int archiveId, int fileId)
+		/// <summary>
+		/// Write out the given data to the specified file.
+		/// Deletes a previous version of the file (regardless of extension) if it exists.
+		/// </summary>
+		/// <param name="archiveId"></param>
+		/// <param name="fileId"></param>
+		/// <param name="data"></param>
+		/// <param name="extension">File extension, without the dot.</param>
+		protected void WriteFile(int archiveId, int fileId, byte[] data, string extension = null)
 		{
-			//find it by the start of the file first, then do a regex filter against the result to filter out false positives (e.g. 5 would match 534.ogg)
-			var files =
-			Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
-			.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"))
-			.ToList();
+			// Throw an exception if the output directory is not yet set or does not exist
+			if (string.IsNullOrWhiteSpace(OutputDirectory) || !Directory.Exists(OutputDirectory))
+			{
+				throw new DirectoryNotFoundException("Output directory does not exist.");
+			}
 
-			return files.FirstOrDefault();
+			// Delete existing file
+			string existingFilePath = GetFilePath(archiveId, fileId);
+			if (!string.IsNullOrWhiteSpace(existingFilePath))
+			{
+				File.Delete(existingFilePath);
+			}
+
+			// Construct new path
+			string newFilePath = $"{OutputDirectory}cache/{archiveId}/{fileId}";
+			if (!string.IsNullOrWhiteSpace(extension))
+			{
+				newFilePath += $".{extension}";
+			}
+
+			// Create directories where necessary, before writing to file
+			Directory.CreateDirectory(newFilePath);
+			File.WriteAllBytes(newFilePath, data);
 		}
 	}
 }

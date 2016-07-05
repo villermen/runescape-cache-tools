@@ -27,8 +27,8 @@ namespace RuneScapeCacheToolsGUI
 			InitializeComponent();
 
 			//initialize view
-			cacheDirectoryTextBox.Text = Cache.CacheDirectory;
-			outputDirectoryTextBox.Text = Cache.OutputDirectory;
+			cacheDirectoryTextBox.Text = LegacyCache.CacheDirectory;
+			outputDirectoryTextBox.Text = LegacyCache.OutputDirectory;
 			UpdateCacheView();
 
 			CacheJob.Created += RegisterNewJob;
@@ -48,15 +48,15 @@ namespace RuneScapeCacheToolsGUI
 			var dirDialog = new WinForms.FolderBrowserDialog
 			{
 				RootFolder = Environment.SpecialFolder.Desktop,
-				SelectedPath = Cache.CacheDirectory.Replace("/", "\\") //because windows...
+				SelectedPath = LegacyCache.CacheDirectory.Replace("/", "\\") //because windows...
 			};
 
 			var dialogResult = dirDialog.ShowDialog();
 
 			if (dialogResult == WinForms.DialogResult.OK)
-				Cache.CacheDirectory = dirDialog.SelectedPath;
+				LegacyCache.CacheDirectory = dirDialog.SelectedPath;
 
-			_config["cacheDirectory"] = Cache.CacheDirectory;
+			_config["cacheDirectory"] = LegacyCache.CacheDirectory;
 
 			SaveConfig();
 
@@ -68,29 +68,29 @@ namespace RuneScapeCacheToolsGUI
 			var dirDialog = new WinForms.FolderBrowserDialog
 			{
 				RootFolder = Environment.SpecialFolder.Desktop,
-				SelectedPath = Cache.OutputDirectory.Replace("/", "\\") //because windows...
+				SelectedPath = LegacyCache.OutputDirectory.Replace("/", "\\") //because windows...
 			};
 
 			var dialogResult = dirDialog.ShowDialog();
 
 			if (dialogResult == WinForms.DialogResult.OK)
-				Cache.OutputDirectory = dirDialog.SelectedPath;
+				LegacyCache.OutputDirectory = dirDialog.SelectedPath;
 
-			outputDirectoryTextBox.Text = Cache.OutputDirectory;
+			outputDirectoryTextBox.Text = LegacyCache.OutputDirectory;
 
-			_config["outputDirectory"] = Cache.OutputDirectory;
+			_config["outputDirectory"] = LegacyCache.OutputDirectory;
 
 			SaveConfig();
 		}
 
 		private void UpdateCacheView()
 		{
-			cacheDirectoryTextBox.Text = Cache.CacheDirectory;
+			cacheDirectoryTextBox.Text = LegacyCache.CacheDirectory;
 
 			cacheTreeView.Items.Clear();
 
 			//show error if cache not detected
-			if (!File.Exists(Cache.CacheDirectory + Cache.CacheFileName))
+			if (!File.Exists(LegacyCache.CacheDirectory + LegacyCache.CacheFileName))
 			{
 				cacheTreeView.Items.Add("No cache file found in directory.");
 				_canExtract = false;
@@ -108,7 +108,7 @@ namespace RuneScapeCacheToolsGUI
 
 			cacheTreeItem.ExpandSubtree();
 
-			foreach (var archiveId in Cache.GetArchiveIds())
+			foreach (var archiveId in LegacyCache.GetArchiveIds())
 			{
 				var archiveTreeItem = new TreeViewItem
 				{
@@ -158,14 +158,14 @@ namespace RuneScapeCacheToolsGUI
 
 		private void showOutputDirectoryButton_Click(object sender, RoutedEventArgs e)
 		{
-			Process.Start(Cache.OutputDirectory);
+			Process.Start(LegacyCache.OutputDirectory);
 		}
 
 		private void OpenArchiveDirectory(int archiveId)
 		{
 			var openFile = archiveId == -1
-			? Cache.OutputDirectory + "cache/"
-			: Cache.OutputDirectory + "cache/" + archiveId + "/";
+			? LegacyCache.OutputDirectory + "cache/"
+			: LegacyCache.OutputDirectory + "cache/" + archiveId + "/";
 
 			if (!File.Exists(openFile) && !Directory.Exists(openFile))
 				MessageBox.Show("That location hasn't been extracted yet.\n" + openFile);
@@ -220,13 +220,13 @@ namespace RuneScapeCacheToolsGUI
 
 		private void defaultCacheDirectoryButton_Click(object sender, RoutedEventArgs e)
 		{
-			Cache.CacheDirectory = Cache.DefaultCacheDirectory;
+			LegacyCache.CacheDirectory = LegacyCache.DefaultCacheDirectory;
 			UpdateCacheView();
 		}
 
 		private void SaveConfig()
 		{
-			File.WriteAllText(Cache.TempDirectory + "config.json", JsonConvert.SerializeObject(_config));
+			File.WriteAllText(LegacyCache.TempDirectory + "config.json", JsonConvert.SerializeObject(_config));
 		}
 
 		private void LoadConfig()
@@ -234,20 +234,20 @@ namespace RuneScapeCacheToolsGUI
 			try
 			{
 				_config =
-				JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(Cache.TempDirectory + "config.json"));
+				JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(LegacyCache.TempDirectory + "config.json"));
 
 				if (_config.ContainsKey("outputDirectory"))
 				{
 					string outputDirectory = (string)_config["outputDirectory"];
 					if (Directory.Exists(outputDirectory))
-						Cache.OutputDirectory = outputDirectory;
+						LegacyCache.OutputDirectory = outputDirectory;
 				}
 
 				if (_config.ContainsKey("cacheDirectory"))
 				{
 					string cacheDirectory = (string)_config["cacheDirectory"];
 					if (Directory.Exists(cacheDirectory))
-						Cache.CacheDirectory = cacheDirectory;
+						LegacyCache.CacheDirectory = cacheDirectory;
 				}
 			}
 			catch (FileNotFoundException) { }
@@ -300,7 +300,7 @@ namespace RuneScapeCacheToolsGUI
 				var tracks = Soundtrack.GetTrackNames();
 
 				//export to file
-				using (var tracklistFile = new StreamWriter(File.Open(Cache.OutputDirectory + "tracknames.csv", FileMode.Create)))
+				using (var tracklistFile = new StreamWriter(File.Open(LegacyCache.OutputDirectory + "tracknames.csv", FileMode.Create)))
 				{
 					//write headers
 
@@ -311,7 +311,7 @@ namespace RuneScapeCacheToolsGUI
 				}
 
 				//show file
-				Process.Start(Cache.OutputDirectory + "tracknames.csv");
+				Process.Start(LegacyCache.OutputDirectory + "tracknames.csv");
 			}
 			catch (Exception ex)
 			{
@@ -321,7 +321,7 @@ namespace RuneScapeCacheToolsGUI
 
 		private void showMissingSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			if (!Directory.Exists(LegacyCache.OutputDirectory + "soundtrack/"))
 			{
 				MessageBox.Show("Soundtrack directory hasn't been created yet.");
 				return;
@@ -329,7 +329,7 @@ namespace RuneScapeCacheToolsGUI
 
 			try
 			{
-				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var soundtrackDir = LegacyCache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
 				var missingTracks = new Dictionary<int, string>();
@@ -343,7 +343,7 @@ namespace RuneScapeCacheToolsGUI
 				//export to file
 				using (
 				var missingTracklistFile =
-				new StreamWriter(File.Open(Cache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
+				new StreamWriter(File.Open(LegacyCache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
 				{
 					//write headers
 					missingTracklistFile.WriteLine("File Id,Name");
@@ -353,7 +353,7 @@ namespace RuneScapeCacheToolsGUI
 				}
 
 				//show file
-				Process.Start(Cache.OutputDirectory + "missingtracknames.csv");
+				Process.Start(LegacyCache.OutputDirectory + "missingtracknames.csv");
 			}
 			catch (Exception ex)
 			{
@@ -363,18 +363,18 @@ namespace RuneScapeCacheToolsGUI
 
 		private void showSoundtrackDirectoryMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			if (!Directory.Exists(LegacyCache.OutputDirectory + "soundtrack/"))
 			{
 				MessageBox.Show("Soundtrack directory hasn't been created yet.");
 				return;
 			}
 
-			Process.Start(Cache.OutputDirectory + "soundtrack/");
+			Process.Start(LegacyCache.OutputDirectory + "soundtrack/");
 		}
 
 		private void updateSoundtrackNamesMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			if (!Directory.Exists(Cache.OutputDirectory + "soundtrack/"))
+			if (!Directory.Exists(LegacyCache.OutputDirectory + "soundtrack/"))
 			{
 				MessageBox.Show("Soundtrack directory hasn't been created yet.");
 				return;
@@ -382,7 +382,7 @@ namespace RuneScapeCacheToolsGUI
 
 			try
 			{
-				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var soundtrackDir = LegacyCache.OutputDirectory + "soundtrack/";
 				var tracks = Soundtrack.GetTrackNames();
 
 				var namedTracks = 0;

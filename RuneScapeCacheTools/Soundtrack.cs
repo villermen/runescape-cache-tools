@@ -16,7 +16,7 @@ namespace RuneScapeCacheTools
 			//the following is based on even more assumptions than normal made while comparing 2 extracted caches, it's therefore probably the first thing to break
 			//4B magic number (0x00016902) - 2B a file id? - 2B amount of files (higher than actual entries sometimes) - 2B amount of files
 
-			var resolveFileName = Cache.GetFile(17, 5, true);
+			var resolveFileName = LegacyCache.GetFile(17, 5, true);
 
 			using (var resolveFile = File.OpenRead(resolveFileName))
 			{

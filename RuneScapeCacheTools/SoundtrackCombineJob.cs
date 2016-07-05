@@ -51,17 +51,17 @@ namespace RuneScapeCacheTools
 		{
 			await Task.Run(() =>
 			{
-				if (!Cache.ArchiveExtracted(40))
+				if (!LegacyCache.ArchiveExtracted(40))
 					throw new DirectoryNotFoundException("Archive 40 needs to be extracted at this point.");
 
-				if (NameTracks && !Cache.ArchiveExtracted(17))
+				if (NameTracks && !LegacyCache.ArchiveExtracted(17))
 					throw new DirectoryNotFoundException("Archive 17 needs to be extracted at this point.");
 
 				//get trackname lookup list
 				var trackNames = NameTracks ? Soundtrack.GetTrackNames() : new Dictionary<int, string>();
 
-				var archiveDir = Cache.OutputDirectory + "cache/40/";
-				var soundtrackDir = Cache.OutputDirectory + "soundtrack/";
+				var archiveDir = LegacyCache.OutputDirectory + "cache/40/";
+				var soundtrackDir = LegacyCache.OutputDirectory + "soundtrack/";
 				Directory.CreateDirectory(soundtrackDir);
 				var filesProcessed = 0;
 				var soxTasks = new List<Task>();
@@ -79,8 +79,8 @@ namespace RuneScapeCacheTools
 					//create output file name
 					var outFileName = trackNames.ContainsKey(indexFileId) ? trackNames[indexFileId] : indexFileId.ToString();
 					var outFile = soundtrackDir + outFileName + "." + (Lossless ? "flac" : "ogg");
-					var workFile = Cache.TempDirectory + outFileName + "." + (Lossless ? "flac" : "ogg");
-					var indexChunkFile = Cache.TempDirectory + "index" + indexFileId + ".ogg";
+					var workFile = LegacyCache.TempDirectory + outFileName + "." + (Lossless ? "flac" : "ogg");
+					var indexChunkFile = LegacyCache.TempDirectory + "index" + indexFileId + ".ogg";
 
 					//skip existing files
 					if (File.Exists(outFile))

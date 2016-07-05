@@ -18,7 +18,7 @@ namespace RuneScapeCacheTools
 		/// </summary>
 		public CacheExtractJob(bool overwrite = false)
 		{
-			ArchiveIds = Cache.GetArchiveIds().ToList();
+			ArchiveIds = LegacyCache.GetArchiveIds().ToList();
 			OverwriteExistingFiles = overwrite;
 		}
 
@@ -107,9 +107,9 @@ namespace RuneScapeCacheTools
 				                 (int)
 				                 ArchiveIds.Sum(
 				                                archiveId =>
-				                                new FileInfo(Cache.CacheDirectory + Cache.IndexFilePrefix + archiveId).Length / 6);
+				                                new FileInfo(LegacyCache.CacheDirectory + LegacyCache.IndexFilePrefix + archiveId).Length / 6);
 
-				using (var cacheFile = File.OpenRead(Cache.CacheDirectory + Cache.CacheFileName))
+				using (var cacheFile = File.OpenRead(LegacyCache.CacheDirectory + LegacyCache.CacheFileName))
 				{
 					var processedFiles = 0;
 
@@ -117,7 +117,7 @@ namespace RuneScapeCacheTools
 					foreach (var archiveId in ArchiveIds)
 					{
 						//open index file and read in all files sequentially
-						using (var indexFile = File.OpenRead(Cache.CacheDirectory + Cache.IndexFilePrefix + archiveId))
+						using (var indexFile = File.OpenRead(LegacyCache.CacheDirectory + LegacyCache.IndexFilePrefix + archiveId))
 						{
 							//obtain list of all files in archive
 							if (FileIds == null)
@@ -194,10 +194,10 @@ namespace RuneScapeCacheTools
 										ProcessFile(ref buffer, out extension);
 
 										//create target directory if it doesn't exist yet
-										Directory.CreateDirectory(Cache.OutputDirectory + "cache/" + archiveId + "/");
+										Directory.CreateDirectory(LegacyCache.OutputDirectory + "cache/" + archiveId + "/");
 
 										//remove existing extensionless file (for backward compatibility)
-										var extensionLessOutFile = Cache.OutputDirectory + "cache/" + archiveId + "/" + fileId;
+										var extensionLessOutFile = LegacyCache.OutputDirectory + "cache/" + archiveId + "/" + fileId;
 										var outFile = extensionLessOutFile + extension;
 
 										if (!File.Exists(outFile) || OverwriteExistingFiles) //todo: decide overwrite before processing
