@@ -4,10 +4,12 @@
 	{
 		static void Main(string[] args)
 		{
-			Cache cache = new NXTCache();
+			NXTCache cache = new NXTCache();
 			cache.OutputDirectory = @"C:/Data/Temp/rsnxtcache/";
 
 			var d = cache.getArchiveIds();
+
+			var e = cache.GetFileData(40, 2628);
 
 		}
 	}

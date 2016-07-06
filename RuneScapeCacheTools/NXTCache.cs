@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Data.SQLite;
 
 namespace Villermen.RuneScapeCacheTools
 {
@@ -42,6 +43,32 @@ namespace Villermen.RuneScapeCacheTools
 					return int.Parse(archiveIdString);
 				})
 				.OrderBy((id) => id);
+		}
+
+		protected override byte[] GetFileData(int archiveId, int fileId)
+		{
+			// TODO: Re-use
+			SQLiteConnection connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
+			connection.Open();
+
+			SQLiteDataReader reader = new SQLiteCommand(
+				$"SELECT DATA FROM cache WHERE KEY = '{fileId}'"
+				, connection).ExecuteReader();
+
+			reader.Read();
+			var d = reader["DATA"];
+
+			throw new NotImplementedException();
+		}
+
+		public override IEnumerable<int> getFileIds()
+		{
+			throw new NotImplementedException();
+		}
+
+		protected string GetArchiveFile(int archiveId)
+		{
+			return $"{CacheDirectory}js5-{archiveId}.jcache";
 		}
 	}
 }
