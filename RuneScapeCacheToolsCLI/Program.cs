@@ -9,7 +9,7 @@
 
 			var d = cache.getArchiveIds();
 
-			var e = cache.GetFileData(40, 2628);
+			var e = cache.ExtractFileAsync(40, 2628);
 
 		}
 	}

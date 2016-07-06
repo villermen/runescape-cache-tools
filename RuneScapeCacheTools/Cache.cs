@@ -1,4 +1,5 @@
 ﻿using RuneScapeCacheTools;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -53,14 +54,20 @@ namespace Villermen.RuneScapeCacheTools
 		/// Extracts every file in every archive.
 		/// </summary>
 		/// <returns></returns>
-		public abstract Task ExtractAllAsync();
+		public Task ExtractAllAsync()
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Extracts every file in the given archive.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <returns></returns>
-		public abstract Task ExtractArchiveAsync(int archiveId);
+		public Task ExtractArchiveAsync(int archiveId)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Extracts the given file in the given archive.
@@ -68,7 +75,12 @@ namespace Villermen.RuneScapeCacheTools
 		/// <param name="archiveId"></param>
 		/// <param name="fileId"></param>
 		/// <returns></returns>
-		public abstract Task ExtractFileAsync(int archiveId, int fileId);
+		public Task ExtractFileAsync(int archiveId, int fileId)
+		{
+			var d = GetFileData(archiveId, fileId);
+
+			throw new NotImplementedException();
+		}
 
 		/// <summary> 
 		/// </summary>

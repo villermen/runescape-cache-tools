@@ -18,21 +18,6 @@ namespace Villermen.RuneScapeCacheTools
 			}
 		}
 
-		public override async Task ExtractAllAsync()
-		{
-			throw new NotImplementedException();
-		}
-
-		public override async Task ExtractArchiveAsync(int archiveId)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override async Task ExtractFileAsync(int archiveId, int fileId)
-		{
-			throw new NotImplementedException();
-		}
-
 		public override IEnumerable<int> getArchiveIds()
 		{
 			return Directory.EnumerateFiles(CacheDirectory, "js5-???.jcache")
