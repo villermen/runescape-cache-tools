@@ -33,15 +33,17 @@ namespace Villermen.RuneScapeCacheTools
 		protected override byte[] GetFileData(int archiveId, int fileId)
 		{
 			// TODO: Re-use
-			SQLiteConnection connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
-			connection.Open();
+			using (SQLiteConnection connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;"))
+			{
+				connection.Open();
 
-			SQLiteDataReader reader = new SQLiteCommand(
-				$"SELECT DATA FROM cache WHERE KEY = '{fileId}'"
-				, connection).ExecuteReader();
+				SQLiteDataReader reader = new SQLiteCommand(
+					$"SELECT DATA FROM cache WHERE KEY = '{fileId}'"
+					, connection).ExecuteReader();
 
-			reader.Read();
-			return (byte[]) reader["DATA"];
+				reader.Read();
+				return (byte[])reader["DATA"];
+			}
 		}
 
 		public override IEnumerable<int> getFileIds(int archiveId)
