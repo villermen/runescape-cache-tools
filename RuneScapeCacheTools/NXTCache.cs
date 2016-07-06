@@ -41,12 +41,10 @@ namespace Villermen.RuneScapeCacheTools
 				, connection).ExecuteReader();
 
 			reader.Read();
-			var d = reader["DATA"];
-
-			throw new NotImplementedException();
+			return (byte[]) reader["DATA"];
 		}
 
-		public override IEnumerable<int> getFileIds()
+		public override IEnumerable<int> getFileIds(int archiveId)
 		{
 			throw new NotImplementedException();
 		}
