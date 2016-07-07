@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 			//Debug.WriteLine(cache.GetFileOutputPath(40, 2628));
 
-			cache.ExtractArchiveAsync(40).Wait();
+			cache.ExtractAllAsync().Wait();
 		}
 	}
 }

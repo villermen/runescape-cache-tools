@@ -60,9 +60,9 @@ namespace Villermen.RuneScapeCacheTools
 
 			await Task.Run(() =>
 			{
-				Parallel.ForEach(archiveIds, async (archiveId) =>
+				Parallel.ForEach(archiveIds, (archiveId) =>
 				{
-					await ExtractArchiveAsync(archiveId);
+					ExtractArchiveAsync(archiveId).Wait();
 				});
 			});
 		}
@@ -75,7 +75,6 @@ namespace Villermen.RuneScapeCacheTools
 		public async Task ExtractArchiveAsync(int archiveId)
 		{
 			IEnumerable<int> fileIds = getFileIds(archiveId);
-
 			await Task.Run(() =>
 			{
 				Parallel.ForEach(fileIds, (fileId) =>
@@ -95,6 +94,11 @@ namespace Villermen.RuneScapeCacheTools
 		{
 			// TODO: return bool?
 			byte[] fileData = GetFileData(archiveId, fileId);
+
+			if (fileData == null)
+			{
+				return;
+			}
 
 			FileProcessor.Process(ref fileData);
 			string extension = FileProcessor.GuessExtension(ref fileData);
@@ -194,15 +198,5 @@ namespace Villermen.RuneScapeCacheTools
 		/// <param name="fileId"></param>
 		/// <returns></returns>
 		protected abstract byte[] GetFileData(int archiveId, int fileId);
-
-		/// <summary>
-		/// Processes the data of a file.
-		/// </summary>
-		/// <param name="fileData"></param>
-		/// <returns>If the method can determine an extension, this will be a non-null string containing the extension.</returns>
-		protected virtual void ProcessFileData(ref byte[] fileData)
-		{
-			
-		}
 	}
 }

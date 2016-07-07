@@ -42,7 +42,13 @@ namespace Villermen.RuneScapeCacheTools
 			SQLiteDataReader reader = command.ExecuteReader();
 
 			reader.Read();
-			return (byte[])reader["DATA"];
+
+			if (reader["DATA"].GetType().Equals(typeof(byte[])))
+			{
+				return (byte[])reader["DATA"];
+			}
+
+			return null;
 		}
 
 		public override IEnumerable<int> getFileIds(int archiveId)
