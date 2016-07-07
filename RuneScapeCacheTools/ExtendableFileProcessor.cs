@@ -97,6 +97,50 @@ namespace Villermen.RuneScapeCacheTools
 				return "bz2";
 			}
 
+			// tiff (0x49492a00 and 0x4d4d002a)
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0x49, 0x49, 0x2a, 0x00 }) ||
+				DataHasMagicNumber(ref fileData, new byte[] { 0x4d, 0x4d, 0x00, 0x2a }))
+			{
+				return "tiff";
+			}
+
+			// mp3 (0xfffb and ID3).
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0xff, 0xfb }) ||
+				DataHasMagicNumber(ref fileData, new byte[] { 0x49, 0x44, 0x33 }))
+			{
+				return "wav";
+			}
+
+			// jpeg (0xffd8ff). Actually multiple numbers, but they all start with the same bytes anyway.
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0xff, 0xd8, 0xff }))
+			{
+				return "jpg";
+			}
+
+			// zip (0x504b). Same thing here.
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0x50, 0x4b }))
+			{
+				return "zip";
+			}
+
+			// wav (RIFF). Same thing here.
+			if (DataHasMagicNumber(ref fileData, new byte[] {0x52, 0x49, 0x46, 0x46 }))
+			{
+				return "wav";
+			}
+
+			// tar (ustar). Same thing here.
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0x75, 0x73, 0x74, 0x61, 0x72 }))
+			{
+				return "tar";
+			}
+
+			// 7zip (0x377abcaf271c)
+			if (DataHasMagicNumber(ref fileData, new byte[] { 0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c }))
+			{
+				return "7z";
+			}
+
 			return null;
 		}
 
