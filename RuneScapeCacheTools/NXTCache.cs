@@ -8,6 +8,8 @@ namespace Villermen.RuneScapeCacheTools
 {
 	public class NXTCache : Cache
 	{
+		private Dictionary<int, SQLiteConnection> archiveConnections = new Dictionary<int, SQLiteConnection>();
+
 		public override string DefaultCacheDirectory
 		{
 			get
@@ -66,8 +68,17 @@ namespace Villermen.RuneScapeCacheTools
 
 		protected SQLiteConnection GetArchiveConnection(int archiveId)
 		{
+			// Return an established connection
+			if (archiveConnections.ContainsKey(archiveId))
+			{
+				return archiveConnections[archiveId];
+			}
+
+			// Store and return a new connection
 			SQLiteConnection connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
 			connection.Open();
+
+			archiveConnections.Add(archiveId, connection);
 
 			return connection;
 		}
