@@ -68,14 +68,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileProcessor.cs" />
+    <Compile Include="ExtendableFileProcessor.cs" />
+    <Compile Include="IFileProcessor.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamExtension.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Villermen\RuneScapeCacheTools\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />

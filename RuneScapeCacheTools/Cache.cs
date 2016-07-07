@@ -31,9 +31,9 @@ namespace Villermen.RuneScapeCacheTools
 		public string TemporaryDirectory { get; set; }
 
 		/// <summary>
-		/// Processor used for obtained file data.
+		/// Processor used on obtained data.
 		/// </summary>
-		public FileProcessor FileProcessor { get; set; } = new FileProcessor();
+		public IFileProcessor FileProcessor { get; set; } = new ExtendableFileProcessor();
 
 		protected Cache()
 		{
@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools
 			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
-		protected Cache(FileProcessor fileProcessor) : this()
+		protected Cache(IFileProcessor fileProcessor) : this()
 		{
 			FileProcessor = fileProcessor;
 		}
@@ -54,9 +54,17 @@ namespace Villermen.RuneScapeCacheTools
 		/// Extracts every file in every archive.
 		/// </summary>
 		/// <returns></returns>
-		public Task ExtractAllAsync()
+		public async Task ExtractAllAsync()
 		{
-			throw new NotImplementedException();
+			IEnumerable<int> archiveIds = getArchiveIds();
+
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(archiveIds, async (archiveId) =>
+				{
+					await ExtractArchiveAsync(archiveId);
+				});
+			});
 		}
 
 		/// <summary>
@@ -64,9 +72,17 @@ namespace Villermen.RuneScapeCacheTools
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <returns></returns>
-		public Task ExtractArchiveAsync(int archiveId)
+		public async Task ExtractArchiveAsync(int archiveId)
 		{
-			throw new NotImplementedException();
+			IEnumerable<int> fileIds = getFileIds(archiveId);
+
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(fileIds, (fileId) =>
+				{
+					ExtractFile(archiveId, fileId);
+				});
+			});
 		}
 
 		/// <summary>
@@ -80,7 +96,7 @@ namespace Villermen.RuneScapeCacheTools
 			// TODO: return bool?
 			byte[] fileData = GetFileData(archiveId, fileId);
 
-			FileProcessor.Decompress(ref fileData);
+			FileProcessor.Process(ref fileData);
 			string extension = FileProcessor.GuessExtension(ref fileData);
 
 			WriteFile(archiveId, fileId, fileData, extension);
