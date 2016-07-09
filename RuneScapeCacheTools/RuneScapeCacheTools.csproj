@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExtendableDataProcessor.cs" />
+    <Compile Include="FileProcessors\EnumFileProcessor.cs" />
     <Compile Include="IDataProcessor.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />
