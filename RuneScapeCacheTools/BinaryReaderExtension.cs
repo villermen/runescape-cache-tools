@@ -6,6 +6,14 @@ namespace Villermen.RuneScapeCacheTools
 	public static class BinaryReaderExtension
 	{
 		/// <summary>
+		///   Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.
+		/// </summary>
+		public static ushort ReadUInt16BigEndian(this BinaryReader reader)
+		{
+			return (ushort)((reader.ReadByte() << 8) + reader.ReadByte());
+		}
+
+		/// <summary>
 		///   Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
 		/// </summary>
 		public static uint ReadUInt24BigEndian(this BinaryReader reader)
