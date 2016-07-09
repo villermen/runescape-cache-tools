@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using Villermen.RuneScapeCacheTools.FileProcessors;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -29,7 +30,13 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			//cache.ExtractAllAsync().Wait();
 
 			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 5, true));
-			var enumData = enumFile.GetEnum(232);
+			var metadata = enumFile.GetMetadata().Where((pair) => pair.Value.Type == EnumType.IntInt);
+
+			var e = enumFile.GetEnum(40);
+
+			Console.ReadLine();
+
+			// Find indexes for the ones I used for the soundtrack
 		}
 	}
 }

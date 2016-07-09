@@ -51,14 +51,12 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 					// Only add the position if it is pointing to a valid enum
 					var returnFilePosition = reader.BaseStream.Position;
 					reader.BaseStream.Position = enumPosition;
+					
+					var metadata = EnumMetadata.FromStream(reader.BaseStream);
 
-					// Check validity of enum position by verifying that it starts with e(something)f
-					var enumBytes = reader.ReadBytes(3);
-					if (enumBytes.Length == 3 && enumBytes[0] == 0x65 && enumBytes[2] == 0x66)
+					if (metadata != null)
 					{
-						var valueTypeIdentifier = reader.ReadUInt16BigEndian();
-
-						enumMetadata.Add(enumIndex, new EnumMetadata(enumPosition, (EnumValueType) valueTypeIdentifier));
+						enumMetadata.Add(enumIndex, metadata);
 					}
 
 					reader.BaseStream.Position = returnFilePosition;
@@ -82,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 			return enumMetadata[enumId];
 		}
 
-		public IDictionary<ushort, object> GetEnum(int enumId)
+		public IDictionary<object, object> GetEnum(int enumId)
 		{
 			// TODO: Differentiate between types, obtain types in indexer?
 
@@ -90,35 +88,35 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 
 			using (var reader = new BinaryReader(File.OpenRead(_filePath)))
 			{
-				// Move to start of enum
-				reader.BaseStream.Position = metadata.FilePosition;
+				// Move to start of enum data (read past metadata)
+				reader.BaseStream.Position = metadata.FilePosition + metadata.MetadataLength;
 
-				// Read past data that is not relevant for this method (named for explanation)
-				var identifier = reader.ReadBytes(3);
-				var typeIdentifierValue = reader.ReadUInt16BigEndian();
-				var nextEntryId = reader.ReadUInt16BigEndian();
+				var enumData = new Dictionary<object, object>();
 
-				var entryCount = reader.ReadUInt16BigEndian();
-
-				var enumData = new Dictionary<ushort, object>();
-
-				for (ushort i = 0; i < entryCount; i++)
+				for (var i = 0; i < metadata.Count; i++)
 				{
-					var entryId = reader.ReadUInt16BigEndian();
+					object entryId; 
 					object entryValue;
 
-					switch (metadata.ValueType)
+					switch (metadata.Type)
 					{
-						case EnumValueType.String:
+						case EnumType.ShortString:
+							entryId = reader.ReadUInt16BigEndian();
 							entryValue = reader.ReadNullTerminatedString();
 							break;
 
-						case EnumValueType.Int:
+						case EnumType.ShortInt:
+							entryId = reader.ReadUInt16BigEndian();
+							entryValue = reader.ReadUInt32BigEndian();
+							break;
+
+						case EnumType.IntInt:
+							entryId = reader.ReadUInt32BigEndian();
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
 
 						default:
-							throw new EnumParseException($"No parser is defined for enum's value type \"{metadata.ValueType}\".");
+							throw new EnumParseException($"No parser is defined for enum's value type \"{metadata.Type}\".");
 					}
 
 					enumData.Add(entryId, entryValue);
