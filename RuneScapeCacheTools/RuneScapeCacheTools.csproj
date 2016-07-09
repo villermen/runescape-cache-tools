@@ -70,7 +70,6 @@
   <ItemGroup>
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="IDataProcessor.cs" />
-    <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
-namespace RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools
 {
 	public static class BinaryReaderExtension
 	{
 		/// <summary>
-		/// Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
+		///   Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
 		/// </summary>
 		public static uint ReadUInt24BigEndian(this BinaryReader reader)
 		{
@@ -15,7 +14,7 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
+		///   Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
 		/// </summary>
 		public static uint ReadUInt32BigEndian(this BinaryReader reader)
 		{
@@ -23,15 +22,15 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Reads ANSI characters into a string until \0 or EOF occurs.
+		///   Reads ANSI characters into a string until \0 or EOF occurs.
 		/// </summary>
 		public static string ReadNullTerminatedString(this BinaryReader reader)
 		{
-			List<char> chars = new List<char>();
+			var chars = new List<char>();
 
 			while (true)
 			{
-				char readChar = reader.ReadChar();
+				var readChar = reader.ReadChar();
 
 				if (readChar == 0)
 				{
@@ -45,7 +44,7 @@ namespace RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
+		///   Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
 		/// </summary>
 		public static long IndexOf(this Stream stream, byte[] needle, int matchNumber = 1, int bufferSize = 10000)
 		{

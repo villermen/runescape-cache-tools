@@ -1,67 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
-using System.Data.SQLite;
 
 namespace Villermen.RuneScapeCacheTools
 {
 	public class NXTCache : Cache
 	{
-		private Dictionary<int, SQLiteConnection> archiveConnections = new Dictionary<int, SQLiteConnection>();
+		private readonly Dictionary<int, SQLiteConnection> archiveConnections = new Dictionary<int, SQLiteConnection>();
 
 		public override string DefaultCacheDirectory
-		{
-			get
-			{
-				return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) +
-					"/Jagex/RuneScape/";
-			}
-		}
+			=> Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/Jagex/RuneScape/";
 
-		public override IEnumerable<int> getArchiveIds()
+		public override IEnumerable<int> GetArchiveIds()
 		{
 			return Directory.EnumerateFiles(CacheDirectory, "js5-???.jcache")
-				.Select((archiveFilePath) =>
+				.Select(archiveFilePath =>
 				{
-					string archiveFileName = Path.GetFileNameWithoutExtension(archiveFilePath);
-					string archiveIdString = archiveFileName.Substring(archiveFileName.LastIndexOf('-') + 1);
+					var archiveFileName = Path.GetFileNameWithoutExtension(archiveFilePath);
+					var archiveIdString = archiveFileName.Substring(archiveFileName.LastIndexOf('-') + 1);
 					return int.Parse(archiveIdString);
 				})
-				.OrderBy((id) => id);
+				.OrderBy(id => id);
 		}
 
 		protected override byte[] GetFileData(int archiveId, int fileId)
 		{
-			SQLiteConnection connection = GetArchiveConnection(archiveId);
+			var connection = GetArchiveConnection(archiveId);
 
-			SQLiteCommand command = new SQLiteCommand(
+			var command = new SQLiteCommand(
 				$"SELECT DATA FROM cache WHERE KEY = $fileId"
 				, connection);
 			command.Parameters.AddWithValue("fileId", fileId);
-			SQLiteDataReader reader = command.ExecuteReader();
+			var reader = command.ExecuteReader();
 
 			reader.Read();
 
-			if (reader["DATA"].GetType().Equals(typeof(byte[])))
+			if (reader["DATA"].GetType() == typeof(byte[]))
 			{
-				return (byte[])reader["DATA"];
+				return (byte[]) reader["DATA"];
 			}
 
 			return null;
 		}
 
-		public override IEnumerable<int> getFileIds(int archiveId)
+		public override IEnumerable<int> GetFileIds(int archiveId)
 		{
-			SQLiteConnection connection = GetArchiveConnection(archiveId);
-			SQLiteCommand command = connection.CreateCommand();
+			var connection = GetArchiveConnection(archiveId);
+			var command = connection.CreateCommand();
 			command.CommandText = "SELECT KEY FROM cache";
-			SQLiteDataReader reader = command.ExecuteReader();
+			var reader = command.ExecuteReader();
 
-			List<int> fileIds = new List<int>();
-			while(reader.Read())
+			var fileIds = new List<int>();
+			while (reader.Read())
 			{
-				fileIds.Add((int)(long) reader["KEY"]);
+				fileIds.Add((int) (long) reader["KEY"]);
 			}
 
 			return fileIds;
@@ -81,7 +75,7 @@ namespace Villermen.RuneScapeCacheTools
 			}
 
 			// Store and return a new connection
-			SQLiteConnection connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
+			var connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
 			connection.Open();
 
 			archiveConnections.Add(archiveId, connection);

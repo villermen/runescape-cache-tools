@@ -8,31 +8,6 @@ namespace Villermen.RuneScapeCacheTools
 {
 	public abstract class Cache
 	{
-		/// <summary>
-		/// The directory that is the default location for this type of cache.
-		/// </summary>
-		public abstract string DefaultCacheDirectory { get; }
-
-		/// <summary>
-		/// The location where the cache is located.
-		/// </summary>
-		public string CacheDirectory { get; set; }
-
-		/// <summary>
-		/// The location where the processed cache will be stored.
-		/// </summary>
-		public string OutputDirectory { get; set; }
-
-		/// <summary>
-		/// Temporary files used while processing will be stored here.
-		/// </summary>
-		public string TemporaryDirectory { get; set; }
-
-		/// <summary>
-		/// Processor used on obtained data.
-		/// </summary>
-		public IDataProcessor DataProcessor { get; set; } = new ExtendableDataProcessor();
-
 		protected Cache()
 		{
 			CacheDirectory = DefaultCacheDirectory;
@@ -44,46 +19,59 @@ namespace Villermen.RuneScapeCacheTools
 			DataProcessor = dataProcessor;
 		}
 
-		public abstract IEnumerable<int> getArchiveIds();
-
-		public abstract IEnumerable<int> getFileIds(int archiveId);
+		/// <summary>
+		///   The directory that is the default location for this type of cache.
+		/// </summary>
+		public abstract string DefaultCacheDirectory { get; }
 
 		/// <summary>
-		/// Extracts every file in every archive.
+		///   The location where the cache is located.
+		/// </summary>
+		public string CacheDirectory { get; set; }
+
+		/// <summary>
+		///   The location where the processed cache will be stored.
+		/// </summary>
+		public string OutputDirectory { get; set; }
+
+		/// <summary>
+		///   Temporary files used while processing will be stored here.
+		/// </summary>
+		public string TemporaryDirectory { get; set; }
+
+		/// <summary>
+		///   Processor used on obtained data.
+		/// </summary>
+		public IDataProcessor DataProcessor { get; set; } = new ExtendableDataProcessor();
+
+		public abstract IEnumerable<int> GetArchiveIds();
+
+		public abstract IEnumerable<int> GetFileIds(int archiveId);
+
+		/// <summary>
+		///   Extracts every file in every archive.
 		/// </summary>
 		/// <returns></returns>
 		public async Task ExtractAllAsync()
 		{
-			IEnumerable<int> archiveIds = getArchiveIds();
+			var archiveIds = GetArchiveIds();
 
-			await Task.Run(() =>
-			{
-				Parallel.ForEach(archiveIds, (archiveId) =>
-				{
-					ExtractArchiveAsync(archiveId).Wait();
-				});
-			});
+			await Task.Run(() => { Parallel.ForEach(archiveIds, archiveId => { ExtractArchiveAsync(archiveId).Wait(); }); });
 		}
 
 		/// <summary>
-		/// Extracts every file in the given archive.
+		///   Extracts every file in the given archive.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <returns></returns>
 		public async Task ExtractArchiveAsync(int archiveId)
 		{
-			IEnumerable<int> fileIds = getFileIds(archiveId);
-			await Task.Run(() =>
-			{
-				Parallel.ForEach(fileIds, (fileId) =>
-				{
-					ExtractFile(archiveId, fileId);
-				});
-			});
+			var fileIds = GetFileIds(archiveId);
+			await Task.Run(() => { Parallel.ForEach(fileIds, fileId => { ExtractFile(archiveId, fileId); }); });
 		}
 
 		/// <summary>
-		/// Extracts the given file in the given archive.
+		///   Extracts the given file in the given archive.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <param name="fileId"></param>
@@ -91,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools
 		public void ExtractFile(int archiveId, int fileId)
 		{
 			// TODO: return bool?
-			byte[] fileData = GetFileData(archiveId, fileId);
+			var fileData = GetFileData(archiveId, fileId);
 
 			if (fileData == null)
 			{
@@ -99,12 +87,12 @@ namespace Villermen.RuneScapeCacheTools
 			}
 
 			DataProcessor.Process(ref fileData);
-			string extension = DataProcessor.GuessExtension(ref fileData);
+			var extension = DataProcessor.GuessExtension(ref fileData);
 
 			WriteFile(archiveId, fileId, fileData, extension);
 		}
 
-		/// <summary> 
+		/// <summary>
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <returns>The path to the directory of the given archive, or null if it does not exist.</returns>
@@ -121,7 +109,7 @@ namespace Villermen.RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Finds the path for the given extracted file.
+		///   Finds the path for the given extracted file.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <param name="fileId"></param>
@@ -131,9 +119,9 @@ namespace Villermen.RuneScapeCacheTools
 		{
 			try
 			{
-				string path = Directory.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
-					.Where(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"))
-					.FirstOrDefault();
+				var path = Directory
+					.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
+					.FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"));
 
 				if (!string.IsNullOrWhiteSpace(path))
 				{
@@ -155,8 +143,8 @@ namespace Villermen.RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Write out the given data to the specified file.
-		/// Deletes a previous version of the file (regardless of extension) if it exists.
+		///   Write out the given data to the specified file.
+		///   Deletes a previous version of the file (regardless of extension) if it exists.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <param name="fileId"></param>
@@ -171,7 +159,7 @@ namespace Villermen.RuneScapeCacheTools
 			}
 
 			// Delete existing file
-			string existingFilePath = GetFileOutputPath(archiveId, fileId);
+			var existingFilePath = GetFileOutputPath(archiveId, fileId);
 			if (!string.IsNullOrWhiteSpace(existingFilePath))
 			{
 				File.Delete(existingFilePath);
@@ -190,7 +178,7 @@ namespace Villermen.RuneScapeCacheTools
 		}
 
 		/// <summary>
-		/// Returns the raw data for the given file.
+		///   Returns the raw data for the given file.
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <param name="fileId"></param>
