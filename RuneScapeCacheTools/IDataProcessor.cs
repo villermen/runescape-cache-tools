@@ -4,7 +4,7 @@
 	/// Processor for cache-obtained file data.
 	/// Able to transform data, or guess its extension based on its contents.
 	/// </summary>
-	public interface IFileProcessor
+	public interface IDataProcessor
 	{
 		/// <summary>
 		/// Processes the given file data, transforming it.

@@ -68,8 +68,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExtendableFileProcessor.cs" />
-    <Compile Include="IFileProcessor.cs" />
+    <Compile Include="ExtendableDataProcessor.cs" />
+    <Compile Include="IDataProcessor.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />

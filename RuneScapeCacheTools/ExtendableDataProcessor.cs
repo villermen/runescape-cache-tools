@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools
 	/// Extendable implementation of IFileProcessor.
 	/// Allows dynamic addition and removal of actions.
 	/// </summary>
-	public class ExtendableFileProcessor : IFileProcessor
+	public class ExtendableDataProcessor : IDataProcessor
 	{
 		public delegate void DecompressAction(ref byte[] fileData);
 
@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools
 
 		protected IList<GuessExtensionAction> GuessExtensionActions = new List<GuessExtensionAction>();
 
-		public ExtendableFileProcessor()
+		public ExtendableDataProcessor()
 		{
 			GuessExtensionActions.Add(GuessExtensionsAction);
 		}
