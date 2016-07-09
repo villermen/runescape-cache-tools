@@ -1,46 +1,51 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace RuneScapeCacheTools
 {
-	public static class StreamExtension
+	public static class BinaryReaderExtension
 	{
 		/// <summary>
-		///     Reads a given amount of unsigned bytes from the stream and combines them into one unsigned integer.
+		/// Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
 		/// </summary>
-		public static uint ReadBytes(this Stream stream, int bytes)
+		public static uint ReadUInt24BigEndian(this BinaryReader reader)
 		{
-			if (bytes < 1 || bytes > 4)
-				throw new ArgumentOutOfRangeException();
-
-			uint result = 0;
-
-			for (var i = 0; i < bytes; i++)
-				result += (uint)stream.ReadByte() << (bytes - i - 1) * 8;
-
-			return result;
+			return (uint) ((reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte());
 		}
 
 		/// <summary>
-		///     Reads ANSI characters into a string until \0 or EOF occurs.
+		/// Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
 		/// </summary>
-		public static string ReadNullTerminatedString(this Stream stream)
+		public static uint ReadUInt32BigEndian(this BinaryReader reader)
 		{
-			var result = "";
-			var readByte = stream.ReadByte();
+			return (uint) ((reader.ReadByte() << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte());
+		}
 
-			while (readByte > 0)
+		/// <summary>
+		/// Reads ANSI characters into a string until \0 or EOF occurs.
+		/// </summary>
+		public static string ReadNullTerminatedString(this BinaryReader reader)
+		{
+			List<char> chars = new List<char>();
+
+			while (true)
 			{
-				result += Encoding.Default.GetString(new byte[] { (byte)readByte });
-				readByte = stream.ReadByte();
+				char readChar = reader.ReadChar();
+
+				if (readChar == 0)
+				{
+					break;
+				}
+
+				chars.Add(readChar);
 			}
 
-			return result;
+			return new string(chars.ToArray());
 		}
 
 		/// <summary>
-		///     Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
+		/// Returns the stream location of the matchNumber-th occurence of needle, or -1 when there are no(t enough) matches.
 		/// </summary>
 		public static long IndexOf(this Stream stream, byte[] needle, int matchNumber = 1, int bufferSize = 10000)
 		{

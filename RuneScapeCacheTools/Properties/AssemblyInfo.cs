@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("RunescapeCacheTools")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Tools for extracting and manipulating RuneScape's cache files")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Villermen")]
 [assembly: AssemblyProduct("RunescapeCacheTools")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
