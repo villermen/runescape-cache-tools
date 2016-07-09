@@ -33,7 +33,7 @@ namespace Villermen.RuneScapeCacheTools
 		/// <summary>
 		/// Processor used on obtained data.
 		/// </summary>
-		public IFileProcessor FileProcessor { get; set; } = new ExtendableFileProcessor();
+		public IDataProcessor DataProcessor { get; set; } = new ExtendableDataProcessor();
 
 		protected Cache()
 		{
@@ -41,9 +41,9 @@ namespace Villermen.RuneScapeCacheTools
 			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
-		protected Cache(IFileProcessor fileProcessor) : this()
+		protected Cache(IDataProcessor dataProcessor) : this()
 		{
-			FileProcessor = fileProcessor;
+			DataProcessor = dataProcessor;
 		}
 
 		public abstract IEnumerable<int> getArchiveIds();
@@ -100,8 +100,8 @@ namespace Villermen.RuneScapeCacheTools
 				return;
 			}
 
-			FileProcessor.Process(ref fileData);
-			string extension = FileProcessor.GuessExtension(ref fileData);
+			DataProcessor.Process(ref fileData);
+			string extension = DataProcessor.GuessExtension(ref fileData);
 
 			WriteFile(archiveId, fileId, fileData, extension);
 		}
