@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Threading;
+﻿using System.IO;
 
-namespace Villermen.RuneScapeCacheTools.FileProcessors
+namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
 	public class EnumMetadata
 	{

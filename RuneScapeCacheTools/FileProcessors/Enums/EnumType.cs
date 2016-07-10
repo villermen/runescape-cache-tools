@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.FileProcessors
+﻿namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
 	public enum EnumType
 	{

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.FileProcessors
+namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
 	public class EnumParseException : Exception
 	{

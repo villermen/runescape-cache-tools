@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Villermen.RuneScapeCacheTools.FileProcessors
+namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
 	public class EnumFileProcessor
 	{

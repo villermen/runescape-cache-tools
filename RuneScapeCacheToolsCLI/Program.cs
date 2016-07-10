@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.FileProcessors;
+using Villermen.RuneScapeCacheTools.FileProcessors.Enums;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
