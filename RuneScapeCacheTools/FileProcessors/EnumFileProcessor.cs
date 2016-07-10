@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.FileProcessors
 {
@@ -80,10 +81,13 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 			return enumMetadata[enumId];
 		}
 
-		public IDictionary<object, object> GetEnum(int enumId)
+		public IDictionary<int, ILookup<object, object>> GetEnums()
 		{
-			// TODO: Differentiate between types, obtain types in indexer?
+			return GetMetadata().Keys.ToDictionary(enumId => enumId, GetEnum);
+		}
 
+		public ILookup<object, object> GetEnum(int enumId)
+		{
 			var metadata = GetMetadata(enumId);
 
 			using (var reader = new BinaryReader(File.OpenRead(_filePath)))
@@ -91,7 +95,8 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 				// Move to start of enum data (read past metadata)
 				reader.BaseStream.Position = metadata.FilePosition + metadata.MetadataLength;
 
-				var enumData = new Dictionary<object, object>();
+				// No dictionary, because I've seen multiple identical keys before
+				var enumData = new List<Tuple<object, object>>();
 
 				for (var i = 0; i < metadata.Count; i++)
 				{
@@ -119,10 +124,10 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors
 							throw new EnumParseException($"No parser is defined for enum's value type \"{metadata.Type}\".");
 					}
 
-					enumData.Add(entryId, entryValue);
+					enumData.Add(new Tuple<object, object>(entryId, entryValue));
 				}
 
-				return enumData;
+				return enumData.ToLookup(tuple => tuple.Item1, tuple => tuple.Item2);
 			}
 		}
 	}

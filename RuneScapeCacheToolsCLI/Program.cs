@@ -32,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 5, true));
 			var metadata = enumFile.GetMetadata().Where((pair) => pair.Value.Type == EnumType.IntInt);
 
-			var e = enumFile.GetEnum(40);
+			var enums = enumFile.GetEnums();
 
 			Console.ReadLine();
 
