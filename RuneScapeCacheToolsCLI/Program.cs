@@ -30,10 +30,11 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 			//cache.ExtractAllAsync().Wait();
 
-			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 5, true));
-			var metadata = enumFile.GetMetadata().Where((pair) => pair.Value.Type == EnumType.IntInt);
+			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 41, true));
+			var metadata = enumFile.GetMetadata().Where((pair) => pair.Value.Type == EnumType.LoneInt);
 
 			var enums = enumFile.GetEnums();
+			var d = (uint) enums[132][0].First();
 
 			Console.ReadLine();
 

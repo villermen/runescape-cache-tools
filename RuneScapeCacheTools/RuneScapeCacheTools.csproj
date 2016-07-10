@@ -73,7 +73,7 @@
     <Compile Include="FileProcessors\Enums\EnumType.cs" />
     <Compile Include="FileProcessors\Enums\EnumFileProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumParseException.cs" />
-    <Compile Include="FileProcessors\Enums\UnregisteredEnumValueTypeException.cs" />
+    <Compile Include="FileProcessors\Enums\UnregisteredEnumTypeException.cs" />
     <Compile Include="IDataProcessor.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />

@@ -30,6 +30,14 @@ namespace Villermen.RuneScapeCacheTools
 		}
 
 		/// <summary>
+		///   Reads a 6-byte unsigned big endian integer and advances the current position of the stream by 6 bytes.
+		/// </summary>
+		public static ulong ReadUint48BigEndian(this BinaryReader reader)
+		{
+			return (ulong)((reader.ReadByte() << 40) + (reader.ReadByte() << 32) + (reader.ReadByte() << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte());
+		}
+
+		/// <summary>
 		///   Reads ANSI characters into a string until \0 or EOF occurs.
 		/// </summary>
 		public static string ReadNullTerminatedString(this BinaryReader reader)

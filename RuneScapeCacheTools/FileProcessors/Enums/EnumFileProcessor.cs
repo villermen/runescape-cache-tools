@@ -95,6 +95,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 				// Move to start of enum data (read past metadata)
 				reader.BaseStream.Position = metadata.FilePosition + metadata.MetadataLength;
 
+				// Initialize the resulting dataset
 				// No dictionary, because I've seen multiple identical keys before
 				var enumData = new List<Tuple<object, object>>();
 
@@ -105,6 +106,21 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 
 					switch (metadata.Type)
 					{
+						case EnumType.LoneInt:
+							entryId = 0;
+							entryValue = reader.ReadUInt32BigEndian();
+							break;
+
+						case EnumType.IntHexabyte:
+							entryId = reader.ReadUInt32BigEndian();
+							entryValue = reader.ReadUint48BigEndian();
+							break;
+
+						case EnumType.IntInt:
+							entryId = reader.ReadUInt32BigEndian();
+							entryValue = reader.ReadUInt32BigEndian();
+							break;
+
 						case EnumType.ShortString:
 							entryId = reader.ReadUInt16BigEndian();
 							entryValue = reader.ReadNullTerminatedString();
@@ -115,13 +131,8 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
 
-						case EnumType.IntInt:
-							entryId = reader.ReadUInt32BigEndian();
-							entryValue = reader.ReadUInt32BigEndian();
-							break;
-
 						default:
-							throw new EnumParseException($"No parser is defined for enum's value type \"{metadata.Type}\".");
+							throw new EnumParseException($"No parser is defined for enum's type \"{metadata.Type}\".");
 					}
 
 					enumData.Add(new Tuple<object, object>(entryId, entryValue));

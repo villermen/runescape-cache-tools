@@ -30,8 +30,15 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 			var position = stream.Position;
 
 			// Verify the enum signature (e(something)f)
-			var signature = reader.ReadUInt24BigEndian();
-			if ((signature >> 16) != 0x65 || (signature & 0xff) != 0x66)
+			try
+			{
+				var signature = reader.ReadUInt24BigEndian();
+				if ((signature >> 16) != 0x65 || (signature & 0xff) != 0x66)
+				{
+					return null;
+				}
+			}
+			catch (EndOfStreamException)
 			{
 				return null;
 			}
@@ -45,6 +52,10 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 
 			switch (type)
 			{
+				case EnumType.LoneInt:
+					count = 1;
+					break;
+
 				case EnumType.IntInt:
 					count = reader.ReadUInt16BigEndian();
 					break;
