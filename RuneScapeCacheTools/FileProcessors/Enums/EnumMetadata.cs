@@ -6,7 +6,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 	{
 		public uint FilePosition { get; private set; }
 
-		public EnumType Type { get; private set; }
+		public EnumDataType Type { get; private set; }
 
 		public ushort NextEntryId { get; private set; }
 
@@ -50,16 +50,16 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 			ushort count;
 			ushort thirdValueThatIDoNotKnowTheDetailsOf = 0;
 
-			var type = (EnumType) valueTypeIdentifier;
+			var type = (EnumDataType) valueTypeIdentifier;
 
 			switch (type)
 			{
-				case EnumType.LoneInt:
+				case EnumDataType.LoneInt:
 					count = 1;
 					break;
 
-				case EnumType.IntInt:
-				case EnumType.IntHexabyte:
+				case EnumDataType.IntInt:
+				case EnumDataType.IntHexabyte:
 					count = reader.ReadUInt16BigEndian();
 					break;
 
