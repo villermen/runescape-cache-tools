@@ -4,37 +4,43 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
 	public class EnumMetadata
 	{
-		public uint FilePosition { get; private set; }
+		public EnumKeyType KeyType { get; private set; }
 
-		public EnumDataType Type { get; private set; }
+		public EnumValueType ValueType { get; private set; }
+
+		public EnumMetadataType MetadataType { get; private set; }
 
 		public ushort NextEntryId { get; private set; }
 
 		public ushort Count { get; private set; }
 
-		public ushort ThirdValueThatIDoNotKnowTheDetailsOf { get; private set; }
+		public ushort ValueThatIDoNotKnowTheDetailsOf { get; private set; }
 
-		/// <summary>
-		/// Yes, that's metadata of metadata https://viller.men/soundboard/154ffbca.
-		/// </summary>
+		public uint FilePosition { get; private set; }
+
 		public int MetadataLength { get; private set; }
+
+		public uint DataFilePosition => (uint) (FilePosition + MetadataLength);
 
 		public static EnumMetadata FromStream(Stream stream)
 		{
+			var metadata = new EnumMetadata();
+
 			var reader = new BinaryReader(stream);
 
-			var position = stream.Position;
-
-			byte keyTypeIdentifier;
+			metadata.FilePosition = (uint) stream.Position;
 
 			try
 			{
 				// Verify the enum signature (e(keyType)f)
-				var signatureByte1 = reader.ReadByte();
-				keyTypeIdentifier = reader.ReadByte();
-				var signatureByte2 = reader.ReadByte();
+				if (reader.ReadByte() != 0x65)
+				{
+					return null;
+				}
 
-				if (!(signatureByte1 == 0x65 && signatureByte2 == 0x66))
+				metadata.KeyType = (EnumKeyType) reader.ReadByte();
+
+				if (reader.ReadByte() != 0x66)
 				{
 					return null;
 				}
@@ -44,42 +50,38 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 				return null;
 			}
 
-			var valueTypeIdentifier = reader.ReadByte();
-			var metaTypeIdentifier = reader.ReadByte();
-			ushort nextEntryId = 0;
-			ushort count;
-			ushort thirdValueThatIDoNotKnowTheDetailsOf = 0;
+			metadata.ValueType = (EnumValueType) reader.ReadByte();
+			metadata.MetadataType = (EnumMetadataType) reader.ReadByte();
 
-			var type = (EnumDataType) valueTypeIdentifier;
-
-			switch (type)
+			switch (metadata.MetadataType)
 			{
-				case EnumDataType.LoneInt:
-					count = 1;
+				case EnumMetadataType.Count1:
+				case EnumMetadataType.Count2:
+					metadata.Count = reader.ReadUInt16BigEndian();
 					break;
 
-				case EnumDataType.IntInt:
-				case EnumDataType.IntHexabyte:
-					count = reader.ReadUInt16BigEndian();
+				case EnumMetadataType.NextIdCount:
+					metadata.NextEntryId = reader.ReadUInt16BigEndian();
+					metadata.Count = reader.ReadUInt16BigEndian();
+					break;
+
+				case EnumMetadataType.NextIdCountUnknown:
+					metadata.NextEntryId = reader.ReadUInt16BigEndian();
+					metadata.Count = reader.ReadUInt16BigEndian();
+					metadata.ValueThatIDoNotKnowTheDetailsOf = reader.ReadUInt16BigEndian();
+					break;
+
+				case EnumMetadataType.Unknown:
 					break;
 
 				default:
-					nextEntryId = reader.ReadUInt16BigEndian();
-					count = reader.ReadUInt16BigEndian();
-					break;
+					throw new UnregisteredEnumTypeException($"No parser is defined for enum's metadata type \"{metadata.MetadataType}\".");
 			}		
 
-			var metadataLength = stream.Position - position;
+			// All read bytes between start and end must be metadata bytes
+			metadata.MetadataLength = (int) (stream.Position - metadata.FilePosition);
 
-			return new EnumMetadata()
-			{
-				FilePosition = (uint) position,
-				Type = type,
-				NextEntryId = nextEntryId,
-				Count = count,
-				ThirdValueThatIDoNotKnowTheDetailsOf = thirdValueThatIDoNotKnowTheDetailsOf,
-				MetadataLength = (int) metadataLength
-			};
+			return metadata;
 		}
 	}
 }

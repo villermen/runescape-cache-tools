@@ -31,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			//cache.ExtractAllAsync().Wait();
 
 			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 0, true));
-			enumFile.GetEnums();
+			var enums = enumFile.GetEnums();
 
 			Console.ReadLine();
 		}

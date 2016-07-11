@@ -70,9 +70,10 @@
   <ItemGroup>
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadata.cs" />
-    <Compile Include="FileProcessors\Enums\EnumDataType.cs" />
+    <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
+    <Compile Include="FileProcessors\Enums\EnumKeyType.cs" />
     <Compile Include="FileProcessors\Enums\EnumFileProcessor.cs" />
-    <Compile Include="FileProcessors\Enums\EnumParseException.cs" />
+    <Compile Include="FileProcessors\Enums\EnumMetadataType.cs" />
     <Compile Include="FileProcessors\Enums\UnregisteredEnumTypeException.cs" />
     <Compile Include="IDataProcessor.cs" />
     <Compile Include="Cache.cs" />

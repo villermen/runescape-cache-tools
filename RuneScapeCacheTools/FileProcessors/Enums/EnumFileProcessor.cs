@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 {
@@ -90,52 +91,58 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 		{
 			var metadata = GetMetadata(enumId);
 
-			using (var reader = new BinaryReader(File.OpenRead(_filePath)))
+			using (var reader = new BinaryReader(File.OpenRead(_filePath), Encoding.ASCII))
 			{
-				// Move to start of enum data (read past metadata)
-				reader.BaseStream.Position = metadata.FilePosition + metadata.MetadataLength;
+				// Move to start of enum data
+				reader.BaseStream.Position = metadata.DataFilePosition;
 
 				// Initialize the resulting dataset
-				// No dictionary, because I've seen multiple identical keys before
+				// No dictionary, because there can be duplicate keys
 				var enumData = new List<Tuple<object, object>>();
 
 				for (var i = 0; i < metadata.Count; i++)
 				{
-					object entryId; 
-					object entryValue;
-
-					switch (metadata.Type)
+					object entryKey;
+					switch (metadata.KeyType)
 					{
-						case EnumDataType.LoneInt:
-							entryId = 0;
-							entryValue = reader.ReadUInt32BigEndian();
+						case EnumKeyType.UShort:
+							entryKey = reader.ReadUInt16BigEndian();
 							break;
 
-						case EnumDataType.IntHexabyte:
-							entryId = reader.ReadUInt32BigEndian();
-							entryValue = reader.ReadUint48BigEndian();
-							break;
-
-						case EnumDataType.IntInt:
-							entryId = reader.ReadUInt32BigEndian();
-							entryValue = reader.ReadUInt32BigEndian();
-							break;
-
-						case EnumDataType.ShortString:
-							entryId = reader.ReadUInt16BigEndian();
-							entryValue = reader.ReadNullTerminatedString();
-							break;
-
-						case EnumDataType.ShortInt:
-							entryId = reader.ReadUInt16BigEndian();
-							entryValue = reader.ReadUInt32BigEndian();
+						case EnumKeyType.UInt1:
+						case EnumKeyType.UInt2:
+							entryKey = reader.ReadUInt32BigEndian();
 							break;
 
 						default:
-							throw new EnumParseException($"No parser is defined for enum's type \"{metadata.Type}\".");
+							throw new UnregisteredEnumTypeException($"No parser is defined for enum's key type \"{metadata.KeyType}\".");
 					}
 
-					enumData.Add(new Tuple<object, object>(entryId, entryValue));
+					object entryValue;
+					switch (metadata.ValueType)
+					{
+						case EnumValueType.UInt1:
+						case EnumValueType.UInt2:
+						case EnumValueType.UInt3:
+						case EnumValueType.UInt4:
+						case EnumValueType.UInt5:
+						case EnumValueType.UInt6:
+							entryValue = reader.ReadUInt32BigEndian();
+							break;
+
+						case EnumValueType.NullTerminatedString:
+							entryValue = reader.ReadNullTerminatedString();
+							break;
+
+						case EnumValueType.UShort:
+							entryValue = reader.ReadUInt16BigEndian();
+							break;
+
+						default:
+							throw new UnregisteredEnumTypeException($"No parser is defined for enum's value type \"{metadata.ValueType}\".");
+					}
+
+					enumData.Add(new Tuple<object, object>(entryKey, entryValue));
 				}
 
 				return enumData.ToLookup(tuple => tuple.Item1, tuple => tuple.Item2);
