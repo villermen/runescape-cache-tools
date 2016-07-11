@@ -106,27 +106,27 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 
 					switch (metadata.Type)
 					{
-						case EnumType.LoneInt:
+						case EnumDataType.LoneInt:
 							entryId = 0;
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
 
-						case EnumType.IntHexabyte:
+						case EnumDataType.IntHexabyte:
 							entryId = reader.ReadUInt32BigEndian();
 							entryValue = reader.ReadUint48BigEndian();
 							break;
 
-						case EnumType.IntInt:
+						case EnumDataType.IntInt:
 							entryId = reader.ReadUInt32BigEndian();
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
 
-						case EnumType.ShortString:
+						case EnumDataType.ShortString:
 							entryId = reader.ReadUInt16BigEndian();
 							entryValue = reader.ReadNullTerminatedString();
 							break;
 
-						case EnumType.ShortInt:
+						case EnumDataType.ShortInt:
 							entryId = reader.ReadUInt16BigEndian();
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
