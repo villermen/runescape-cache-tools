@@ -82,7 +82,7 @@
     <Compile Include="CacheMehRename.cs" />
     <Compile Include="NXTCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="BinaryStreamExtensions.cs" />
     <Compile Include="Cache\ReferenceTable.cs" />
   </ItemGroup>
   <ItemGroup />

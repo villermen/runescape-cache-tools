@@ -3,6 +3,8 @@ using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
+    // TODO: ByteBuffer.get() does not increase position
+
     /// <summary>
     /// A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive members.
     /// There are also optional fields for identifier hashes and whirlpool digests.
@@ -13,27 +15,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public class ReferenceTable
     {
-        /// <summary>
-        /// Represents a child entry within an <see cref="Entry"/> in the <see cref="ReferenceTable"/>.
-        /// </summary>
-        public class ChildEntry
-        {
-            /// <summary>
-            /// This entry's identifier.
-            /// </summary>
-            public int Identifier { get; private set; } = -1;
-
-            /// <summary>
-            /// The cache index of this entry.
-            /// </summary>
-            public int Index { get; private set; }
-
-            public ChildEntry(int index)
-            {
-                Index = index;
-            }
-        }
-
         /// <summary>
         /// Represents a single entry within a <see cref="ReferenceTable"/>.
         /// </summary>
@@ -91,6 +72,27 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
         }
 
+        /// <summary>
+        /// Represents a child entry within an <see cref="Entry"/> in the <see cref="ReferenceTable"/>.
+        /// </summary>
+        public class ChildEntry
+        {
+            /// <summary>
+            /// This entry's identifier.
+            /// </summary>
+            public int Identifier { get; set; } = -1;
+
+            /// <summary>
+            /// The cache index of this entry.
+            /// </summary>
+            public int Index { get; set; }
+
+            public ChildEntry(int index)
+            {
+                Index = index;
+            }
+        }
+
         // TODO: convert to flags enum
         /// <summary>
         /// A flag which indicates this <see cref="ReferenceTable"/> contains Djb2 hashed identifiers.
@@ -119,10 +121,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public static ReferenceTable Decode(BinaryReader reader)
         {
-            ReferenceTable table = new ReferenceTable();
+            var table = new ReferenceTable
+            {
+                Format = reader.ReadByte()
+            };
 
             // Read header
-            table.Format = reader.ReadByte();
             if (table.Format < 5 || table.Format > 7)
             {
                 throw new CacheException("Incorrect JS5 protocol number: " + table.Format);
@@ -136,11 +140,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
             table.Flags = reader.ReadByte();
 
             // Read the ids
-            int[] ids = new int[table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian()];
+            var ids = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
             int accumulator = 0, size = -1;
-            for (int i = 0; i < ids.Length; i++)
+            for (var i = 0; i < ids.Length; i++)
             {
-                int delta = table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian();
+                var delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
                 ids[i] = accumulator += delta;
 
                 if (ids[i] > size)
@@ -154,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // table.Indices = ids;
 
             // Allocate specific entries within the ids array
-            int index = 0;
+            var index = 0;
             foreach (var id in ids)
             {
                 table.Entries.Add(id, new Entry(index++));
@@ -172,7 +176,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Read the CRC32 checksums
             foreach (var id in ids)
             {
-                table.Entries.get(id).crc = reader.ReadInt32BigEndian();
+                table.Entries[id].CRC = reader.ReadInt32BigEndian();
             }
 
             // Read some type of hash
@@ -189,7 +193,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 foreach (var id in ids)
                 {
-                    reader.ReadByte(table.Entries[id].Whirlpool);
+                    table.Entries[id].Whirlpool = reader.ReadBytes(table.Entries[id].Whirlpool.Length);
                 }
             }
 
@@ -214,7 +218,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             int[][] members = new int[size][];
             foreach (var id in ids)
             {
-                members[id] = new int[table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian()];
+                members[id] = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
             }
 
             // Read the child ids
@@ -227,7 +231,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 // Loop through the array of ids
                 for (int i = 0; i < members[id].Length; i++)
                 {
-                    int delta = table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian();
+                    int delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
                     members[id][i] = accumulator += delta;
                     if (members[id][i] > size)
                     {
@@ -252,7 +256,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     foreach (var child in members[id])
                     {
-                        table.Entries[id].Entries[child].Identifier = reader.ReadUInt32BigEndian();
+                        table.Entries[id].Entries[child].Identifier = reader.ReadInt32BigEndian();
                     }
                 }
             }
@@ -262,284 +266,148 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        /// Puts a smart integer into the stream.
-        /// 
-        /// Credits to Graham for this method.
-        /// </summary>
-        /// <param name="os"></param>
-        /// <param name="value"></param>
-        public static void putSmartInt(DataOutputStream os, int value) throws IOException
-        {
-	        if ((value & 0xFFFF) < 32768)
-		        os.writeShort(value);
-	        else
-		        os.writeInt(0x80000000 | value);
-        }
-
-        /// <summary>
         /// The format of this table.
         /// </summary>
-        public int format;
+        public int Format { get; set; }
 
-        /**
-            * The version of this table.
-            */
-        private int version;
+        /// <summary>
+        /// The version of this table.
+        /// </summary>
+        public int Version { get; set; }
 
-        /**
-            * The flags of this table.
-            */
-        private int flags;
+        /// <summary>
+        /// The flags of this table.
+        /// </summary>
+        public int Flags { get; set; }
 
-        /**
-            * The entries in this table.
-            */
-        private SortedMap<Integer, Entry> entries = new TreeMap<Integer, Entry>();
-
-        /**
-            * Gets the maximum number of entries in this table.
-            * @return The maximum number of entries.
-            */
-        public int capacity()
-        {
-            if (entries.isEmpty())
-                return 0;
-
-            return entries.lastKey() + 1;
-        }
+        /// <summary>
+        /// The entries in this table.
+        /// </summary>
+        public SortedDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
 
         /**
             * Encodes this {@link ReferenceTable} into a {@link ByteBuffer}.
             * @return The {@link ByteBuffer}.
             * @throws IOException if an I/O error occurs.
             */
-        public ByteBuffer encode() throws IOException
-        {
-            /* 
-                * we can't (easily) predict the size ahead of time, so we write to a
-                * stream and then to the reader
-                */
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        DataOutputStream os = new DataOutputStream(bout);
-	try {
-		/* write the header */
-		os.write(format);
-		if (format >= 6) {
-			os.writeInt(version);
-		}
-    os.write(flags);
+//        public ByteBuffer encode() throws IOException
+//        {
+//            /* 
+//                * we can't (easily) predict the size ahead of time, so we write to a
+//                * stream and then to the reader
+//                */
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//        DataOutputStream os = new DataOutputStream(bout);
+//	try {
+//		/* write the header */
+//		os.write(format);
+//		if (format >= 6) {
+//			os.writeInt(version);
+//		}
+//    os.write(flags);
 
-        /* calculate and write the number of non-null entries */
-        putSmartFormat(entries.size(), os);
+//        /* calculate and write the number of non-null entries */
+//        putSmartFormat(entries.size(), os);
 
-		/* write the ids */
-		int last = 0;
-		for (int id = 0; id<capacity(); id++) {
-			if (entries.containsKey(id)) {
-				int delta = id - last;
+//		/* write the ids */
+//		int last = 0;
+//		for (int id = 0; id<capacity(); id++) {
+//			if (entries.containsKey(id)) {
+//				int delta = id - last;
 
-                putSmartFormat(delta, os);
-    last = id;
-			}
-}
+//                putSmartFormat(delta, os);
+//    last = id;
+//			}
+//}
 
-		/* write the identifiers if required */
-		if ((flags & FLAG_IDENTIFIERS) != 0) {
-			for (ReferenceTable.Entry entry : entries.values()) {
-				os.writeInt(entry.identifier);
-			}
-		}
+//		/* write the identifiers if required */
+//		if ((flags & FLAG_IDENTIFIERS) != 0) {
+//			for (ReferenceTable.Entry entry : entries.values()) {
+//				os.writeInt(entry.identifier);
+//			}
+//		}
 
-		/* write the CRC checksums */
-		for (ReferenceTable.Entry entry : entries.values()) {
-			os.writeInt(entry.crc);
-		}
+//		/* write the CRC checksums */
+//		for (ReferenceTable.Entry entry : entries.values()) {
+//			os.writeInt(entry.crc);
+//		}
 
-		if(Suite.build >= 816) {
-			/* unknown 816+ flag */
-			if ((flags & FLAG_UNKOWN_HASH) != 0) {
-				for (ReferenceTable.Entry entry : entries.values()) {
-					os.writeInt(entry.mysteryHash);
-				}
-			}
-		}
+//		if(Suite.build >= 816) {
+//			/* unknown 816+ flag */
+//			if ((flags & FLAG_UNKOWN_HASH) != 0) {
+//				for (ReferenceTable.Entry entry : entries.values()) {
+//					os.writeInt(entry.mysteryHash);
+//				}
+//			}
+//		}
 
-		/* write the whirlpool digests if required */
-		if ((flags & FLAG_WHIRLPOOL) != 0) {
-			for (ReferenceTable.Entry entry : entries.values()) {
-				os.write(entry.whirlpool);
-			}
-		}
-		if(Suite.build >= 816) {
-			/* unknown 816+ flag */
-			if ((flags & FLAG_SIZES) != 0) {
-				for (ReferenceTable.Entry entry : entries.values()) {
-					os.writeInt(entry.compressedSize);
-					os.writeInt(entry.uncompressedSize);
-				}
-			}
-		}
-		/* write the versions */
-		for (ReferenceTable.Entry entry : entries.values()) {
-			os.writeInt(entry.version);
-		}
+//		/* write the whirlpool digests if required */
+//		if ((flags & FLAG_WHIRLPOOL) != 0) {
+//			for (ReferenceTable.Entry entry : entries.values()) {
+//				os.write(entry.whirlpool);
+//			}
+//		}
+//		if(Suite.build >= 816) {
+//			/* unknown 816+ flag */
+//			if ((flags & FLAG_SIZES) != 0) {
+//				for (ReferenceTable.Entry entry : entries.values()) {
+//					os.writeInt(entry.compressedSize);
+//					os.writeInt(entry.uncompressedSize);
+//				}
+//			}
+//		}
+//		/* write the versions */
+//		for (ReferenceTable.Entry entry : entries.values()) {
+//			os.writeInt(entry.version);
+//		}
 
-		/* calculate and write the number of non-null child entries */
-		for (ReferenceTable.Entry entry : entries.values()) {
+//		/* calculate and write the number of non-null child entries */
+//		for (ReferenceTable.Entry entry : entries.values()) {
 
-            putSmartFormat(entry.entries.size(), os);
-		}
+//            putSmartFormat(entry.entries.size(), os);
+//		}
 
-		/* write the child ids */
-		for (ReferenceTable.Entry entry : entries.values()) {
-			last = 0;
-			for (int id = 0; id<entry.capacity(); id++) {
-				if (entry.entries.containsKey(id)) {
-					int delta = id - last;
+//		/* write the child ids */
+//		for (ReferenceTable.Entry entry : entries.values()) {
+//			last = 0;
+//			for (int id = 0; id<entry.capacity(); id++) {
+//				if (entry.entries.containsKey(id)) {
+//					int delta = id - last;
 
-                    putSmartFormat(delta, os);
-last = id;
-				}
-			}
-		}
+//                    putSmartFormat(delta, os);
+//last = id;
+//				}
+//			}
+//		}
 
-		/* write the child identifiers if required  */
-		if ((flags & FLAG_IDENTIFIERS) != 0) {
-			for (ReferenceTable.Entry entry : entries.values()) {
-				for (ReferenceTable.ChildEntry child : entry.entries.values()) {
-					os.writeInt(child.identifier);
-				}
-			}
-		}
+//		/* write the child identifiers if required  */
+//		if ((flags & FLAG_IDENTIFIERS) != 0) {
+//			for (ReferenceTable.Entry entry : entries.values()) {
+//				for (ReferenceTable.ChildEntry child : entry.entries.values()) {
+//					os.writeInt(child.identifier);
+//				}
+//			}
+//		}
 
-		/* convert the stream to a byte array and then wrap a reader */
-		byte[] bytes = bout.toByteArray();
-		return ByteBuffer.wrap(bytes);
-	} finally {
-		os.close();
-	}
-}
+//		/* convert the stream to a byte array and then wrap a reader */
+//		byte[] bytes = bout.toByteArray();
+//		return ByteBuffer.wrap(bytes);
+//	} finally {
+//		os.close();
+//	}
 
-	/**
-	 * Gets the entry with the specified id, or {@code null} if it does not
-	 * exist.
-	 * @param id The id.
-	 * @return The entry.
-	 */
-	public Entry getEntry(int id)
-    {
-        return entries.get(id);
-    }
-
-    /**
-     * Gets the child entry with the specified id, or {@code null} if it does
-     * not exist.
-     * @param id The parent id.
-     * @param child The child id.
-     * @return The entry.
-     */
-    public ChildEntry getEntry(int id, int child)
-    {
-        Entry entry = entries.get(id);
-        if (entry == null)
-            return null;
-
-        return entry.getEntry(child);
-    }
-
-    /**
-     * Gets the flags of this table.
-     * @return The flags.
-     */
-    public int getFlags()
-    {
-        return flags;
-    }
-
-    /**
-     * Gets the format of this table.
-     * @return The format.
-     */
-    public int getFormat()
-    {
-        return format;
-    }
-
-    /**
-     * Gets the version of this table.
-     * @return The version of this table.
-     */
-    public int getVersion()
-    {
-        return version;
-    }
-
-    /**
-     * Replaces or inserts the entry with the specified id.
-     * @param id The id.
-     * @param entry The entry.
-     */
-    public void putEntry(int id, Entry entry)
-    {
-        entries.put(id, entry);
-    }
-
-    /**
-     * Puts the data into a certain type by the format id.
-     * @param val The value to put into the reader.
-     * @param reader The reader.
-     * @throws IOException The exception thrown if an i/o error occurs.
-     */
-    public void putSmartFormat(int val, DataOutputStream os) throws IOException
-    {
-		    if(format >= 7)
-			    ReferenceTable.putSmartInt(os, val);
-		    else 
-			    os.writeShort((short) val);
-    }
-
-    /**
-     * Removes the entry with the specified id.
-     * @param id The id.
-     */
-    public void removeEntry(int id)
-    {
-        entries.remove(id);
-    }
-
-    /**
-     * Sets the flags of this table.
-     * @param flags The flags.
-     */
-    public void setFlags(int flags)
-    {
-        this.flags = flags;
-    }
-
-    /**
-     * Sets the format of this table.
-     * @param format The format.
-     */
-    public void setFormat(int format)
-    {
-        this.format = format;
-    }
-
-    /**
-     * Sets the version of this table.
-     * @param version The version.
-     */
-    public void setVersion(int version)
-    {
-        this.version = version;
-    }
-
-    /**
-     * Gets the number of actual entries.
-     * @return The number of actual entries.
-     */
-    public int size()
-    {
-        return entries.size();
+        ///**
+        // * Puts the data into a certain type by the format id.
+        // * @param val The value to put into the reader.
+        // * @param reader The reader.
+        // * @throws IOException The exception thrown if an i/o error occurs.
+        // */
+        //public void putSmartFormat(int val, DataOutputStream os) throws IOException
+        //{
+        //  if(format >= 7)
+        //   ReferenceTable.putSmartInt(os, val);
+        //  else 
+        //   os.writeShort((short) val);
+        //}
     }
 }
