@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Villermen.RuneScapeCacheTools
 {
-	public static class BinaryReaderExtension
+	public static class BinaryReaderExtensions
 	{
 		/// <summary>
 		///   Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.

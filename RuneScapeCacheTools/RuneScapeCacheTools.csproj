@@ -70,7 +70,9 @@
   <ItemGroup>
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadata.cs" />
-    <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
+    <Compile Include="FileProcessors\Enums\EnumOpcode.cs" />
+    <Compile Include="FileProcessors\Enums\BaseVarType.cs" />
+    <Compile Include="FileProcessors\Enums\ScriptVarType.cs" />
     <Compile Include="FileProcessors\Enums\EnumKeyType.cs" />
     <Compile Include="FileProcessors\Enums\EnumFileProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadataType.cs" />
@@ -79,7 +81,8 @@
     <Compile Include="Cache.cs" />
     <Compile Include="NXTCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BinaryReaderExtension.cs" />
+    <Compile Include="BinaryReaderExtensions.cs" />
+    <Compile Include="Cache\ReferenceTable.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

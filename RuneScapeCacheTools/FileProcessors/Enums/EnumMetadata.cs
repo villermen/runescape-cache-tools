@@ -6,7 +6,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 	{
 		public EnumKeyType KeyType { get; private set; }
 
-		public EnumValueType ValueType { get; private set; }
+		public EnumDataType DataType { get; private set; }
 
 		public EnumMetadataType MetadataType { get; private set; }
 
@@ -50,7 +50,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 				return null;
 			}
 
-			metadata.ValueType = (EnumValueType) reader.ReadByte();
+			metadata.DataType = (EnumDataType) reader.ReadByte();
 			metadata.MetadataType = (EnumMetadataType) reader.ReadByte();
 
 			switch (metadata.MetadataType)

@@ -119,27 +119,27 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 					}
 
 					object entryValue;
-					switch (metadata.ValueType)
+					switch (metadata.DataType)
 					{
-						case EnumValueType.UInt1:
-						case EnumValueType.UInt2:
-						case EnumValueType.UInt3:
-						case EnumValueType.UInt4:
-						case EnumValueType.UInt5:
-						case EnumValueType.UInt6:
+						case EnumDataType.UInt1:
+						case EnumDataType.UInt2:
+						case EnumDataType.UInt3:
+						case EnumDataType.UInt4:
+						case EnumDataType.UInt5:
+						case EnumDataType.UInt6:
 							entryValue = reader.ReadUInt32BigEndian();
 							break;
 
-						case EnumValueType.NullTerminatedString:
+						case EnumDataType.NullTerminatedString:
 							entryValue = reader.ReadNullTerminatedString();
 							break;
 
-						case EnumValueType.UShort:
+						case EnumDataType.UShort:
 							entryValue = reader.ReadUInt16BigEndian();
 							break;
 
 						default:
-							throw new UnregisteredEnumTypeException($"No parser is defined for enum's value type \"{metadata.ValueType}\".");
+							throw new UnregisteredEnumTypeException($"No parser is defined for enum's value type \"{metadata.DataType}\".");
 					}
 
 					enumData.Add(new Tuple<object, object>(entryKey, entryValue));
