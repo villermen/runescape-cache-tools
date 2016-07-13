@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\CacheException.cs" />
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadata.cs" />
     <Compile Include="FileProcessors\Enums\EnumOpcode.cs" />
@@ -78,7 +79,7 @@
     <Compile Include="FileProcessors\Enums\EnumMetadataType.cs" />
     <Compile Include="FileProcessors\Enums\UnregisteredEnumTypeException.cs" />
     <Compile Include="IDataProcessor.cs" />
-    <Compile Include="Cache.cs" />
+    <Compile Include="CacheMehRename.cs" />
     <Compile Include="NXTCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BinaryReaderExtensions.cs" />

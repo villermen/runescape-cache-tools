@@ -100,7 +100,7 @@ namespace RuneScapeCacheToolsGUI
 			//fill the treeview
 			var cacheTreeItem = new TreeViewItem
 			{
-				Header = "Cache",
+				Header = "CacheMehRename",
 				Tag = -1,
 				ContextMenu = (ContextMenu)Resources["ExtractContextMenu"]
 			};

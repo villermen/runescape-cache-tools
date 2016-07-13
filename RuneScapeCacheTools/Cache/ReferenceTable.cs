@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Villermen.RuneScapeCacheTools;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -121,165 +119,167 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public static ReferenceTable Decode(BinaryReader reader)
         {
-            /* create a new table */
             ReferenceTable table = new ReferenceTable();
 
-            /* read header */
-            table.format = reader.get() & 0xFF;
-            if (table.format < 5 || table.format > 7)
+            // Read header
+            table.Format = reader.ReadByte();
+            if (table.Format < 5 || table.Format > 7)
             {
-                throw new RuntimeException("Incorrect JS5 protocol number: " + table.format);
+                throw new CacheException("Incorrect JS5 protocol number: " + table.Format);
             }
-            if (table.format >= 6)
-            {
-                table.version = reader.getInt();
-            }
-            table.flags = reader.get() & 0xFF;
 
-            /* read the ids */
-            int[] ids = new int[table.format >= 7 ? ByteBufferUtils.getSmartInt(reader) : reader.getShort() & 0xFFFF];
-            int accumulator = 0, size = -1;
-            for (int i = 0; i < ids.length; i++)
+            if (table.Format >= 6)
             {
-                int delta = table.format >= 7 ? ByteBufferUtils.getSmartInt(reader)
-                        : reader.getShort() & 0xFFFF;
+                table.Version = reader.ReadInt32BigEndian();
+            }
+
+            table.Flags = reader.ReadByte();
+
+            // Read the ids
+            int[] ids = new int[table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian()];
+            int accumulator = 0, size = -1;
+            for (int i = 0; i < ids.Length; i++)
+            {
+                int delta = table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian();
                 ids[i] = accumulator += delta;
+
                 if (ids[i] > size)
                 {
                     size = ids[i];
                 }
             }
+
             size++;
-            //table.indices = ids;
 
-            /* and allocate specific entries within that array */
+            // table.Indices = ids;
+
+            // Allocate specific entries within the ids array
             int index = 0;
-            for (int id : ids)
+            foreach (var id in ids)
             {
-                table.entries.put(id, new Entry(index++));
+                table.Entries.Add(id, new Entry(index++));
             }
 
-            /* read the identifiers if present */
-            if ((table.flags & FlagIdentifiers) != 0)
+            // Read the identifiers if present
+            if ((table.Flags & FlagIdentifiers) != 0)
             {
-                for (int id : ids)
+                foreach (var id in ids)
                 {
-                    table.entries.get(id).identifier = reader.getInt();
+                    table.Entries[id].Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
-            /* read the CRC32 checksums */
-            for (int id : ids)
+            // Read the CRC32 checksums
+            foreach (var id in ids)
             {
-                table.entries.get(id).crc = reader.getInt();
+                table.Entries.get(id).crc = reader.ReadInt32BigEndian();
             }
 
-            /* read some type of hash*/
-            if ((table.flags & FlagUnkownHash) != 0)
+            // Read some type of hash
+            if ((table.Flags & FlagUnkownHash) != 0)
             {
-                for (int id : ids)
+                foreach (var id in ids)
                 {
-                    table.entries.get(id).mysteryHash = reader.getInt();
+                    table.Entries[id].MysteryHash = reader.ReadInt32BigEndian();
                 }
             }
 
-            /* read the whirlpool digests if present */
-            if ((table.flags & FlagWhirlpool) != 0)
+            // Read the whirlpool digests if present
+            if ((table.Flags & FlagWhirlpool) != 0)
             {
-                for (int id : ids)
+                foreach (var id in ids)
                 {
-                    reader.get(table.entries.get(id).whirlpool);
+                    reader.ReadByte(table.Entries[id].Whirlpool);
                 }
             }
 
-            /* read the compressed and uncompressed sizes */
-            if ((table.flags & FlagSizes) != 0)
+            // Read the compressed and uncompressed sizes
+            if ((table.Flags & FlagSizes) != 0)
             {
-                for (int id : ids)
+                foreach (var id in ids)
                 {
-                    table.entries.get(id).compressedSize = reader.getInt();
-                    table.entries.get(id).uncompressedSize = reader.getInt();
+                    table.Entries[id].CompressedSize = reader.ReadInt32BigEndian();
+                    table.Entries[id].UncompressedSize = reader.ReadInt32BigEndian();
                 }
             }
 
-            /* read the version numbers */
-            for (int id : ids)
+            // Read the version numbers
+            foreach (var id in ids)
             {
-                int version = reader.getInt();
-                //System.out.println(version);
-                table.entries.get(id).version = version;
+                int version = reader.ReadInt32BigEndian();
+                table.Entries[id].Version = version;
             }
 
-            /* read the child sizes */
+            // Read the child sizes
             int[][] members = new int[size][];
-            for (int id : ids)
+            foreach (var id in ids)
             {
-                members[id] = new int[table.format >= 7 ? ByteBufferUtils.getSmartInt(reader) : reader.getShort() & 0xFFFF];
+                members[id] = new int[table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian()];
             }
 
-            /* read the child ids */
-            for (int id : ids)
+            // Read the child ids
+            foreach (var id in ids)
             {
-                /* reset the accumulator and size */
+                // Reset the accumulator and size
                 accumulator = 0;
                 size = -1;
 
-                /* loop through the array of ids */
-                for (int i = 0; i < members[id].length; i++)
+                // Loop through the array of ids
+                for (int i = 0; i < members[id].Length; i++)
                 {
-                    int delta = table.format >= 7 ? ByteBufferUtils.getSmartInt(reader) : reader.getShort() & 0xFFFF;
+                    int delta = table.Format >= 7 ? reader.ReadSmartInt(reader) : reader.ReadUInt16BigEndian();
                     members[id][i] = accumulator += delta;
                     if (members[id][i] > size)
                     {
                         size = members[id][i];
                     }
                 }
+
                 size++;
 
-                /* and allocate specific entries within the array */
+                // Allocate specific entries within the ids array
                 index = 0;
-                for (int child : members[id])
+                foreach (var child in members[id])
                 {
-                    table.entries.get(id).entries.put(child, new ChildEntry(index++));
+                    table.Entries[id].Entries.Add(child, new ChildEntry(index++));
                 }
             }
 
             /* read the child identifiers if present */
-            if ((table.flags & FlagIdentifiers) != 0)
+            if ((table.Flags & FlagIdentifiers) != 0)
             {
-                for (int id : ids)
+                foreach (var id in ids)
                 {
-                    for (int child : members[id])
+                    foreach (var child in members[id])
                     {
-                        table.entries.get(id).entries.get(child).identifier = reader.getInt();
+                        table.Entries[id].Entries[child].Identifier = reader.ReadUInt32BigEndian();
                     }
                 }
             }
 
-            /* return the table we constructed */
+            // Return the table we constructed
             return table;
         }
 
-        /**
-            * Puts a smart integer into the stream.
-            * @param os The stream.
-            * @param value The value.
-            * @throws IOException The exception thrown if an i/o error occurs.
-            * 
-            * Credits to Graham for this method.
-            */
+        /// <summary>
+        /// Puts a smart integer into the stream.
+        /// 
+        /// Credits to Graham for this method.
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="value"></param>
         public static void putSmartInt(DataOutputStream os, int value) throws IOException
         {
-	if ((value & 0xFFFF) < 32768)
-		os.writeShort(value);
-	else
-		os.writeInt(0x80000000 | value);
+	        if ((value & 0xFFFF) < 32768)
+		        os.writeShort(value);
+	        else
+		        os.writeInt(0x80000000 | value);
         }
 
-        /**
-            * The format of this table.
-            */
-        private int format;
+        /// <summary>
+        /// The format of this table.
+        /// </summary>
+        public int format;
 
         /**
             * The version of this table.

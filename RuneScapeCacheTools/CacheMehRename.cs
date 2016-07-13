@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools
 {
-	public abstract class Cache
+	public abstract class CacheMehRename
 	{
-		protected Cache()
+		protected CacheMehRename()
 		{
 			CacheDirectory = DefaultCacheDirectory;
 			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
-		protected Cache(IDataProcessor dataProcessor) : this()
+		protected CacheMehRename(IDataProcessor dataProcessor) : this()
 		{
 			DataProcessor = dataProcessor;
 		}
