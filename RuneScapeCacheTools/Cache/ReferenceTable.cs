@@ -34,8 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             Sizes = 0x04,
 
             /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
-            ///     the RuneScape client.
+            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by the RuneScape client.
             /// </summary>
             UnkownHashes = 0x08
         }

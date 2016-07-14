@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\Archive.cs" />
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
