@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			NXTCache cache = new NXTCache();
 			cache.OutputDirectory = OutputDirectory;
 
-		    var referenceTable = cache.GetReferenceTable(17);
+		    var referenceTable = cache.GetReferenceTable(40);
 
 			//var archiveIds = cache.getArchiveIds();
 			//Debug.WriteLine(archiveIds);

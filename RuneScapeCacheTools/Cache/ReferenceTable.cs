@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
-    // TODO: ByteBuffer.get() does not increase position
-
     /// <summary>
     ///     A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive
     ///     members.
@@ -16,27 +15,30 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public class ReferenceTable
     {
-        // TODO: convert to flags enum
-        /// <summary>
-        ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
-        /// </summary>
-        public const int FlagIdentifiers = 0x01;
+        [Flags]
+        public enum DataFlags
+        {
+            /// <summary>
+            ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
+            /// </summary>
+            Identifiers = 0x01,
 
-        /// <summary>
-        ///     A flag which indicates this <see cref="ReferenceTable" />} contains whirlpool digests for its entries.
-        /// </summary>
-        public const int FlagWhirlpool = 0x02;
+            /// <summary>
+            ///     A flag which indicates this <see cref="ReferenceTable" />} contains whirlpool digests for its entries.
+            /// </summary>
+            WhirlpoolDigests = 0x02,
 
-        /// <summary>
-        ///     A flag which indicates this <see cref="ReferenceTable" /> contains sizes for its entries.
-        /// </summary>
-        public const int FlagSizes = 0x04;
+            /// <summary>
+            ///     A flag which indicates this <see cref="ReferenceTable" /> contains sizes for its entries.
+            /// </summary>
+            Sizes = 0x04,
 
-        /// <summary>
-        ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
-        ///     the RuneScape client.
-        /// </summary>
-        public const int FlagUnkownHash = 0x08;
+            /// <summary>
+            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
+            ///     the RuneScape client.
+            /// </summary>
+            UnkownHashes = 0x08
+        }
 
         /// <summary>
         ///     The format of this table.
@@ -51,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         ///     The flags of this table.
         /// </summary>
-        public int Flags { get; set; }
+        public DataFlags Flags { get; set; }
 
         /// <summary>
         ///     The entries in this table.
@@ -81,7 +83,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 table.Version = reader.ReadInt32BigEndian();
             }
 
-            table.Flags = reader.ReadByte();
+            table.Flags = (DataFlags) reader.ReadByte();
 
             // Read the ids
             var ids = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
@@ -109,7 +111,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Read the identifiers if present
-            if ((table.Flags & FlagIdentifiers) != 0)
+            if ((table.Flags & DataFlags.Identifiers) != 0)
             {
                 foreach (var id in ids)
                 {
@@ -124,7 +126,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Read some type of hash
-            if ((table.Flags & FlagUnkownHash) != 0)
+            if ((table.Flags & DataFlags.UnkownHashes) != 0)
             {
                 foreach (var id in ids)
                 {
@@ -133,7 +135,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Read the whirlpool digests if present
-            if ((table.Flags & FlagWhirlpool) != 0)
+            if ((table.Flags & DataFlags.WhirlpoolDigests) != 0)
             {
                 foreach (var id in ids)
                 {
@@ -142,7 +144,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Read the compressed and uncompressed sizes
-            if ((table.Flags & FlagSizes) != 0)
+            if ((table.Flags & DataFlags.Sizes) != 0)
             {
                 foreach (var id in ids)
                 {
@@ -194,7 +196,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             /* read the child identifiers if present */
-            if ((table.Flags & FlagIdentifiers) != 0)
+            if ((table.Flags & DataFlags.Identifiers) != 0)
             {
                 foreach (var id in ids)
                 {
@@ -287,14 +289,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
             public int Index { get; set; }
         }
 
-//		/* write the header */
-//	try {
-//        DataOutputStream os = new DataOutputStream(bout);
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//                */
-//                * stream and then to the reader
-//                * we can't (easily) predict the size ahead of time, so we write to a
 //            /* 
+//                * we can't (easily) predict the size ahead of time, so we write to a
+//                * stream and then to the reader
+//                */
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//        DataOutputStream os = new DataOutputStream(bout);
+//	try {
+
+//		/* write the header */
 //        {
 //        public ByteBuffer encode() throws IOException
 
