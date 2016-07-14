@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Villermen.RuneScapeCacheTools.Cache;
 
 namespace Villermen.RuneScapeCacheTools
 {
@@ -96,7 +97,7 @@ namespace Villermen.RuneScapeCacheTools
 		/// </summary>
 		/// <param name="archiveId"></param>
 		/// <returns>The path to the directory of the given archive, or null if it does not exist.</returns>
-		public virtual string getArchiveOutputPath(int archiveId)
+		public virtual string GetArchiveOutputPath(int archiveId)
 		{
 			string archivePath = $"{OutputDirectory}cache/{archiveId}/";
 
@@ -184,5 +185,7 @@ namespace Villermen.RuneScapeCacheTools
 		/// <param name="fileId"></param>
 		/// <returns></returns>
 		protected abstract byte[] GetFileData(int archiveId, int fileId);
+
+	    public abstract ReferenceTable GetReferenceTable(int archiveId);
 	}
 }

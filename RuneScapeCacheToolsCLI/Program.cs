@@ -18,6 +18,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			NXTCache cache = new NXTCache();
 			cache.OutputDirectory = OutputDirectory;
 
+		    var referenceTable = cache.GetReferenceTable(17);
+
 			//var archiveIds = cache.getArchiveIds();
 			//Debug.WriteLine(archiveIds);
 
@@ -30,8 +32,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 			//cache.ExtractAllAsync().Wait();
 
-			var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 0, true));
-			var enums = enumFile.GetEnums();
+			//var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 0, true));
+			//var enums = enumFile.GetEnums();
 
 			Console.ReadLine();
 		}

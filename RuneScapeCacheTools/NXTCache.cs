@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache;
 
 namespace Villermen.RuneScapeCacheTools
 {
-	public class NXTCache : Cache
+	public class NXTCache : CacheMehRename
 	{
 		private readonly Dictionary<int, SQLiteConnection> archiveConnections = new Dictionary<int, SQLiteConnection>();
 
@@ -45,7 +46,27 @@ namespace Villermen.RuneScapeCacheTools
 			return null;
 		}
 
-		public override IEnumerable<int> GetFileIds(int archiveId)
+	    public override ReferenceTable GetReferenceTable(int archiveId)
+	    {
+            var connection = GetArchiveConnection(archiveId);
+
+            var command = new SQLiteCommand(
+                $"SELECT DATA FROM cache_index"
+                , connection);
+            var reader = command.ExecuteReader();
+
+            reader.Read();
+
+            if (reader["DATA"].GetType() == typeof(byte[]))
+            {
+                var binaryReader = new BinaryReader(new MemoryStream((byte[]) reader["DATA"]));
+                return ReferenceTable.Decode(binaryReader);
+            }
+
+            return null;
+        }
+
+	    public override IEnumerable<int> GetFileIds(int archiveId)
 		{
 			var connection = GetArchiveConnection(archiveId);
 			var command = connection.CreateCommand();

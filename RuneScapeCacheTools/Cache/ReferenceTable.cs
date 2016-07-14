@@ -6,116 +6,60 @@ namespace Villermen.RuneScapeCacheTools.Cache
     // TODO: ByteBuffer.get() does not increase position
 
     /// <summary>
-    /// A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive members.
-    /// There are also optional fields for identifier hashes and whirlpool digests.
-    /// <author>Graham</author>
-    /// <author>`Discardedx2</author>
-    /// <author>Sean</author>
-    /// <author>Villermen</author>
+    ///     A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive
+    ///     members.
+    ///     There are also optional fields for identifier hashes and whirlpool digests.
+    ///     <author>Graham</author>
+    ///     <author>`Discardedx2</author>
+    ///     <author>Sean</author>
+    ///     <author>Villermen</author>
     /// </summary>
     public class ReferenceTable
     {
-        /// <summary>
-        /// Represents a single entry within a <see cref="ReferenceTable"/>.
-        /// </summary>
-        public class Entry
-        {
-            /// <summary>
-            /// Some unknown hash added on build 816.
-            /// It is hard to pinpoint what exactly this is because it is not used in the client.
-            /// </summary>
-            public int MysteryHash { get; set; }
-
-            /// <summary>
-            /// The compressed size of this entry.
-            /// </summary>
-            public int CompressedSize { get; set; }
-
-            /// <summary>
-            /// The uncompressed size of this entry.
-            /// </summary>
-            public int UncompressedSize { get; set; }
-
-            /// <summary>
-            /// The identifier of this entry.
-            /// </summary>
-            public int Identifier { get; set; } = -1;
-
-            /// <summary>
-            /// The CRC32 checksum of this entry.
-            /// </summary>
-            public int CRC { get; set; }
-
-            /// <summary>
-            /// The whirlpool digest of this entry.
-            /// </summary>
-            public byte[] Whirlpool { get; set; } = new byte[64];
-
-            /// <summary>
-            /// The version of this entry stored as the time the file was last edited in seconds since the unix epoch.
-            /// </summary>
-            public int Version { get; set; }
-
-            /// <summary>
-            /// The cache index of this entry
-            /// </summary>
-            public int Index { get; set; }
-
-            /// <summary>
-            /// The children in this entry.
-            /// </summary>
-            public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
-
-            public Entry(int index)
-            {
-                Index = index;
-            }
-        }
-
-        /// <summary>
-        /// Represents a child entry within an <see cref="Entry"/> in the <see cref="ReferenceTable"/>.
-        /// </summary>
-        public class ChildEntry
-        {
-            /// <summary>
-            /// This entry's identifier.
-            /// </summary>
-            public int Identifier { get; set; } = -1;
-
-            /// <summary>
-            /// The cache index of this entry.
-            /// </summary>
-            public int Index { get; set; }
-
-            public ChildEntry(int index)
-            {
-                Index = index;
-            }
-        }
-
         // TODO: convert to flags enum
         /// <summary>
-        /// A flag which indicates this <see cref="ReferenceTable"/> contains Djb2 hashed identifiers.
+        ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
         /// </summary>
         public const int FlagIdentifiers = 0x01;
 
         /// <summary>
-        /// A flag which indicates this <see cref="ReferenceTable"/>} contains whirlpool digests for its entries.
+        ///     A flag which indicates this <see cref="ReferenceTable" />} contains whirlpool digests for its entries.
         /// </summary>
         public const int FlagWhirlpool = 0x02;
 
         /// <summary>
-        /// A flag which indicates this <see cref="ReferenceTable"/> contains sizes for its entries.
+        ///     A flag which indicates this <see cref="ReferenceTable" /> contains sizes for its entries.
         /// </summary>
         public const int FlagSizes = 0x04;
 
         /// <summary>
-        /// A flag which indicates this <see cref="ReferenceTable"/> contains some kind of hash which is currently unused by the RuneScape client.
+        ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
+        ///     the RuneScape client.
         /// </summary>
         public const int FlagUnkownHash = 0x08;
 
         /// <summary>
-        /// Decodes the slave checksum table contained in the given <see cref="BinaryReader"/>.
+        ///     The format of this table.
+        /// </summary>
+        public int Format { get; set; }
+
+        /// <summary>
+        ///     The version of this table.
+        /// </summary>
+        public int Version { get; set; }
+
+        /// <summary>
+        ///     The flags of this table.
+        /// </summary>
+        public int Flags { get; set; }
+
+        /// <summary>
+        ///     The entries in this table.
+        /// </summary>
+        public SortedDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
+
+        /// <summary>
+        ///     Decodes the slave checksum table contained in the given <see cref="BinaryReader" />.
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
@@ -210,12 +154,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Read the version numbers
             foreach (var id in ids)
             {
-                int version = reader.ReadInt32BigEndian();
+                var version = reader.ReadInt32BigEndian();
                 table.Entries[id].Version = version;
             }
 
             // Read the child sizes
-            int[][] members = new int[size][];
+            var members = new int[size][];
             foreach (var id in ids)
             {
                 members[id] = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
@@ -229,9 +173,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 size = -1;
 
                 // Loop through the array of ids
-                for (int i = 0; i < members[id].Length; i++)
+                for (var i = 0; i < members[id].Length; i++)
                 {
-                    int delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                    var delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
                     members[id][i] = accumulator += delta;
                     if (members[id][i] > size)
                     {
@@ -266,40 +210,99 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        /// The format of this table.
+        ///     Represents a single entry within a <see cref="ReferenceTable" />.
         /// </summary>
-        public int Format { get; set; }
+        public class Entry
+        {
+            public Entry(int index)
+            {
+                Index = index;
+            }
+
+            /// <summary>
+            ///     Some unknown hash added on build 816.
+            ///     It is hard to pinpoint what exactly this is because it is not used in the client.
+            /// </summary>
+            public int MysteryHash { get; set; }
+
+            /// <summary>
+            ///     The compressed size of this entry.
+            /// </summary>
+            public int CompressedSize { get; set; }
+
+            /// <summary>
+            ///     The uncompressed size of this entry.
+            /// </summary>
+            public int UncompressedSize { get; set; }
+
+            /// <summary>
+            ///     The identifier of this entry.
+            /// </summary>
+            public int Identifier { get; set; } = -1;
+
+            /// <summary>
+            ///     The CRC32 checksum of this entry.
+            /// </summary>
+            public int CRC { get; set; }
+
+            /// <summary>
+            ///     The whirlpool digest of this entry.
+            /// </summary>
+            public byte[] Whirlpool { get; set; } = new byte[64];
+
+            /// <summary>
+            ///     The version of this entry stored as the time the file was last edited in seconds since the unix epoch.
+            /// </summary>
+            public int Version { get; set; }
+
+            /// <summary>
+            ///     The cache index of this entry
+            /// </summary>
+            public int Index { get; set; }
+
+            /// <summary>
+            ///     The children in this entry.
+            /// </summary>
+            public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
+        }
 
         /// <summary>
-        /// The version of this table.
+        ///     Represents a child entry within an <see cref="Entry" /> in the <see cref="ReferenceTable" />.
         /// </summary>
-        public int Version { get; set; }
+        public class ChildEntry
+        {
+            public ChildEntry(int index)
+            {
+                Index = index;
+            }
 
-        /// <summary>
-        /// The flags of this table.
-        /// </summary>
-        public int Flags { get; set; }
+            /// <summary>
+            ///     This entry's identifier.
+            /// </summary>
+            public int Identifier { get; set; } = -1;
 
-        /// <summary>
-        /// The entries in this table.
-        /// </summary>
-        public SortedDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
+            /// <summary>
+            ///     The cache index of this entry.
+            /// </summary>
+            public int Index { get; set; }
+        }
+
+//		/* write the header */
+//	try {
+//        DataOutputStream os = new DataOutputStream(bout);
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//                */
+//                * stream and then to the reader
+//                * we can't (easily) predict the size ahead of time, so we write to a
+//            /* 
+//        {
+//        public ByteBuffer encode() throws IOException
 
         /**
             * Encodes this {@link ReferenceTable} into a {@link ByteBuffer}.
             * @return The {@link ByteBuffer}.
             * @throws IOException if an I/O error occurs.
             */
-//        public ByteBuffer encode() throws IOException
-//        {
-//            /* 
-//                * we can't (easily) predict the size ahead of time, so we write to a
-//                * stream and then to the reader
-//                */
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//        DataOutputStream os = new DataOutputStream(bout);
-//	try {
-//		/* write the header */
 //		os.write(format);
 //		if (format >= 6) {
 //			os.writeInt(version);

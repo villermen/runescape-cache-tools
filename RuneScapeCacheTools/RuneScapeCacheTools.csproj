@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="ExtendableDataProcessor.cs" />
+    <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadata.cs" />
     <Compile Include="FileProcessors\Enums\EnumOpcode.cs" />
     <Compile Include="FileProcessors\Enums\BaseVarType.cs" />
