@@ -137,7 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 foreach (var id in ids)
                 {
-                    table.Entries[id].Whirlpool = reader.ReadBytes(table.Entries[id].Whirlpool.Length);
+                    table.Entries[id].Whirlpool = reader.ReadBytes(64);
                 }
             }
 
@@ -248,7 +248,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             /// <summary>
             ///     The whirlpool digest of this entry.
             /// </summary>
-            public byte[] Whirlpool { get; set; } = new byte[64];
+            public byte[] Whirlpool { get; set; }
 
             /// <summary>
             ///     The version of this entry stored as the time the file was last edited in seconds since the unix epoch.
