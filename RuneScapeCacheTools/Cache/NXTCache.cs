@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache;
 
-namespace Villermen.RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools.Cache
 {
-	public class NXTCache : CacheMehRename
+	public class NXTCache : Cache
 	{
-		private readonly Dictionary<int, SQLiteConnection> archiveConnections = new Dictionary<int, SQLiteConnection>();
+		private readonly Dictionary<int, SQLiteConnection> indexConnections = new Dictionary<int, SQLiteConnection>();
 
 		public override string DefaultCacheDirectory
 			=> Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/Jagex/RuneScape/";
@@ -26,9 +25,9 @@ namespace Villermen.RuneScapeCacheTools
 				.OrderBy(id => id);
 		}
 
-		protected override byte[] GetFileData(int archiveId, int fileId)
+		public override byte[] GetFileData(int indexId, int fileId)
 		{
-			var connection = GetArchiveConnection(archiveId);
+			var connection = GetIndexConnection(indexId);
 
 			var command = new SQLiteCommand(
 				$"SELECT DATA FROM cache WHERE KEY = $fileId"
@@ -46,9 +45,9 @@ namespace Villermen.RuneScapeCacheTools
 			return null;
 		}
 
-	    public override ReferenceTable GetReferenceTable(int archiveId)
+	    public override ReferenceTable GetReferenceTable(int indexId)
 	    {
-            var connection = GetArchiveConnection(archiveId);
+            var connection = GetIndexConnection(indexId);
 
             var command = new SQLiteCommand(
                 $"SELECT DATA FROM cache_index"
@@ -66,9 +65,9 @@ namespace Villermen.RuneScapeCacheTools
             return null;
         }
 
-	    public override IEnumerable<int> GetFileIds(int archiveId)
+	    public override IEnumerable<int> GetFileIds(int indexId)
 		{
-			var connection = GetArchiveConnection(archiveId);
+			var connection = GetIndexConnection(indexId);
 			var command = connection.CreateCommand();
 			command.CommandText = "SELECT KEY FROM cache";
 			var reader = command.ExecuteReader();
@@ -82,24 +81,24 @@ namespace Villermen.RuneScapeCacheTools
 			return fileIds;
 		}
 
-		protected string GetArchiveFile(int archiveId)
+		protected string GetIndexFile(int indexId)
 		{
-			return $"{CacheDirectory}js5-{archiveId}.jcache";
+			return $"{CacheDirectory}js5-{indexId}.jcache";
 		}
 
-		protected SQLiteConnection GetArchiveConnection(int archiveId)
+		protected SQLiteConnection GetIndexConnection(int indexId)
 		{
 			// Return an established connection
-			if (archiveConnections.ContainsKey(archiveId))
+			if (indexConnections.ContainsKey(indexId))
 			{
-				return archiveConnections[archiveId];
+				return indexConnections[indexId];
 			}
 
 			// Store and return a new connection
-			var connection = new SQLiteConnection($"Data Source={GetArchiveFile(archiveId)};Version=3;");
+			var connection = new SQLiteConnection($"Data Source={GetIndexFile(indexId)};Version=3;");
 			connection.Open();
 
-			archiveConnections.Add(archiveId, connection);
+			indexConnections.Add(indexId, connection);
 
 			return connection;
 		}

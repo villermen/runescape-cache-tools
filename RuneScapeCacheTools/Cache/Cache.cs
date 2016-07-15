@@ -3,19 +3,18 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Villermen.RuneScapeCacheTools.Cache;
 
-namespace Villermen.RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools.Cache
 {
-	public abstract class CacheMehRename
+	public abstract class Cache
 	{
-		protected CacheMehRename()
+		protected Cache()
 		{
 			CacheDirectory = DefaultCacheDirectory;
 			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
-		protected CacheMehRename(IDataProcessor dataProcessor) : this()
+		protected Cache(IDataProcessor dataProcessor) : this()
 		{
 			DataProcessor = dataProcessor;
 		}
@@ -47,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools
 
 		public abstract IEnumerable<int> GetArchiveIds();
 
-		public abstract IEnumerable<int> GetFileIds(int archiveId);
+		public abstract IEnumerable<int> GetFileIds(int indexId);
 
 		/// <summary>
 		///   Extracts every file in every archive.
@@ -95,11 +94,11 @@ namespace Villermen.RuneScapeCacheTools
 
 		/// <summary>
 		/// </summary>
-		/// <param name="archiveId"></param>
+		/// <param name="indexId"></param>
 		/// <returns>The path to the directory of the given archive, or null if it does not exist.</returns>
-		public virtual string GetArchiveOutputPath(int archiveId)
+		public virtual string GetIndexOutputPath(int indexId)
 		{
-			string archivePath = $"{OutputDirectory}cache/{archiveId}/";
+			string archivePath = $"{OutputDirectory}cache/{indexId}/";
 
 			if (Directory.Exists(archivePath))
 			{
@@ -112,16 +111,16 @@ namespace Villermen.RuneScapeCacheTools
 		/// <summary>
 		///   Finds the path for the given extracted file.
 		/// </summary>
-		/// <param name="archiveId"></param>
+		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <param name="extractIfMissing">Try to extract the file if it hasn't been extracted yet.</param>
 		/// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-		public virtual string GetFileOutputPath(int archiveId, int fileId, bool extractIfMissing = false)
+		public virtual string GetFileOutputPath(int indexId, int fileId, bool extractIfMissing = false)
 		{
 			try
 			{
 				var path = Directory
-					.EnumerateFiles($"{OutputDirectory}cache/{archiveId}/", $"{fileId}*")
+					.EnumerateFiles($"{OutputDirectory}cache/{indexId}/", $"{fileId}*")
 					.FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"));
 
 				if (!string.IsNullOrWhiteSpace(path))
@@ -131,8 +130,8 @@ namespace Villermen.RuneScapeCacheTools
 
 				if (extractIfMissing)
 				{
-					ExtractFile(archiveId, fileId);
-					return GetFileOutputPath(archiveId, fileId);
+					ExtractFile(indexId, fileId);
+					return GetFileOutputPath(indexId, fileId);
 				}
 
 				return null;
@@ -147,11 +146,11 @@ namespace Villermen.RuneScapeCacheTools
 		///   Write out the given data to the specified file.
 		///   Deletes a previous version of the file (regardless of extension) if it exists.
 		/// </summary>
-		/// <param name="archiveId"></param>
+		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <param name="data"></param>
 		/// <param name="extension">File extension, without the dot.</param>
-		protected void WriteFile(int archiveId, int fileId, byte[] data, string extension = null)
+		protected void WriteFile(int indexId, int fileId, byte[] data, string extension = null)
 		{
 			// Throw an exception if the output directory is not yet set or does not exist
 			if (string.IsNullOrWhiteSpace(OutputDirectory) || !Directory.Exists(OutputDirectory))
@@ -160,14 +159,14 @@ namespace Villermen.RuneScapeCacheTools
 			}
 
 			// Delete existing file
-			var existingFilePath = GetFileOutputPath(archiveId, fileId);
+			var existingFilePath = GetFileOutputPath(indexId, fileId);
 			if (!string.IsNullOrWhiteSpace(existingFilePath))
 			{
 				File.Delete(existingFilePath);
 			}
 
 			// Construct new path
-			string newFilePath = $"{OutputDirectory}cache/{archiveId}/{fileId}";
+			string newFilePath = $"{OutputDirectory}cache/{indexId}/{fileId}";
 			if (!string.IsNullOrWhiteSpace(extension))
 			{
 				newFilePath += $".{extension}";
@@ -178,14 +177,24 @@ namespace Villermen.RuneScapeCacheTools
 			File.WriteAllBytes(newFilePath, data);
 		}
 
-		/// <summary>
-		///   Returns the raw data for the given file.
-		/// </summary>
-		/// <param name="archiveId"></param>
-		/// <param name="fileId"></param>
-		/// <returns></returns>
-		protected abstract byte[] GetFileData(int archiveId, int fileId);
+        /// <summary>
+        ///   Returns the raw data for the given file.
+        /// </summary>
+        /// <param name="indexId"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public abstract byte[] GetFileData(int indexId, int fileId);
 
-	    public abstract ReferenceTable GetReferenceTable(int archiveId);
+	    public Archive GetArchive(int indexId, int archiveId)
+	    {
+	        var referenceTable = GetReferenceTable(indexId);
+
+	        var entry = referenceTable.Entries[archiveId];
+
+	        return Archive.Decode(new MemoryStream(GetFileData(indexId, archiveId)), entry.Capacity);
+	    }
+
+        // TODO: caching
+	    public abstract ReferenceTable GetReferenceTable(int indexId);
 	}
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.FileProcessors;
 using Villermen.RuneScapeCacheTools.FileProcessors.Enums;
 
@@ -15,10 +16,13 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			Directory.CreateDirectory(OutputDirectory);
 
-			NXTCache cache = new NXTCache();
-			cache.OutputDirectory = OutputDirectory;
+		    var cache = new NXTCache
+		    {
+		        OutputDirectory = OutputDirectory
+		    };
 
-		    var referenceTable = cache.GetReferenceTable(40);
+		    var referenceTable = cache.GetReferenceTable(17);
+		    cache.GetArchive(17, 5);
 
 			//var archiveIds = cache.getArchiveIds();
 			//Debug.WriteLine(archiveIds);

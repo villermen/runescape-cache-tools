@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -57,15 +58,22 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         ///     The entries in this table.
         /// </summary>
-        public SortedDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
+        public IDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
+
+        /// <summary>
+        /// The maximum number of entries in this table.
+        /// </summary>
+        public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 
         /// <summary>
         ///     Decodes the slave checksum table contained in the given <see cref="BinaryReader" />.
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static ReferenceTable Decode(BinaryReader reader)
+        public static ReferenceTable Decode(Stream stream)
         {
+            var reader = new BinaryReader(stream);
+
             var table = new ReferenceTable
             {
                 Format = reader.ReadByte()
@@ -265,6 +273,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
             ///     The children in this entry.
             /// </summary>
             public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
+
+            /// <summary>
+            /// The maximum number of entries in this table.
+            /// </summary>
+            public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
         }
 
         /// <summary>
