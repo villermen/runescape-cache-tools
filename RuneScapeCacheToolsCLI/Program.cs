@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			Directory.CreateDirectory(OutputDirectory);
 
-		    var cache = new NXTCache
+		    var cache = new RuneTek7Cache
 		    {
 		        OutputDirectory = OutputDirectory
 		    };

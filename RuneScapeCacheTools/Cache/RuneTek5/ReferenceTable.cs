@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     ///     A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive
     ///     members.
     ///     There are also optional fields for identifier hashes and whirlpool digests.
     ///     <author>Graham</author>
-    ///     <author>`Discardedx2</author>
-    ///     <author>Sean</author>
-    ///     <author>Villermen</author>
     /// </summary>
+    /// <author>`Discardedx2</author>
+    /// <author>Sean</author>
+    /// <author>Villermen</author>
     public class ReferenceTable
     {
         [Flags]
-        public enum DataFlags
+        internal enum DataFlags
         {
             /// <summary>
             ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
@@ -66,38 +66,35 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 
         /// <summary>
-        ///     Decodes the slave checksum table contained in the given <see cref="BinaryReader" />.
+        ///     Decodes the slave checksum table contained in the given <see cref="Stream" />.
         /// </summary>
-        /// <param name="reader"></param>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        public static ReferenceTable Decode(Stream stream)
+        public ReferenceTable(Stream stream)
         {
             var reader = new BinaryReader(stream);
 
-            var table = new ReferenceTable
-            {
-                Format = reader.ReadByte()
-            };
+            Format = reader.ReadByte();
 
             // Read header
-            if (table.Format < 5 || table.Format > 7)
+            if (Format < 5 || Format > 7)
             {
-                throw new CacheException("Incorrect JS5 protocol number: " + table.Format);
+                throw new CacheException("Incorrect JS5 protocol number: " + Format);
             }
 
-            if (table.Format >= 6)
+            if (Format >= 6)
             {
-                table.Version = reader.ReadInt32BigEndian();
+                Version = reader.ReadInt32BigEndian();
             }
 
-            table.Flags = (DataFlags) reader.ReadByte();
+            Flags = (DataFlags) reader.ReadByte();
 
             // Read the ids
-            var ids = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
+            var ids = new int[Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
             int accumulator = 0, size = -1;
             for (var i = 0; i < ids.Length; i++)
             {
-                var delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                var delta = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
                 ids[i] = accumulator += delta;
 
                 if (ids[i] > size)
@@ -108,55 +105,55 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             size++;
 
-            // table.Indices = ids;
+            // Indices = ids;
 
             // Allocate specific entries within the ids array
             var index = 0;
             foreach (var id in ids)
             {
-                table.Entries.Add(id, new Entry(index++));
+                Entries.Add(id, new Entry(index++));
             }
 
             // Read the identifiers if present
-            if ((table.Flags & DataFlags.Identifiers) != 0)
+            if ((Flags & DataFlags.Identifiers) != 0)
             {
                 foreach (var id in ids)
                 {
-                    table.Entries[id].Identifier = reader.ReadInt32BigEndian();
+                    Entries[id].Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the CRC32 checksums
             foreach (var id in ids)
             {
-                table.Entries[id].CRC = reader.ReadInt32BigEndian();
+                Entries[id].CRC = reader.ReadInt32BigEndian();
             }
 
             // Read some type of hash
-            if ((table.Flags & DataFlags.UnkownHashes) != 0)
+            if ((Flags & DataFlags.UnkownHashes) != 0)
             {
                 foreach (var id in ids)
                 {
-                    table.Entries[id].MysteryHash = reader.ReadInt32BigEndian();
+                    Entries[id].MysteryHash = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the whirlpool digests if present
-            if ((table.Flags & DataFlags.WhirlpoolDigests) != 0)
+            if ((Flags & DataFlags.WhirlpoolDigests) != 0)
             {
                 foreach (var id in ids)
                 {
-                    table.Entries[id].Whirlpool = reader.ReadBytes(64);
+                    Entries[id].Whirlpool = reader.ReadBytes(64);
                 }
             }
 
             // Read the compressed and uncompressed sizes
-            if ((table.Flags & DataFlags.Sizes) != 0)
+            if ((Flags & DataFlags.Sizes) != 0)
             {
                 foreach (var id in ids)
                 {
-                    table.Entries[id].CompressedSize = reader.ReadInt32BigEndian();
-                    table.Entries[id].UncompressedSize = reader.ReadInt32BigEndian();
+                    Entries[id].CompressedSize = reader.ReadInt32BigEndian();
+                    Entries[id].UncompressedSize = reader.ReadInt32BigEndian();
                 }
             }
 
@@ -164,14 +161,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
             foreach (var id in ids)
             {
                 var version = reader.ReadInt32BigEndian();
-                table.Entries[id].Version = version;
+                Entries[id].Version = version;
             }
 
             // Read the child sizes
             var members = new int[size][];
             foreach (var id in ids)
             {
-                members[id] = new int[table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
+                members[id] = new int[Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
             }
 
             // Read the child ids
@@ -184,7 +181,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 // Loop through the array of ids
                 for (var i = 0; i < members[id].Length; i++)
                 {
-                    var delta = table.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                    var delta = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
                     members[id][i] = accumulator += delta;
                     if (members[id][i] > size)
                     {
@@ -198,24 +195,21 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 index = 0;
                 foreach (var child in members[id])
                 {
-                    table.Entries[id].Entries.Add(child, new ChildEntry(index++));
+                    Entries[id].Entries.Add(child, new ChildEntry(index++));
                 }
             }
 
             /* read the child identifiers if present */
-            if ((table.Flags & DataFlags.Identifiers) != 0)
+            if ((Flags & DataFlags.Identifiers) != 0)
             {
                 foreach (var id in ids)
                 {
                     foreach (var child in members[id])
                     {
-                        table.Entries[id].Entries[child].Identifier = reader.ReadInt32BigEndian();
+                        Entries[id].Entries[child].Identifier = reader.ReadInt32BigEndian();
                     }
                 }
             }
-
-            // Return the table we constructed
-            return table;
         }
 
         /// <summary>

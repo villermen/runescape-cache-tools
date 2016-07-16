@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
+    /// <summary>
+    /// Base class for 
+    /// </summary>
 	public abstract class Cache
 	{
 		protected Cache()
@@ -71,15 +74,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		}
 
 		/// <summary>
-		///   Extracts the given file in the given archive.
+		///   Extracts and processes the given file in the given index.
 		/// </summary>
-		/// <param name="archiveId"></param>
+		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <returns></returns>
-		public void ExtractFile(int archiveId, int fileId)
+		public void ExtractFile(int indexId, int fileId)
 		{
-			// TODO: return bool?
-			var fileData = GetFileData(archiveId, fileId);
+			var fileData = GetFileData(indexId, fileId);
 
 			if (fileData == null)
 			{
@@ -89,7 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			DataProcessor.Process(ref fileData);
 			var extension = DataProcessor.GuessExtension(ref fileData);
 
-			WriteFile(archiveId, fileId, fileData, extension);
+			WriteFile(indexId, fileId, fileData, extension);
 		}
 
 		/// <summary>
@@ -185,14 +187,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public abstract byte[] GetFileData(int indexId, int fileId);
 
-	    public Archive GetArchive(int indexId, int archiveId)
-	    {
-	        var referenceTable = GetReferenceTable(indexId);
+        public byte[][] GetArchiveFiles(int indexId, int archiveId)
+        {
+            
+        }
 
-	        var entry = referenceTable.Entries[archiveId];
-
-	        return Archive.Decode(new MemoryStream(GetFileData(indexId, archiveId)), entry.Capacity);
-	    }
+        public byte[] GetArchiveFile(int indexId, int archiveId, int fileId);
 
         // TODO: caching
 	    public abstract ReferenceTable GetReferenceTable(int indexId);

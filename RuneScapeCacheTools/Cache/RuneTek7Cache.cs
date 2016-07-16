@@ -6,7 +6,11 @@ using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
-	public class NXTCache : Cache
+    /// <summary>
+    /// RuneTek7 (RS3 in NXT & HTML) cache format.
+    /// </summary>
+    [Obsolete("Work in progress.")]
+	public class RuneTek7Cache : Cache
 	{
 		private readonly Dictionary<int, SQLiteConnection> indexConnections = new Dictionary<int, SQLiteConnection>();
 
@@ -58,8 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             if (reader["DATA"].GetType() == typeof(byte[]))
             {
-                var binaryReader = new BinaryReader(new MemoryStream((byte[]) reader["DATA"]));
-                return ReferenceTable.Decode(binaryReader);
+                return ReferenceTable.Decode(new MemoryStream((byte[])reader["DATA"]));
             }
 
             return null;

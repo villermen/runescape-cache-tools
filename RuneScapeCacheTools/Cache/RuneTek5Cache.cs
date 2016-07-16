@@ -5,7 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace RuneScapeCacheTools
 {
-	public static class LegacyCache
+    /// <summary>
+    /// RuneTek5 (RS3 in NXT & HTML) cache format.
+    /// </summary>
+	public static class RuneTek5Cache
 	{
 		public const string CacheFileName = "main_file_cache.dat2";
 		public const string IndexFilePrefix = "main_file_cache.idx";
@@ -18,7 +21,7 @@ namespace RuneScapeCacheTools
 		private static string _outputDirectory = DefaultOutputDirectory;
 		private static string _tempDirectory = DirectoryHelper.NormalizeDirectory(@"%TEMP%/rscachetools/");
 
-		static LegacyCache()
+		static RuneTek5Cache()
 		{
 			//create temporary directory if it doesn't exist yet
 			Directory.CreateDirectory(_tempDirectory);
