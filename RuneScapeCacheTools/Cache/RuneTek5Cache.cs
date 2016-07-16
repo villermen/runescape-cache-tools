@@ -1,78 +1,56 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
-namespace RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
     /// RuneTek5 (RS3 in NXT & HTML) cache format.
     /// </summary>
-	public static class RuneTek5Cache
+	public class RuneTek5Cache : Cache
 	{
-		public const string CacheFileName = "main_file_cache.dat2";
-		public const string IndexFilePrefix = "main_file_cache.idx";
+		private const string CacheFileName = "main_file_cache.dat2";
+		private const string IndexFilePrefix = "main_file_cache.idx";
 
-		public static readonly string DefaultCacheDirectory =
-		DirectoryHelper.NormalizeDirectory(@"%USERPROFILE%/jagexcache/runescape/LIVE/");
+		public override string DefaultCacheDirectory => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
-		public static readonly string DefaultOutputDirectory = DirectoryHelper.NormalizeDirectory(@"%TEMP%/rscachetools/");
-		private static string _cacheDirectory = DefaultCacheDirectory;
-		private static string _outputDirectory = DefaultOutputDirectory;
-		private static string _tempDirectory = DirectoryHelper.NormalizeDirectory(@"%TEMP%/rscachetools/");
+        public override IEnumerable<int> GetIndexIds()
+        {
+            throw new NotImplementedException();
+        }
 
-		static RuneTek5Cache()
-		{
-			//create temporary directory if it doesn't exist yet
-			Directory.CreateDirectory(_tempDirectory);
-		}
+        public override IEnumerable<int> GetFileIds(int indexId)
+        {
+            throw new NotImplementedException();
+        }
 
-		/// <summary>
-		///     Directory from which the cache is read.
-		///     This directory should contain the cache file 'main_file_cache.dat2' and index files like 'main_file_cache.idx#'.
-		/// </summary>
-		public static string CacheDirectory
-		{
-			get
-			{
-				return _cacheDirectory;
-			}
-			set { _cacheDirectory = DirectoryHelper.NormalizeDirectory(value); }
-		}
+        public override IEnumerable<int> GetArchiveFileIds(int indexId, int archiveId)
+        {
+            throw new NotImplementedException();
+        }
 
-		/// <summary>
-		///     Directory where the cache will be extracted to.
-		/// </summary>
-		public static string OutputDirectory
-		{
-			get
-			{
-				return _outputDirectory;
-			}
-			set { _outputDirectory = DirectoryHelper.NormalizeDirectory(value); }
-		}
+        public override byte[] GetFileData(int indexId, int fileId)
+        {
+            throw new NotImplementedException();
+        }
 
-		/// <summary>
-		///     Directory for temporary files, used in processing.
-		/// </summary>
-		public static string TempDirectory
-		{
-			get
-			{
-				//check if directory exists/is readable
-				if (!Directory.Exists(_tempDirectory))
-					throw new DirectoryNotFoundException("The given temp directory does not exist or is not readable.");
-
-				return _tempDirectory;
-			}
-			set { _tempDirectory = DirectoryHelper.NormalizeDirectory(value); }
-		}
+        public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+        {
+            throw new NotImplementedException();
+        }
 
 		/// <summary>
 		///     Obtains the ids of all the present index files.
 		/// </summary>
 		public static IEnumerable<int> GetArchiveIds()
 		{
+            var tableFile = new Container();
+            var referenceTable = new ReferenceTable();
+
 			return Directory.EnumerateFiles(CacheDirectory, IndexFilePrefix + "???").Select(file =>
 			{
 				int archiveId;

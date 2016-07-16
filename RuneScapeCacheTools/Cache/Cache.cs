@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
-    /// Base class for 
+    /// Base class for current cache systems.
+    /// Cache should include indexes and archives in order to use this.
     /// </summary>
 	public abstract class Cache
 	{
@@ -47,30 +48,32 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// </summary>
 		public IDataProcessor DataProcessor { get; set; } = new ExtendableDataProcessor();
 
-		public abstract IEnumerable<int> GetArchiveIds();
+		public abstract IEnumerable<int> GetIndexIds();
 
 		public abstract IEnumerable<int> GetFileIds(int indexId);
 
-		/// <summary>
-		///   Extracts every file in every archive.
-		/// </summary>
-		/// <returns></returns>
-		public async Task ExtractAllAsync()
-		{
-			var archiveIds = GetArchiveIds();
+        public abstract IEnumerable<int> GetArchiveFileIds(int indexId, int archiveId);
 
-			await Task.Run(() => { Parallel.ForEach(archiveIds, archiveId => { ExtractArchiveAsync(archiveId).Wait(); }); });
+        /// <summary>
+        ///   Extracts every file in every index.
+        /// </summary>
+        /// <returns></returns>
+        public async Task ExtractAllAsync()
+		{
+			var indexIds = GetIndexIds();
+
+			await Task.Run(() => { Parallel.ForEach(indexIds, indexId => { ExtractIndexAsync(indexId).Wait(); }); });
 		}
 
 		/// <summary>
-		///   Extracts every file in the given archive.
+		///   Extracts every file in the given index.
 		/// </summary>
-		/// <param name="archiveId"></param>
+		/// <param name="indexId"></param>
 		/// <returns></returns>
-		public async Task ExtractArchiveAsync(int archiveId)
+		public async Task ExtractIndexAsync(int indexId)
 		{
-			var fileIds = GetFileIds(archiveId);
-			await Task.Run(() => { Parallel.ForEach(fileIds, fileId => { ExtractFile(archiveId, fileId); }); });
+			var fileIds = GetFileIds(indexId);
+			await Task.Run(() => { Parallel.ForEach(fileIds, fileId => { ExtractFile(indexId, fileId); }); });
 		}
 
 		/// <summary>
@@ -97,17 +100,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		/// </summary>
 		/// <param name="indexId"></param>
-		/// <returns>The path to the directory of the given archive, or null if it does not exist.</returns>
+		/// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
 		public virtual string GetIndexOutputPath(int indexId)
 		{
-			string archivePath = $"{OutputDirectory}cache/{indexId}/";
+			string indexPath = $"{OutputDirectory}cache/{indexId}/";
 
-			if (Directory.Exists(archivePath))
-			{
-				return archivePath;
-			}
-
-			return null;
+			return Directory.Exists(indexPath) ? indexPath : null;
 		}
 
 		/// <summary>
@@ -130,13 +128,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 					return path;
 				}
 
-				if (extractIfMissing)
-				{
-					ExtractFile(indexId, fileId);
-					return GetFileOutputPath(indexId, fileId);
-				}
+			    if (!extractIfMissing)
+			    {
+			        return null;
+			    }
 
-				return null;
+			    ExtractFile(indexId, fileId);
+			    return GetFileOutputPath(indexId, fileId);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -187,14 +185,31 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public abstract byte[] GetFileData(int indexId, int fileId);
 
-        public byte[][] GetArchiveFiles(int indexId, int archiveId)
+        /// <summary>
+        /// Returns the data for all the files in the specified archive.
+        /// </summary>
+        /// <param name="indexId"></param>
+        /// <param name="archiveId"></param>
+        /// <returns></returns>
+        public IDictionary<int, byte[]> GetArchiveFilesData(int indexId, int archiveId)
         {
-            
+            IDictionary<int, byte[]> archiveFilesData = new Dictionary<int, byte[]>();
+
+            foreach (var fileId in GetArchiveFileIds(indexId, archiveId))
+            {
+                archiveFilesData.Add(fileId, GetArchiveFileData(indexId, archiveId, fileId));
+            }
+
+            return archiveFilesData;
         }
 
-        public byte[] GetArchiveFile(int indexId, int archiveId, int fileId);
-
-        // TODO: caching
-	    public abstract ReferenceTable GetReferenceTable(int indexId);
+        /// <summary>
+        /// Returns the data for the specified file in the specified archive.
+        /// </summary>
+        /// <param name="indexId"></param>
+        /// <param name="archiveId"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
 	}
 }

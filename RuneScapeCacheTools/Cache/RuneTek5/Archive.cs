@@ -13,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
-    internal class Archive
+    public class Archive
     {
         /// <summary>
         /// The data of the entries in the archive.

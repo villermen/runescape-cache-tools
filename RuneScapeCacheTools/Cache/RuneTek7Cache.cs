@@ -9,15 +9,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// <summary>
     /// RuneTek7 (RS3 in NXT & HTML) cache format.
     /// </summary>
-    [Obsolete("Work in progress.")]
+    [Obsolete("Finishing RuneTek5 first before continuing with this.")]
 	public class RuneTek7Cache : Cache
 	{
-		private readonly Dictionary<int, SQLiteConnection> indexConnections = new Dictionary<int, SQLiteConnection>();
+		private readonly Dictionary<int, SQLiteConnection> _indexConnections = new Dictionary<int, SQLiteConnection>();
 
 		public override string DefaultCacheDirectory
 			=> Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/Jagex/RuneScape/";
 
-		public override IEnumerable<int> GetArchiveIds()
+		public override IEnumerable<int> GetIndexIds()
 		{
 			return Directory.EnumerateFiles(CacheDirectory, "js5-???.jcache")
 				.Select(archiveFilePath =>
@@ -49,7 +49,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			return null;
 		}
 
-	    public override ReferenceTable GetReferenceTable(int indexId)
+        public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ReferenceTable GetReferenceTable(int indexId)
 	    {
             var connection = GetIndexConnection(indexId);
 
@@ -84,7 +89,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			return fileIds;
 		}
 
-		protected string GetIndexFile(int indexId)
+        public override IEnumerable<int> GetArchiveFileIds(int indexId, int archiveId)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected string GetIndexFile(int indexId)
 		{
 			return $"{CacheDirectory}js5-{indexId}.jcache";
 		}
@@ -92,16 +102,16 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		protected SQLiteConnection GetIndexConnection(int indexId)
 		{
 			// Return an established connection
-			if (indexConnections.ContainsKey(indexId))
+			if (_indexConnections.ContainsKey(indexId))
 			{
-				return indexConnections[indexId];
+				return _indexConnections[indexId];
 			}
 
 			// Store and return a new connection
 			var connection = new SQLiteConnection($"Data Source={GetIndexFile(indexId)};Version=3;");
 			connection.Open();
 
-			indexConnections.Add(indexId, connection);
+			_indexConnections.Add(indexId, connection);
 
 			return connection;
 		}
