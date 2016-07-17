@@ -4,6 +4,7 @@ using System.IO;
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
+    /// Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
@@ -33,7 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         /// The total size of a sector in bytes.
         /// </summary>
-        public const int TotalLength = HeaderLength + DataLength;
+        public const int Length = HeaderLength + DataLength;
 
         /// <summary>
         /// The type of file this sector contains.
@@ -69,9 +70,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public Sector(byte[] data, bool extended = false)
         {
-            if (data.Length != TotalLength)
+            if (data.Length != Length)
             {
-                throw new ArgumentException($"Sector data must be exactly {TotalLength} bytes in length, {data.Length} given.");
+                throw new ArgumentException($"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
             }
 
             var reader = new BinaryReader(new MemoryStream(data));
@@ -90,7 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public byte[] Encode()
         {
-            var stream = new MemoryStream(new byte[TotalLength]);
+            var stream = new MemoryStream(new byte[Length]);
             var writer = new BinaryWriter(stream);
 
             if (Extended)

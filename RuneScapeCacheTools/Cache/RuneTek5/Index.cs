@@ -14,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         /// Length of index data in bytes.
         /// </summary>
-        public const int DataLength = 6;
+        public const int Length = 6;
 
         /// <summary>
         /// The size of the file in bytes.

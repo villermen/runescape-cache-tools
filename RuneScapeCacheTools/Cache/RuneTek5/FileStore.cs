@@ -84,7 +84,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new CacheException("Invalid index specified.");
             }
 
-            return (int) (_indexStreams[indexId].Length/Index.DataLength);
+            return (int) (_indexStreams[indexId].Length/Index.Length);
         }
 
         public byte[] GetFileData(int indexId, int fileId)
@@ -95,30 +95,48 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             var indexReader = new BinaryReader(_indexStreams[indexId]);
-            indexReader.BaseStream.Position = 0;
 
-            var ptr = (long) fileId*Index.DataLength;
+            var indexPosition = (long) fileId*Index.Length;
 
-            if (ptr < 0 || ptr >= indexReader.BaseStream.Length)
+            if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
                 throw new FileNotFoundException("Given file does not exist.");
             }
 
-            var reversedIndexBytes = indexReader.ReadBytes(Index.DataLength);
+            indexReader.BaseStream.Position = indexPosition;
+
+            var reversedIndexBytes = indexReader.ReadBytes(Index.Length);
             Array.Reverse(reversedIndexBytes);
 
             var index = new Index(reversedIndexBytes);
 
             var indexData = new byte[index.Size];
-            var sectorData = new byte[Sector.TotalLength];
+            var sectorData = new byte[Sector.Length];
 
             var chunk = 0;
             var remaining = index.Size;
-            ptr = (long) index.Sector * Sector.TotalLength;
+            var dataPosition = (long) index.Sector * Sector.Length;
+            var dataReader = new BinaryReader(_dataStream);
 
             do
             {
-                // TODO: code goes here
+                _dataStream.Position = dataPosition;
+                var sectorData = dataReader.ReadBytes(Sector.Length);
+
+                var extended = fileId > 65535;
+
+                Array.Reverse(sectorData);
+
+                var sector = new Sector(sectorData, extended);
+
+                if (remaining >)
+                {
+                    dataPosition = sector.NextSector;
+                }
+                else
+                {
+                    
+                }
             }
             while (remaining > 0);
 
