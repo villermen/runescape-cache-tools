@@ -21,14 +21,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public byte[][] Entries { get; private set; }
 
         /// <summary>
-        /// Decodes the specified <see cref="BinaryReader"/> into an <see cref="Archive"/>.
+        /// Decodes the given data into an <see cref="Archive"/>.
         /// </summary>
-        /// <param name="stream"></param>
+        /// <param name="data"></param>
         /// <param name="amountOfEntries">The amount of files in the archive.</param>
         /// <returns></returns>
-        public static Archive Decode(Stream stream, int amountOfEntries)
+        public Archive(byte[] data, int amountOfEntries)
         {
-            var reader = new BinaryReader(stream);
+            var reader = new BinaryReader(new MemoryStream(data));
             var archive = new Archive(amountOfEntries);
 
             var amountOfChunks = reader.ReadByte();

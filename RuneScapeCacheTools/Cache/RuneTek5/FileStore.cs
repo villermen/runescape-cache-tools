@@ -84,12 +84,46 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new CacheException("Invalid index specified.");
             }
 
-            return (int) (_indexStreams[indexId].Length/6);
+            return (int) (_indexStreams[indexId].Length/Index.DataLength);
         }
 
         public byte[] GetFileData(int indexId, int fileId)
         {
-            throw new NotImplementedException();
+            if (!_indexStreams.ContainsKey(indexId))
+            {
+                throw new CacheException("Invalid index specified.");
+            }
+
+            var indexReader = new BinaryReader(_indexStreams[indexId]);
+            indexReader.BaseStream.Position = 0;
+
+            var ptr = (long) fileId*Index.DataLength;
+
+            if (ptr < 0 || ptr >= indexReader.BaseStream.Length)
+            {
+                throw new FileNotFoundException("Given file does not exist.");
+            }
+
+            var reversedIndexBytes = indexReader.ReadBytes(Index.DataLength);
+            Array.Reverse(reversedIndexBytes);
+
+            var index = new Index(reversedIndexBytes);
+
+            var indexData = new byte[index.Size];
+            var sectorData = new byte[Sector.TotalLength];
+
+            var chunk = 0;
+            var remaining = index.Size;
+            ptr = (long) index.Sector * Sector.TotalLength;
+
+            do
+            {
+                // TODO: code goes here
+            }
+            while (remaining > 0);
+
+            Array.Reverse(indexData);
+            return indexData;
         }
 
         public void WriteFile(int indexId, int fileId, byte[] data)

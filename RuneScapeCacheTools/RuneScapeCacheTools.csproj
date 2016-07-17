@@ -72,6 +72,8 @@
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="Cache\Cache.cs" />
     <Compile Include="Cache\RuneTek5\FileStore.cs" />
+    <Compile Include="Cache\RuneTek5\Index.cs" />
+    <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek7Cache.cs" />
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
