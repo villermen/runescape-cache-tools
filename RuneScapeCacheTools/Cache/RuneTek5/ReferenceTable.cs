@@ -17,7 +17,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class ReferenceTable
     {
         [Flags]
-        internal enum DataFlags
+        public enum DataFlags
         {
             /// <summary>
             ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
@@ -35,44 +35,20 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Sizes = 0x04,
 
             /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by the RuneScape client.
+            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
+            ///     the RuneScape client.
             /// </summary>
             UnkownHashes = 0x08
         }
 
         /// <summary>
-        ///     The format of this table.
-        /// </summary>
-        public int Format { get; set; }
-
-        /// <summary>
-        ///     The version of this table.
-        /// </summary>
-        public int Version { get; set; }
-
-        /// <summary>
-        ///     The flags of this table.
-        /// </summary>
-        public DataFlags Flags { get; set; }
-
-        /// <summary>
-        ///     The entries in this table.
-        /// </summary>
-        public IDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
-
-        /// <summary>
-        /// The maximum number of entries in this table.
-        /// </summary>
-        public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
-
-        /// <summary>
-        ///     Decodes the slave checksum table contained in the given <see cref="Stream" />.
+        ///     Decodes the slave checksum table contained in the given byte array.
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public ReferenceTable(Stream stream)
+        public ReferenceTable(byte[] data)
         {
-            var reader = new BinaryReader(stream);
+            var reader = new BinaryReader(new MemoryStream(data));
 
             Format = reader.ReadByte();
 
@@ -189,7 +165,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     }
                 }
 
-                size++;
+                // size++;
 
                 // Allocate specific entries within the ids array
                 index = 0;
@@ -211,6 +187,31 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
             }
         }
+
+        /// <summary>
+        ///     The format of this table.
+        /// </summary>
+        public int Format { get; set; }
+
+        /// <summary>
+        ///     The version of this table.
+        /// </summary>
+        public int Version { get; set; }
+
+        /// <summary>
+        ///     The flags of this table.
+        /// </summary>
+        public DataFlags Flags { get; set; }
+
+        /// <summary>
+        ///     The entries in this table.
+        /// </summary>
+        public IDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
+
+        /// <summary>
+        ///     The maximum number of entries in this table.
+        /// </summary>
+        public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 
         /// <summary>
         ///     Represents a single entry within a <see cref="ReferenceTable" />.
@@ -269,7 +270,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
 
             /// <summary>
-            /// The maximum number of entries in this table.
+            ///     The maximum number of entries in this table.
             /// </summary>
             public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
         }
@@ -295,16 +296,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             public int Index { get; set; }
         }
 
-//            /* 
-//                * we can't (easily) predict the size ahead of time, so we write to a
-//                * stream and then to the reader
-//                */
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//        DataOutputStream os = new DataOutputStream(bout);
-//	try {
+//        {
 
 //		/* write the header */
-//        {
+//	try {
+//        DataOutputStream os = new DataOutputStream(bout);
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//                */
+//                * stream and then to the reader
+//                * we can't (easily) predict the size ahead of time, so we write to a
+
+//            /* 
 //        public ByteBuffer encode() throws IOException
 
         /**

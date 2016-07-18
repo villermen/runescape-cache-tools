@@ -304,7 +304,7 @@ namespace RuneScapeCacheToolsGUI
 				{
 					//write headers
 
-					tracklistFile.WriteLine("File Id,Name");
+					tracklistFile.WriteLine("File FileId,Name");
 
 					foreach (var track in tracks)
 						tracklistFile.WriteLine($"{track.Key},\"{track.Value}\"");
@@ -346,7 +346,7 @@ namespace RuneScapeCacheToolsGUI
 				new StreamWriter(File.Open(LegacyCache.OutputDirectory + "missingtracknames.csv", FileMode.Create)))
 				{
 					//write headers
-					missingTracklistFile.WriteLine("File Id,Name");
+					missingTracklistFile.WriteLine("File FileId,Name");
 
 					foreach (var track in missingTracks)
 						missingTracklistFile.WriteLine($"{track.Key},\"{track.Value}\"");

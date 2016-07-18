@@ -54,24 +54,24 @@ namespace Villermen.RuneScapeCacheTools.Cache
             throw new NotImplementedException();
         }
 
-        public override ReferenceTable GetReferenceTable(int indexId)
-	    {
-            var connection = GetIndexConnection(indexId);
+     //   public override ReferenceTable GetReferenceTable(int indexId)
+	    //{
+     //       var connection = GetIndexConnection(indexId);
 
-            var command = new SQLiteCommand(
-                $"SELECT DATA FROM cache_index"
-                , connection);
-            var reader = command.ExecuteReader();
+     //       var command = new SQLiteCommand(
+     //           $"SELECT DATA FROM cache_index"
+     //           , connection);
+     //       var reader = command.ExecuteReader();
 
-            reader.Read();
+     //       reader.Read();
 
-            if (reader["DATA"].GetType() == typeof(byte[]))
-            {
-                return ReferenceTable.Decode(new MemoryStream((byte[])reader["DATA"]));
-            }
+     //       if (reader["DATA"].GetType() == typeof(byte[]))
+     //       {
+     //           return ReferenceTable.Decode(new MemoryStream((byte[])reader["DATA"]));
+     //       }
 
-            return null;
-        }
+     //       return null;
+     //   }
 
 	    public override IEnumerable<int> GetFileIds(int indexId)
 		{

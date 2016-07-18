@@ -8,38 +8,20 @@ using Villermen.RuneScapeCacheTools.FileProcessors.Enums;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
-	class Program
+    internal class Program
 	{
 		private const string OutputDirectory = "C:/Data/Temp/rsnxtcache/";
 
-		static void Main(string[] args)
+	    private static void Main(string[] args)
 		{
-			Directory.CreateDirectory(OutputDirectory);
+			// Directory.CreateDirectory(OutputDirectory);
 
-		    var cache = new RuneTek7Cache
-		    {
-		        OutputDirectory = OutputDirectory
-		    };
+		    var cache = new RuneTek5Cache();
 
-		    var referenceTable = cache.GetReferenceTable(17);
-		    cache.GetArchive(17, 5);
+		    var indexIds = cache.GetIndexIds();
+		    var fileIds = cache.GetFileIds(17);
 
-			//var archiveIds = cache.getArchiveIds();
-			//Debug.WriteLine(archiveIds);
-
-			//var fileIds = cache.getFileIds(2);
-			//Debug.WriteLine(fileIds);
-
-			//cache.ExtractFile(40, 2628);
-
-			//Debug.WriteLine(cache.GetFileOutputPath(40, 2628));
-
-			//cache.ExtractAllAsync().Wait();
-
-			//var enumFile = new EnumFileProcessor(cache.GetFileOutputPath(17, 0, true));
-			//var enums = enumFile.GetEnums();
-
-			Console.ReadLine();
+            Console.ReadLine();
 		}
 	}
 }

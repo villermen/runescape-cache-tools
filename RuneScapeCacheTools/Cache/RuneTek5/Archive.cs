@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    /// An <see cref="Archive"/> is a file within the cache that can have multiple member files inside it.
+    ///     An <see cref="Archive" /> is a file within the cache that can have multiple member files inside it.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
@@ -16,26 +12,25 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class Archive
     {
         /// <summary>
-        /// The data of the entries in the archive.
-        /// </summary>
-        public byte[][] Entries { get; private set; }
-
-        /// <summary>
-        /// Decodes the given data into an <see cref="Archive"/>.
+        ///     Decodes the given data into an <see cref="Archive" />.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="amountOfEntries">The amount of files in the archive.</param>
         /// <returns></returns>
         public Archive(byte[] data, int amountOfEntries)
         {
-            var reader = new BinaryReader(new MemoryStream(data));
-            var archive = new Archive(amountOfEntries);
+            Entries = new byte[amountOfEntries][];
 
+            var reader = new BinaryReader(new MemoryStream(data));
+
+            reader.BaseStream.Position = reader.BaseStream.Length - 1;
             var amountOfChunks = reader.ReadByte();
 
             // Read the sizes of the child entries and individual chunks
             var chunkSizes = new int[amountOfChunks, amountOfEntries];
             var entrySizes = new int[amountOfEntries];
+
+            reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * amountOfEntries * 4;
 
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
@@ -54,14 +49,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
             }
 
-            //// Allocate the buffers for the child entries
-            //for (var entryId = 0; entryId < amountOfEntries; entryId++)
-            //{
-            //    archive.Entries[entryId] = new byte[chunkSizes[entryId]];
-            //}
-
-            // Read the data into the buffers
-            //buffer.position(0);
+            // Read the data
+            reader.BaseStream.Position = 0;
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
                 for (var entryId = 0; entryId < amountOfEntries; entryId++)
@@ -74,31 +63,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     {
                         throw new CacheException("End of file reached while reading the archive.");
                     }
-                    
-                    archive.Entries[entryId] = entryData;
+
+                    // Flip the data
+                    Entries[entryId] = entryData.Reverse().ToArray();
                 }
             }
-
-            ///* flip all of the buffers */
-            //for (int id = 0; id < size; id++)
-            //{
-            //    archive.entries[id].flip();
-            //}
-
-            return archive;
         }
 
         /// <summary>
-        /// Creates a new archive.
+        ///     The data of the entries in the archive.
         /// </summary>
-        /// <param name="size">The number of entries in the archive</param>
-        public Archive(int size)
-        {
-            Entries = new byte[size][];
-        }
+        public byte[][] Entries { get; }
+
+        //         * Encodes this {@link Archive} into a {@link ByteBuffer}.
 
         //        /**
-        //         * Encodes this {@link Archive} into a {@link ByteBuffer}.
         //         * <p />
         //         * Please note that this is a fairly simple implementation that does not
         //         * attempt to use more than one chunk.

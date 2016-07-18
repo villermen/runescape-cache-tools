@@ -2,25 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    /// A file store holds multiple files inside a "virtual" file system made up of several index files and a single data file.
+    ///     A file store holds multiple files inside a "virtual" file system made up of several index files and a single data
+    ///     file.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
+    /// <todo>Reading of meta data.</todo>
     public class FileStore
     {
-        private readonly Stream _dataStream;
-        private readonly IDictionary<int, Stream> _indexStreams = new Dictionary<int, Stream>();
-        private readonly Stream _metaStream;
-
         /// <summary>
-        /// Opens the file store in the specified directory.
+        ///     Opens the file store in the specified directory.
         /// </summary>
         /// <param name="cacheDirectory">The directory containing the index and data files.</param>
         /// <exception cref="FileNotFoundException">If any of the main_file_cache.* files could not be found.</exception>
@@ -33,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new FileNotFoundException("Cache data file does not exist.");
             }
 
-            _dataStream = File.Open(dataFile, FileMode.Open);
+            DataStream = File.Open(dataFile, FileMode.Open);
 
             for (var indexId = 0; indexId < 254; indexId++)
             {
@@ -44,10 +40,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     continue;
                 }
 
-                _indexStreams.Add(indexId, File.Open(indexFile, FileMode.Open));
+                IndexStreams.Add(indexId, File.Open(indexFile, FileMode.Open));
             }
 
-            if (_indexStreams.Count == 0)
+            if (IndexStreams.Count == 0)
             {
                 throw new FileNotFoundException("No index files found.");
             }
@@ -59,44 +55,43 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new FileNotFoundException("Meta index file does not exist.");
             }
 
-            _metaStream = File.Open(metaFile, FileMode.Open);
+            MetaStream = File.Open(metaFile, FileMode.Open);
         }
 
+        private Stream DataStream { get; }
+        private IDictionary<int, Stream> IndexStreams { get; } = new Dictionary<int, Stream>();
+        private Stream MetaStream { get; }
+
         /// <summary>
-        /// Initializes a new <see cref="FileStore"/> in the given directory.
+        ///     The number of index files, not including the meta index file.
         /// </summary>
-        /// <param name="cacheDirectory"></param>
-        /// <param name="amountOfIndexes"></param>
-        public FileStore(string cacheDirectory, int amountOfIndexes)
-        {
-            throw new NotImplementedException();
-        }
+        public int IndexCount => IndexStreams.Count;
 
         /// <summary>
-        /// Returns the number of files of the specified type.
+        ///     Returns the number of files of the specified type.
         /// </summary>
         /// <param name="indexId"></param>
         /// <returns></returns>
         public int GetFileCount(int indexId)
         {
-            if (!_indexStreams.ContainsKey(indexId))
+            if (!IndexStreams.ContainsKey(indexId))
             {
                 throw new CacheException("Invalid index specified.");
             }
 
-            return (int) (_indexStreams[indexId].Length/Index.Length);
+            return (int) (IndexStreams[indexId].Length / Index.Length);
         }
 
         public byte[] GetFileData(int indexId, int fileId)
         {
-            if (!_indexStreams.ContainsKey(indexId))
+            if (!IndexStreams.ContainsKey(indexId))
             {
                 throw new CacheException("Invalid index specified.");
             }
 
-            var indexReader = new BinaryReader(_indexStreams[indexId]);
+            var indexReader = new BinaryReader(IndexStreams[indexId]);
 
-            var indexPosition = (long) fileId*Index.Length;
+            var indexPosition = (long) fileId * Index.Length;
 
             if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
@@ -110,38 +105,45 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             var index = new Index(reversedIndexBytes);
 
-            var indexData = new byte[index.Size];
-            var sectorData = new byte[Sector.Length];
-
-            var chunk = 0;
+            var chunkId = 0;
             var remaining = index.Size;
             var dataPosition = (long) index.Sector * Sector.Length;
-            var dataReader = new BinaryReader(_dataStream);
 
+            IEnumerable<byte> data = new byte[0];
             do
             {
-                _dataStream.Position = dataPosition;
-                var sectorData = dataReader.ReadBytes(Sector.Length);
+                DataStream.Position = dataPosition;
 
                 var extended = fileId > 65535;
 
+                var sectorData = new byte[Sector.Length];
                 Array.Reverse(sectorData);
-
                 var sector = new Sector(sectorData, extended);
 
-                if (remaining >)
+                if (sector.IndexId != indexId)
                 {
-                    dataPosition = sector.NextSector;
+                    throw new CacheException("Sector index id mismatch.");
                 }
-                else
+
+                if (sector.FileId != fileId)
                 {
-                    
+                    throw new CacheException("Sector file id mismatch.");
                 }
+
+                if (sector.ChunkId != chunkId)
+                {
+                    throw new CacheException("Sector index mismatch.");
+                }
+
+                data = data.Concat(sector.Data);
+                remaining -= extended ? Sector.ExtendedDataLength : Sector.DataLength;
+
+                dataPosition = sector.NextSectorId * Sector.Length;
+                chunkId++;
             }
             while (remaining > 0);
 
-            Array.Reverse(indexData);
-            return indexData;
+            return data.Reverse().ToArray();
         }
 
         public void WriteFile(int indexId, int fileId, byte[] data)

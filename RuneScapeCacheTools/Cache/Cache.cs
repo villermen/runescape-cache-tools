@@ -31,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		///   The location where the cache is located.
 		/// </summary>
-		public string CacheDirectory { get; set; }
+		public virtual string CacheDirectory { get; set; }
 
 		/// <summary>
 		///   The location where the processed cache will be stored.
