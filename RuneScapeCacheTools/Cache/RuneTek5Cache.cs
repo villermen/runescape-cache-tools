@@ -58,7 +58,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
         {
-            throw new NotImplementedException();
+            _backingCache.
         }
     }
 }

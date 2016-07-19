@@ -155,5 +155,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             throw new NotImplementedException();
         }
+
+        public Container GetMetadata(int fileId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

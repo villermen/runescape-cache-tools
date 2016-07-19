@@ -97,5 +97,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             throw new NotImplementedException();
         }
+
+        public Container GetFileData(int indexId, int fileId)
+        {
+            throw new NotImplementedException();   
+        }
+
+        public byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+        {
+            throw new NotImplementedException();
+            // FileStore.GetMetadata();
+        }
     }
 }
