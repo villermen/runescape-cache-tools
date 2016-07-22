@@ -110,11 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             writer.Write((byte) IndexId);
             writer.Write(Data);
 
-            var reversedData = stream.ToArray();
-
-            Array.Reverse(reversedData);
-
-            return reversedData;
+            return stream.ToArray();
         }
     }
 }

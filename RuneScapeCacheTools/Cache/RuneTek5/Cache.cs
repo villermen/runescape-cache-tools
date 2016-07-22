@@ -98,15 +98,38 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             throw new NotImplementedException();
         }
 
-        public Container GetFileData(int indexId, int fileId)
+        public Container GetFileContainer(int indexId, int fileId)
         {
-            throw new NotImplementedException();   
+            if (indexId == FileStore.MetadataIndexId)
+            {
+                throw new CacheException("Reference tables can only be read with the low level FileStore API!");
+            }
+
+            // Delegate the call to the file store and then decode the container
+            return new Container(FileStore.GetFileData(indexId, fileId));
         }
 
+        /// <summary>
+        /// Reads a file contained in an archive in the cache.
+        /// </summary>
+        /// <param name="indexId"></param>
+        /// <param name="archiveId"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
         public byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
         {
-            throw new NotImplementedException();
-            // FileStore.GetMetadata();
+            // Grab the container and the reference table
+            var container = GetFileContainer(indexId, archiveId);
+            var tableContainer = new Container(FileStore.GetMetadata(indexId));
+
+            var table = new ReferenceTable(tableContainer.Data);
+
+            // Check if the file/entry are valid
+            var entry = table.Entries[archiveId];
+
+            // Extract the entry from the archive
+            var archive = new Archive(container.Data, entry.Capacity);
+            return archive.Entries[fileId];
         }
     }
 }

@@ -1,4 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -33,7 +39,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public int Version { get; set; }
 
-        private int[] NullKey { get; } = new int[4];
+        private static readonly uint[] NullKey = new uint[4];
 
         /// <summary>
         /// Creates a new unversioned container.
@@ -60,9 +66,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// Decodes and decompressed the container.
         /// </summary>
         /// <param name="data"></param>
-        public Container(byte[] data)
+        public Container(byte[] data) : this(data, NullKey)
         {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -70,9 +75,46 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
-        public Container(byte[] data, int[] key)
+        public Container(byte[] data, uint[] key)
         {
+            var reader = new BinaryReader(new MemoryStream(data));
+
+            Type = (CompressionType) reader.ReadByte();
+            var length = reader.ReadInt32BigEndian();
+
+            // Decrypt
+            if (key.Sum(value => value) != 0)
+            {
+                var byteKeyStream = new MemoryStream(16);
+                var byteKeyWriter = new BinaryWriter(byteKeyStream);
+                foreach (var keyValue in key)
+                {
+                    byteKeyWriter.WriteUInt32BigEndian(keyValue);
+                }
+
+                var xtea = new XteaEngine();
+                xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
+                var decrypted = new byte[length + (Type == CompressionType.None ? 5 : 9)];
+                xtea.ProcessBlock(data, 5, decrypted, 0);
+
+                data = decrypted;
+            }
+
+            var dataStream = new MemoryStream(data);
+            var dataReader = new BinaryReader(dataStream);
+
             throw new NotImplementedException();
+
+            // Check if we should decompress the data or not
+            //if (Type == CompressionType.None)
+            //{
+            //    Version = -1;
+            //    if (dataReader.Remaining >= 2)
+            //    {
+            //        Version = Array.
+            //    }
+            //    Data = data;
+            //}
         }
 
         public byte[] Encode()

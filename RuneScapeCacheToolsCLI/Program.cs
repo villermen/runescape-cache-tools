@@ -20,6 +20,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		    var indexIds = cache.GetIndexIds();
 		    var fileIds = cache.GetFileIds(17);
+	        var fileData = cache.GetFileData(17, 5);
 	        var archiveFileData = cache.GetArchiveFileData(17, 5, 0);
 
 	        // Console.ReadLine();

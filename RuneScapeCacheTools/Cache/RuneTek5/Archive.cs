@@ -64,8 +64,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         throw new CacheException("End of file reached while reading the archive.");
                     }
 
-                    // Flip the data
-                    Entries[entryId] = entryData.Reverse().ToArray();
+                    Entries[entryId] = entryData.ToArray();
                 }
             }
         }

@@ -94,6 +94,14 @@ namespace Villermen.RuneScapeCacheTools
             writer.Write((byte) value);
         }
 
+        public static void WriteUInt32BigEndian(this BinaryWriter writer, uint value)
+        {
+            writer.Write((byte) (value >> 24));
+            writer.Write((byte) (value >> 16));
+            writer.Write((byte) (value >> 8));
+            writer.Write((byte) value);
+        }
+
         public static void WriteInt16BigEndian(this BinaryWriter writer, short value)
 	    {
 	        writer.Write((byte) (value >> 8));

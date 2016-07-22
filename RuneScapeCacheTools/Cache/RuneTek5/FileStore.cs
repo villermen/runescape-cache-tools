@@ -15,6 +15,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <todo>Reading of meta data.</todo>
     public class FileStore
     {
+        public const int MetadataIndexId = 255;
+
         /// <summary>
         ///     Opens the file store in the specified directory.
         /// </summary>
@@ -48,7 +50,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new FileNotFoundException("No index files found.");
             }
 
-            var metaFile = Path.Combine(cacheDirectory + "main_file_cache.idx255");
+            var metaFile = Path.Combine(cacheDirectory + $"main_file_cache.idx{MetadataIndexId}");
 
             if (!File.Exists(metaFile))
             {
@@ -84,12 +86,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public byte[] GetFileData(int indexId, int fileId)
         {
-            if (!IndexStreams.ContainsKey(indexId))
+            var meta = indexId == MetadataIndexId;
+
+            if (!meta && !IndexStreams.ContainsKey(indexId))
             {
                 throw new CacheException("Invalid index specified.");
             }
 
-            var indexReader = new BinaryReader(IndexStreams[indexId]);
+            var indexReader = new BinaryReader(meta ? MetaStream : IndexStreams[indexId]);
 
             var indexPosition = (long) fileId * Index.Length;
 
@@ -100,25 +104,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             indexReader.BaseStream.Position = indexPosition;
 
-            var reversedIndexBytes = indexReader.ReadBytes(Index.Length);
-            Array.Reverse(reversedIndexBytes);
+            var indexBytes = indexReader.ReadBytes(Index.Length);
 
-            var index = new Index(reversedIndexBytes);
+            var index = new Index(indexBytes);
 
             var chunkId = 0;
             var remaining = index.Size;
+            var dataReader = new BinaryReader(DataStream);
             var dataPosition = (long) index.Sector * Sector.Length;
 
             IEnumerable<byte> data = new byte[0];
             do
             {
-                DataStream.Position = dataPosition;
+                dataReader.BaseStream.Position = dataPosition;
 
                 var extended = fileId > 65535;
 
-                var sectorData = new byte[Sector.Length];
-                Array.Reverse(sectorData);
-                var sector = new Sector(sectorData, extended);
+                var sector = new Sector(dataReader.ReadBytes(Sector.Length), extended);
 
                 if (sector.IndexId != indexId)
                 {
@@ -138,12 +140,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 data = data.Concat(sector.Data);
                 remaining -= extended ? Sector.ExtendedDataLength : Sector.DataLength;
 
-                dataPosition = sector.NextSectorId * Sector.Length;
+                dataPosition = (long) sector.NextSectorId * Sector.Length;
                 chunkId++;
             }
             while (remaining > 0);
 
-            return data.Reverse().ToArray();
+            return data.ToArray();
         }
 
         public void WriteFile(int indexId, int fileId, byte[] data)
@@ -156,9 +158,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             throw new NotImplementedException();
         }
 
-        public Container GetMetadata(int fileId)
+        public byte[] GetMetadata(int fileId)
         {
-            throw new NotImplementedException();
+            return GetFileData(MetadataIndexId, fileId);
         }
     }
 }
