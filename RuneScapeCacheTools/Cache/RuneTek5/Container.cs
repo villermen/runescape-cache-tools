@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -77,12 +79,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="key"></param>
         public Container(byte[] data, uint[] key)
         {
-            var reader = new BinaryReader(new MemoryStream(data));
+            var dataReader = new BinaryReader(new MemoryStream(data));
 
-            Type = (CompressionType) reader.ReadByte();
-            var length = reader.ReadInt32BigEndian();
+            Type = (CompressionType) dataReader.ReadByte();
+            var length = dataReader.ReadInt32BigEndian();
 
-            // Decrypt
+            // Decrypt the data
             if (key.Sum(value => value) != 0)
             {
                 var byteKeyStream = new MemoryStream(16);
@@ -100,21 +102,67 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 data = decrypted;
             }
 
-            var dataStream = new MemoryStream(data);
-            var dataReader = new BinaryReader(dataStream);
-
-            throw new NotImplementedException();
-
             // Check if we should decompress the data or not
-            //if (Type == CompressionType.None)
-            //{
-            //    Version = -1;
-            //    if (dataReader.Remaining >= 2)
-            //    {
-            //        Version = Array.
-            //    }
-            //    Data = data;
-            //}
+            if (Type == CompressionType.None)
+            {
+                Data = dataReader.ReadBytes(length);
+            }
+            else
+            {
+                // Decompress the data
+                var uncompressedLength = dataReader.ReadInt32BigEndian();
+                var compressedBytes = dataReader.ReadBytes(length);
+                var uncompressedBytes = new byte[uncompressedLength];
+
+                switch (Type)
+                {
+                    case CompressionType.Bzip2:
+                        // Add the bzip2 header as it is missing from the cache for whatever reason
+                        var bzipCompressedBytes = new byte[compressedBytes.Length + 4];
+                        bzipCompressedBytes[0] = (byte) 'B';
+                        bzipCompressedBytes[1] = (byte) 'Z';
+                        bzipCompressedBytes[2] = (byte) 'h';
+                        bzipCompressedBytes[3] = (byte) '1';
+                        Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
+                        var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
+                        var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                        if (readBzipBytes != uncompressedLength)
+                        {
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                        }
+                        break;
+
+                    case CompressionType.Gzip:
+                        var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                        var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                        if (readGzipBytes != uncompressedLength)
+                        {
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                        }
+                        break;
+
+                    case CompressionType.LZMA:
+                        // TODO: Needs other library
+                        throw new NotImplementedException();
+                        break;
+
+                    default:
+                        throw new CacheException("Invalid compression type given.");
+                }
+
+                data = uncompressedBytes;
+            }
+
+            // Obtain the version if present
+            Version = -1;
+            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
+            {
+                Version = dataReader.ReadInt16BigEndian();
+            }
+
+            Data = data;
         }
 
         public byte[] Encode()
