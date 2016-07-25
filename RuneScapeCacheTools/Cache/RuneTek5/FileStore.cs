@@ -12,7 +12,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	/// <author>Villermen</author>
-	/// <todo>Reading of meta data.</todo>
 	public class FileStore
 	{
 		public const int MetadataIndexId = 255;
