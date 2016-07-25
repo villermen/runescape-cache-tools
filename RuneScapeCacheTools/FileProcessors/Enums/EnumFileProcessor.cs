@@ -53,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 					// Only add the position if it is pointing to a valid enum
 					var returnFilePosition = reader.BaseStream.Position;
 					reader.BaseStream.Position = enumPosition;
-					
+
 					var metadata = EnumMetadata.FromStream(reader.BaseStream);
 
 					if (metadata != null)

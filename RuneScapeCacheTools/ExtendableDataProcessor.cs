@@ -5,7 +5,7 @@ using System.Linq;
 namespace Villermen.RuneScapeCacheTools
 {
 	/// <summary>
-	///		Extendable implementation of IFileProcessor.
+	///   Extendable implementation of IFileProcessor.
 	///   Allows dynamic addition and removal of actions.
 	/// </summary>
 	public class ExtendableDataProcessor : IDataProcessor

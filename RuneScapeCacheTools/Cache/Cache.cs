@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
-    /// <summary>
-    /// Base class for current cache systems.
-    /// Cache should include indexes and archives in order to use this.
-    /// </summary>
+	/// <summary>
+	///   Base class for current cache systems.
+	///   Cache should include indexes and archives in order to use this.
+	/// </summary>
 	public abstract class Cache
 	{
 		protected Cache()
@@ -52,13 +52,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 		public abstract IEnumerable<int> GetFileIds(int indexId);
 
-        public abstract IEnumerable<int> GetArchiveFileIds(int indexId, int archiveId);
+		public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
-        /// <summary>
-        ///   Extracts every file in every index.
-        /// </summary>
-        /// <returns></returns>
-        public async Task ExtractAllAsync()
+		/// <summary>
+		///   Extracts every file in every index.
+		/// </summary>
+		/// <returns></returns>
+		public async Task ExtractAllAsync()
 		{
 			var indexIds = GetIndexIds();
 
@@ -128,13 +128,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 					return path;
 				}
 
-			    if (!extractIfMissing)
-			    {
-			        return null;
-			    }
+				if (!extractIfMissing)
+				{
+					return null;
+				}
 
-			    ExtractFile(indexId, fileId);
-			    return GetFileOutputPath(indexId, fileId);
+				ExtractFile(indexId, fileId);
+				return GetFileOutputPath(indexId, fileId);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -177,39 +177,40 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			File.WriteAllBytes(newFilePath, data);
 		}
 
-        /// <summary>
-        ///   Returns the raw data for the given file.
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <param name="fileId"></param>
-        /// <returns></returns>
-        public abstract byte[] GetFileData(int indexId, int fileId);
+		/// <summary>
+		///   Returns the raw data for the given file.
+		/// </summary>
+		/// <param name="indexId"></param>
+		/// <param name="fileId"></param>
+		/// <returns></returns>
+		public abstract byte[] GetFileData(int indexId, int fileId);
 
-        /// <summary>
-        /// Returns the data for all the files in the specified archive.
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <param name="archiveId"></param>
-        /// <returns></returns>
-        public IDictionary<int, byte[]> GetArchiveFilesData(int indexId, int archiveId)
-        {
-            IDictionary<int, byte[]> archiveFilesData = new Dictionary<int, byte[]>();
+		/// <summary>
+		///   Returns the data for all the files in the specified archive.
+		/// </summary>
+		/// <param name="indexId"></param>
+		/// <param name="archiveId"></param>
+		/// <returns></returns>
+		public byte[][] GetArchiveFiles(int indexId, int archiveId)
+		{
+			var fileCount = GetArchiveFileCount(indexId, archiveId);
+			var archiveFilesData = new byte[fileCount][];
 
-            foreach (var fileId in GetArchiveFileIds(indexId, archiveId))
-            {
-                archiveFilesData.Add(fileId, GetArchiveFileData(indexId, archiveId, fileId));
-            }
+			for (var fileId = 0; fileId < fileCount; fileId++)
+			{
+				archiveFilesData[fileId] = GetArchiveFileData(indexId, archiveId, fileId);
+			}
 
-            return archiveFilesData;
-        }
+			return archiveFilesData;
+		}
 
-        /// <summary>
-        /// Returns the data for the specified file in the specified archive.
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <param name="archiveId"></param>
-        /// <param name="fileId"></param>
-        /// <returns></returns>
-        public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
+		/// <summary>
+		///   Returns the data for the specified file in the specified archive.
+		/// </summary>
+		/// <param name="indexId"></param>
+		/// <param name="archiveId"></param>
+		/// <param name="fileId"></param>
+		/// <returns></returns>
+		public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
 	}
 }

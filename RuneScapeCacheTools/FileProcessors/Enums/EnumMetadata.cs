@@ -75,8 +75,9 @@ namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
 					break;
 
 				default:
-					throw new UnregisteredEnumTypeException($"No parser is defined for enum's metadata type \"{metadata.MetadataType}\".");
-			}		
+					throw new UnregisteredEnumTypeException(
+						$"No parser is defined for enum's metadata type \"{metadata.MetadataType}\".");
+			}
 
 			// All read bytes between start and end must be metadata bytes
 			metadata.MetadataLength = (int) (stream.Position - metadata.FilePosition);

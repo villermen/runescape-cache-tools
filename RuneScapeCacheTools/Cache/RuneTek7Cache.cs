@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
-    /// <summary>
-    /// RuneTek7 (RS3 in NXT & HTML) cache format.
-    /// </summary>
-    [Obsolete("Finishing RuneTek5 first before continuing with this.")]
+	/// <summary>
+	///   RuneTek7 (RS3 in NXT & HTML) cache format.
+	/// </summary>
+	[Obsolete("Finishing RuneTek5 first before continuing with this.")]
 	public class RuneTek7Cache : Cache
 	{
 		private readonly Dictionary<int, SQLiteConnection> _indexConnections = new Dictionary<int, SQLiteConnection>();
@@ -49,31 +49,31 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			return null;
 		}
 
-        public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
-        {
-            throw new NotImplementedException();
-        }
+		public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+		{
+			throw new NotImplementedException();
+		}
 
-     //   public override ReferenceTable GetReferenceTable(int indexId)
-	    //{
-     //       var connection = GetIndexConnection(indexId);
+		//   public override ReferenceTable GetReferenceTable(int indexId)
+		//{
+		//       var connection = GetIndexConnection(indexId);
 
-     //       var command = new SQLiteCommand(
-     //           $"SELECT DATA FROM cache_index"
-     //           , connection);
-     //       var reader = command.ExecuteReader();
+		//       var command = new SQLiteCommand(
+		//           $"SELECT DATA FROM cache_index"
+		//           , connection);
+		//       var reader = command.ExecuteReader();
 
-     //       reader.Read();
+		//       reader.Read();
 
-     //       if (reader["DATA"].GetType() == typeof(byte[]))
-     //       {
-     //           return ReferenceTable.Decode(new MemoryStream((byte[])reader["DATA"]));
-     //       }
+		//       if (reader["DATA"].GetType() == typeof(byte[]))
+		//       {
+		//           return ReferenceTable.Decode(new MemoryStream((byte[])reader["DATA"]));
+		//       }
 
-     //       return null;
-     //   }
+		//       return null;
+		//   }
 
-	    public override IEnumerable<int> GetFileIds(int indexId)
+		public override IEnumerable<int> GetFileIds(int indexId)
 		{
 			var connection = GetIndexConnection(indexId);
 			var command = connection.CreateCommand();
@@ -89,12 +89,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			return fileIds;
 		}
 
-        public override IEnumerable<int> GetArchiveFileIds(int indexId, int archiveId)
-        {
-            throw new NotImplementedException();
-        }
+		public override int GetArchiveFileCount(int indexId, int archiveId)
+		{
+			throw new NotImplementedException();
+		}
 
-        protected string GetIndexFile(int indexId)
+		protected string GetIndexFile(int indexId)
 		{
 			return $"{CacheDirectory}js5-{indexId}.jcache";
 		}

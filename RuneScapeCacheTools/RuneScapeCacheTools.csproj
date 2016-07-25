@@ -72,12 +72,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\Archive.cs" />
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="Cache\Cache.cs" />
     <Compile Include="Cache\RuneTek5\Cache.cs" />
     <Compile Include="Cache\RuneTek5\ChecksumTable.cs" />
     <Compile Include="Cache\RuneTek5\Container.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\EnumFile.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\EnumParseException.cs" />
     <Compile Include="Cache\RuneTek5\FileStore.cs" />
     <Compile Include="Cache\RuneTek5\Index.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
@@ -85,9 +88,9 @@
     <Compile Include="ExtendableDataProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumValueType.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadata.cs" />
-    <Compile Include="FileProcessors\Enums\EnumOpcode.cs" />
-    <Compile Include="FileProcessors\Enums\BaseVarType.cs" />
-    <Compile Include="FileProcessors\Enums\ScriptVarType.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\EnumOpcode.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\BaseVarType.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\ScriptVarType.cs" />
     <Compile Include="FileProcessors\Enums\EnumKeyType.cs" />
     <Compile Include="FileProcessors\Enums\EnumFileProcessor.cs" />
     <Compile Include="FileProcessors\Enums\EnumMetadataType.cs" />

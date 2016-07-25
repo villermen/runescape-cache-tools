@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.FileProcessors.Enums
+﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 {
 	public enum BaseVarType
 	{
