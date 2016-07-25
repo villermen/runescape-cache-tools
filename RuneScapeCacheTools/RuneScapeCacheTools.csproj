@@ -76,6 +76,8 @@
     <Compile Include="Cache\RuneTek5\Archive.cs" />
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="Cache\Cache.cs" />
+    <Compile Include="Cache\RuneTek5\Audio\JagaParseException.cs" />
+    <Compile Include="Cache\RuneTek5\Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Cache\RuneTek5\Cache.cs" />
     <Compile Include="Cache\RuneTek5\ChecksumTable.cs" />
     <Compile Include="Cache\RuneTek5\Container.cs" />
@@ -83,6 +85,7 @@
     <Compile Include="Cache\RuneTek5\Enums\EnumParseException.cs" />
     <Compile Include="Cache\RuneTek5\FileStore.cs" />
     <Compile Include="Cache\RuneTek5\Index.cs" />
+    <Compile Include="Cache\RuneTek5\Audio\JagaFile.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek7Cache.cs" />
     <Compile Include="ExtendableDataProcessor.cs" />
