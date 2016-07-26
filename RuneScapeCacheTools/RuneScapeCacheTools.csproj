@@ -92,6 +92,7 @@
     <Compile Include="Cache\RuneTek5\Enums\BaseVarType.cs" />
     <Compile Include="Cache\RuneTek5\Enums\ScriptVarType.cs" />
     <Compile Include="Cache\IExtensionGuesser.cs" />
+    <Compile Include="Cache\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Cache\BinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />
