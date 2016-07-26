@@ -10,13 +10,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Villermen</author>
 	public class RuneTek5Cache : Cache
 	{
+		public RuneTek5Cache()
+		{
+			CacheDirectory = DefaultCacheDirectory;
+		}
+
 		/// <summary>
 		///   Creates an interface on the cache stored in the given directory.
 		/// </summary>
-		/// <param name="fileStore"></param>
-		public RuneTek5Cache(FileStore fileStore)
+		/// <param name="cacheDirectory"></param>
+		public RuneTek5Cache(string cacheDirectory)
 		{
-			FileStore = fileStore;
+			CacheDirectory = cacheDirectory;
 		}
 
 		private string _cacheDirectory;

@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools
+﻿namespace Villermen.RuneScapeCacheTools.Cache
 {
 	/// <summary>
 	///   Processor for cache-obtained file data.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Villermen.RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools.Cache
 {
 	/// <summary>
 	///   Extendable implementation of IExtensionGuesser.
