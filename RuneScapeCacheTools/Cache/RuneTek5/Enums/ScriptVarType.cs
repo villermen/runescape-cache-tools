@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 {
 	public class ScriptVarType
 	{
-		public static readonly ScriptVarType NotFound = new ScriptVarType(null, null, BaseVarType.None, null);
+		public static readonly ScriptVarType Unlisted = new ScriptVarType(null, null, BaseVarType.None, null);
 
 		public static readonly ScriptVarType Integer = new ScriptVarType(0, 'i', BaseVarType.Integer, 0);
 		public static readonly ScriptVarType Boolean = new ScriptVarType(1, '1', BaseVarType.Integer, 0);
@@ -207,22 +208,29 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 
 		public static ScriptVarType FromValue(int value)
 		{
-			return GetTypes().FirstOrDefault(type => type.IntId == value) ?? Unknown;
+			return GetTypes().FirstOrDefault(type => type.IntId == value) ?? Unlisted;
 		}
 
 		public static ScriptVarType FromValue(char value)
 		{
-			return GetTypes().FirstOrDefault(type => type.CharId == value) ?? Unknown;
+			return GetTypes().FirstOrDefault(type => type.CharId == value) ?? Unlisted;
 		}
 
 		public static IEnumerable<ScriptVarType> GetTypes()
 		{
 			var fieldInfo = typeof(ScriptVarType).GetFields();
 			return fieldInfo
-				.Where(field => field.IsStatic && field.FieldType != typeof(ScriptVarType))
+				.Where(field => field.IsStatic && field.FieldType == typeof(ScriptVarType))
 				.Select(field => (ScriptVarType) field.GetValue(null));
 		}
 
-		// TODO: Add all known
+		public override string ToString()
+		{
+			var fieldInfo = typeof(ScriptVarType).GetFields();
+			return fieldInfo
+				.Where(field => field.IsStatic && field.FieldType == typeof(ScriptVarType) && field.GetValue(null) == this)
+				.Select(field => field.Name)
+				.First();
+		}
 	}
 }
