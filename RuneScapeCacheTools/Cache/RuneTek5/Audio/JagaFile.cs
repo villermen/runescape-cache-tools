@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
@@ -12,14 +13,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			var reader = new BinaryReader(new MemoryStream(data));
 
 			// Verify magic number
-			if (reader.ReadBytes(4) != MagicNumber)
+			if (!reader.ReadBytes(4).SequenceEqual(MagicNumber))
 			{
 				throw new JagaParseException("Magic number incorrect");
 			}
 
 			UnknownInteger1 = reader.ReadInt32BigEndian();
-			SampleFrequency = reader.ReadInt32BigEndian();
 			UnknownInteger2 = reader.ReadInt32BigEndian();
+			SampleFrequency = reader.ReadInt32BigEndian();
 			UnknownInteger3 = reader.ReadInt32BigEndian();
 			ChunkCount = reader.ReadInt32BigEndian();
 
@@ -45,6 +46,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
 		public int UnknownInteger1 { get; }
 
+		/// <summary>
+		/// Something to do with length?
+		/// </summary>
 		public int UnknownInteger2 { get; }
 
 		public int UnknownInteger3 { get; }
