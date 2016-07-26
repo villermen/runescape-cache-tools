@@ -15,7 +15,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		protected Cache()
 		{
 			CacheDirectory = DefaultCacheDirectory;
-			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
 		/// <summary>
@@ -24,19 +23,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public abstract string DefaultCacheDirectory { get; }
 
 		/// <summary>
-		///   The location where the cache is located.
+		///   The directory where the cache is located.
 		/// </summary>
 		public virtual string CacheDirectory { get; set; }
 
 		/// <summary>
-		///   The location where the processed cache will be stored.
+		///   The directory where the extracted cache files will be stored.
 		/// </summary>
 		public string OutputDirectory { get; set; }
-
-		/// <summary>
-		///   Temporary files used while processing will be stored here.
-		/// </summary>
-		public string TemporaryDirectory { get; set; }
 
 		/// <summary>
 		///   Processor used on obtained data.
@@ -87,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 			var extension = ExtensionGuesser.GuessExtension(ref fileData);
 
-			WriteFile(indexId, fileId, fileData, extension);
+			WriteOutputFile(indexId, fileId, fileData, extension);
 		}
 
 		/// <summary>
@@ -136,14 +130,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		}
 
 		/// <summary>
-		///   Write out the given data to the specified file.
+		///   Write out the given data to the specified file in the output directory.
 		///   Deletes a previous version of the file (regardless of extension) if it exists.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <param name="data"></param>
 		/// <param name="extension">File extension, without the dot.</param>
-		protected void WriteFile(int indexId, int fileId, byte[] data, string extension = null)
+		protected void WriteOutputFile(int indexId, int fileId, byte[] data, string extension = null)
 		{
 			// Throw an exception if the output directory is not yet set or does not exist
 			if (string.IsNullOrWhiteSpace(OutputDirectory) || !Directory.Exists(OutputDirectory))

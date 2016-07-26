@@ -87,13 +87,11 @@
     <Compile Include="Cache\RuneTek5\Index.cs" />
     <Compile Include="Cache\RuneTek5\Audio\JagaFile.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
-    <Compile Include="Cache\RuneTek7Cache.cs" />
     <Compile Include="ExtendableExtensionGuesser.cs" />
     <Compile Include="Cache\RuneTek5\Enums\EnumOpcode.cs" />
     <Compile Include="Cache\RuneTek5\Enums\BaseVarType.cs" />
     <Compile Include="Cache\RuneTek5\Enums\ScriptVarType.cs" />
     <Compile Include="IExtensionGuesser.cs" />
-    <Compile Include="Cache\RuneTek5Cache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />

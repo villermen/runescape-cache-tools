@@ -60,6 +60,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			return FileStore.GetFileCount(indexId);
 		}
 
+		public override int GetArchiveFileCount(int indexId, int archiveId)
+		{
+			var archive = GetArchive(indexId, archiveId);
+			return archive.Entries.Length;
+		}
+
+		public override byte[] GetFileData(int indexId, int fileId)
+		{
+			var container = GetFile(indexId, fileId);
+			return container.Data;
+		}
+
+		public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+		{
+			var archive = GetArchive(indexId, archiveId);
+			return archive.Entries[fileId];
+		}
+
 		/// <summary>
 		///   Gets a file id from the cache by name.
 		/// </summary>
@@ -136,7 +154,5 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			return new Archive(container.Data, entry.Capacity);
 		}
-
-
 	}
 }
