@@ -138,7 +138,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 						throw new CacheException("Invalid compression type given.");
 				}
 
-				data = uncompressedBytes;
+				Data = uncompressedBytes;
 			}
 
 			// Obtain the version if present
@@ -147,8 +147,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			{
 				Version = dataReader.ReadInt16BigEndian();
 			}
-
-			Data = data;
 		}
 
 		public CompressionType Type { get; set; }
