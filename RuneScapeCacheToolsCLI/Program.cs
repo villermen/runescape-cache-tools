@@ -1,4 +1,6 @@
-﻿using Villermen.RuneScapeCacheTools.Cache;
+﻿using System;
+using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -21,6 +23,23 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			var archiveFilesData = cache.GetArchiveFiles(17, 5);
 
 			var trackNamesEnum = new EnumFile(archiveFileData);
+
+			var soundtrackFileIds = cache.GetFileIds(40);
+
+			foreach (var soundtrackFileId in soundtrackFileIds)
+			{
+				try
+				{
+					var soundtrackFileData = cache.GetFileData(40, soundtrackFileId);
+					var jagaFile = new JagaFile(soundtrackFileData);
+
+
+				}
+				catch (Exception ex) when (ex is JagaParseException)
+				{
+				}
+
+			}
 
 			// Console.ReadLine();
 		}

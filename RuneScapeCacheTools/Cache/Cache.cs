@@ -18,11 +18,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			TemporaryDirectory = Path.GetTempPath() + "rsct/";
 		}
 
-		protected Cache(IDataProcessor dataProcessor) : this()
-		{
-			DataProcessor = dataProcessor;
-		}
-
 		/// <summary>
 		///   The directory that is the default location for this type of cache.
 		/// </summary>
@@ -46,11 +41,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		///   Processor used on obtained data.
 		/// </summary>
-		public IDataProcessor DataProcessor { get; set; } = new ExtendableDataProcessor();
+		public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
 
-		public abstract IEnumerable<int> GetIndexIds();
+		public abstract int IndexCount { get; }
 
-		public abstract IEnumerable<int> GetFileIds(int indexId);
+		public abstract int GetFileCount(int indexId);
 
 		public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
@@ -60,8 +55,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public async Task ExtractAllAsync()
 		{
-			var indexIds = GetIndexIds();
-
+			var indexIds = Enumerable.Range(0, IndexCount);
 			await Task.Run(() => { Parallel.ForEach(indexIds, indexId => { ExtractIndexAsync(indexId).Wait(); }); });
 		}
 
@@ -72,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public async Task ExtractIndexAsync(int indexId)
 		{
-			var fileIds = GetFileIds(indexId);
+			var fileIds = Enumerable.Range(0, GetFileCount(indexId));
 			await Task.Run(() => { Parallel.ForEach(fileIds, fileId => { ExtractFile(indexId, fileId); }); });
 		}
 
@@ -91,8 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 				return;
 			}
 
-			DataProcessor.Process(ref fileData);
-			var extension = DataProcessor.GuessExtension(ref fileData);
+			var extension = ExtensionGuesser.GuessExtension(ref fileData);
 
 			WriteFile(indexId, fileId, fileData, extension);
 		}

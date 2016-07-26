@@ -5,6 +5,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 {
 	public class ScriptVarType
 	{
+		public static readonly ScriptVarType Unknown = new ScriptVarType(null, null, BaseVarType.None, null);
 		public readonly BaseVarType BaseType;
 		public readonly char? CharId;
 		public readonly object DefaultValue;
@@ -36,8 +37,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 				.Where(field => field.IsStatic && field.FieldType != typeof(ScriptVarType))
 				.Select(field => (ScriptVarType) field.GetValue(null));
 		}
-
-		public static readonly ScriptVarType Unknown = new ScriptVarType(null, null, BaseVarType.None, null);
 
 		// TODO: Add all known
 	}

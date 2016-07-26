@@ -5,35 +5,23 @@ using System.Linq;
 namespace Villermen.RuneScapeCacheTools
 {
 	/// <summary>
-	///   Extendable implementation of IFileProcessor.
+	///   Extendable implementation of IExtensionGuesser.
 	///   Allows dynamic addition and removal of actions.
 	/// </summary>
-	public class ExtendableDataProcessor : IDataProcessor
+	public class ExtendableExtensionGuesser : IExtensionGuesser
 	{
-		public delegate void DecompressAction(ref byte[] fileData);
-
 		public delegate string GuessExtensionAction(ref byte[] fileData);
 
-		protected IList<DecompressAction> DecompressActions = new List<DecompressAction>();
+		protected IList<GuessExtensionAction> Actions = new List<GuessExtensionAction>();
 
-		protected IList<GuessExtensionAction> GuessExtensionActions = new List<GuessExtensionAction>();
-
-		public ExtendableDataProcessor()
+		public ExtendableExtensionGuesser()
 		{
-			GuessExtensionActions.Add(GuessExtensionsAction);
-		}
-
-		public void Process(ref byte[] fileData)
-		{
-			foreach (var decompressAction in DecompressActions)
-			{
-				decompressAction(ref fileData);
-			}
+			Actions.Add(GuessExtensionsAction);
 		}
 
 		public string GuessExtension(ref byte[] fileData)
 		{
-			foreach (var guessExtensionAction in GuessExtensionActions)
+			foreach (var guessExtensionAction in Actions)
 			{
 				var extension = guessExtensionAction(ref fileData);
 

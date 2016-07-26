@@ -2,16 +2,10 @@
 {
 	/// <summary>
 	///   Processor for cache-obtained file data.
-	///   Able to transform data, or guess its extension based on its contents.
+	///   Able to guess an extension based on the supplied data.
 	/// </summary>
-	public interface IDataProcessor
+	public interface IExtensionGuesser
 	{
-		/// <summary>
-		///   Processes the given file data, transforming it.
-		/// </summary>
-		/// <param name="fileData"></param>
-		void Process(ref byte[] fileData);
-
 		/// <summary>
 		///   Tries to supply an extension based on the given file data.
 		/// </summary>

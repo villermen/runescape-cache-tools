@@ -3,28 +3,42 @@
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
 	/// <summary>
-	///   The <see cref="Cache" /> class provides a unified, high-level API for modifying the cache of a Jagex game.
+	///   The <see cref="RuneTek5Cache" /> class provides a unified, high-level API for modifying the cache of a Jagex game.
 	/// </summary>
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	/// <author>Villermen</author>
-	public class Cache
+	public class RuneTek5Cache : Cache
 	{
 		/// <summary>
-		///   Creates a new <see cref="Cache" /> backed by the given <see cref="RuneTek5.FileStore" />.
+		///   Creates an interface on the cache stored in the given directory.
 		/// </summary>
 		/// <param name="fileStore"></param>
-		public Cache(FileStore fileStore)
+		public RuneTek5Cache(FileStore fileStore)
 		{
 			FileStore = fileStore;
+		}
+
+		private string _cacheDirectory;
+		public override string CacheDirectory
+		{
+			get { return _cacheDirectory; }
+			set
+			{
+				_cacheDirectory = value;
+				FileStore = new FileStore(_cacheDirectory);
+			}
 		}
 
 		/// <summary>
 		///   The <see cref="RuneTek5.FileStore" /> that backs this cache.
 		/// </summary>
-		public FileStore FileStore { get; }
+		public FileStore FileStore { get; set; }
 
-		public int IndexCount => FileStore.IndexCount;
+		public override int IndexCount => FileStore.IndexCount;
+
+		public override string DefaultCacheDirectory
+			=> Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
 		/// <summary>
 		///   Computes the <see cref="ChecksumTable" /> for this cache.
@@ -41,7 +55,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <returns></returns>
-		public int GetFileCount(int indexId)
+		public override int GetFileCount(int indexId)
 		{
 			return FileStore.GetFileCount(indexId);
 		}
@@ -100,7 +114,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			}
 
 			// Delegate the call to the file store and then decode the container
-			return new Container(FileStore.GetFileData(indexId, fileId));
+			 return new Container(FileStore.GetFileData(indexId, fileId));
 		}
 
 		/// <summary>
@@ -122,5 +136,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			return new Archive(container.Data, entry.Capacity);
 		}
+
+
 	}
 }
