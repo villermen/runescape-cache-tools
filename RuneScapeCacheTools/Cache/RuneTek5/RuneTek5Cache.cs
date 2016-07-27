@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	/// <author>Villermen</author>
-	public class RuneTek5Cache : Cache
+	public class RuneTek5Cache : CacheBase
 	{
 		public RuneTek5Cache()
 		{

@@ -10,9 +10,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	///   Base class for current cache systems.
 	///   Cache should include indexes and archives in order to use this.
 	/// </summary>
-	public abstract class Cache
+	public abstract class CacheBase
 	{
-		protected Cache()
+		protected CacheBase()
 		{
 			CacheDirectory = DefaultCacheDirectory;
 		}

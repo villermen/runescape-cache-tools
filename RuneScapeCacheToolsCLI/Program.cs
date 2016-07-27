@@ -13,15 +13,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void Main(string[] args)
 		{
-			// Directory.CreateDirectory(OutputDirectory);
+			CacheBase cache = new RuneTek5Cache(CacheDirectory);
 
-			var cache = new RuneTek5Cache(CacheDirectory);
+			// var trackFileIds = new EnumFile();
+			
+			var trackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 65));
+			//var sortingTrackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 67));
+			var jagaFileIds = new EnumFile(cache.GetArchiveFileData(17, 5, 71));
 
-			var trackNamesEnum = new EnumFile(cache.GetArchiveFileData(17, 5, 65));
-
-			var soundtrackFileIds = Enumerable.Range(0, cache.GetFileCount(40));
-
-			foreach (var soundtrackFileId in soundtrackFileIds)
+			foreach (var soundtrackFileId in jagaFileIds) // Add indexing and enumerating to EnumFile
 			{
 				try
 				{
