@@ -17,8 +17,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>`Discardedx2</author>
 	public class Container
 	{
-		// TODO: Describe what the key is used for
-
 		public enum CompressionType
 		{
 			None = 0,
@@ -26,8 +24,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			Gzip = 2,
 			LZMA = 3
 		}
-
-		private static readonly uint[] NullKey = new uint[4];
 
 		/// <summary>
 		///   Creates a new unversioned container.
@@ -51,18 +47,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		}
 
 		/// <summary>
-		///   Decodes and decompressed the container.
+		///   Decompresses the container without decrypting it using a key.
 		/// </summary>
 		/// <param name="data"></param>
-		public Container(byte[] data) : this(data, NullKey)
+		public Container(byte[] data) : this(data, null)
 		{
 		}
 
 		/// <summary>
-		///   Decodes and decompresses the container.
+		///   Decrypts and decompresses the container.
 		/// </summary>
 		/// <param name="data"></param>
-		/// <param name="key"></param>
+		/// <param name="key">The XTEA key used for decrypting the data.</param>
 		public Container(byte[] data, uint[] key)
 		{
 			var dataReader = new BinaryReader(new MemoryStream(data));
@@ -70,8 +66,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			Type = (CompressionType) dataReader.ReadByte();
 			var length = dataReader.ReadInt32BigEndian();
 
-			// Decrypt the data
-			if (key.Sum(value => value) != 0)
+			// Decrypt the data if a key is given
+			if (key != null)
 			{
 				var byteKeyStream = new MemoryStream(16);
 				var byteKeyWriter = new BinaryWriter(byteKeyStream);
@@ -85,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 				var decrypted = new byte[length + (Type == CompressionType.None ? 5 : 9)];
 				xtea.ProcessBlock(data, 5, decrypted, 0);
 
-				data = decrypted;
+				dataReader = new BinaryReader(new MemoryStream(decrypted));
 			}
 
 			// Check if we should decompress the data or not
@@ -130,7 +126,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 						break;
 
 					case CompressionType.LZMA:
-						// TODO: Needs other library
+						// TODO: Implement LZMA
 						throw new NotImplementedException();
 						break;
 
