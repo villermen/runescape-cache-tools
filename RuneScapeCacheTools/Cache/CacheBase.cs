@@ -33,6 +33,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public string OutputDirectory { get; set; }
 
 		/// <summary>
+		///   Temporary files used while processing will be stored here.
+		/// </summary>
+		public string TemporaryDirectory { get; set; } = Path.GetTempPath() + "rsct/";
+
+		/// <summary>
 		///   Processor used on obtained data.
 		/// </summary>
 		public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
