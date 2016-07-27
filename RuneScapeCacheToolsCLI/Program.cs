@@ -21,6 +21,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			//var sortingTrackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 67));
 			var jagaFileIds = new EnumFile(cache.GetArchiveFileData(17, 5, 71));
 
+			var d = jagaFileIds[5];
+
 			foreach (var soundtrackFileId in jagaFileIds) // Add indexing and enumerating to EnumFile
 			{
 				try

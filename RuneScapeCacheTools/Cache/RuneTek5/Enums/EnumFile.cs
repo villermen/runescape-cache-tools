@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Windows.Markup;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 {
-	public class EnumFile
+	public class EnumFile : IEnumerable<KeyValuePair<int, object>>
 	{
+		public object this[int key] => Values[key];
+
 		public EnumFile(byte[] data)
 		{
 			var dataReader = new BinaryReader(new MemoryStream(data));
@@ -113,5 +117,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 		public Dictionary<int, object> Values { get; }
 		public string DefaultString { get; } = "null";
 		public int DefaultInteger { get; }
+
+		public IEnumerator<KeyValuePair<int, object>> GetEnumerator()
+		{
+			return Values.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 	}
 }
