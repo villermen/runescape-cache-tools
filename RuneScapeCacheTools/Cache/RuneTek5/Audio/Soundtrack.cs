@@ -1,23 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 {
+	/// <summary>
+	///   Contains tools for obtaining and combining soundtracks from the cache.
+	/// </summary>
 	public class Soundtrack
 	{
-		public CacheBase Cache { get; set; }
-
 		public Soundtrack(CacheBase cache)
 		{
 			Cache = cache;
 		}
 
+		public CacheBase Cache { get; set; }
+
 		/// <summary>
-		/// Returns the track names and their corresponding jaga file id in index 40.
-		/// Track names are made filename-safe, and empty ones are filtered out.
+		///   Returns the track names and their corresponding jaga file id in index 40.
+		///   Track names are made filename-safe, and empty ones are filtered out.
 		/// </summary>
 		/// <returns></returns>
 		public IDictionary<int, string> GetTrackNames()

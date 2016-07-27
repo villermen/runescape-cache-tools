@@ -296,17 +296,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			public int Index { get; set; }
 		}
 
-//            /* 
-//                * we can't (easily) predict the size ahead of time, so we write to a
-//                * stream and then to the reader
-//                */
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//        DataOutputStream os = new DataOutputStream(bout);
-//	try {
+//        {
 
 //		/* write the header */
+//	try {
+//        DataOutputStream os = new DataOutputStream(bout);
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//                */
+//                * stream and then to the reader
+//                * we can't (easily) predict the size ahead of time, so we write to a
 
-//        {
+//            /* 
 //        public ByteBuffer encode() throws IOException
 
 		/**

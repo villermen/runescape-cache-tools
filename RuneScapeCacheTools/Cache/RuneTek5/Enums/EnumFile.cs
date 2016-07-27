@@ -1,14 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Markup;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 {
 	public class EnumFile : IEnumerable<KeyValuePair<int, object>>
 	{
-		public object this[int key] => Values[key];
-
 		public EnumFile(byte[] data)
 		{
 			var dataReader = new BinaryReader(new MemoryStream(data));
@@ -111,6 +108,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 				throw new EnumParseException("Enum does not contain any values.");
 			}
 		}
+
+		public object this[int key] => Values[key];
 
 		public ScriptVarType KeyType { get; }
 		public ScriptVarType ValueType { get; }

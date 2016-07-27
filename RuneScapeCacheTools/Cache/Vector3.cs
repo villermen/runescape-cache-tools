@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Villermen.RuneScapeCacheTools.Cache
+﻿namespace Villermen.RuneScapeCacheTools.Cache
 {
 	public class Vector3
 	{
-		public int Level { get; }
-		public int Y { get; }
-		public int X { get; }
-		public int Z { get; }
-
 		private static int UnknownInteger;
 
 		private static Vector3[] UnknownVector3Array = new Vector3[0];
@@ -59,7 +48,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			Z = z;
 		}
 
-		// TODO: implement other methods
+		public int Level { get; }
+		public int Y { get; }
+		public int X { get; }
+		public int Z { get; }
 
+		// TODO: implement other methods
 	}
 }

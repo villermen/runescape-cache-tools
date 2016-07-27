@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;

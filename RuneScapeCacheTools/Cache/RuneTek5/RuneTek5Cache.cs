@@ -10,6 +10,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Villermen</author>
 	public class RuneTek5Cache : CacheBase
 	{
+		private string _cacheDirectory;
+
 		public RuneTek5Cache()
 		{
 			CacheDirectory = DefaultCacheDirectory;
@@ -24,7 +26,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			CacheDirectory = cacheDirectory;
 		}
 
-		private string _cacheDirectory;
 		public override string CacheDirectory
 		{
 			get { return _cacheDirectory; }
@@ -137,7 +138,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			}
 
 			// Delegate the call to the file store and then decode the container
-			 return new Container(FileStore.GetFileData(indexId, fileId));
+			return new Container(FileStore.GetFileData(indexId, fileId));
 		}
 
 		/// <summary>
