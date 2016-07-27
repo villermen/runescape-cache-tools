@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -36,6 +37,22 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					{
 						File.WriteAllBytes($"{chunkIndex}.ogg", cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
 					}
+
+					var combineProcess = new Process
+					{
+						StartInfo =
+						{
+							FileName = "lib/oggCat",
+							UseShellExecute = false,
+							CreateNoWindow = true
+						}
+					};
+
+					combineProcess.StartInfo.Arguments = "output.ogg 0.ogg" + string.Join("", Enumerable.Range(1, jagaFile.ChunkCount - 1).Select(oggId => $" {oggId}.ogg"));
+
+					combineProcess.Start();
+					combineProcess.WaitForExit();
+
 				}
 				catch (Exception ex) when (ex is JagaParseException)
 				{
