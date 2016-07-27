@@ -18,6 +18,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			CacheBase cache = new RuneTek5Cache(CacheDirectory);
 
+			var soundtrack = new Soundtrack(cache);
+			var trackNames2 = soundtrack.GetTrackNames();
+
 			// var trackFileIds = new EnumFile();
 			
 			var trackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 65));
@@ -38,6 +41,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 						File.WriteAllBytes($"{chunkIndex}.ogg", cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
 					}
 
+					var name = (string) trackNames[soundtrackFileIdPair.Key];
+
 					var combineProcess = new Process
 					{
 						StartInfo =
@@ -48,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 						}
 					};
 
-					combineProcess.StartInfo.Arguments = "output.ogg 0.ogg" + string.Join("", Enumerable.Range(1, jagaFile.ChunkCount - 1).Select(oggId => $" {oggId}.ogg"));
+					combineProcess.StartInfo.Arguments = "output.ogg" + string.Join("", Enumerable.Range(0, jagaFile.ChunkCount - 1).Select(oggId => $" {oggId}.ogg"));
 
 					combineProcess.Start();
 					combineProcess.WaitForExit();

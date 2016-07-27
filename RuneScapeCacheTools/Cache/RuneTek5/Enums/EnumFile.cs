@@ -127,5 +127,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
 		{
 			return GetEnumerator();
 		}
+
+		public bool ContainsKey(int key)
+		{
+			return Values.ContainsKey(key);
+		}
 	}
 }

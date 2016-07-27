@@ -78,6 +78,7 @@
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Cache\RuneTek5\Audio\JagaParseException.cs" />
     <Compile Include="Cache\RuneTek5\Audio\AudioChunkDescriptor.cs" />
+    <Compile Include="Cache\RuneTek5\Audio\Soundtrack.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
     <Compile Include="Cache\RuneTek5\ChecksumTable.cs" />
     <Compile Include="Cache\RuneTek5\Container.cs" />
