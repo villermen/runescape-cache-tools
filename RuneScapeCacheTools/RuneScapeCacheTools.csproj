@@ -75,7 +75,7 @@
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\Archive.cs" />
     <Compile Include="Cache\CacheException.cs" />
-    <Compile Include="Cache\Cache.cs" />
+    <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Cache\RuneTek5\Audio\JagaParseException.cs" />
     <Compile Include="Cache\RuneTek5\Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
