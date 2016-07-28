@@ -13,13 +13,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
 	internal class Program
 	{
 		private const string CacheDirectory = "C:/Data/Temp/rscd/data/";
+		private const string OutputDirectory = "C:/Data/Temp/rscachedev/";
 
 		private static void Main(string[] args)
 		{
-			CacheBase cache = new RuneTek5Cache(CacheDirectory);
+			CacheBase cache = new RuneTek5Cache(CacheDirectory)
+			{
+				OutputDirectory = OutputDirectory
+			};
 
 			var soundtrack = new Soundtrack(cache);
-			var trackNames2 = soundtrack.GetTrackNames();
+			soundtrack.ExportTracks().Wait();
 
 			// var trackFileIds = new EnumFile();
 			

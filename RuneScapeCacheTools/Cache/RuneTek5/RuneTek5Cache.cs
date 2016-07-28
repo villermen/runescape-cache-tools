@@ -14,7 +14,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 		public RuneTek5Cache()
 		{
-			CacheDirectory = DefaultCacheDirectory;
 		}
 
 		/// <summary>
