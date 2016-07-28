@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -88,11 +89,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			{
 				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
-				File.WriteAllBytes(Cache.TemporaryDirectory + "0.ogg", jagaFile.ContainedChunkData);
+				var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
+
+				File.WriteAllBytes(Cache.TemporaryDirectory + randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
 
 				for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
 				{
-					File.WriteAllBytes($"{Cache.TemporaryDirectory}{chunkIndex}.ogg", Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
+					File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
 				}
 
 				var combineProcess = new Process
@@ -105,11 +108,34 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 						}
 				};
 
-				combineProcess.StartInfo.Arguments = $"{outputDirectory}{trackNamePair.Value}.ogg " + string.Join(" ", Enumerable.Range(0, jagaFile.ChunkCount - 1).Select(oggId => $"{oggId}.ogg"));
+				combineProcess.StartInfo.Arguments = $"{outputDirectory}{trackNamePair.Value}.ogg " + string.Join(" ", randomTemporaryFilenames);
 
 				combineProcess.Start();
 				combineProcess.WaitForExit();
 			}
+		}
+
+		private string[] GetRandomTemporaryFilenames(int amountOfNames)
+		{
+			const string validChars = "abcdefghijklmnopqrstuvwxyz-_()&^%$#@!";
+			const int nameLength = 16;
+			var result = new string[amountOfNames];
+			var random = new Random();
+
+			for (var i = 0; i < amountOfNames; i++)
+			{
+				string newPath;
+				do
+				{
+					newPath = new string(Enumerable.Repeat(validChars, nameLength).Select(s => s[random.Next(s.Length)]).ToArray());
+					newPath = Cache.TemporaryDirectory + newPath + ".ogg";
+				}
+				while (File.Exists(newPath) || result.Contains(newPath));
+
+				result[i] = newPath;
+			}
+
+			return result;
 		}
 	}
 }
