@@ -22,53 +22,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				OutputDirectory = OutputDirectory
 			};
 
+			var data = cache.GetFileData(40, 39989);
+
 			var soundtrack = new Soundtrack(cache);
-			soundtrack.ExportTracks().Wait();
-
-			// var trackFileIds = new EnumFile();
-			
-			var trackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 65));
-			//var sortingTrackNames = new EnumFile(cache.GetArchiveFileData(17, 5, 67));
-			var jagaFileIds = new EnumFile(cache.GetArchiveFileData(17, 5, 71));
-
-			foreach (var soundtrackFileIdPair in jagaFileIds)
-			{
-				try
-				{
-					var soundtrackFileData = cache.GetFileData(40, (int) soundtrackFileIdPair.Value);
-					var jagaFile = new JagaFile(soundtrackFileData);
-
-					File.WriteAllBytes("0.ogg", jagaFile.ContainedChunkData);
-
-					for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
-					{
-						File.WriteAllBytes($"{chunkIndex}.ogg", cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
-					}
-
-					var name = (string) trackNames[soundtrackFileIdPair.Key];
-
-					var combineProcess = new Process
-					{
-						StartInfo =
-						{
-							FileName = "lib/oggCat",
-							UseShellExecute = false,
-							CreateNoWindow = true
-						}
-					};
-
-					combineProcess.StartInfo.Arguments = "output.ogg" + string.Join("", Enumerable.Range(0, jagaFile.ChunkCount - 1).Select(oggId => $" {oggId}.ogg"));
-
-					combineProcess.Start();
-					combineProcess.WaitForExit();
-
-				}
-				catch (Exception ex) when (ex is JagaParseException)
-				{
-				}
-			}
-
-			// Console.ReadLine();
+			soundtrack.ExportTracksAsync().Wait();
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
@@ -68,7 +69,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			return result;
 		}
 
-		public async Task ExportTracks(bool overwriteExisting = false)
+		public async Task ExportTracksAsync(bool overwriteExisting = false)
 		{
 			var trackNames = GetTrackNames();
 			var outputDirectory = Cache.OutputDirectory + "soundtrack/";
@@ -89,35 +90,48 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			{
 				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
+				// Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
 				var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
 
-				File.WriteAllBytes(Cache.TemporaryDirectory + randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
+				// Write out the files
+				File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
 
 				for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
 				{
 					File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
 				}
 
+				// Combine the files using oggCat
 				var combineProcess = new Process
 				{
 					StartInfo =
 						{
 							FileName = "lib/oggCat",
 							UseShellExecute = false,
-							CreateNoWindow = true
+							CreateNoWindow = true,
+							Arguments = $"\"{outputDirectory}{trackNamePair.Value}.ogg\" " + string.Join(" ", randomTemporaryFilenames)
 						}
 				};
 
-				combineProcess.StartInfo.Arguments = $"{outputDirectory}{trackNamePair.Value}.ogg " + string.Join(" ", randomTemporaryFilenames);
-
 				combineProcess.Start();
 				combineProcess.WaitForExit();
+
+				// Remove temporary files
+				foreach (var randomTemporaryFilename in randomTemporaryFilenames)
+				{
+					File.Delete(randomTemporaryFilename);
+				}
+
+				if (combineProcess.ExitCode != 0)
+				{
+					throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode}.");
+				}
 			}
 		}
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)
 		{
-			const string validChars = "abcdefghijklmnopqrstuvwxyz-_()&^%$#@!";
+			const string validChars = "abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{}',`~=+";
 			const int nameLength = 16;
 			var result = new string[amountOfNames];
 			var random = new Random();
