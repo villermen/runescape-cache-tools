@@ -111,13 +111,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			var remaining = index.Size;
 			var dataReader = new BinaryReader(DataStream);
 			var dataPosition = (long) index.Sector * Sector.Length;
+			var extended = fileId > 65535;
 
 			IEnumerable<byte> data = new byte[0];
 			do
 			{
 				dataReader.BaseStream.Position = dataPosition;
-
-				var extended = fileId > 65535;
 
 				var sector = new Sector(dataReader.ReadBytes(Sector.Length), extended);
 
@@ -136,6 +135,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 					throw new CacheException("Sector index mismatch.");
 				}
 
+
 				data = data.Concat(sector.Data);
 				remaining -= extended ? Sector.ExtendedDataLength : Sector.DataLength;
 
@@ -144,7 +144,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			}
 			while (remaining > 0);
 
-			return data.ToArray();
+			return data.Take(index.Size).ToArray();
 		}
 
 		public void WriteFile(int indexId, int fileId, byte[] data)

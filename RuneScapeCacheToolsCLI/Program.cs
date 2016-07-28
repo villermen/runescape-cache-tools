@@ -22,8 +22,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				OutputDirectory = OutputDirectory
 			};
 
-			var data = cache.GetFileData(40, 39989);
-
 			var soundtrack = new Soundtrack(cache);
 			soundtrack.ExportTracksAsync().Wait();
 		}
