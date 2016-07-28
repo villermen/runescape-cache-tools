@@ -106,7 +106,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			}
 
 			writer.WriteUInt16BigEndian((ushort) ChunkId);
-			writer.WriteUInt24BigEndian((uint) NextSectorId);
+			writer.WriteUInt24BigEndian(NextSectorId);
 			writer.Write((byte) IndexId);
 			writer.Write(Data);
 

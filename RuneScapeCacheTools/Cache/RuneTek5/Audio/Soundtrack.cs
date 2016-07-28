@@ -88,43 +88,52 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			// TODO: Parallel.ForEach
 			foreach (var trackNamePair in trackNames)
 			{
-				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
-
-				// Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
-				var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
-
-				// Write out the files
-				File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
-
-				for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+				try
 				{
-					File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
-				}
+					var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
-				// Combine the files using oggCat
-				var combineProcess = new Process
-				{
-					StartInfo =
+					// Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
+					var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
+
+					// Write out the files
+					File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
+
+					for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+					{
+						File.WriteAllBytes(randomTemporaryFilenames[chunkIndex],
+							Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
+					}
+
+					// Combine the files using oggCat
+					var combineProcess = new Process
+					{
+						StartInfo =
 						{
 							FileName = "lib/oggCat",
 							UseShellExecute = false,
 							CreateNoWindow = true,
 							Arguments = $"\"{outputDirectory}{trackNamePair.Value}.ogg\" " + string.Join(" ", randomTemporaryFilenames)
 						}
-				};
+					};
 
-				combineProcess.Start();
-				combineProcess.WaitForExit();
+					combineProcess.Start();
+					combineProcess.WaitForExit();
 
-				// Remove temporary files
-				foreach (var randomTemporaryFilename in randomTemporaryFilenames)
-				{
-					File.Delete(randomTemporaryFilename);
+					// Remove temporary files
+					foreach (var randomTemporaryFilename in randomTemporaryFilenames)
+					{
+						File.Delete(randomTemporaryFilename);
+					}
+
+					if (combineProcess.ExitCode != 0)
+					{
+						throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode}.");
+					}
 				}
-
-				if (combineProcess.ExitCode != 0)
+				catch (CacheException)
 				{
-					throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode}.");
+					// TODO: Convert to some other logging mechanism
+					Console.WriteLine($"Skipping {trackNamePair.Value} because of malformed data.");
 				}
 			}
 		}
