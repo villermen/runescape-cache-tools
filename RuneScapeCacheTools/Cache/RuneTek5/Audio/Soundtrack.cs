@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -87,31 +88,27 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			{
 				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
-				// TODO: Implement
+				File.WriteAllBytes(Cache.TemporaryDirectory + "0.ogg", jagaFile.ContainedChunkData);
 
-				//File.WriteAllBytes(Cache.TemporaryDirectory + "0.ogg", jagaFile.ContainedChunkData);
+				for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+				{
+					File.WriteAllBytes($"{Cache.TemporaryDirectory}{chunkIndex}.ogg", Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
+				}
 
-				//for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
-				//{
-				//	File.WriteAllBytes($"{Cache.TemporaryDirectory}{chunkIndex}.ogg", cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
-				//}
+				var combineProcess = new Process
+				{
+					StartInfo =
+						{
+							FileName = "lib/oggCat",
+							UseShellExecute = false,
+							CreateNoWindow = true
+						}
+				};
 
-				//var name = (string)trackNames[soundtrackFileIdPair.Key];
+				combineProcess.StartInfo.Arguments = $"{outputDirectory}{trackNamePair.Value}.ogg " + string.Join(" ", Enumerable.Range(0, jagaFile.ChunkCount - 1).Select(oggId => $"{oggId}.ogg"));
 
-				//var combineProcess = new Process
-				//{
-				//	StartInfo =
-				//		{
-				//			FileName = "lib/oggCat",
-				//			UseShellExecute = false,
-				//			CreateNoWindow = true
-				//		}
-				//};
-
-				//combineProcess.StartInfo.Arguments = "output.ogg" + string.Join("", Enumerable.Range(0, jagaFile.ChunkCount - 1).Select(oggId => $" {oggId}.ogg"));
-
-				//combineProcess.Start();
-				//combineProcess.WaitForExit();
+				combineProcess.Start();
+				combineProcess.WaitForExit();
 			}
 		}
 	}
