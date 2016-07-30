@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 		/// <summary>
 		/// Used in the generation of temporary filenames.
 		/// </summary>
-		private Random _random = new Random();
+		private readonly Random _random = new Random();
 
 		public Soundtrack(CacheBase cache)
 		{
@@ -34,10 +34,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 		/// <returns></returns>
 		public IDictionary<int, string> GetTrackNames()
 		{
+            // Read out the two enums that, when combined, make up the awesome lookup table
 			var trackNames = new EnumFile(Cache.GetArchiveFileData(17, 5, 65));
 			var jagaFileIds = new EnumFile(Cache.GetArchiveFileData(17, 5, 71));
 
-			var result = new Dictionary<int, string>();
+            // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
+			var result = new SortedDictionary<int, string>();
 			foreach (var trackNamePair in trackNames)
 			{
 				var trackName = (string) trackNamePair.Value;
@@ -71,7 +73,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 				}
 			}
 
-			return result;
+            // Rename duplicate names, as those are a thing apparently...
+            var duplicateNameGroups = result
+                .GroupBy(pair => pair.Value)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Skip(1)); // Select only the second and up, because the first one doesn't have to be renamed
+
+		    foreach (var duplicateNameGroup in duplicateNameGroups)
+		    {
+		        var duplicateId = 2;
+		        foreach (var duplicateNamePair in duplicateNameGroup)
+		        {
+		            result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
+		        }
+		    }
+
+            return result;
 		}
 
 		public async Task ExportTracksAsync(bool overwriteExisting = false)

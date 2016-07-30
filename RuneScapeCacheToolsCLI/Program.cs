@@ -23,7 +23,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			};
 
 			var soundtrack = new Soundtrack(cache);
-			soundtrack.ExportTracksAsync().Wait();
+
+		    var trackNames = soundtrack.GetTrackNames();
+
+		    soundtrack.ExportTracksAsync().Wait();
 		}
 	}
 }
