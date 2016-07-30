@@ -90,7 +90,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 				trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value)).ToDictionary(pair => pair.Key, pair => pair.Value);
 			}
 
-			Parallel.ForEach(trackNames, trackNamePair =>
+            await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
 			{
 				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
@@ -131,7 +131,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 				{
 					throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode}.");
 				}
-			});
+			}));
 		}
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)
