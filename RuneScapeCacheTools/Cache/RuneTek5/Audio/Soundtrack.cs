@@ -114,7 +114,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 						FileName = "oggCat",
 						UseShellExecute = false,
 						CreateNoWindow = true,
-						Arguments = $"\"{outputDirectory}{trackNamePair.Value}.ogg\" " + string.Join(" ", randomTemporaryFilenames)
+						Arguments = $"\"{outputDirectory}{trackNamePair.Value}.ogg\" \"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
 					}
 				};
 
@@ -136,7 +136,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)
 		{
-			const string validChars = "abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{}',`~=+";
+			const string validChars = "abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{},`~=+";
 			const int nameLength = 16;
 			var result = new string[amountOfNames];
 
