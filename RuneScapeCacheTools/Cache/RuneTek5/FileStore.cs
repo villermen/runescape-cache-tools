@@ -14,7 +14,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Villermen</author>
 	public class FileStore
 	{
+		/// <summary>
+		/// Index that contains metadata about the other indexes.
+		/// </summary>
 		public const int MetadataIndexId = 255;
+
+		/// <summary>
+		/// Lock that is used when reading data from the streams.
+		/// </summary>
+		private readonly object _streamReadLock = new object();
 
 		/// <summary>
 		///   Opens the file store in the specified directory.
@@ -101,50 +109,56 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 				throw new FileNotFoundException("Given file does not exist.");
 			}
 
-			indexReader.BaseStream.Position = indexPosition;
-
-			var indexBytes = indexReader.ReadBytes(Index.Length);
-
-			var index = new Index(indexBytes);
-
-			var chunkId = 0;
-			var remaining = index.Size;
-			var dataReader = new BinaryReader(DataStream);
-			var dataPosition = (long) index.Sector * Sector.Length;
-			var extended = fileId > 65535;
-
-			IEnumerable<byte> data = new byte[0];
-			do
+			// Lock reading from stream, to allow multiple threads from calling this method at the same time
+			lock (_streamReadLock)
 			{
-				dataReader.BaseStream.Position = dataPosition;
+				indexReader.BaseStream.Position = indexPosition;
 
-				var sector = new Sector(dataReader.ReadBytes(Sector.Length), extended);
+				var indexBytes = indexReader.ReadBytes(Index.Length);
 
-				if (sector.IndexId != indexId)
+				var index = new Index(indexBytes);
+
+				var chunkId = 0;
+				var remaining = index.Size;
+				var dataReader = new BinaryReader(DataStream);
+				var dataPosition = (long) index.Sector * Sector.Length;
+				var extended = fileId > 65535;
+
+				var dataStream = new MemoryStream(index.Size);
+				do
 				{
-					throw new CacheException("Sector index id mismatch.");
+					dataReader.BaseStream.Position = dataPosition;
+
+					var sector = new Sector(dataReader.ReadBytes(Sector.Length), extended);
+
+					// Verify the obtained sector is actually what we are looking for
+					if (sector.IndexId != indexId)
+					{
+						throw new CacheException("Sector index id mismatch.");
+					}
+
+					if (sector.FileId != fileId)
+					{
+						throw new CacheException("Sector file id mismatch.");
+					}
+
+					if (sector.ChunkId != chunkId)
+					{
+						throw new CacheException("Sector index mismatch.");
+					}
+
+					var bytesRead = Math.Min(extended ? Sector.ExtendedDataLength : Sector.DataLength, remaining);
+
+					dataStream.Write(sector.Data, 0, bytesRead);
+					remaining -= bytesRead;
+
+					dataPosition = (long) sector.NextSectorId * Sector.Length;
+					chunkId++;
 				}
+				while (remaining > 0);
 
-				if (sector.FileId != fileId)
-				{
-					throw new CacheException("Sector file id mismatch.");
-				}
-
-				if (sector.ChunkId != chunkId)
-				{
-					throw new CacheException("Sector index mismatch.");
-				}
-
-
-				data = data.Concat(sector.Data);
-				remaining -= extended ? Sector.ExtendedDataLength : Sector.DataLength;
-
-				dataPosition = (long) sector.NextSectorId * Sector.Length;
-				chunkId++;
+				return dataStream.ToArray();
 			}
-			while (remaining > 0);
-
-			return data.Take(index.Size).ToArray();
 		}
 
 		public void WriteFile(int indexId, int fileId, byte[] data)

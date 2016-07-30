@@ -19,8 +19,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		public Index(byte[] data)
 		{
 			var reader = new BinaryReader(new MemoryStream(data));
-			Size = (int) reader.ReadUInt24BigEndian();
-			Sector = (int) reader.ReadUInt24BigEndian();
+			Size = reader.ReadUInt24BigEndian();
+			Sector = reader.ReadUInt24BigEndian();
 		}
 
 		/// <summary>

@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			FileId = extended ? reader.ReadInt32BigEndian() : reader.ReadUInt16BigEndian();
 			ChunkId = reader.ReadUInt16BigEndian();
-			NextSectorId = (int) reader.ReadUInt24BigEndian();
+			NextSectorId = reader.ReadUInt24BigEndian();
 			IndexId = reader.ReadByte();
 			Data = reader.ReadBytes(extended ? ExtendedDataLength : DataLength);
 			Extended = extended;
