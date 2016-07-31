@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -15,12 +14,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	public class FileStore
 	{
 		/// <summary>
-		/// Index that contains metadata about the other indexes.
+		///   Index that contains metadata about the other indexes.
 		/// </summary>
 		public const int MetadataIndexId = 255;
 
 		/// <summary>
-		/// Lock that is used when reading data from the streams.
+		///   Lock that is used when reading data from the streams.
 		/// </summary>
 		private readonly object _streamReadLock = new object();
 

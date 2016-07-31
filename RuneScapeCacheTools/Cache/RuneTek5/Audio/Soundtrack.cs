@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using log4net;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
@@ -15,8 +14,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 	/// </summary>
 	public class Soundtrack
 	{
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(Soundtrack));
+
 		/// <summary>
-		/// Used in the generation of temporary filenames.
+		///   Used in the generation of temporary filenames.
 		/// </summary>
 		private readonly Random _random = new Random();
 
@@ -34,11 +35,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 		/// <returns></returns>
 		public IDictionary<int, string> GetTrackNames()
 		{
-            // Read out the two enums that, when combined, make up the awesome lookup table
+			// Read out the two enums that, when combined, make up the awesome lookup table
 			var trackNames = new EnumFile(Cache.GetArchiveFileData(17, 5, 65));
 			var jagaFileIds = new EnumFile(Cache.GetArchiveFileData(17, 5, 71));
 
-            // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
+			// Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
 			var result = new SortedDictionary<int, string>();
 			foreach (var trackNamePair in trackNames)
 			{
@@ -73,22 +74,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 				}
 			}
 
-            // Rename duplicate names, as those are a thing apparently...
-            var duplicateNameGroups = result
-                .GroupBy(pair => pair.Value)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Skip(1)); // Select only the second and up, because the first one doesn't have to be renamed
+			// Rename duplicate names, as those are a thing apparently...
+			var duplicateNameGroups = result
+				.GroupBy(pair => pair.Value)
+				.Where(group => group.Count() > 1)
+				.Select(group => group.Skip(1)); // Select only the second and up, because the first one doesn't have to be renamed
 
-		    foreach (var duplicateNameGroup in duplicateNameGroups)
-		    {
-		        var duplicateId = 2;
-		        foreach (var duplicateNamePair in duplicateNameGroup)
-		        {
-		            result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
-		        }
-		    }
+			foreach (var duplicateNameGroup in duplicateNameGroups)
+			{
+				var duplicateId = 2;
+				foreach (var duplicateNamePair in duplicateNameGroup)
+				{
+					result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
+				}
+			}
 
-            return result;
+			return result;
 		}
 
 		public async Task ExportTracksAsync(bool overwriteExisting = false)
@@ -104,10 +105,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			{
 				var existingTrackNames = Directory.EnumerateFiles(outputDirectory, "*.ogg").Select(Path.GetFileNameWithoutExtension);
 
-				trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value)).ToDictionary(pair => pair.Key, pair => pair.Value);
+				trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value))
+					.ToDictionary(pair => pair.Key, pair => pair.Value);
 			}
 
-            await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
+			Logger.Info("Done obtaining soundtrack names and file ids.");
+
+			await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
 			{
 				var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
 
@@ -123,6 +127,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 						Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
 				}
 
+				var outputFilename = $"{trackNamePair.Value}.ogg";
+
 				// Combine the files using oggCat
 				var combineProcess = new Process
 				{
@@ -131,7 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 						FileName = "oggCat",
 						UseShellExecute = false,
 						CreateNoWindow = true,
-						Arguments = $"\"{outputDirectory}{trackNamePair.Value}.ogg\" \"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
+						Arguments = $"\"{outputDirectory}{outputFilename}\" \"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
 					}
 				};
 
@@ -146,9 +152,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
 				if (combineProcess.ExitCode != 0)
 				{
-					throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode}.");
+					var soundtrackException =
+						new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
+					Logger.Error(soundtrackException.Message, soundtrackException);
+					throw soundtrackException;
 				}
+
+				Logger.Info($"Combined {outputFilename}.");
 			}));
+
+			Logger.Info($"Done combining soundtracks.");
 		}
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)

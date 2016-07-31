@@ -74,9 +74,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// </summary>
 		public byte[][] Entries { get; }
 
-		//         * Encodes this {@link Archive} into a {@link ByteBuffer}.
-
 		//        /**
+
+		//         * Encodes this {@link Archive} into a {@link ByteBuffer}.
 		//         * <p />
 		//         * Please note that this is a fairly simple implementation that does not
 		//         * attempt to use more than one chunk.

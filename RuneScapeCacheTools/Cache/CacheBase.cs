@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using log4net;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -11,6 +12,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	/// </summary>
 	public abstract class CacheBase
 	{
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
+
 		protected CacheBase()
 		{
 			CacheDirectory = DefaultCacheDirectory;
@@ -65,7 +68,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public async Task ExtractIndexAsync(int indexId)
 		{
 			var fileIds = Enumerable.Range(0, GetFileCount(indexId));
-			await Task.Run(() => { Parallel.ForEach(fileIds, fileId => { ExtractFile(indexId, fileId); }); });
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(fileIds, fileId =>
+				{
+					ExtractFile(indexId, fileId);
+					Logger.Info($"Extracted index {indexId} file {fileId}.");
+				});
+			});
 		}
 
 		/// <summary>
@@ -121,14 +131,16 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 				if (!extractIfMissing)
 				{
+					Logger.Info($"File with index {indexId} file {fileId} not found, extracting...");
 					return null;
 				}
 
 				ExtractFile(indexId, fileId);
 				return GetFileOutputPath(indexId, fileId);
 			}
-			catch (DirectoryNotFoundException)
+			catch (DirectoryNotFoundException exception)
 			{
+				Logger.Error($"File output path for index {indexId} file {fileId} not found.", exception);
 				return null;
 			}
 		}

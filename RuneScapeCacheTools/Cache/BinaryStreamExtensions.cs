@@ -35,8 +35,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public static long ReadUInt48BigEndian(this BinaryReader reader)
 		{
 			return
-					(reader.ReadByte() << 40) + (reader.ReadByte() << 32) + (reader.ReadByte() << 24) + (reader.ReadByte() << 16) +
-					 (reader.ReadByte() << 8) + reader.ReadByte();
+				(reader.ReadByte() << 40) + (reader.ReadByte() << 32) + (reader.ReadByte() << 24) + (reader.ReadByte() << 16) +
+				(reader.ReadByte() << 8) + reader.ReadByte();
 		}
 
 		/// <summary>
