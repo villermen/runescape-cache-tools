@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using log4net;
+using log4net.Appender;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
 	internal static class Program
 	{
+		/// <summary>
+		/// Even if not used, this needs to be here to initialize the logging system.
+		/// </summary>
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
+
 		private static readonly CacheBase Cache = new RuneTek5Cache();
 
 		private static int TriggeredActions { get; set; }
@@ -87,7 +95,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			},
 
 			{
-				"soundtrack-combine|s", "DoExtract and name the entire soundtrack.",
+				"soundtrack-combine|s", "Extract and name the entire soundtrack.",
 				value =>
 				{
 					DoSoundtrackCombine = (value != null);
@@ -122,22 +130,16 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					Console.WriteLine();
 				}
 
-				// Show help if "Nothing interesting happens.", this is considered an error for automation
-				if (TriggeredActions == 0)
+				// Show help if "Nothing interesting happens." when arguments are specified, this is considered an error as it is unexpected
+				if (TriggeredActions == 0 && args.Length > 0)
 				{
+					Console.WriteLine("No action arguments specified.");
+					Console.WriteLine();
 					ShowHelp();
 					return 1;
 				}
-			}
-			catch (OptionException optionException)
-			{
-				Console.WriteLine(optionException.Message);
-				return 1;
-			}
 
-			// Perform the specified actions
-			try
-			{
+				// Perform the specified actions
 				if (DoExtract)
 				{
 					Extract();
@@ -150,9 +152,14 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 				return 0;
 			}
-			catch (Exception actionException)
+			catch (Exception exception) when (exception is OptionException || exception is CacheException)
 			{
-				Console.WriteLine(actionException);
+				Console.WriteLine($"An error occurred: {exception.Message}");
+				return 1;
+			}
+			catch (Exception exception)
+			{
+				Console.WriteLine(exception);
 				return 1;
 			}
 		}
@@ -226,7 +233,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void CombineSoundtrack()
 		{
-			throw new NotImplementedException();
+			var soundtrack = new Soundtrack(Cache);
+			soundtrack.ExportTracksAsync(Overwrite).Wait();
 		}
 	}
 }
