@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -12,9 +13,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static int TriggeredActions { get; set; }
 
-		private static IList<int> IndexIds { get; set; }
+		private static IEnumerable<int> IndexIds { get; set; }
 
-		private static IList<int> FileIds { get; set; }
+		private static IEnumerable<int> FileIds { get; set; }
 
 		private static bool DoExtract { get; set; }
 
@@ -183,9 +184,31 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		/// <param name="integerRange">An integer range, e.g. "0-4,6,34,200-201"</param>
 		/// <returns></returns>
-		private static IList<int> ExpandIntegerRangeString(string integerRangeString)
+		private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
 		{
-			throw new NotImplementedException();
+			var rangeStringParts = integerRangeString.Split(',', ';');
+			var result = new List<int>();
+
+			foreach (var rangeStringPart in rangeStringParts)
+			{
+				if (rangeStringPart.Count(ch => ch == '-') == 1)
+				{
+					// Expand the range
+					var rangeParts = rangeStringPart.Split('-');
+					var rangeStart = int.Parse(rangeParts[0]);
+					var rangeCount = int.Parse(rangeParts[1]) - rangeStart + 1;
+
+					result.AddRange(Enumerable.Range(rangeStart, rangeCount));
+				}
+				else
+				{
+					// It should be a single integer
+					result.Add(int.Parse(rangeStringPart));
+				}
+			}
+
+			// Filter duplicates
+			return result.Distinct();
 		}
 
 		private static void ShowHelp()
