@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -51,51 +52,76 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
 		/// <summary>
-		///   Extracts every file in every index.
+		///   Extracts specified indexes fully.
 		/// </summary>
+		/// <param name="indexIds"></param>
 		/// <returns></returns>
-		public async Task ExtractAllAsync()
+		public async Task ExtractAsync(IEnumerable<int> indexIds)
 		{
-			var indexIds = Enumerable.Range(0, IndexCount);
-			await Task.Run(() => { Parallel.ForEach(indexIds, indexId => { ExtractIndexAsync(indexId).Wait(); }); });
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(indexIds, indexId =>
+				{
+					ExtractAsync(indexId).Wait();
+				});
+			});
 		}
 
 		/// <summary>
-		///   Extracts every file in the given index.
+		/// Extracts specified index fully.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <returns></returns>
-		public async Task ExtractIndexAsync(int indexId)
+		public async Task ExtractAsync(int indexId)
 		{
 			var fileIds = Enumerable.Range(0, GetFileCount(indexId));
 			await Task.Run(() =>
 			{
 				Parallel.ForEach(fileIds, fileId =>
 				{
-					ExtractFile(indexId, fileId);
-					Logger.Info($"Extracted index {indexId} file {fileId}.");
+					ExtractAsync(indexId, fileId);
 				});
 			});
 		}
 
 		/// <summary>
-		///   Extracts and processes the given file in the given index.
+		/// Extracts specified files from the specified index.
+		/// </summary>
+		/// <param name="indexId"></param>
+		/// <param name="fileIds"></param>
+		/// <returns></returns>
+		public async Task ExtractAsync(int indexId, IEnumerable<int> fileIds)
+		{
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(fileIds, fileId =>
+				{
+					ExtractAsync(indexId, fileId);
+				});
+			});
+		}
+
+		/// <summary>
+		///   Extracts the specified file from the specified index.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <returns></returns>
-		public void ExtractFile(int indexId, int fileId)
+		public async void ExtractAsync(int indexId, int fileId)
 		{
-			var fileData = GetFileData(indexId, fileId);
-
-			if (fileData == null)
+			await Task.Run(() =>
 			{
-				return;
-			}
+				var fileData = GetFileData(indexId, fileId);
 
-			var extension = ExtensionGuesser.GuessExtension(ref fileData);
+				if (fileData == null)
+				{
+					return;
+				}
 
-			WriteOutputFile(indexId, fileId, fileData, extension);
+				var extension = ExtensionGuesser.GuessExtension(ref fileData);
+
+				WriteOutputFile(indexId, fileId, fileData, extension);
+			});
 		}
 
 		/// <summary>
@@ -135,7 +161,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 					return null;
 				}
 
-				ExtractFile(indexId, fileId);
+				ExtractAsync(indexId, fileId);
 				return GetFileOutputPath(indexId, fileId);
 			}
 			catch (DirectoryNotFoundException exception)
