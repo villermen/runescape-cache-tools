@@ -52,6 +52,22 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
 		/// <summary>
+		///   Extracts every file from every index.
+		/// </summary>
+		/// <returns></returns>
+		public async Task ExtractAsync()
+		{
+			var indexIds = Enumerable.Range(0, IndexCount);
+			await Task.Run(() =>
+			{
+				Parallel.ForEach(indexIds, indexId =>
+				{
+					ExtractAsync(indexId).Wait();
+				});
+			});
+		}
+
+		/// <summary>
 		///   Extracts specified indexes fully.
 		/// </summary>
 		/// <param name="indexIds"></param>
