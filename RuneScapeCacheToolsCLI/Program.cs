@@ -13,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 	internal static class Program
 	{
 		/// <summary>
-		/// Even if not used, this needs to be here to initialize the logging system.
+		/// Even when not used, this needs to be here to initialize the logging system.
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
@@ -189,7 +189,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// <summary>
 		///   Expands the given integer range into an enumerable of all individual integers.
 		/// </summary>
-		/// <param name="integerRange">An integer range, e.g. "0-4,6,34,200-201"</param>
+		/// <param name="integerRangeString">An integer range, e.g. "0-4,6,34,200-201"</param>
 		/// <returns></returns>
 		private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
 		{
