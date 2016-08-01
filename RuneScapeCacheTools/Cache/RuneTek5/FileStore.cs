@@ -27,14 +27,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		///   Opens the file store in the specified directory.
 		/// </summary>
 		/// <param name="cacheDirectory">The directory containing the index and data files.</param>
-		/// <exception cref="FileNotFoundException">If any of the main_file_cache.* files could not be found.</exception>
+		/// <exception cref="CacheException">If any of the main_file_cache.* files could not be found.</exception>
 		public FileStore(string cacheDirectory)
 		{
 			var dataFile = Path.Combine(cacheDirectory, "main_file_cache.dat2");
 
 			if (!File.Exists(dataFile))
 			{
-				throw new FileNotFoundException("Cache data file does not exist.");
+				throw new CacheException("Cache data file does not exist.");
 			}
 
 			DataStream = File.Open(dataFile, FileMode.Open);
@@ -53,14 +53,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			if (IndexStreams.Count == 0)
 			{
-				throw new FileNotFoundException("No index files found.");
+				throw new CacheException("No index files found.");
 			}
 
 			var metaFile = Path.Combine(cacheDirectory + $"main_file_cache.idx{MetadataIndexId}");
 
 			if (!File.Exists(metaFile))
 			{
-				throw new FileNotFoundException("Meta index file does not exist.");
+				throw new CacheException("Meta index file does not exist.");
 			}
 
 			MetaStream = File.Open(metaFile, FileMode.Open);
@@ -105,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
 			{
-				throw new FileNotFoundException("Given file does not exist.");
+				throw new CacheException("Given file does not exist.");
 			}
 
 			// Lock reading from stream, to allow multiple threads from calling this method at the same time
