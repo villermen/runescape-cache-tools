@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -95,7 +96,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			{
 				Parallel.ForEach(fileIds, fileId =>
 				{
-					ExtractAsync(indexId, fileId);
+					ExtractAsync(indexId, fileId).Wait();
 				});
 			});
 		}
@@ -112,7 +113,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			{
 				Parallel.ForEach(fileIds, fileId =>
 				{
-					ExtractAsync(indexId, fileId);
+					ExtractAsync(indexId, fileId).Wait();
 				});
 			});
 		}
@@ -123,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <param name="indexId"></param>
 		/// <param name="fileId"></param>
 		/// <returns></returns>
-		public async void ExtractAsync(int indexId, int fileId)
+		public async Task ExtractAsync(int indexId, int fileId)
 		{
 			await Task.Run(() =>
 			{
@@ -173,11 +174,10 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 				if (!extractIfMissing)
 				{
-					Logger.Info($"File with index {indexId} file {fileId} not found, extracting...");
 					return null;
 				}
 
-				ExtractAsync(indexId, fileId);
+				ExtractAsync(indexId, fileId).Wait();
 				return GetFileOutputPath(indexId, fileId);
 			}
 			catch (DirectoryNotFoundException exception)
@@ -200,7 +200,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			// Throw an exception if the output directory is not yet set or does not exist
 			if (string.IsNullOrWhiteSpace(OutputDirectory) || !Directory.Exists(OutputDirectory))
 			{
-				throw new DirectoryNotFoundException("Output directory does not exist.");
+				throw new CacheException("Output directory does not exist.");
 			}
 
 			// Delete existing file

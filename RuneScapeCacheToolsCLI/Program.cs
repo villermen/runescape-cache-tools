@@ -152,7 +152,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 				return 0;
 			}
-			catch (Exception exception) when (exception is OptionException || exception is CacheException)
+			catch (Exception exception) when (exception is OptionException || exception is CacheException || exception is CLIException)
 			{
 				Console.WriteLine($"An error occurred: {exception.Message}");
 				return 1;
@@ -228,7 +228,25 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void Extract()
 		{
-			throw new NotImplementedException();
+			if (IndexIds == null && FileIds == null)
+			{
+				// Extract everything
+				Cache.ExtractAsync().Wait();
+			}
+			else if (FileIds == null)
+			{
+				// Extract the given index(es) fully
+				Cache.ExtractAsync(IndexIds).Wait();
+			}
+			else if (IndexIds.Count() == 1)
+			{
+				// Extract specified files from the given index
+				Cache.ExtractAsync(IndexIds.First(), FileIds).Wait();
+			}
+			else
+			{
+				throw new CLIException("You can only specify multiple files if you specify exactly one index to extract from.");
+			}
 		}
 
 		private static void CombineSoundtrack()
