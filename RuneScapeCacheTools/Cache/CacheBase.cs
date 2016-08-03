@@ -34,7 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		///   The directory where the extracted cache files will be stored.
 		/// </summary>
-		public string OutputDirectory { get; set; } = "cache/";
+		public string OutputDirectory { get; set; } = "output/";
 
 		/// <summary>
 		///   Temporary files used while processing will be stored here.
