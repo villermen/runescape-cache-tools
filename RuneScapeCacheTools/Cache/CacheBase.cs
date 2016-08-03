@@ -34,7 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		///   The directory where the extracted cache files will be stored.
 		/// </summary>
-		public string OutputDirectory { get; set; }
+		public string OutputDirectory { get; set; } = "cache/";
 
 		/// <summary>
 		///   Temporary files used while processing will be stored here.
@@ -209,7 +209,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 					return null;
 				}
 
-				Extract(indexId, fileId).Wait();
+				Extract(indexId, fileId);
 				return GetFileOutputPath(indexId, fileId);
 			}
 			catch (DirectoryNotFoundException)
