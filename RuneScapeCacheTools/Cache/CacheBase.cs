@@ -57,15 +57,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// </summary>
 		/// <param name="overwrite"></param>
 		/// <returns></returns>
-		public async Task ExtractAsync(bool overwrite = false)
+		public void Extract(bool overwrite = false)
 		{
 			var indexIds = Enumerable.Range(0, IndexCount);
-			await Task.Run(() =>
+			Parallel.ForEach(indexIds, indexId =>
 			{
-				Parallel.ForEach(indexIds, indexId =>
-				{
-					ExtractAsync(indexId, overwrite).Wait();
-				});
+				Extract(indexId, overwrite);
 			});
 		}
 
@@ -75,14 +72,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <param name="indexIds"></param>
 		/// <param name="overwrite"></param>
 		/// <returns></returns>
-		public async Task ExtractAsync(IEnumerable<int> indexIds, bool overwrite = false)
+		public void Extract(IEnumerable<int> indexIds, bool overwrite = false)
 		{
-			await Task.Run(() =>
+			Parallel.ForEach(indexIds, indexId =>
 			{
-				Parallel.ForEach(indexIds, indexId =>
-				{
-					ExtractAsync(indexId, overwrite).Wait();
-				});
+				Extract(indexId, overwrite);
 			});
 		}
 
@@ -92,15 +86,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <param name="indexId"></param>
 		/// <param name="overwrite"></param>
 		/// <returns></returns>
-		public async Task ExtractAsync(int indexId, bool overwrite = false)
+		public void Extract(int indexId, bool overwrite = false)
 		{
 			var fileIds = Enumerable.Range(0, GetFileCount(indexId));
-			await Task.Run(() =>
+			Parallel.ForEach(fileIds, fileId =>
 			{
-				Parallel.ForEach(fileIds, fileId =>
-				{
-					Extract(indexId, fileId, overwrite);
-				});
+				Extract(indexId, fileId, overwrite);
 			});
 		}
 
@@ -111,14 +102,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <param name="fileIds"></param>
 		/// <param name="overwrite"></param>
 		/// <returns></returns>
-		public async Task ExtractAsync(int indexId, IEnumerable<int> fileIds, bool overwrite = false)
+		public void Extract(int indexId, IEnumerable<int> fileIds, bool overwrite = false)
 		{
-			await Task.Run(() =>
+			Parallel.ForEach(fileIds, fileId =>
 			{
-				Parallel.ForEach(fileIds, fileId =>
-				{
-					Extract(indexId, fileId, overwrite);
-				});
+				Extract(indexId, fileId, overwrite);
 			});
 		}
 
@@ -161,7 +149,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			}
 
 			// Construct new path for file
-			string newFilePath = $"{OutputDirectory}cache/{indexId}/{fileId}";
+			string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
 			if (!string.IsNullOrWhiteSpace(extension))
 			{
 				newFilePath += $".{extension}";
@@ -179,7 +167,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
 		public virtual string GetIndexOutputPath(int indexId)
 		{
-			string indexPath = $"{OutputDirectory}cache/{indexId}/";
+			string indexPath = $"{OutputDirectory}extracted/{indexId}/";
 
 			return Directory.Exists(indexPath) ? indexPath : null;
 		}
@@ -196,7 +184,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			try
 			{
 				var path = Directory
-					.EnumerateFiles($"{OutputDirectory}cache/{indexId}/", $"{fileId}*")
+					.EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileId}*")
 					.FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"));
 
 				if (!string.IsNullOrWhiteSpace(path))
