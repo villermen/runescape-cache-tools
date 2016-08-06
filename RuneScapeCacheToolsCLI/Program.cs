@@ -231,17 +231,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			if (IndexIds == null && FileIds == null)
 			{
 				// Extract everything
-				Cache.ExtractAsync(Overwrite).Wait();
+				Cache.Extract(Overwrite);
 			}
 			else if (FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Cache.ExtractAsync(IndexIds, Overwrite).Wait();
+				Cache.Extract(IndexIds, Overwrite);
 			}
 			else if (IndexIds.Count() == 1)
 			{
 				// Extract specified files from the given index
-				Cache.ExtractAsync(IndexIds.First(), FileIds, Overwrite).Wait();
+				Cache.Extract(IndexIds.First(), FileIds, Overwrite);
 			}
 			else
 			{
