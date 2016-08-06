@@ -121,32 +121,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 				var remaining = index.Size;
 				var dataReader = new BinaryReader(DataStream);
 				var dataPosition = (long) index.Sector * Sector.Length;
-				var extended = fileId > 65535;
 
 				var dataStream = new MemoryStream(index.Size);
 				do
 				{
 					dataReader.BaseStream.Position = dataPosition;
 
-					var sector = new Sector(dataReader.ReadBytes(Sector.Length), extended);
+					var sector = new Sector(indexId, fileId, chunkId, dataReader.ReadBytes(Sector.Length));
 
-					// Verify the obtained sector is actually what we are looking for
-					if (sector.IndexId != indexId)
-					{
-						throw new CacheException("Sector index id mismatch.");
-					}
-
-					if (sector.FileId != fileId)
-					{
-						throw new CacheException("Sector file id mismatch.");
-					}
-
-					if (sector.ChunkId != chunkId)
-					{
-						throw new CacheException("Sector index mismatch.");
-					}
-
-					var bytesRead = Math.Min(extended ? Sector.ExtendedDataLength : Sector.DataLength, remaining);
+					var bytesRead = Math.Min(sector.Data.Length, remaining);
 
 					dataStream.Write(sector.Data, 0, bytesRead);
 					remaining -= bytesRead;

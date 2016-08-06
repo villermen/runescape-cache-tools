@@ -76,6 +76,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\SectorException.cs" />
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\Archive.cs" />
     <Compile Include="Cache\CacheException.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Cache\RuneTek5\Downloader\" />
     <Folder Include="Cache\RuneTek7\" />
   </ItemGroup>
   <ItemGroup>

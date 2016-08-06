@@ -39,10 +39,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// <summary>
 		///   Decodes the given byte array into a <see cref="Sector" /> object.
 		/// </summary>
+		/// <param name="expectedIndexId"></param>
+		/// <param name="expectedFileId"></param>
+		/// <param name="expectedChunkId"></param>
 		/// <param name="data"></param>
-		/// <param name="extended"></param>
 		/// <returns></returns>
-		public Sector(byte[] data, bool extended = false)
+		public Sector(int expectedIndexId, int expectedFileId, int expectedChunkId, byte[] data)
 		{
 			if (data.Length != Length)
 			{
@@ -50,14 +52,35 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 					$"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
 			}
 
-			var reader = new BinaryReader(new MemoryStream(data));
+			// Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data)
+			var extended = expectedFileId > 65535;
 
-			FileId = extended ? reader.ReadInt32BigEndian() : reader.ReadUInt16BigEndian();
-			ChunkId = reader.ReadUInt16BigEndian();
-			NextSectorId = reader.ReadUInt24BigEndian();
-			IndexId = reader.ReadByte();
-			Data = reader.ReadBytes(extended ? ExtendedDataLength : DataLength);
-			Extended = extended;
+			var dataReader = new BinaryReader(new MemoryStream(data));
+
+			// Obtain and verify if the chunk contains what we expect
+			FileId = extended ? dataReader.ReadInt32BigEndian() : dataReader.ReadUInt16BigEndian();
+
+			if (FileId != expectedFileId)
+			{
+				throw new SectorException("File id mismatch.");
+			}
+
+			ChunkId = dataReader.ReadUInt16BigEndian();
+
+			if (ChunkId != expectedChunkId)
+			{
+				throw new SectorException("Chunk id mismatch.");
+			}
+
+			NextSectorId = dataReader.ReadUInt24BigEndian();
+			IndexId = dataReader.ReadByte();
+
+			if (IndexId != expectedIndexId)
+			{
+				throw new SectorException("Index id mismatch.");
+			}
+
+			Data = dataReader.ReadBytes(extended ? ExtendedDataLength : DataLength);
 		}
 
 		/// <summary>
@@ -85,32 +108,32 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// </summary>
 		public byte[] Data { get; }
 
-		public bool Extended { get; }
-
 		/// <summary>
 		///   Encodes this <see cref="Sector" /> into a byte array.
 		/// </summary>
 		/// <returns></returns>
 		public byte[] Encode()
 		{
-			var stream = new MemoryStream(new byte[Length]);
-			var writer = new BinaryWriter(stream);
+			var dataStream = new MemoryStream(new byte[Length]);
+			var dataWriter = new BinaryWriter(dataStream);
 
-			if (Extended)
+			var extended = FileId > 65535;
+
+			if (extended)
 			{
-				writer.WriteInt32BigEndian(FileId);
+				dataWriter.WriteInt32BigEndian(FileId);
 			}
 			else
 			{
-				writer.WriteUInt16BigEndian((ushort) FileId);
+				dataWriter.WriteUInt16BigEndian((ushort) FileId);
 			}
 
-			writer.WriteUInt16BigEndian((ushort) ChunkId);
-			writer.WriteUInt24BigEndian(NextSectorId);
-			writer.Write((byte) IndexId);
-			writer.Write(Data);
+			dataWriter.WriteUInt16BigEndian((ushort) ChunkId);
+			dataWriter.WriteUInt24BigEndian(NextSectorId);
+			dataWriter.Write((byte) IndexId);
+			dataWriter.Write(Data);
 
-			return stream.ToArray();
+			return dataStream.ToArray();
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -60,10 +59,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public void Extract(bool overwrite = false)
 		{
 			var indexIds = Enumerable.Range(0, IndexCount);
-			Parallel.ForEach(indexIds, indexId =>
-			{
-				Extract(indexId, overwrite);
-			});
+			Parallel.ForEach(indexIds, indexId => { Extract(indexId, overwrite); });
 		}
 
 		/// <summary>
@@ -74,14 +70,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public void Extract(IEnumerable<int> indexIds, bool overwrite = false)
 		{
-			Parallel.ForEach(indexIds, indexId =>
-			{
-				Extract(indexId, overwrite);
-			});
+			Parallel.ForEach(indexIds, indexId => { Extract(indexId, overwrite); });
 		}
 
 		/// <summary>
-		/// Extracts specified index fully.
+		///   Extracts specified index fully.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <param name="overwrite"></param>
@@ -89,14 +82,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		public void Extract(int indexId, bool overwrite = false)
 		{
 			var fileIds = Enumerable.Range(0, GetFileCount(indexId));
-			Parallel.ForEach(fileIds, fileId =>
-			{
-				Extract(indexId, fileId, overwrite);
-			});
+			Parallel.ForEach(fileIds, fileId => { Extract(indexId, fileId, overwrite); });
 		}
 
 		/// <summary>
-		/// Extracts specified files from the specified index.
+		///   Extracts specified files from the specified index.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <param name="fileIds"></param>
@@ -104,10 +94,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public void Extract(int indexId, IEnumerable<int> fileIds, bool overwrite = false)
 		{
-			Parallel.ForEach(fileIds, fileId =>
-			{
-				Extract(indexId, fileId, overwrite);
-			});
+			Parallel.ForEach(fileIds, fileId => { Extract(indexId, fileId, overwrite); });
 		}
 
 		/// <summary>
@@ -119,46 +106,53 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public void Extract(int indexId, int fileId, bool overwrite = false)
 		{
-			var fileData = GetFileData(indexId, fileId);
-
-			if (fileData == null)
+			try
 			{
-				Logger.Info($"Skipped index {indexId} file {fileId} because it contains no data.");
-				return;
-			}
+				var fileData = GetFileData(indexId, fileId);
 
-			var extension = ExtensionGuesser.GuessExtension(ref fileData);
-
-			// Throw an exception if the output directory is not yet set or does not exist
-			if (string.IsNullOrWhiteSpace(OutputDirectory))
-			{
-				throw new CacheException("Output directory must be set before file extraction.");
-			}
-
-			// Delete existing file (if allowed)
-			var existingFilePath = GetFileOutputPath(indexId, fileId);
-			if (existingFilePath != null)
-			{
-				if (!overwrite)
+				if (fileData == null)
 				{
-					Logger.Info($"Skipped index {indexId} file {fileId} because it is already extracted.");
+					Logger.Info($"Skipped index {indexId} file {fileId} because it contains no data.");
 					return;
 				}
 
-				File.Delete(existingFilePath);
-			}
+				var extension = ExtensionGuesser.GuessExtension(ref fileData);
 
-			// Construct new path for file
-			string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
-			if (!string.IsNullOrWhiteSpace(extension))
+				// Throw an exception if the output directory is not yet set or does not exist
+				if (string.IsNullOrWhiteSpace(OutputDirectory))
+				{
+					throw new CacheException("Output directory must be set before file extraction.");
+				}
+
+				// Delete existing file (if allowed)
+				var existingFilePath = GetFileOutputPath(indexId, fileId);
+				if (existingFilePath != null)
+				{
+					if (!overwrite)
+					{
+						Logger.Info($"Skipped index {indexId} file {fileId} because it is already extracted.");
+						return;
+					}
+
+					File.Delete(existingFilePath);
+				}
+
+				// Construct new path for file
+				string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
+				if (!string.IsNullOrWhiteSpace(extension))
+				{
+					newFilePath += $".{extension}";
+				}
+
+				// Create directories where necessary, before writing to file
+				Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+				File.WriteAllBytes(newFilePath, fileData);
+				Logger.Info($"Extracted index {indexId} file {fileId}.");
+			}
+			catch (SectorException exception)
 			{
-				newFilePath += $".{extension}";
+				Logger.Info($"Could not extract index {indexId} file {fileId}: {exception.Message}");
 			}
-
-			// Create directories where necessary, before writing to file
-			Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
-			File.WriteAllBytes(newFilePath, fileData);
-			Logger.Info($"Extracted index {indexId} file {fileId}.");
 		}
 
 		/// <summary>
