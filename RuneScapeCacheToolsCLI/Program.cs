@@ -17,7 +17,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-		private static readonly CacheBase Cache = new RuneTek5Cache();
+		private static CacheBase Cache { get; set; }
+
+        private static string CacheDirectory { get; set; }
 
 		private static int TriggeredActions { get; set; }
 
@@ -38,7 +40,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which RuneScape's cache files are located. If unspecified, the default directory will be attempted.",
 				value =>
 				{
-					Cache.CacheDirectory = ParseDirectory(value);
+					CacheDirectory = ParseDirectory(value);
 				}
 			},
 
@@ -139,6 +141,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					return 1;
 				}
 
+                // Initialize the cache
+                Cache = new RuneTek5Cache(CacheDirectory);
+
 				// Perform the specified actions
 				if (DoExtract)
 				{
@@ -154,7 +159,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			}
 			catch (Exception exception) when (exception is OptionException || exception is CacheException || exception is CLIException)
 			{
-				Console.WriteLine($"An error occurred: {exception.Message}");
+			    Console.WriteLine(exception);
 				return 1;
 			}
 			catch (Exception exception)
@@ -252,6 +257,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		private static void CombineSoundtrack()
 		{
 			var soundtrack = new Soundtrack(Cache);
+
+			soundtrack.Test();
+
 			soundtrack.ExportTracksAsync(Overwrite).Wait();
 
 			Console.WriteLine("Done!");

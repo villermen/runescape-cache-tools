@@ -15,20 +15,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
 
-		protected CacheBase()
+		protected CacheBase(string cacheDirectory)
 		{
-			CacheDirectory = DefaultCacheDirectory;
+		    CacheDirectory = cacheDirectory;
 		}
-
-		/// <summary>
-		///   The directory that is the default location for this type of cache.
-		/// </summary>
-		public abstract string DefaultCacheDirectory { get; }
 
 		/// <summary>
 		///   The directory where the cache is located.
 		/// </summary>
-		public virtual string CacheDirectory { get; set; }
+		public string CacheDirectory { get; }
 
 		/// <summary>
 		///   The directory where the extracted cache files will be stored.

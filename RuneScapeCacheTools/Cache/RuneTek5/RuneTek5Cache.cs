@@ -10,39 +10,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Villermen</author>
 	public class RuneTek5Cache : CacheBase
 	{
-		private string _cacheDirectory;
-
-		public RuneTek5Cache()
-		{
-		}
-
-		/// <summary>
-		///   Creates an interface on the cache stored in the given directory.
-		/// </summary>
-		/// <param name="cacheDirectory"></param>
-		public RuneTek5Cache(string cacheDirectory)
-		{
-			CacheDirectory = cacheDirectory;
-		}
-
-		public override string CacheDirectory
-		{
-			get { return _cacheDirectory; }
-			set
-			{
-				_cacheDirectory = value;
-				FileStore = new FileStore(_cacheDirectory);
-			}
-		}
+	    /// <summary>
+	    ///   Creates an interface on the cache stored in the given directory.
+	    /// </summary>
+	    /// <param name="cacheDirectory"></param>
+	    public RuneTek5Cache(string cacheDirectory = null) : 
+            base(cacheDirectory ?? DefaultCacheDirectory)
+	    {
+            FileStore = new FileStore(CacheDirectory);
+	    }
 
 		/// <summary>
 		///   The <see cref="RuneTek5.FileStore" /> that backs this cache.
 		/// </summary>
-		public FileStore FileStore { get; set; }
+		public FileStore FileStore { get; }
 
 		public override int IndexCount => FileStore.IndexCount;
 
-		public override string DefaultCacheDirectory
+		public static string DefaultCacheDirectory
 			=> Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
 		/// <summary>
@@ -158,6 +143,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			var entry = table.Entries[archiveId];
 
 			return new Archive(container.Data, entry.Capacity);
+		}
+
+		/// <summary>
+		/// TODO: Decide whether this needs to be in CacheBase or be something else entirely.
+		/// </summary>
+		/// <param name="indexId"></param>
+		/// <returns></returns>
+		public ReferenceTable GetReferenceTable(int indexId)
+		{
+			return new ReferenceTable(new Container(FileStore.GetMetadata(indexId)).Data);
 		}
 	}
 }
