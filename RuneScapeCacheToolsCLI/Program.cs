@@ -258,8 +258,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			var soundtrack = new Soundtrack(Cache);
 
-			soundtrack.Test();
-
 			soundtrack.ExportTracksAsync(Overwrite).Wait();
 
 			Console.WriteLine("Done!");
