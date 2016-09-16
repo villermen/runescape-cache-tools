@@ -1,22 +1,27 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
+using Xunit;
+using Xunit.Abstractions;
+using Assert = Xunit.Assert;
 
 namespace RuneScapeCacheToolsTests
 {
-    [TestClass]
     public class SoundtrackTests
     {
-        private RuneTek5Cache _cache;
-        private Soundtrack _soundtrack;
+        private readonly ITestOutputHelper _output;
 
-        [TestInitialize]
-        public void TestInitialize()
+        private readonly RuneTek5Cache _cache;
+
+        private readonly Soundtrack _soundtrack;
+
+        public SoundtrackTests(ITestOutputHelper output)
         {
-            // TODO: Use test resource file
-            _cache = new RuneTek5Cache();
+            _output = output;
+
+            _cache = new RuneTek5Cache("TestData/");
             _soundtrack = new Soundtrack(_cache);
         }
 
@@ -25,7 +30,7 @@ namespace RuneScapeCacheToolsTests
         /// 
         /// Checks the reference tables to see if they denote that the files exist.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void TestReferenceTables()
         {
             var referenceTable40 = _cache.GetReferenceTable(40);
@@ -36,7 +41,7 @@ namespace RuneScapeCacheToolsTests
 
             var referenceTable17 = _cache.GetReferenceTable(17);
 
-            Assert.IsTrue(referenceTable17.Entries.ContainsKey(5));
+            Assert.True(referenceTable17.Entries.ContainsKey(5));
         }
 
         /// <summary>
@@ -44,7 +49,7 @@ namespace RuneScapeCacheToolsTests
         /// 
         /// Checks the first jaga file for a positive version.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void TestJagaFileVersion()
         {
             var firstJagaFileId = _soundtrack.GetTrackNames().First().Key;
@@ -57,7 +62,7 @@ namespace RuneScapeCacheToolsTests
 
             Console.WriteLine($"First Jaga file version: {firstJagaFileVersion}");
 
-            Assert.IsTrue(firstJagaFileVersion > 0);
+            Assert.True(firstJagaFileVersion > 0);
         }
     }
 }

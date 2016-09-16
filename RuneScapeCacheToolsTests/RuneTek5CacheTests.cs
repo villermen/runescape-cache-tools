@@ -1,15 +1,14 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Xunit;
 
 namespace RuneScapeCacheToolsTests
 {
-    [TestClass]
     public class RuneTek5CacheTests
     {
         private RuneTek5Cache _cache;
 
-        [TestInitialize]
+        [Fact]
         public void TestInitialize()
         {
             // TODO: Use test resource file
