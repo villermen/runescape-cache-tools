@@ -73,7 +73,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RunescapeCacheTools\RuneScapeCacheTools.csproj">
+    <ProjectReference Include="..\RuneScapeCacheTools\RuneScapeCacheTools.csproj">
       <Project>{a2c77ae9-5e36-4bde-b6de-ea5ada87dad2}</Project>
       <Name>RuneScapeCacheTools</Name>
     </ProjectReference>

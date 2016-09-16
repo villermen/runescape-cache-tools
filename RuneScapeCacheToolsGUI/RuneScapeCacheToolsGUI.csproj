@@ -114,13 +114,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RunescapeCacheTools\RuneScapeCacheTools.csproj">
+    <ProjectReference Include="..\RuneScapeCacheTools\RuneScapeCacheTools.csproj">
       <Project>{a2c77ae9-5e36-4bde-b6de-ea5ada87dad2}</Project>
       <Name>RuneScapeCacheTools</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
