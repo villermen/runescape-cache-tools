@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheTools", "RunescapeCacheTools\RuneScapeCacheTools.csproj", "{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheTools", "RuneScapeCacheTools\RuneScapeCacheTools.csproj", "{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheToolsGUI", "RunescapeCacheToolsGUI\RuneScapeCacheToolsGUI.csproj", "{D0C222F1-8E7B-4A84-870C-39A65D2B522B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheToolsGUI", "RuneScapeCacheToolsGUI\RuneScapeCacheToolsGUI.csproj", "{D0C222F1-8E7B-4A84-870C-39A65D2B522B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuneScapeCacheToolsCLI", "RuneScapeCacheToolsCLI\RuneScapeCacheToolsCLI.csproj", "{305EFE8D-2664-44D9-A62F-2BFCB33D566D}"
 EndProject
