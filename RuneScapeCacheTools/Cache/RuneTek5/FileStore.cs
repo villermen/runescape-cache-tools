@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	/// <author>Villermen</author>
-	public class FileStore
+	public class FileStore : IDisposable
 	{
 		/// <summary>
 		///   Index that contains metadata about the other indexes.
@@ -157,5 +157,31 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		{
 			return GetFileData(MetadataIndexId, fileId);
 		}
+
+	    public void Dispose()
+	    {
+	        Dispose(true);
+            GC.SuppressFinalize(this);
+	    }
+
+	    protected virtual void Dispose(bool disposing)
+	    {
+            // TODO: add disposed bool and throw exceptions when disposed
+	        if (disposing)
+	        {
+	            DataStream.Dispose();
+                MetaStream.Dispose();
+
+                foreach (var indexStreamPair in IndexStreams)
+                {
+                    indexStreamPair.Value.Dispose();
+                }
+	        }
+	    }
+
+	    ~FileStore()
+	    {
+	        Dispose(false);
+	    }
 	}
 }

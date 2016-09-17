@@ -154,5 +154,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		{
 			return new ReferenceTable(new Container(FileStore.GetMetadata(indexId)).Data);
 		}
+
+	    protected override void Dispose(bool disposing)
+	    {
+	        if (disposing)
+	        {
+	            FileStore.Dispose();
+	        }
+	    }
 	}
 }

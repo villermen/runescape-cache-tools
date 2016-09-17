@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools
 {
 	public static class BinaryStreamExtensions
 	{

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,13 +12,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	///   Base class for current cache systems.
 	///   Cache should include indexes and archives in order to use this.
 	/// </summary>
-	public abstract class CacheBase
+	public abstract class CacheBase : IDisposable
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
 
 		protected CacheBase(string cacheDirectory)
 		{
-		    CacheDirectory = cacheDirectory;
+		    CacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
 		}
 
 		/// <summary>
@@ -230,5 +231,20 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <param name="fileId"></param>
 		/// <returns></returns>
 		public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
+
+	    public void Dispose()
+	    {
+	        Dispose(true);
+            GC.SuppressFinalize(this);
+	    }
+
+	    protected virtual void Dispose(bool disposing)
+	    {
+	    }
+
+	    ~CacheBase()
+	    {
+	        Dispose(false);
+	    }
 	}
 }

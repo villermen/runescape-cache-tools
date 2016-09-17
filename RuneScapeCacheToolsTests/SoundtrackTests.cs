@@ -9,7 +9,7 @@ using Assert = Xunit.Assert;
 
 namespace RuneScapeCacheToolsTests
 {
-    public class SoundtrackTests
+    public class SoundtrackTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
 
@@ -37,7 +37,7 @@ namespace RuneScapeCacheToolsTests
 
             var referenceTable40EntryCount = referenceTable40.Entries.Count;
 
-            Console.WriteLine($"Index 40 item count: {referenceTable40EntryCount}");
+            _output.WriteLine($"Index 40 item count: {referenceTable40EntryCount}");
 
             var referenceTable17 = _cache.GetReferenceTable(17);
 
@@ -54,15 +54,20 @@ namespace RuneScapeCacheToolsTests
         {
             var firstJagaFileId = _soundtrack.GetTrackNames().First().Key;
 
-            Console.WriteLine($"First Jaga file id: {firstJagaFileId}");
+            _output.WriteLine($"First Jaga file id: {firstJagaFileId}");
 
             var referenceTable40 = _cache.GetReferenceTable(40);
 
             var firstJagaFileVersion = referenceTable40.Entries[firstJagaFileId].Version;
 
-            Console.WriteLine($"First Jaga file version: {firstJagaFileVersion}");
+            _output.WriteLine($"First Jaga file version: {firstJagaFileVersion}");
 
             Assert.True(firstJagaFileVersion > 0);
+        }
+
+        public void Dispose()
+        {
+            _cache?.Dispose();
         }
     }
 }
