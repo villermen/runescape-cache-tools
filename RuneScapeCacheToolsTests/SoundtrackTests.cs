@@ -1,17 +1,17 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 using Xunit;
 using Xunit.Abstractions;
-using Assert = Xunit.Assert;
 
 namespace RuneScapeCacheToolsTests
 {
     public class SoundtrackTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-
+       
         private readonly RuneTek5Cache _cache;
 
         private readonly Soundtrack _soundtrack;
@@ -19,8 +19,7 @@ namespace RuneScapeCacheToolsTests
         public SoundtrackTests(ITestOutputHelper output)
         {
             _output = output;
-
-            _cache = new RuneTek5Cache("TestData/");
+            _cache = new RuneTek5Cache("TestData");
             _soundtrack = new Soundtrack(_cache);
         }
 
@@ -62,6 +61,36 @@ namespace RuneScapeCacheToolsTests
             _output.WriteLine($"First Jaga file version: {firstJagaFileVersion}");
 
             Assert.True(firstJagaFileVersion > 0);
+        }
+
+        /// <summary>
+        /// Soundtrack names must be retrievable.
+        /// 
+        /// Checks if GetTrackNames returns a track with name "Soundscape".
+        /// </summary>
+        [Fact]
+        public void TestGetTrackNames()
+        {
+            var trackNames = _soundtrack.GetTrackNames();
+
+            _output.WriteLine($"Amount of track names: {trackNames.Count}");
+
+            Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"));
+        }
+
+        [Fact]
+        public void TestExportTracksAsync()
+        {
+            var startTime = DateTime.UtcNow;
+            _soundtrack.ExportTracksAsync(true).Wait();
+
+            var filename = "output/soundtrack/Soundscape.ogg";
+
+            // Verify that Soundscape.ogg has been created
+            Assert.True(File.Exists(filename));
+
+            // Verify that it has been created during this test
+            Assert.True(File.GetCreationTimeUtc(filename) >= startTime);
         }
 
         public void Dispose()
