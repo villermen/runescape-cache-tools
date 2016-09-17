@@ -139,17 +139,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			                FileName = "oggCat",
 			                UseShellExecute = false,
 			                CreateNoWindow = true,
-			                Arguments =
-			                    $"-x \"{outputDirectory}{outputFilename}\" \"" + string.Join("\" \"", randomTemporaryFilenames) +
-			                    "\""
+			                Arguments = "-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;FILE_VERSION=-1\" " + // TODO: File version
+                                $"\"{outputDirectory}{outputFilename}\" " + 
+                                "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\"",
 			            }
 			        };
+
+			        var arguments = combineProcess.StartInfo.Arguments;
 
 			        combineProcess.Start();
 			        combineProcess.WaitForExit();
 
-			        // Remove temporary files
-			        foreach (var randomTemporaryFilename in randomTemporaryFilenames)
+                    // Remove temporary files
+                    foreach (var randomTemporaryFilename in randomTemporaryFilenames)
 			        {
 			            File.Delete(randomTemporaryFilename);
 			        }
