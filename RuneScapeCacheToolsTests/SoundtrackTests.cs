@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
