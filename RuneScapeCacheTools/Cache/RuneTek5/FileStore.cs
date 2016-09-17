@@ -30,7 +30,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// <exception cref="CacheException">If any of the main_file_cache.* files could not be found.</exception>
 		public FileStore(string cacheDirectory)
 		{
-			var dataFile = Path.Combine(cacheDirectory, "main_file_cache.dat2");
+		    cacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
+
+            var dataFile = Path.Combine(cacheDirectory, "main_file_cache.dat2");
 
 			if (!File.Exists(dataFile))
 			{
