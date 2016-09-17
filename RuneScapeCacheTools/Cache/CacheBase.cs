@@ -16,8 +16,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
 
-	    private string _cacheDirectory;
-
 	    private string _outputDirectory;
 
 	    private string _temporaryDirectory;
@@ -32,11 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <summary>
 		///   The directory where the cache is located.
 		/// </summary>
-		public string CacheDirectory
-        {
-            get { return _cacheDirectory; }
-            set { _cacheDirectory = PathExtensions.FixDirectory(value); }
-        }
+		public string CacheDirectory { get; }
 
 	    /// <summary>
 	    ///   The directory where the extracted cache files will be stored.
