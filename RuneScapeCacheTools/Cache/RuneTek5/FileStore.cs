@@ -166,12 +166,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 	    protected virtual void Dispose(bool disposing)
 	    {
-            // TODO: add disposed bool and throw exceptions when disposed
 	        if (disposing)
 	        {
 	            DataStream.Dispose();
                 MetaStream.Dispose();
-
+                
                 foreach (var indexStreamPair in IndexStreams)
                 {
                     indexStreamPair.Value.Dispose();

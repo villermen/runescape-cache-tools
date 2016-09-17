@@ -21,7 +21,11 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         private static string CacheDirectory { get; set; }
 
-		private static int TriggeredActions { get; set; }
+        private static string OutputDirectory { get; set; }
+
+        private static string TemporaryDirectory { get; set; }
+
+        private static int TriggeredActions { get; set; }
 
 		private static IEnumerable<int> IndexIds { get; set; }
 
@@ -40,7 +44,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which RuneScape's cache files are located. If unspecified, the default directory will be attempted.",
 				value =>
 				{
-					CacheDirectory = ParseDirectory(value);
+					CacheDirectory = value;
 				}
 			},
 
@@ -49,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which output files (mainly extracted files) will be stored.",
 				value =>
 				{
-					Cache.OutputDirectory = ParseDirectory(value);
+					OutputDirectory = value;
 				}
 			},
 
@@ -58,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which temporary files will be stored. If unspecified, the system's default directory + \"rsct\" will be used.",
 				value =>
 				{
-					Cache.TemporaryDirectory = ParseDirectory(value);
+					TemporaryDirectory = value;
 				}
 			},
 
@@ -144,6 +148,16 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 // Initialize the cache
                 Cache = new RuneTek5Cache(CacheDirectory);
 
+			    if (OutputDirectory != null)
+			    {
+			        Cache.OutputDirectory = OutputDirectory;
+			    }
+
+			    if (TemporaryDirectory != null)
+			    {
+			        Cache.TemporaryDirectory = TemporaryDirectory;
+                }
+
 				// Perform the specified actions
 				if (DoExtract)
 				{
@@ -167,28 +181,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				Console.WriteLine(exception);
 				return 1;
 			}
-		}
-
-		/// <summary>
-		/// Formats the given directory for use in the cache tools, and expands environment variables where given.
-		/// </summary>
-		/// <param name="directoryPath"></param>
-		/// <returns></returns>
-		private static string ParseDirectory(string directoryPath)
-		{
-			// Expand environment variables
-			var result = Environment.ExpandEnvironmentVariables(directoryPath);
-
-			// Replace backslashes with forward slashes
-			result = result.Replace('\\', '/');
-
-			// Add trailing slash
-			if (!result.EndsWith("/"))
-			{
-				result += "/";
-			}
-
-			return result;
 		}
 
 		/// <summary>

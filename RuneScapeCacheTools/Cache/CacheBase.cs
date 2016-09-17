@@ -16,30 +16,50 @@ namespace Villermen.RuneScapeCacheTools.Cache
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
 
-		protected CacheBase(string cacheDirectory)
+	    private string _cacheDirectory;
+
+	    private string _outputDirectory;
+
+	    private string _temporaryDirectory;
+
+        protected CacheBase(string cacheDirectory)
 		{
-		    CacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
-		}
+		    CacheDirectory = cacheDirectory;
+            OutputDirectory = "output";
+            TemporaryDirectory = Path.GetTempPath() + "rsct";
+        }
 
 		/// <summary>
 		///   The directory where the cache is located.
 		/// </summary>
-		public string CacheDirectory { get; }
+		public string CacheDirectory
+        {
+            get { return _cacheDirectory; }
+            set { _cacheDirectory = PathExtensions.FixDirectory(value); }
+        }
 
-		/// <summary>
-		///   The directory where the extracted cache files will be stored.
-		/// </summary>
-		public string OutputDirectory { get; set; } = "output/";
+	    /// <summary>
+	    ///   The directory where the extracted cache files will be stored.
+	    /// </summary>
+	    public string OutputDirectory
+	    {
+	        get { return _outputDirectory; }
+	        set { _outputDirectory = PathExtensions.FixDirectory(value); }
+	    }
 
-		/// <summary>
+	    /// <summary>
 		///   Temporary files used while processing will be stored here.
 		/// </summary>
-		public string TemporaryDirectory { get; set; } = Path.GetTempPath() + "rsct/";
+		public string TemporaryDirectory
+        {
+            get { return _temporaryDirectory; }
+            set { _temporaryDirectory = PathExtensions.FixDirectory(value); }
+        }
 
-		/// <summary>
-		///   Processor used on obtained data.
-		/// </summary>
-		public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
+        /// <summary>
+        ///   Processor used on obtained data.
+        /// </summary>
+        public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
 
 		public abstract int IndexCount { get; }
 
