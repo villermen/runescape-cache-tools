@@ -93,6 +93,8 @@ namespace RuneScapeCacheToolsTests
             Assert.True(File.GetCreationTimeUtc(filename) >= startTime);
         }
 
+        // TODO: Check FILE_VERSION comment
+
         public void Dispose()
         {
             _cache?.Dispose();
