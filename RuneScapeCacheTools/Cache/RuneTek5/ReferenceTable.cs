@@ -38,7 +38,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			///   A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
 			///   the RuneScape client.
 			/// </summary>
-			UnkownHashes = 0x08
+			MysteryHashes = 0x08
 		}
 
 		/// <summary>
@@ -106,7 +106,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			}
 
 			// Read some type of hash
-			if ((Flags & DataFlags.UnkownHashes) != 0)
+			if ((Flags & DataFlags.MysteryHashes) != 0)
 			{
 				foreach (var id in ids)
 				{
@@ -263,11 +263,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			///   The children in this entry.
 			/// </summary>
 			public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
-
-			/// <summary>
-			///   The maximum number of entries in this table.
-			/// </summary>
-			public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 		}
 
 		/// <summary>

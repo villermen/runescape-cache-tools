@@ -142,7 +142,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			// Check if the file/entry are valid
 			var entry = table.Entries[archiveId];
 
-			return new Archive(container.Data, entry.Capacity);
+			return new Archive(container.Data, entry.Entries.Count);
 		}
 
 		/// <summary>
