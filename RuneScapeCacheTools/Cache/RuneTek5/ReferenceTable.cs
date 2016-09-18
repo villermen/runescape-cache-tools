@@ -44,7 +44,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		/// <summary>
 		///   Decodes the slave checksum table contained in the given byte array.
 		/// </summary>
-		/// <param name="stream"></param>
+		/// <param name="data"></param>
 		/// <returns></returns>
 		public ReferenceTable(byte[] data)
 		{
@@ -209,11 +209,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		public IDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
 
 		/// <summary>
-		///   The maximum number of entries in this table.
-		/// </summary>
-		public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
-
-		/// <summary>
 		///   Represents a single entry within a <see cref="ReferenceTable" />.
 		/// </summary>
 		public class Entry
@@ -268,11 +263,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			///   The children in this entry.
 			/// </summary>
 			public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
-
-			/// <summary>
-			///   The maximum number of entries in this table.
-			/// </summary>
-			public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 		}
 
 		/// <summary>
