@@ -263,6 +263,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			///   The children in this entry.
 			/// </summary>
 			public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
+
+			/// <summary>
+			///   The maximum number of entries in this table.
+			/// </summary>
+			public int Capacity => Entries.Any() ? Entries.Last().Key + 1 : 0;
 		}
 
 		/// <summary>
