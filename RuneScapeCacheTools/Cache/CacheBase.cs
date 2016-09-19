@@ -59,7 +59,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 		public abstract int GetFileCount(int indexId);
 
-		public abstract int GetArchiveFileCount(int indexId, int archiveId);
+		// public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
 		/// <summary>
 		///   Extracts every file from every index.
@@ -116,53 +116,40 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		/// <returns></returns>
 		public void Extract(int indexId, int fileId, bool overwrite = false)
 		{
-			try
-			{
-				var fileData = GetFileData(indexId, fileId);
+			var file = GetFile(indexId, fileId);
 
-				if (fileData == null)
+			var extension = ExtensionGuesser.GuessExtension(file.Data[0]);
+
+			// Throw an exception if the output directory is not yet set or does not exist
+			if (string.IsNullOrWhiteSpace(OutputDirectory))
+			{
+				throw new CacheException("Output directory must be set before file extraction.");
+			}
+
+			// Delete existing file (if allowed)
+			var existingFilePath = GetFileOutputPath(indexId, fileId);
+			if (existingFilePath != null)
+			{
+				if (!overwrite)
 				{
-					Logger.Info($"Skipped index {indexId} file {fileId} because it contains no data.");
+					Logger.Info($"Skipped index {indexId} file {fileId} because it is already extracted.");
 					return;
 				}
 
-				var extension = ExtensionGuesser.GuessExtension(ref fileData);
-
-				// Throw an exception if the output directory is not yet set or does not exist
-				if (string.IsNullOrWhiteSpace(OutputDirectory))
-				{
-					throw new CacheException("Output directory must be set before file extraction.");
-				}
-
-				// Delete existing file (if allowed)
-				var existingFilePath = GetFileOutputPath(indexId, fileId);
-				if (existingFilePath != null)
-				{
-					if (!overwrite)
-					{
-						Logger.Info($"Skipped index {indexId} file {fileId} because it is already extracted.");
-						return;
-					}
-
-					File.Delete(existingFilePath);
-				}
-
-				// Construct new path for file
-				string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
-				if (!string.IsNullOrWhiteSpace(extension))
-				{
-					newFilePath += $".{extension}";
-				}
-
-				// Create directories where necessary, before writing to file
-				Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
-				File.WriteAllBytes(newFilePath, fileData);
-				Logger.Info($"Extracted index {indexId} file {fileId}.");
+				File.Delete(existingFilePath);
 			}
-			catch (SectorException exception)
+
+			// Construct new path for file
+			string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
+			if (!string.IsNullOrWhiteSpace(extension))
 			{
-				Logger.Info($"Could not extract index {indexId} file {fileId}: {exception.Message}");
+				newFilePath += $".{extension}";
 			}
+
+			// Create directories where necessary, before writing to file
+			Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+			File.WriteAllBytes(newFilePath, file.Data[0]);
+			Logger.Info($"Extracted index {indexId} file {fileId}.");
 		}
 
 		/// <summary>
@@ -210,41 +197,41 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			}
 		}
 
-		/// <summary>
-		///   Returns the raw data for the given file.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <param name="fileId"></param>
-		/// <returns></returns>
-		public abstract byte[] GetFileData(int indexId, int fileId);
+	    /// <summary>
+	    ///   Returns the raw data for the given file.
+	    /// </summary>
+	    /// <param name="indexId"></param>
+	    /// <param name="fileId"></param>
+	    /// <returns></returns>
+	    public abstract CacheFile GetFile(int indexId, int fileId);
 
-		/// <summary>
-		///   Returns the data for all the files in the specified archive.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <param name="archiveId"></param>
-		/// <returns></returns>
-		public byte[][] GetArchiveFiles(int indexId, int archiveId)
-		{
-			var fileCount = GetArchiveFileCount(indexId, archiveId);
-			var archiveFilesData = new byte[fileCount][];
+		///// <summary>
+		/////   Returns the data for all the files in the specified archive.
+		///// </summary>
+		///// <param name="indexId"></param>
+		///// <param name="archiveId"></param>
+		///// <returns></returns>
+		//public byte[][] GetArchiveFiles(int indexId, int archiveId)
+		//{
+		//	var fileCount = GetArchiveFileCount(indexId, archiveId);
+		//	var archiveFilesData = new byte[fileCount][];
 
-			for (var fileId = 0; fileId < fileCount; fileId++)
-			{
-				archiveFilesData[fileId] = GetArchiveFileData(indexId, archiveId, fileId);
-			}
+		//	for (var fileId = 0; fileId < fileCount; fileId++)
+		//	{
+		//		archiveFilesData[fileId] = GetArchiveFileData(indexId, archiveId, fileId);
+		//	}
 
-			return archiveFilesData;
-		}
+		//	return archiveFilesData;
+		//}
 
-		/// <summary>
-		///   Returns the data for the specified file in the specified archive.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <param name="archiveId"></param>
-		/// <param name="fileId"></param>
-		/// <returns></returns>
-		public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
+		///// <summary>
+		/////   Returns the data for the specified file in the specified archive.
+		///// </summary>
+		///// <param name="indexId"></param>
+		///// <param name="archiveId"></param>
+		///// <param name="fileId"></param>
+		///// <returns></returns>
+		//public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
 
 	    public void Dispose()
 	    {
@@ -254,11 +241,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
 	    protected virtual void Dispose(bool disposing)
 	    {
-	    }
-
-	    ~CacheBase()
-	    {
-	        Dispose(false);
 	    }
 	}
 }

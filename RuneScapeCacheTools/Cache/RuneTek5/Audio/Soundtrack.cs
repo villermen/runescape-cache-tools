@@ -35,145 +35,149 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 		/// <returns></returns>
 		public IDictionary<int, string> GetTrackNames()
 		{
-			// Read out the two enums that, when combined, make up the awesome lookup table
-			var trackNames = new EnumFile(Cache.GetArchiveFileData(17, 5, 65));
-			var jagaFileIds = new EnumFile(Cache.GetArchiveFileData(17, 5, 71));
+            throw new NotImplementedException();
 
-			// Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
-			var result = new SortedDictionary<int, string>();
-			foreach (var trackNamePair in trackNames)
-			{
-				var trackName = (string) trackNamePair.Value;
+   //         // Read out the two enums that, when combined, make up the awesome lookup table
+			//var trackNames = new EnumFile(Cache.GetArchiveFileData(17, 5, 65));
+			//var jagaFileIds = new EnumFile(Cache.GetArchiveFileData(17, 5, 71));
 
-				if (!jagaFileIds.ContainsKey(trackNamePair.Key))
-				{
-					continue;
-				}
+			//// Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
+			//var result = new SortedDictionary<int, string>();
+			//foreach (var trackNamePair in trackNames)
+			//{
+			//	var trackName = (string) trackNamePair.Value;
 
-				var trackFileId = (int) jagaFileIds[trackNamePair.Key];
+			//	if (!jagaFileIds.ContainsKey(trackNamePair.Key))
+			//	{
+			//		continue;
+			//	}
 
-				// Make trackName filename-safe
-				foreach (var invalidChar in Path.GetInvalidFileNameChars())
-				{
-					trackName = trackName.Replace(invalidChar.ToString(), "");
-				}
+			//	var trackFileId = (int) jagaFileIds[trackNamePair.Key];
 
-				// Don't add empty filenames to the array
-				if (string.IsNullOrWhiteSpace(trackName))
-				{
-					continue;
-				}
+			//	// Make trackName filename-safe
+			//	foreach (var invalidChar in Path.GetInvalidFileNameChars())
+			//	{
+			//		trackName = trackName.Replace(invalidChar.ToString(), "");
+			//	}
 
-				if (!result.ContainsKey(trackFileId))
-				{
-					result.Add(trackFileId, trackName);
-				}
-				else
-				{
-					result[trackFileId] = trackName;
-				}
-			}
+			//	// Don't add empty filenames to the array
+			//	if (string.IsNullOrWhiteSpace(trackName))
+			//	{
+			//		continue;
+			//	}
 
-			// Rename duplicate names, as those are a thing apparently...
-			var duplicateNameGroups = result
-				.GroupBy(pair => pair.Value)
-				.Where(group => group.Count() > 1)
-				.Select(group => group.Skip(1)); // Select only the second and up, because the first one doesn't have to be renamed
+			//	if (!result.ContainsKey(trackFileId))
+			//	{
+			//		result.Add(trackFileId, trackName);
+			//	}
+			//	else
+			//	{
+			//		result[trackFileId] = trackName;
+			//	}
+			//}
 
-			foreach (var duplicateNameGroup in duplicateNameGroups)
-			{
-				var duplicateId = 2;
-				foreach (var duplicateNamePair in duplicateNameGroup)
-				{
-					result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
-				}
-			}
+			//// Rename duplicate names, as those are a thing apparently...
+			//var duplicateNameGroups = result
+			//	.GroupBy(pair => pair.Value)
+			//	.Where(group => group.Count() > 1)
+			//	.Select(group => group.Skip(1)); // Select only the second and up, because the first one doesn't have to be renamed
 
-			return result;
+			//foreach (var duplicateNameGroup in duplicateNameGroups)
+			//{
+			//	var duplicateId = 2;
+			//	foreach (var duplicateNamePair in duplicateNameGroup)
+			//	{
+			//		result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
+			//	}
+			//}
+
+			//return result;
 		}
 
 		public async Task ExportTracksAsync(bool overwriteExisting = false)
 		{
-			var trackNames = GetTrackNames();
-			var outputDirectory = Cache.OutputDirectory + "soundtrack/";
+            throw new NotImplementedException();
 
-			Directory.CreateDirectory(outputDirectory);
-			Directory.CreateDirectory(Cache.TemporaryDirectory);
+   //         var trackNames = GetTrackNames();
+			//var outputDirectory = Cache.OutputDirectory + "soundtrack/";
 
-			// Remove existing tracks from the dictionary if we should not export them anyway
-			if (!overwriteExisting)
-			{
-				var existingTrackNames = Directory.EnumerateFiles(outputDirectory, "*.ogg").Select(Path.GetFileNameWithoutExtension);
+			//Directory.CreateDirectory(outputDirectory);
+			//Directory.CreateDirectory(Cache.TemporaryDirectory);
 
-				trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value))
-					.ToDictionary(pair => pair.Key, pair => pair.Value);
-			}
+			//// Remove existing tracks from the dictionary if we should not export them anyway
+			//if (!overwriteExisting)
+			//{
+			//	var existingTrackNames = Directory.EnumerateFiles(outputDirectory, "*.ogg").Select(Path.GetFileNameWithoutExtension);
 
-			Logger.Info("Done obtaining soundtrack names and file ids.");
+			//	trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value))
+			//		.ToDictionary(pair => pair.Key, pair => pair.Value);
+			//}
 
-			await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
-			{
-                var outputFilename = $"{trackNamePair.Value}.ogg";
+			//Logger.Info("Done obtaining soundtrack names and file ids.");
 
-                try
-			    {
-			        var jagaFile = new JagaFile(Cache.GetFileData(40, trackNamePair.Key));
+			//await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
+			//{
+   //             var outputFilename = $"{trackNamePair.Value}.ogg";
 
-			        // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
-			        var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
+   //             try
+			//    {
+			//        var jagaFile = new JagaFile(Cache.GetFile(40, trackNamePair.Key));
 
-			        // Write out the files
-			        File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
+			//        // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
+			//        var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
 
-			        for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
-			        {
-			            File.WriteAllBytes(randomTemporaryFilenames[chunkIndex],
-			                Cache.GetFileData(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
-			        }
+			//        // Write out the files
+			//        File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
 
-			        // Combine the files using oggCat
-			        var combineProcess = new Process
-			        {
-			            StartInfo =
-			            {
-			                FileName = "oggCat",
-			                UseShellExecute = false,
-			                CreateNoWindow = true,
-			                Arguments = "-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;FILE_VERSION=-1\" " + // TODO: File version
-                                $"\"{outputDirectory}{outputFilename}\" " + 
-                                "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\"",
-			            }
-			        };
+			//        for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+			//        {
+			//            File.WriteAllBytes(randomTemporaryFilenames[chunkIndex],
+			//                Cache.GetFile(40, jagaFile.ChunkDescriptors[chunkIndex].FileId));
+			//        }
 
-			        var arguments = combineProcess.StartInfo.Arguments;
+			//        // Combine the files using oggCat
+			//        var combineProcess = new Process
+			//        {
+			//            StartInfo =
+			//            {
+			//                FileName = "oggCat",
+			//                UseShellExecute = false,
+			//                CreateNoWindow = true,
+			//                Arguments = "-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;FILE_VERSION=-1\" " + // TODO: File version
+   //                             $"\"{outputDirectory}{outputFilename}\" " + 
+   //                             "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\"",
+			//            }
+			//        };
 
-			        combineProcess.Start();
-			        combineProcess.WaitForExit();
+			//        var arguments = combineProcess.StartInfo.Arguments;
 
-                    // Remove temporary files
-                    foreach (var randomTemporaryFilename in randomTemporaryFilenames)
-			        {
-			            File.Delete(randomTemporaryFilename);
-			        }
+			//        combineProcess.Start();
+			//        combineProcess.WaitForExit();
 
-			        if (combineProcess.ExitCode != 0)
-			        {
-			            var soundtrackException =
-			                new SoundtrackException(
-			                    $"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
-			            Logger.Error(soundtrackException.Message, soundtrackException);
-			            throw soundtrackException;
-			        }
+   //                 // Remove temporary files
+   //                 foreach (var randomTemporaryFilename in randomTemporaryFilenames)
+			//        {
+			//            File.Delete(randomTemporaryFilename);
+			//        }
 
-			        Logger.Info($"Combined {outputFilename}.");
-			    }
-			    catch (Exception exception) when (exception is SectorException || exception is CacheException)
-			    {
-			        Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
-			    }
-			}));
+			//        if (combineProcess.ExitCode != 0)
+			//        {
+			//            var soundtrackException =
+			//                new SoundtrackException(
+			//                    $"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
+			//            Logger.Error(soundtrackException.Message, soundtrackException);
+			//            throw soundtrackException;
+			//        }
 
-			Logger.Info($"Done combining soundtracks.");
+			//        Logger.Info($"Combined {outputFilename}.");
+			//    }
+			//    catch (Exception exception) when (exception is SectorException || exception is CacheException)
+			//    {
+			//        Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+			//    }
+			//}));
+
+			//Logger.Info($"Done combining soundtracks.");
 		}
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)

@@ -171,7 +171,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 				index = 0;
 				foreach (var child in members[id])
 				{
-					Entries[id].Entries.Add(child, new ChildEntry(index++));
+					Entries[id].ChildEntries.Add(child, new ChildEntry(index++));
 				}
 			}
 
@@ -182,7 +182,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 				{
 					foreach (var child in members[id])
 					{
-						Entries[id].Entries[child].Identifier = reader.ReadInt32BigEndian();
+						Entries[id].ChildEntries[child].Identifier = reader.ReadInt32BigEndian();
 					}
 				}
 			}
@@ -262,7 +262,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			/// <summary>
 			///   The children in this entry.
 			/// </summary>
-			public IDictionary<int, ChildEntry> Entries { get; } = new SortedDictionary<int, ChildEntry>();
+			public IDictionary<int, ChildEntry> ChildEntries { get; } = new SortedDictionary<int, ChildEntry>();
 		}
 
 		/// <summary>

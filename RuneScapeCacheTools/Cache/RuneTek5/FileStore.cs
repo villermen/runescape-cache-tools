@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 			DataStream = File.Open(dataFile, FileMode.Open);
 
-			for (var indexId = 0; indexId < 254; indexId++)
+			for (var indexId = 0; indexId < 255; indexId++)
 			{
 				var indexFile = Path.Combine(cacheDirectory + "main_file_cache.idx" + indexId);
 
@@ -155,11 +155,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			throw new NotImplementedException();
 		}
 
-		public byte[] GetMetadata(int fileId)
-		{
-			return GetFileData(MetadataIndexId, fileId);
-		}
-
 	    public void Dispose()
 	    {
 	        Dispose(true);
@@ -178,11 +173,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     indexStreamPair.Value.Dispose();
                 }
 	        }
-	    }
-
-	    ~FileStore()
-	    {
-	        Dispose(false);
 	    }
 	}
 }

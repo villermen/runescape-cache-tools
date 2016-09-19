@@ -11,6 +11,6 @@
 		/// </summary>
 		/// <param name="fileData"></param>
 		/// <returns>A file extension, or null when no extension could be guessed.</returns>
-		string GuessExtension(ref byte[] fileData);
+		string GuessExtension(byte[] fileData);
 	}
 }

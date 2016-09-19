@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -50,23 +51,60 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			return FileStore.GetFileCount(indexId);
 		}
 
-		public override int GetArchiveFileCount(int indexId, int archiveId)
+		//public override int GetArchiveFileCount(int indexId, int archiveId)
+		//{
+		//	var archive = GetArchive(indexId, archiveId);
+		//	return archive.Entries.Length;
+		//}
+
+		public override CacheFile GetFile(int indexId, int fileId)
 		{
-			var archive = GetArchive(indexId, archiveId);
-			return archive.Entries.Length;
+            // Create the reference table for the requested index
+			var metaContainer = new Container(FileStore.GetFileData(FileStore.MetadataIndexId, indexId));
+            var referenceTable = new ReferenceTable(metaContainer.Data);
+
+            // The file must at least be defined in the reference table (doesn't mean it is actually complete)
+		    if (!referenceTable.Entries.ContainsKey(fileId))
+		    {
+		        throw new CacheException($"Given cache file {fileId} in index {indexId} does not exist.");
+		    }
+
+		    var referenceTableEntry = referenceTable.Entries[fileId];
+
+            Container container;
+
+            try
+		    {
+                container = new Container(FileStore.GetFileData(indexId, fileId));
+		    }
+		    catch (SectorException exception)
+		    {
+		        throw new CacheException($"Cache file {fileId} in index {indexId} is incomplete or corrupted.", exception);
+		    }
+
+            // Archives (files with multiple entries) are handled differently
+		    byte[][] data;
+
+		    var amountOfEntries = referenceTableEntry.ChildEntries.Count;
+
+		    if (amountOfEntries == 1)
+		    {
+		        data = new byte[][] {container.Data};
+		    }
+		    else
+		    {
+                var archive = new Archive(container.Data, amountOfEntries);
+		        data = archive.Entries;
+		    }
+
+		    return new CacheFile(indexId, fileId, data, referenceTableEntry.Version);
 		}
 
-		public override byte[] GetFileData(int indexId, int fileId)
-		{
-			var container = GetFile(indexId, fileId);
-			return container.Data;
-		}
-
-		public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
-		{
-			var archive = GetArchive(indexId, archiveId);
-			return archive.Entries[fileId];
-		}
+		//public override byte[] GetArchiveFileData(int indexId, int archiveId, int fileId)
+		//{
+		//	var archive = GetArchive(indexId, archiveId);
+		//	return archive.Entries[fileId];
+		//}
 
 		/// <summary>
 		///   Gets a file id from the cache by name.
@@ -114,46 +152,25 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			throw new NotImplementedException();
 		}
 
-		public Container GetFile(int indexId, int fileId)
-		{
-			if (indexId == FileStore.MetadataIndexId)
-			{
-				throw new CacheException("Reference tables can only be read with the low level FileStore API!");
-			}
-
-			// Delegate the call to the file store and then decode the container
-			return new Container(FileStore.GetFileData(indexId, fileId));
-		}
-
 		/// <summary>
 		///   Reads an <see cref="Archive" />.
 		/// </summary>
 		/// <param name="indexId"></param>
 		/// <param name="archiveId"></param>
 		/// <returns></returns>
-		public Archive GetArchive(int indexId, int archiveId)
-		{
-			// Grab the container and the reference table
-			var container = GetFile(indexId, archiveId);
-			var tableContainer = new Container(FileStore.GetMetadata(indexId));
+		//public Archive GetArchive(int indexId, int archiveId)
+		//{
+		//	// Grab the container and the reference table
+		//	var container = GetContainer(indexId, archiveId);
+		//	var tableContainer = new Container(FileStore.GetMetadata(indexId));
 
-			var table = new ReferenceTable(tableContainer.Data);
+		//	var table = new ReferenceTable(tableContainer.Data);
 
-			// Check if the file/entry are valid
-			var entry = table.Entries[archiveId];
+		//	// Check if the file/entry are valid
+		//	var entry = table.Entries[archiveId];
 
-			return new Archive(container.Data, entry.Entries.Count);
-		}
-
-		/// <summary>
-		/// TODO: Decide whether this needs to be in CacheBase or be something else entirely.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <returns></returns>
-		public ReferenceTable GetReferenceTable(int indexId)
-		{
-			return new ReferenceTable(new Container(FileStore.GetMetadata(indexId)).Data);
-		}
+		//	return new Archive(container.Data, entry.ChildEntries.Count);
+		//}
 
 	    protected override void Dispose(bool disposing)
 	    {
