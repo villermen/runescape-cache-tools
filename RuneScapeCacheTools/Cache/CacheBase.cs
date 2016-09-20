@@ -118,38 +118,42 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		{
 			var file = GetFile(indexId, fileId);
 
-			var extension = ExtensionGuesser.GuessExtension(file.Data[0]);
+		    for (var entryId = 0; entryId < file.Data.Length; entryId++)
+		    {
+		        var currentData = file.Data[entryId];
+                var extension = ExtensionGuesser.GuessExtension(currentData);
 
-			// Throw an exception if the output directory is not yet set or does not exist
-			if (string.IsNullOrWhiteSpace(OutputDirectory))
-			{
-				throw new CacheException("Output directory must be set before file extraction.");
-			}
+                // Throw an exception if the output directory is not yet set or does not exist
+                if (string.IsNullOrWhiteSpace(OutputDirectory))
+                {
+                    throw new CacheException("Output directory must be set before file extraction.");
+                }
 
-			// Delete existing file (if allowed)
-			var existingFilePath = GetFileOutputPath(indexId, fileId);
-			if (existingFilePath != null)
-			{
-				if (!overwrite)
-				{
-					Logger.Info($"Skipped index {indexId} file {fileId} because it is already extracted.");
-					return;
-				}
+                // Delete existing file (if allowed)
+                var existingFilePath = GetFileOutputPath(indexId, fileId, entryId);
+                if (existingFilePath != null)
+                {
+                    if (!overwrite)
+                    {
+                        Logger.Info($"Skipped index {indexId} file {fileId}{(entryId > 0 ? "-" + (entryId + 1) : "")} because it is already extracted.");
+                        return;
+                    }
 
-				File.Delete(existingFilePath);
-			}
+                    File.Delete(existingFilePath);
+                }
 
-			// Construct new path for file
-			string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
-			if (!string.IsNullOrWhiteSpace(extension))
-			{
-				newFilePath += $".{extension}";
-			}
+                // Construct new path for file
+                string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
+                if (!string.IsNullOrWhiteSpace(extension))
+                {
+                    newFilePath += $".{extension}";
+                }
 
-			// Create directories where necessary, before writing to file
-			Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
-			File.WriteAllBytes(newFilePath, file.Data[0]);
-			Logger.Info($"Extracted index {indexId} file {fileId}.");
+                // Create directories where necessary, before writing to file
+                Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+                File.WriteAllBytes(newFilePath, currentData);
+                Logger.Info($"Extracted index {indexId} file {fileId}.");
+            }
 		}
 
 		/// <summary>
@@ -163,33 +167,27 @@ namespace Villermen.RuneScapeCacheTools.Cache
 			return Directory.Exists(indexPath) ? indexPath : null;
 		}
 
-		/// <summary>
-		///   Finds the path for the given extracted file.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <param name="fileId"></param>
-		/// <param name="extractIfMissing">Try to extract the file if it hasn't been extracted yet.</param>
-		/// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-		public virtual string GetFileOutputPath(int indexId, int fileId, bool extractIfMissing = false)
+	    /// <summary>
+	    ///   Finds the path for the given extracted file.
+	    /// </summary>
+	    /// <param name="indexId"></param>
+	    /// <param name="fileId"></param>
+	    /// <param name="entryId"></param>
+	    /// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
+	    public virtual string GetFileOutputPath(int indexId, int fileId, int entryId = 0)
 		{
 			try
 			{
+                // Suffix fileId with entryId + 1 if nonzero
+			    var fileIdString = fileId + (entryId > 0 ? "-" + (entryId + 1) : "");
+
 				var path = Directory
-					.EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileId}*")
-					.FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileId}(\..+)?$"));
+					.EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileIdString}*")
 
-				if (!string.IsNullOrWhiteSpace(path))
-				{
-					return path;
-				}
+                    // Check if fileIdString is the full name of the file minus extension, prevents matching 234 with 2345.ext
+                    .FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileIdString}(\..+)?$")); 
 
-				if (!extractIfMissing)
-				{
-					return null;
-				}
-
-				Extract(indexId, fileId);
-				return GetFileOutputPath(indexId, fileId);
+				return !string.IsNullOrWhiteSpace(path) ? path : null;
 			}
 			catch (DirectoryNotFoundException)
 			{
