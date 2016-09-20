@@ -8,9 +8,9 @@ namespace RuneScapeCacheToolsTests
 {
     public class RuneTek5CacheTests : IDisposable
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
-        private RuneTek5Cache _cache;
+        private readonly RuneTek5Cache _cache;
 
         public RuneTek5CacheTests(ITestOutputHelper output)
         {
