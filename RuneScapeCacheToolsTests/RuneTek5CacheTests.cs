@@ -19,16 +19,6 @@ namespace RuneScapeCacheToolsTests
             _cache = new RuneTek5Cache("TestData");
         }
 
-        [Fact]
-        public void TestGetReferenceTable()
-        {
-            //var referenceTable = _cache.GetReferenceTable(40);
-
-            //Assert.True(referenceTable.Entries.Count == 60391);
-
-            //_output.WriteLine(referenceTable.Entries.Count.ToString());
-        }
-
         /// <summary>
         /// Test for a file that exists, an archive file that exists and a file that doesn't exist.
         /// </summary>
@@ -37,7 +27,26 @@ namespace RuneScapeCacheToolsTests
         {
             var file = _cache.GetFile(12, 3);
 
-            throw new NotImplementedException();
+            var fileData = file.Data;
+
+            Assert.True(fileData.Length > 0, "File's data is empty.");
+
+            var archiveFile = _cache.GetFile(17, 5);
+
+            var archiveEntry = archiveFile.Entries[255];
+
+            Assert.True(archiveEntry.Length > 0, "Archive entry's data is empty.");
+
+            try
+            {
+                _cache.GetFile(40, 30);
+
+                Assert.True(false, "Cache returned a file that shouldn't exist.");
+            }
+            catch (CacheException exception)
+            {
+                Assert.True(exception.Message.Contains("incomplete"), "Non-existent file cache exception had the wrong message.");
+            }
         }
 
         public void Dispose()

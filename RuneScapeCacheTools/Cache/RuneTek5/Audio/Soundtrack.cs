@@ -117,7 +117,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
                 try
                 {
-                    var jagaFile = new JagaFile(Cache.GetFile(40, trackNamePair.Key).Entries[0]);
+                    var jagaFile = new JagaFile(Cache.GetFile(40, trackNamePair.Key).Data);
 
                     // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
                     var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
@@ -128,7 +128,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
                     for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                     {
                         File.WriteAllBytes(randomTemporaryFilenames[chunkIndex],
-                            Cache.GetFile(40, jagaFile.ChunkDescriptors[chunkIndex].FileId).Entries[0]);
+                            Cache.GetFile(40, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                     }
 
                     // Combine the files using oggCat

@@ -13,6 +13,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
+        /// Shorthand to get the first entry, which the full file in most cases.
+        /// </summary>
+        public byte[] Data => Entries[0];
+
+        /// <summary>
         /// The cache index this file originated from.
         /// </summary>
         public int IndexId { get; }
