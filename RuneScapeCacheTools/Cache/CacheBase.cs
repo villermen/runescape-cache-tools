@@ -10,7 +10,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 {
 	/// <summary>
 	///   Base class for current cache systems.
-	///   Cache should include indexes and archives in order to use this.
+	///   For cache structures expressing the concept of indexes and archives.
 	/// </summary>
 	public abstract class CacheBase : IDisposable
 	{
@@ -198,40 +198,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		}
 
 	    /// <summary>
-	    ///   Returns the raw data for the given file.
+	    ///   Returns the data and metadata for the requested file.
 	    /// </summary>
 	    /// <param name="indexId"></param>
 	    /// <param name="fileId"></param>
 	    /// <returns></returns>
 	    public abstract CacheFile GetFile(int indexId, int fileId);
-
-		///// <summary>
-		/////   Returns the data for all the files in the specified archive.
-		///// </summary>
-		///// <param name="indexId"></param>
-		///// <param name="archiveId"></param>
-		///// <returns></returns>
-		//public byte[][] GetArchiveFiles(int indexId, int archiveId)
-		//{
-		//	var fileCount = GetArchiveFileCount(indexId, archiveId);
-		//	var archiveFilesData = new byte[fileCount][];
-
-		//	for (var fileId = 0; fileId < fileCount; fileId++)
-		//	{
-		//		archiveFilesData[fileId] = GetArchiveFileData(indexId, archiveId, fileId);
-		//	}
-
-		//	return archiveFilesData;
-		//}
-
-		///// <summary>
-		/////   Returns the data for the specified file in the specified archive.
-		///// </summary>
-		///// <param name="indexId"></param>
-		///// <param name="archiveId"></param>
-		///// <param name="fileId"></param>
-		///// <returns></returns>
-		//public abstract byte[] GetArchiveFileData(int indexId, int archiveId, int fileId);
 
 	    public void Dispose()
 	    {

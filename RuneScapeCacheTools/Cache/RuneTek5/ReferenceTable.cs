@@ -6,11 +6,10 @@ using System.Linq;
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
 	/// <summary>
-	///   A ReferenceTable holds details for all the files with a singletype, such as checksums, versions and archive
-	///   members.
-	///   There are also optional fields for identifier hashes and whirlpool digests.
-	///   <author>Graham</author>
+	/// A <see cref="ReferenceTable"/> holds metadata for all registered files in an index, such as checksums, versions and archive members.
+	/// Note that the data of registered files does not have to be present in the index for them to be listed.
 	/// </summary>
+	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	/// <author>Sean</author>
 	/// <author>Villermen</author>
