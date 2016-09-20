@@ -10,7 +10,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 {
 	/// <summary>
 	///   Base class for current cache systems.
-	///   For cache structures expressing the concept of indexes and archives.
+	///   For cache structures expressing the notion of indexes and archives.
 	/// </summary>
 	public abstract class CacheBase : IDisposable
 	{
@@ -118,9 +118,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
 		{
 			var file = GetFile(indexId, fileId);
 
-		    for (var entryId = 0; entryId < file.Data.Length; entryId++)
+		    for (var entryId = 0; entryId < file.Entries.Length; entryId++)
 		    {
-		        var currentData = file.Data[entryId];
+		        var currentData = file.Entries[entryId];
                 var extension = ExtensionGuesser.GuessExtension(currentData);
 
                 // Throw an exception if the output directory is not yet set or does not exist
