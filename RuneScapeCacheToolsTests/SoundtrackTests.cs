@@ -39,7 +39,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"));
         }
 
-        // [Fact] Removed because test data is not customized yet
+        // [Fact] // Removed because test data is not customized yet
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
@@ -54,7 +54,10 @@ namespace RuneScapeCacheToolsTests
             Assert.True(File.GetCreationTimeUtc(filename) >= startTime);
         }
 
-        // TODO: Check FILE_VERSION comment
+        //[Fact]
+        //public void TestGetVersionFromCombinedTrackFile()
+        //{
+        //}
 
         public void Dispose()
         {

@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
+using TagLib;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
+using File = System.IO.File;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 {
@@ -92,6 +94,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
             return result;
         }
 
+        /// <summary>
+        /// Combines and exports the soundtracks from the audio chunks in archive 40 into full soundtrack files.
+        /// </summary>
+        /// <param name="overwriteExisting">If true, export and overwrite existing files. Overwriting is done regardless for files that have a changed version.</param>
+        /// <returns></returns>
 		public async Task ExportTracksAsync(bool overwriteExisting = false)
 		{
             var trackNames = GetTrackNames();
@@ -100,24 +107,31 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
             Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(Cache.TemporaryDirectory);
 
-            // Remove existing tracks from the dictionary if we should not export them anyway
-            if (!overwriteExisting)
-            {
-                var existingTrackNames = Directory.EnumerateFiles(outputDirectory, "*.ogg").Select(Path.GetFileNameWithoutExtension);
-
-                trackNames = trackNames.Where(pair => !existingTrackNames.Contains(pair.Value))
-                    .ToDictionary(pair => pair.Key, pair => pair.Value);
-            }
-
             Logger.Info("Done obtaining soundtrack names and file ids.");
 
             await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
             {
                 var outputFilename = $"{trackNamePair.Value}.ogg";
+                var outputPath = Path.Combine(outputDirectory, outputFilename);
 
                 try
                 {
-                    var jagaFile = new JagaFile(Cache.GetFile(40, trackNamePair.Key).Data);
+                    var jagaCacheFile = Cache.GetFile(40, trackNamePair.Key);
+
+                    // Skip file if not overwriting existing and the file exists
+                    if (!overwriteExisting && File.Exists(outputPath))
+                    {
+                        // But only if the version of the file is unchanged
+                        var existingVersion = GetVersionFromExistingTrackFile(outputPath);
+
+                        if (existingVersion == jagaCacheFile.Version)
+                        {
+                            Logger.Info($"Skipping {outputFilename} because it already exists and version is unchanged.");
+                            return;
+                        } 
+                    }
+
+                    var jagaFile = new JagaFile(jagaCacheFile.Data);
 
                     // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
                     var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);
@@ -139,8 +153,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
                             FileName = "oggCat",
                             UseShellExecute = false,
                             CreateNoWindow = true,
-                            Arguments = "-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;FILE_VERSION=-1\" " + // TODO: File version
-                                $"\"{outputDirectory}{outputFilename}\" " +
+                            Arguments = $"-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;VERSION={jagaCacheFile.Version}\" " +
+                                $"\"{outputPath}\" " +
                                 "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\"",
                         }
                     };
@@ -195,5 +209,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
 			return result;
 		}
+
+	    public int GetVersionFromCombinedTrackFile(string path)
+	    {
+            throw new NotImplementedException();
+	    }
 	}
 }
