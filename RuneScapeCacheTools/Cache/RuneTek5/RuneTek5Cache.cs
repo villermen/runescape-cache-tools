@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -31,6 +33,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		public static string DefaultCacheDirectory
 			=> Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
+        private ConcurrentDictionary<int, ReferenceTable> ReferenceTables { get; } = new ConcurrentDictionary<int, ReferenceTable>();
+
 		/// <summary>
 		///   Computes the <see cref="ChecksumTable" /> for this cache.
 		///   The checksum table forms part of the so-called "update keys".
@@ -59,9 +63,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
 		public override CacheFile GetFile(int indexId, int fileId)
 		{
-            // Create the reference table for the requested index
-			var metaContainer = new Container(FileStore.GetFileData(FileStore.MetadataIndexId, indexId));
-            var referenceTable = new ReferenceTable(metaContainer.Data);
+            // Obtain the reference table for the requested index
+		    var referenceTable = GetReferenceTable(indexId);
 
             // The file must at least be defined in the reference table (doesn't mean it is actually complete)
 		    if (!referenceTable.Entries.ContainsKey(fileId))
@@ -152,25 +155,35 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			throw new NotImplementedException();
 		}
 
-		/// <summary>
-		///   Reads an <see cref="Archive" />.
-		/// </summary>
-		/// <param name="indexId"></param>
-		/// <param name="archiveId"></param>
-		/// <returns></returns>
-		//public Archive GetArchive(int indexId, int archiveId)
-		//{
-		//	// Grab the container and the reference table
-		//	var container = GetContainer(indexId, archiveId);
-		//	var tableContainer = new Container(FileStore.GetMetadata(indexId));
+	    /// <summary>
+	    ///   Reads an <see cref="Archive" />.
+	    /// </summary>
+	    /// <param name="indexId"></param>
+	    /// <param name="archiveId"></param>
+	    /// <returns></returns>
+	    //public Archive GetArchive(int indexId, int archiveId)
+	    //{
+	    //	// Grab the container and the reference table
+	    //	var container = GetContainer(indexId, archiveId);
+	    //	var tableContainer = new Container(FileStore.GetMetadata(indexId));
 
-		//	var table = new ReferenceTable(tableContainer.Data);
+	    //	var table = new ReferenceTable(tableContainer.Data);
 
-		//	// Check if the file/entry are valid
-		//	var entry = table.Entries[archiveId];
+	    //	// Check if the file/entry are valid
+	    //	var entry = table.Entries[archiveId];
 
-		//	return new Archive(container.Data, entry.ChildEntries.Count);
-		//}
+	    //	return new Archive(container.Data, entry.ChildEntries.Count);
+	    //}
+
+	    protected ReferenceTable GetReferenceTable(int indexId)
+	    {
+            // Try to get it from cache (I mean our own cache, it will be obtained from cache either way)
+	        return ReferenceTables.GetOrAdd(indexId, (indexId2) =>
+	        {
+                var metaContainer = new Container(FileStore.GetFileData(FileStore.MetadataIndexId, indexId2));
+                return new ReferenceTable(metaContainer.Data);
+            });
+	    }
 
 	    protected override void Dispose(bool disposing)
 	    {

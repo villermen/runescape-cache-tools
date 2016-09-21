@@ -145,8 +145,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
                         }
                     };
 
-                    var arguments = combineProcess.StartInfo.Arguments;
-
                     combineProcess.Start();
                     combineProcess.WaitForExit();
 
@@ -167,7 +165,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
                     Logger.Info($"Combined {outputFilename}.");
                 }
-                catch (Exception exception) when (exception is SectorException || exception is CacheException)
+                catch (CacheException)
                 {
                     Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
                 }
