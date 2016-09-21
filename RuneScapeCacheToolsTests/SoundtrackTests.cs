@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    [Collection("TestCache")]
     public class SoundtrackTests : IDisposable
     {
         private readonly ITestOutputHelper _output;

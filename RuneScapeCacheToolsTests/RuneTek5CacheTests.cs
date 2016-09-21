@@ -6,6 +6,7 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    [Collection("TestCache")]
     public class RuneTek5CacheTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
