@@ -17,7 +17,7 @@ namespace RuneScapeCacheToolsTests
         {
             _output = output;
 
-            _cache = new RuneTek5Cache("TestData");
+            _cache = new RuneTek5Cache("TestCache");
         }
 
         /// <summary>

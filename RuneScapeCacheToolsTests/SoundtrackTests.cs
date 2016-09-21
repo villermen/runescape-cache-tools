@@ -20,7 +20,7 @@ namespace RuneScapeCacheToolsTests
         public SoundtrackTests(ITestOutputHelper output)
         {
             _output = output;
-            _cache = new RuneTek5Cache("TestData");
+            _cache = new RuneTek5Cache("TestCache");
             _soundtrack = new Soundtrack(_cache);
         }
 
