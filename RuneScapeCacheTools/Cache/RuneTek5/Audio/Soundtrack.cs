@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
-using TagLib;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 using File = System.IO.File;
 
@@ -122,7 +121,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
                     if (!overwriteExisting && File.Exists(outputPath))
                     {
                         // But only if the version of the file is unchanged
-                        var existingVersion = GetVersionFromExistingTrackFile(outputPath);
+                        var existingVersion = GetVersionFromExportedTrackFile(outputPath);
 
                         if (existingVersion == jagaCacheFile.Version)
                         {
@@ -210,7 +209,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 			return result;
 		}
 
-	    public int GetVersionFromCombinedTrackFile(string path)
+	    public int GetVersionFromExportedTrackFile(string path)
 	    {
             throw new NotImplementedException();
 	    }
