@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using log4net;
+using NVorbis;
 using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
@@ -212,60 +213,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
 	    public int GetVersionFromExportedTrackFile(string path)
 	    {
-	        using (var oggReader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)))
+	        var vorbisReader = new VorbisReader(path);
+
+	        foreach (var comment in vorbisReader.Comments)
 	        {
-                // Read in Ogg pages
-	            var nthFreshPacket = 0;
-
-	            while (true)
+	            if (!comment.StartsWith("VERSION=", true, null))
 	            {
-	                var capturePattern = oggReader.ReadBytes(4);
-	                var streamStructureVersion = oggReader.ReadByte();
-	                var headerTypeFlag = oggReader.ReadByte();
-	                var absoluteGranulePosition = oggReader.ReadInt64();
-	                var streamSerialNumber = oggReader.ReadInt32();
-	                var pageSequenceNumber = oggReader.ReadInt32();
-	                var pageChecksum = oggReader.ReadInt32();
-	                var segmentCount = oggReader.ReadByte();
-
-	                var lacingValues = new byte[segmentCount];
-
-	                for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
-	                {
-	                    lacingValues[segmentIndex] = oggReader.ReadByte();
-	                }
-
-	                var packetLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
-	                var packetData = oggReader.ReadBytes(packetLength);
-
-	                var freshPacket = (headerTypeFlag & 1) == 0;
-
-	                if (freshPacket)
-	                {
-	                    nthFreshPacket++;
-	                }
-
-                    // "The Vorbis text comment header is the second (of three) header packets that begin a Vorbis bitstream."
-	                if (nthFreshPacket == 2)
-	                {
-                        var packetReader = new BinaryReader(new MemoryStream(packetData));
-
-	                    var vendorLength = packetReader.ReadUInt32();
-	                    var vendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int) vendorLength));
-	                    var userCommentListLength = packetReader.ReadUInt32();
-
-	                    for (var userCommentIndex = 0; userCommentIndex < userCommentListLength; userCommentIndex++)
-	                    {
-	                        var userCommentLength = packetReader.ReadUInt32();
-	                        var userComment = Encoding.UTF8.GetString(packetReader.ReadBytes((int) userCommentLength));
-	                    }
-
-	                    var framingBit = packetReader.ReadByte() << 7;
-	                }
+	                continue;
 	            }
+
+	            var value = comment.Split('=')[1];
+	            var version = int.Parse(value);
+
+	            return version;
 	        }
 
-            throw new NotImplementedException();
+            throw new SoundtrackException("No version comment in specified file.");
 	    }
 	}
 }
