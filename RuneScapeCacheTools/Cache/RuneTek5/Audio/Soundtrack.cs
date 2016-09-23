@@ -99,8 +99,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
         /// Combines and exports the soundtracks from the audio chunks in archive 40 into full soundtrack files.
         /// </summary>
         /// <param name="overwriteExisting">If true, export and overwrite existing files. Overwriting is done regardless for files that have a changed version.</param>
+        /// <param name="nameFilter">If non-null, only soundtrack names that contain the case-insensitive nameFilter string will be extracted.</param>
         /// <returns></returns>
-		public async Task ExportTracksAsync(bool overwriteExisting = false)
+        public async Task ExportTracksAsync(bool overwriteExisting = false, string nameFilter = null)
 		{
             var trackNames = GetTrackNames();
             var outputDirectory = Cache.OutputDirectory + "soundtrack/";
@@ -109,6 +110,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
             Directory.CreateDirectory(Cache.TemporaryDirectory);
 
             Logger.Info("Done obtaining soundtrack names and file ids.");
+
+            trackNames = trackNames.Where(
+                (trackName) => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
 
             await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
             {

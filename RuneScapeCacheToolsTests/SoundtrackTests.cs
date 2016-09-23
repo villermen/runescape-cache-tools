@@ -43,21 +43,24 @@ namespace RuneScapeCacheToolsTests
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
-            _soundtrack.ExportTracksAsync(true).Wait();
+            _soundtrack.ExportTracksAsync(true, "soundscape").Wait();
 
-            var filename = "output/soundtrack/Soundscape.ogg";
+            const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
 
             // Verify that Soundscape.ogg has been created
-            Assert.True(File.Exists(filename));
+            Assert.True(File.Exists(expectedOutputPath));
 
             // Verify that it has been created during this test
-            Assert.True(File.GetCreationTimeUtc(filename) >= startTime);
+            var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
+            Assert.True(modifiedTime >= startTime);
         }
 
-        //[Fact]
-        //public void TestGetVersionFromCombinedTrackFile()
-        //{
-        //}
+        // [Fact]
+        public void TestGetVersionFromCombinedTrackFile()
+        {
+            // Enforce order of tests? Extract again?
+            var version = _soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
+        }
 
         public void Dispose()
         {
