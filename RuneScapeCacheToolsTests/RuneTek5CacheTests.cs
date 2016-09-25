@@ -17,7 +17,7 @@ namespace RuneScapeCacheToolsTests
         {
             _output = output;
 
-            _cache = new RuneTek5Cache("C:/Data/Temp/rscd/data");
+            _cache = new RuneTek5Cache("TestCache");
         }
 
         /// <summary>
@@ -48,12 +48,6 @@ namespace RuneScapeCacheToolsTests
             {
                 Assert.True(exception.Message.Contains("incomplete"), "Non-existent file cache exception had the wrong message.");
             }
-        }
-
-        [Fact]
-        public void TestUnknown()
-        {
-            var versionTable = _cache.GetReferenceTable(255);
         }
 
         public void Dispose()

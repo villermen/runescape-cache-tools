@@ -31,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         }
 
         // TODO: Make private
-        // TODO: Configure major version
+        // TODO: 255.255
         public void Connect()
         {
             using (var contentClient = new TcpClient(ContentHost, ContentPort))
