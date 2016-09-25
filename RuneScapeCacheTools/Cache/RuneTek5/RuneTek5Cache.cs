@@ -175,7 +175,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	    //	return new Archive(container.Data, entry.ChildEntries.Count);
 	    //}
 
-	    protected ReferenceTable GetReferenceTable(int indexId)
+	    public ReferenceTable GetReferenceTable(int indexId)
 	    {
             // Try to get it from cache (I mean our own cache, it will be obtained from cache either way)
 	        return ReferenceTables.GetOrAdd(indexId, (indexId2) =>

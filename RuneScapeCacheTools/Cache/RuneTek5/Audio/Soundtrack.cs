@@ -111,9 +111,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
 
             Logger.Info("Done obtaining soundtrack names and file ids.");
 
-            trackNames = trackNames.Where(
-                (trackName) => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
+            if (nameFilter != null)
+            {
+                trackNames = trackNames.Where(
+                    (trackName) => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+            }
 
             await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
             {
@@ -191,12 +194,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio
                 }
             }));
 
-            Logger.Info($"Done combining soundtracks.");
+            Logger.Info("Done combining soundtracks.");
         }
 
 		private string[] GetRandomTemporaryFilenames(int amountOfNames)
 		{
-			const string validChars = "abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{},`~=+";
+			const string validChars = @"abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{},`~=+";
 			const int nameLength = 16;
 			var result = new string[amountOfNames];
 

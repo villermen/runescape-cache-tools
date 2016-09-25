@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="RuneTek5CacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DownloaderTests.cs" />
     <Compile Include="SoundtrackTests.cs" />
   </ItemGroup>
   <ItemGroup>
