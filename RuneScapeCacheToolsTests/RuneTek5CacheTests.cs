@@ -1,4 +1,5 @@
-﻿using Villermen.RuneScapeCacheTools.Cache;
+﻿using RuneScapeCacheToolsTests.Fixtures;
+using Villermen.RuneScapeCacheTools.Cache;
 using Xunit;
 using Xunit.Abstractions;
 

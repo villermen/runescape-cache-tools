@@ -3,11 +3,12 @@ using System.IO;
 using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 using log4net;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 {
-    public class Downloader
+    public class Downloader : IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Downloader));
 
@@ -53,6 +54,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         private int LoadingRequirementsLength { get; } = 26 * 4;
 
         private TcpClient ContentClient { get; set; }
+
+        public bool Connected { get; private set; } = false;
 
         public Downloader(CacheBase cache)
         {
@@ -110,9 +113,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             contentReader.ReadBytes(LoadingRequirementsLength);
 
             SendConnectionInfo();
+
+            Connected = true;
         }
 
-        public string GetKeyFromPage()
+        private string GetKeyFromPage()
         {
             var request = WebRequest.Create(KeyPage);
             var response = request.GetResponse();
@@ -155,6 +160,72 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             writer.WriteUInt24BigEndian(0);
             writer.WriteInt16BigEndian(0);
             writer.Flush();
+        }
+
+        public CacheFile DownloadFile(int indexId, int fileId)
+        {
+            if (!Connected)
+            {
+                throw new DownloaderException("Can't request file when disconnected.");
+            }
+
+            var writer = new BinaryWriter(ContentClient.GetStream());
+
+            // Send the file request to the content server
+            writer.Write((byte) (indexId == 255 ? 1 : 0));
+            writer.Write((byte) indexId);
+            writer.WriteInt32BigEndian(fileId);
+
+            // Read back file
+            var reader = new BinaryReader(ContentClient.GetStream());
+
+            var fileIndexId = reader.ReadByte();
+            var fileFileId = reader.ReadInt32BigEndian();
+
+            // byte compression
+            // int filesize
+            //int size = fileSize + (compression == 0 ? 5 : 9) + (current.getIndex() != 255 ? 2 : 0);
+            //current.setSize(size);
+            //ByteBuffer buffer = current.getBuffer();
+            //buffer.put((byte)compression);
+            //buffer.putInt(fileSize);
+            //current.setPosition(10);
+            //inputBuffer.clear();
+
+            //ByteBuffer buffer = current.getBuffer();
+            //int totalSize = buffer.capacity() - (current.getIndex() != 255 ? 2 : 0);
+            //int blockSize = BLOCK_SIZE - current.getPosition();
+            //int remaining = totalSize - buffer.position();
+            //if (remaining < blockSize)
+            //{
+            //    blockSize = remaining;
+            //}
+            //if (available < blockSize)
+            //{
+            //    blockSize = available;
+            //}
+            //int read = input.read(buffer.array(), buffer.position(), blockSize);
+            //buffer.position(buffer.position() + read);
+            //current.setPosition(current.getPosition() + read);
+            //if (buffer.position() == totalSize)
+            //{
+            //    current.setComplete(true);
+            //    waiting.remove(current.hash());
+            //    buffer.flip();
+            //    current = null;
+            //}
+            //else if (current.getPosition() == BLOCK_SIZE)
+            //{
+            //    current.setPosition(0);
+            //    current = null;
+            //}
+
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            ContentClient.Dispose();
         }
     }
 }
