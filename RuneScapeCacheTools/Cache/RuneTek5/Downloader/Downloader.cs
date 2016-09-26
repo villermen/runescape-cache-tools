@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         /// 
         /// If connection states the version is outdated, the <see cref="MajorVersion"/> will be increased until it is accepted.
         /// </summary>
-        private int MajorVersion { get; set; } = 850;
+        private int MajorVersion { get; set; } = 873;
 
         /// <summary>
         /// The minor version is needed to correctly connect to the content server.
@@ -60,9 +60,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             var key = GetKeyFromPage();
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            HandshakeResponse response;
-
-            do
+            while (true)
             {
                 using (var contentClient = new TcpClient(ContentHost, ContentPort))
                 {
@@ -79,23 +77,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
                     contentWriter.Write((byte) Language);
                     contentWriter.Flush();
 
-                    response = (HandshakeResponse) contentReader.ReadByte();
+                    var response = (HandshakeResponse) contentReader.ReadByte();
 
-                    if (response == HandshakeResponse.InvalidKey)
+                    switch (response)
                     {
-                        throw new DownloaderException("Handshake was not accepted by server.");
+                        case HandshakeResponse.Success:
+                            Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
+                            return;
+
+                        case HandshakeResponse.Outdated:
+                            Logger.Info($"Handshake for version {MajorVersion} was not accepted.");
+                            MajorVersion++;
+                            break;
+
+                        default:
+                            throw new DownloaderException($"Content server responded to handshake with {response}.");
                     }
                 }
-
-                MajorVersion++;
-            }
-            while (response == HandshakeResponse.Outdated);
-
-            MajorVersion--;
-
-            if (response != HandshakeResponse.Success)
-            {
-                throw new DownloaderException($"Content server responded to handshake with {response}.");
             }
         }
 
