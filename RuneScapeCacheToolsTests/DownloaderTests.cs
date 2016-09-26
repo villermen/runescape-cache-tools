@@ -10,15 +10,26 @@ namespace RuneScapeCacheToolsTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Downloader _downloader;
+        private readonly CacheFixture _fixture;
 
-        public DownloaderTests(ITestOutputHelper output)
+        public DownloaderTests(ITestOutputHelper output, CacheFixture fixture)
         {
             _output = output;
-            _downloader = new Downloader();
+            _fixture = fixture;
+
+            _downloader = new Downloader(_fixture.Cache);
         }
 
         [Fact]
-        public void TestUnknown()
+        public void TestGetKeyFromPage()
+        {
+            var key = _downloader.GetKeyFromPage();
+
+            _output.WriteLine($"Key obtained from downloader: {key}");
+        }
+
+        [Fact]
+        public void TestConnect()
         {
             _downloader.Connect();
         }

@@ -1,55 +1,127 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Net;
+using System.Text.RegularExpressions;
+using log4net;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 {
     public class Downloader
     {
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Downloader));
+
+        public CacheBase Cache { get; }
+
         public string ContentHost { get; set; } = "content.runescape.com";
 
         public int ContentPort { get; set; } = 43594;
 
-        public int MajorVersion { get; set; } = 873;
+        /// <summary>
+        /// The major version is needed to correctly connect to the content server.
+        /// 
+        /// If connection states the version is outdated, the <see cref="MajorVersion"/> will be increased until it is accepted.
+        /// </summary>
+        private int MajorVersion { get; set; } = 850;
 
+        /// <summary>
+        /// The minor version is needed to correctly connect to the content server.
+        /// 
+        /// This seems to always be 1.
+        /// </summary>
         public int MinorVersion { get; set; } = 1;
 
-        public string Key { get; set; } = "0OD4uV6PB0iiUzHXDeqgmZy7Z3BogkXY";
+        /// <summary>
+        /// The handshake type is needed to correctly connect to the content server.
+        /// </summary>
+        private byte HandshakeType { get; } = 15;
 
-        public byte HandshakeType { get; set; } = 15;
+        public Language Language { get; set; } = Language.English;
 
-        public int LanguageIndex { get; set; } = 0;
+        /// <summary>
+        /// The page used in obtaining the content server handshake key.
+        /// </summary>
+        public string KeyPage { get; set; } = "http://world2.runescape.com";
 
-        /*
-         * Get key from game page (param with name 1), https://world#.runescape.com
-         * Connect to content server (content.runescape.com)
-         * 
-         * 
-         */
-        public Downloader()
+        /// <summary>
+        /// The regex used to obtain the content server handshake key from the set <see cref="KeyPage"/>.
+        /// 
+        /// The first capture group needs to result in the key.
+        /// </summary>
+        public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
+
+        public Downloader(CacheBase cache)
         {
-           
+            Cache = cache;
         }
 
-        // TODO: Make private
-        // TODO: 255.255
         public void Connect()
         {
-            using (var contentClient = new TcpClient(ContentHost, ContentPort))
+            var key = GetKeyFromPage();
+
+            // Retry connecting with an increasing major version until the server no longer reports we're outdated
+            HandshakeResponse response;
+
+            do
             {
-                var contentWriter = new BinaryWriter(contentClient.GetStream());
-                var contentReader = new BinaryReader(contentClient.GetStream());
+                using (var contentClient = new TcpClient(ContentHost, ContentPort))
+                {
+                    var contentWriter = new BinaryWriter(contentClient.GetStream());
+                    var contentReader = new BinaryReader(contentClient.GetStream());
 
-                var handshakeLength = (byte) (9 + Key.Length + 1);
+                    var handshakeLength = (byte)(9 + key.Length + 1);
 
-                contentWriter.Write(HandshakeType);
-                contentWriter.Write(handshakeLength);
-                contentWriter.WriteInt32BigEndian(MajorVersion);
-                contentWriter.WriteInt32BigEndian(MinorVersion);
-                contentWriter.WriteNullTerminatedString(Key);
-                contentWriter.Write(LanguageIndex);
-                contentWriter.Flush();
+                    contentWriter.Write(HandshakeType);
+                    contentWriter.Write(handshakeLength);
+                    contentWriter.WriteInt32BigEndian(MajorVersion);
+                    contentWriter.WriteInt32BigEndian(MinorVersion);
+                    contentWriter.WriteNullTerminatedString(key);
+                    contentWriter.Write((byte) Language);
+                    contentWriter.Flush();
 
-                var response = (HandshakeResponse) contentReader.ReadByte();
+                    response = (HandshakeResponse) contentReader.ReadByte();
+
+                    if (response == HandshakeResponse.InvalidKey)
+                    {
+                        throw new DownloaderException("Handshake was not accepted by server.");
+                    }
+                }
+
+                MajorVersion++;
+            }
+            while (response == HandshakeResponse.Outdated);
+
+            MajorVersion--;
+
+            if (response != HandshakeResponse.Success)
+            {
+                throw new DownloaderException($"Content server responded to handshake with {response}.");
+            }
+        }
+
+        public string GetKeyFromPage()
+        {
+            var request = WebRequest.Create(KeyPage);
+            var response = request.GetResponse();
+            var responseStream = response.GetResponseStream();
+
+            if (responseStream == null)
+            {
+                throw new DownloaderException($"No content key could be obtained from \"{KeyPage}\".");
+            }
+
+            using (var reader = new StreamReader(responseStream))
+            {
+                var responseString = reader.ReadToEnd();
+
+                var key = KeyPageRegex.Match(responseString).Groups[1].Value;
+
+                if (string.IsNullOrWhiteSpace(key))
+                { 
+                    throw new DownloaderException("Obtained content key is empty.");
+                }
+
+                return key;
             }
         }
     }
