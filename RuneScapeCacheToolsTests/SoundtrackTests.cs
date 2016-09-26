@@ -1,27 +1,22 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
     [Collection("TestCache")]
-    public class SoundtrackTests : IDisposable
+    public class SoundtrackTests
     {
         private readonly ITestOutputHelper _output;
-       
-        private readonly RuneTek5Cache _cache;
 
-        private readonly Soundtrack _soundtrack;
+        private readonly CacheFixture _fixture;
 
-        public SoundtrackTests(ITestOutputHelper output)
+        public SoundtrackTests(ITestOutputHelper output, CacheFixture fixture)
         {
             _output = output;
-            _cache = new RuneTek5Cache("TestCache");
-            _soundtrack = new Soundtrack(_cache);
+            _fixture = fixture;
         }
 
         /// <summary>
@@ -32,7 +27,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetTrackNames()
         {
-            var trackNames = _soundtrack.GetTrackNames();
+            var trackNames = _fixture.Soundtrack.GetTrackNames();
 
             _output.WriteLine($"Amount of track names: {trackNames.Count}");
 
@@ -43,7 +38,7 @@ namespace RuneScapeCacheToolsTests
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
-            _soundtrack.ExportTracksAsync(true, "soundscape").Wait();
+            _fixture.Soundtrack.ExportTracksAsync(true, "soundscape").Wait();
 
             const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
 
@@ -59,12 +54,7 @@ namespace RuneScapeCacheToolsTests
         public void TestGetVersionFromCombinedTrackFile()
         {
             // Enforce order of tests? Extract again?
-            var version = _soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
-        }
-
-        public void Dispose()
-        {
-            _cache?.Dispose();
+            var version = _fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
         }
     }
 }

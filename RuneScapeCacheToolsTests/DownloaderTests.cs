@@ -1,14 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    [Collection("TestCache")]
     public class DownloaderTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
