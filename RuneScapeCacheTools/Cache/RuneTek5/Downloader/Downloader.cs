@@ -50,6 +50,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         /// </summary>
         public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
 
+        private int LoadingRequirementsLength { get; } = 26 * 4;
+
+        private TcpClient ContentClient { get; set; }
+
         public Downloader(CacheBase cache)
         {
             Cache = cache;
@@ -60,41 +64,52 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             var key = GetKeyFromPage();
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            while (true)
+            var connected = false;
+            while (!connected)
             {
-                using (var contentClient = new TcpClient(ContentHost, ContentPort))
+                ContentClient = new TcpClient(ContentHost, ContentPort);
+
+                var handshakeWriter = new BinaryWriter(ContentClient.GetStream());
+                var handshakeReader = new BinaryReader(ContentClient.GetStream());
+
+                var handshakeLength = (byte) (9 + key.Length + 1);
+
+                handshakeWriter.Write(HandshakeType);
+                handshakeWriter.Write(handshakeLength);
+                handshakeWriter.WriteInt32BigEndian(MajorVersion);
+                handshakeWriter.WriteInt32BigEndian(MinorVersion);
+                handshakeWriter.WriteNullTerminatedString(key);
+                handshakeWriter.Write((byte) Language);
+                handshakeWriter.Flush();
+
+                var response = (HandshakeResponse) handshakeReader.ReadByte();
+
+                switch (response)
                 {
-                    var contentWriter = new BinaryWriter(contentClient.GetStream());
-                    var contentReader = new BinaryReader(contentClient.GetStream());
+                    case HandshakeResponse.Success:
+                        connected = true;
+                        Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
+                        break;
 
-                    var handshakeLength = (byte)(9 + key.Length + 1);
+                    case HandshakeResponse.Outdated:
+                        ContentClient.Dispose();
+                        ContentClient = null;
+                        Logger.Info($"Content server says {MajorVersion} is outdated.");
+                        MajorVersion++;
+                        break;
 
-                    contentWriter.Write(HandshakeType);
-                    contentWriter.Write(handshakeLength);
-                    contentWriter.WriteInt32BigEndian(MajorVersion);
-                    contentWriter.WriteInt32BigEndian(MinorVersion);
-                    contentWriter.WriteNullTerminatedString(key);
-                    contentWriter.Write((byte) Language);
-                    contentWriter.Flush();
-
-                    var response = (HandshakeResponse) contentReader.ReadByte();
-
-                    switch (response)
-                    {
-                        case HandshakeResponse.Success:
-                            Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
-                            return;
-
-                        case HandshakeResponse.Outdated:
-                            Logger.Info($"Handshake for version {MajorVersion} was not accepted.");
-                            MajorVersion++;
-                            break;
-
-                        default:
-                            throw new DownloaderException($"Content server responded to handshake with {response}.");
-                    }
+                    default:
+                        ContentClient.Dispose();
+                        ContentClient = null;
+                        throw new DownloaderException($"Content server responded to handshake with {response}.");
                 }
             }
+
+            // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
+            var contentReader = new BinaryReader(ContentClient.GetStream());
+            contentReader.ReadBytes(LoadingRequirementsLength);
+
+            SendConnectionInfo();
         }
 
         public string GetKeyFromPage()
@@ -105,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
             if (responseStream == null)
             {
-                throw new DownloaderException($"No content key could be obtained from \"{KeyPage}\".");
+                throw new DownloaderException($"No handshake key could be obtained from \"{KeyPage}\".");
             }
 
             using (var reader = new StreamReader(responseStream))
@@ -116,11 +131,30 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
                 if (string.IsNullOrWhiteSpace(key))
                 { 
-                    throw new DownloaderException("Obtained content key is empty.");
+                    throw new DownloaderException("Obtained handshake key is empty.");
                 }
 
                 return key;
             }
+        }
+
+        /// <summary>
+        /// Sends the initial connection status and login packets to the server.
+        /// </summary>
+        private void SendConnectionInfo()
+        {
+            var writer = new BinaryWriter(ContentClient.GetStream());
+
+            // I don't know
+            writer.Write((byte) 6);
+            writer.WriteUInt24BigEndian(4);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
+
+            writer.Write((byte) 3);
+            writer.WriteUInt24BigEndian(0);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
         }
     }
 }
