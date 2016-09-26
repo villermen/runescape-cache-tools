@@ -4,6 +4,7 @@ using System.IO.Compression;
 using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -15,15 +16,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
 	public class Container
-	{
-		public enum CompressionType
-		{
-			None = 0,
-			Bzip2 = 1,
-			Gzip = 2,
-			LZMA = 3
-		}
-
+    {
 		/// <summary>
 		///   Creates a new unversioned container.
 		/// </summary>
@@ -45,103 +38,101 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			Version = version;
 		}
 
-		/// <summary>
-		///   Decompresses the container without decrypting it using a key.
-		/// </summary>
-		/// <param name="data"></param>
-		public Container(byte[] data) : this(data, null)
-		{
-		}
+	    public Container(Stream dataStream, uint[] key = null)
+	    {
+            var dataReader = new BinaryReader(dataStream);
+
+            Type = (CompressionType) dataReader.ReadByte();
+            var length = dataReader.ReadInt32BigEndian();
+	        var totalLength = length + (Type == CompressionType.None ? 5 : 9);
+
+            // Decrypt the data if a key is given
+            if (key != null)
+            {
+                var byteKeyStream = new MemoryStream(16);
+                var byteKeyWriter = new BinaryWriter(byteKeyStream);
+                foreach (var keyValue in key)
+                {
+                    byteKeyWriter.WriteUInt32BigEndian(keyValue);
+                }
+
+                var xtea = new XteaEngine();
+                xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
+                var decrypted = new byte[totalLength];
+                xtea.ProcessBlock(dataReader.ReadBytes(totalLength), 5, decrypted, 0);
+
+                dataReader = new BinaryReader(new MemoryStream(decrypted));
+            }
+
+            // Check if we should decompress the data or not
+            if (Type == CompressionType.None)
+            {
+                Data = dataReader.ReadBytes(length);
+            }
+            else
+            {
+                // Decompress the data
+                var uncompressedLength = dataReader.ReadInt32BigEndian();
+                var compressedBytes = dataReader.ReadBytes(length);
+                var uncompressedBytes = new byte[uncompressedLength];
+
+                switch (Type)
+                {
+                    case CompressionType.Bzip2:
+                        // Add the bzip2 header as it is missing from the cache for whatever reason
+                        var bzipCompressedBytes = new byte[compressedBytes.Length + 4];
+                        bzipCompressedBytes[0] = (byte)'B';
+                        bzipCompressedBytes[1] = (byte)'Z';
+                        bzipCompressedBytes[2] = (byte)'h';
+                        bzipCompressedBytes[3] = (byte)'1';
+                        Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
+                        var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
+                        var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                        if (readBzipBytes != uncompressedLength)
+                        {
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                        }
+                        break;
+
+                    case CompressionType.Gzip:
+                        var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                        var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                        if (readGzipBytes != uncompressedLength)
+                        {
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                        }
+                        break;
+
+                    case CompressionType.LZMA:
+                        // TODO: Implement LZMA
+                        throw new NotImplementedException();
+                        break;
+
+                    default:
+                        throw new CacheException("Invalid compression type given.");
+                }
+
+                Data = uncompressedBytes;
+            }
+
+            // Obtain the version if present
+            Version = -1;
+            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
+            {
+                Version = dataReader.ReadInt16BigEndian();
+            }
+        }
 
 		/// <summary>
-		///   Decrypts and decompresses the container.
+		///   Decrypts and decompresses the file data.
 		/// </summary>
 		/// <param name="data"></param>
 		/// <param name="key">The XTEA key used for decrypting the data.</param>
-		public Container(byte[] data, uint[] key)
+		public Container(byte[] data, uint[] key = null)
+            : this(new MemoryStream(data), key)
 		{
-			var dataReader = new BinaryReader(new MemoryStream(data));
-
-			Type = (CompressionType) dataReader.ReadByte();
-			var length = dataReader.ReadInt32BigEndian();
-
-			// Decrypt the data if a key is given
-			if (key != null)
-			{
-				var byteKeyStream = new MemoryStream(16);
-				var byteKeyWriter = new BinaryWriter(byteKeyStream);
-				foreach (var keyValue in key)
-				{
-					byteKeyWriter.WriteUInt32BigEndian(keyValue);
-				}
-
-				var xtea = new XteaEngine();
-				xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
-				var decrypted = new byte[length + (Type == CompressionType.None ? 5 : 9)];
-				xtea.ProcessBlock(data, 5, decrypted, 0);
-
-				dataReader = new BinaryReader(new MemoryStream(decrypted));
-			}
-
-			// Check if we should decompress the data or not
-			if (Type == CompressionType.None)
-			{
-				Data = dataReader.ReadBytes(length);
-			}
-			else
-			{
-				// Decompress the data
-				var uncompressedLength = dataReader.ReadInt32BigEndian();
-				var compressedBytes = dataReader.ReadBytes(length);
-				var uncompressedBytes = new byte[uncompressedLength];
-
-				switch (Type)
-				{
-					case CompressionType.Bzip2:
-						// Add the bzip2 header as it is missing from the cache for whatever reason
-						var bzipCompressedBytes = new byte[compressedBytes.Length + 4];
-						bzipCompressedBytes[0] = (byte) 'B';
-						bzipCompressedBytes[1] = (byte) 'Z';
-						bzipCompressedBytes[2] = (byte) 'h';
-						bzipCompressedBytes[3] = (byte) '1';
-						Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
-						var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
-						var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
-
-						if (readBzipBytes != uncompressedLength)
-						{
-							throw new CacheException("Uncompressed container data length does not match obtained length.");
-						}
-						break;
-
-					case CompressionType.Gzip:
-						var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
-						var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
-
-						if (readGzipBytes != uncompressedLength)
-						{
-							throw new CacheException("Uncompressed container data length does not match obtained length.");
-						}
-						break;
-
-					case CompressionType.LZMA:
-						// TODO: Implement LZMA
-						throw new NotImplementedException();
-						break;
-
-					default:
-						throw new CacheException("Invalid compression type given.");
-				}
-
-				Data = uncompressedBytes;
-			}
-
-			// Obtain the version if present
-			Version = -1;
-			if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
-			{
-				Version = dataReader.ReadInt16BigEndian();
-			}
 		}
 
 		public CompressionType Type { get; set; }

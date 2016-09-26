@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 {
@@ -178,49 +179,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
             // Read back file
             var reader = new BinaryReader(ContentClient.GetStream());
+            var fileWriter = new BinaryWriter(new MemoryStream());
 
             var fileIndexId = reader.ReadByte();
-            var fileFileId = reader.ReadInt32BigEndian();
+            var fileFileId = reader.ReadInt32BigEndian() & 0x7fffffff;
 
-            // byte compression
-            // int filesize
-            //int size = fileSize + (compression == 0 ? 5 : 9) + (current.getIndex() != 255 ? 2 : 0);
-            //current.setSize(size);
-            //ByteBuffer buffer = current.getBuffer();
-            //buffer.put((byte)compression);
-            //buffer.putInt(fileSize);
-            //current.setPosition(10);
-            //inputBuffer.clear();
+            var container = new Container(ContentClient.GetStream());
 
-            //ByteBuffer buffer = current.getBuffer();
-            //int totalSize = buffer.capacity() - (current.getIndex() != 255 ? 2 : 0);
-            //int blockSize = BLOCK_SIZE - current.getPosition();
-            //int remaining = totalSize - buffer.position();
-            //if (remaining < blockSize)
-            //{
-            //    blockSize = remaining;
-            //}
-            //if (available < blockSize)
-            //{
-            //    blockSize = available;
-            //}
-            //int read = input.read(buffer.array(), buffer.position(), blockSize);
-            //buffer.position(buffer.position() + read);
-            //current.setPosition(current.getPosition() + read);
-            //if (buffer.position() == totalSize)
-            //{
-            //    current.setComplete(true);
-            //    waiting.remove(current.hash());
-            //    buffer.flip();
-            //    current = null;
-            //}
-            //else if (current.getPosition() == BLOCK_SIZE)
-            //{
-            //    current.setPosition(0);
-            //    current = null;
-            //}
-
-            throw new NotImplementedException();
+            return new CacheFile(0, 0, null, 0);
         }
 
         public void Dispose()

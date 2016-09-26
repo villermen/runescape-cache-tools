@@ -83,8 +83,9 @@
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\RuneTek5\Downloader\Downloader.cs" />
     <Compile Include="Cache\RuneTek5\Downloader\DownloaderException.cs" />
-    <Compile Include="Cache\RuneTek5\Downloader\Language.cs" />
     <Compile Include="Cache\RuneTek5\Downloader\HandshakeResponse.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\CompressionType.cs" />
+    <Compile Include="Cache\RuneTek5\Enums\Language.cs" />
     <Compile Include="Cache\SectorException.cs" />
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
     <Compile Include="Cache\RuneTek5\Archive.cs" />

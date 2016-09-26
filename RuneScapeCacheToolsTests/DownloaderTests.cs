@@ -18,10 +18,12 @@ namespace RuneScapeCacheToolsTests
             Fixture = fixture;
         }
 
-        [Fact(Skip="Unfinished")]
+        [Fact]
         public void TestDownloadFile()
         {
             Fixture.Downloader.DownloadFile(17, 5);
+            Fixture.Downloader.DownloadFile(12, 423);
+            Fixture.Downloader.DownloadFile(40, 30468);
         }
 
         public void Dispose()

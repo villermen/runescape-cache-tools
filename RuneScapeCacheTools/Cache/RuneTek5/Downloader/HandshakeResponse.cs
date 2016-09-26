@@ -5,6 +5,5 @@
         Success = 0,
         Outdated = 6,
         InvalidKey = 48,
-
     }
 }
