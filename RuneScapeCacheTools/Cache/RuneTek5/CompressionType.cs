@@ -5,6 +5,6 @@
         None = 0,
         Bzip2 = 1,
         Gzip = 2,
-        LZMA = 3,
+        LZMA = 3
     }
 }

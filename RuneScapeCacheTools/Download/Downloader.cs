@@ -1,56 +1,64 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
-namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
+namespace Villermen.RuneScapeCacheTools.Download
 {
+    /// <summary>
+    /// </summary>
+    /// <author>Villermen</author>
+    /// <author>Method</author>
     public class Downloader : IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Downloader));
 
-        public CacheBase Cache { get; }
+        public Downloader(Cache.Cache cache)
+        {
+            Cache = cache;
+        }
+
+        public Cache.Cache Cache { get; }
 
         public string ContentHost { get; set; } = "content.runescape.com";
 
         public int ContentPort { get; set; } = 43594;
 
         /// <summary>
-        /// The major version is needed to correctly connect to the content server.
-        /// 
-        /// If connection states the version is outdated, the <see cref="MajorVersion"/> will be increased until it is accepted.
+        ///     The major version is needed to correctly connect to the content server.
+        ///     If connection states the version is outdated, the <see cref="MajorVersion" /> will be increased until it is
+        ///     accepted.
         /// </summary>
         private int MajorVersion { get; set; } = 873;
 
         /// <summary>
-        /// The minor version is needed to correctly connect to the content server.
-        /// 
-        /// This seems to always be 1.
+        ///     The minor version is needed to correctly connect to the content server.
+        ///     This seems to always be 1.
         /// </summary>
         public int MinorVersion { get; set; } = 1;
 
         /// <summary>
-        /// The handshake type is needed to correctly connect to the content server.
+        ///     The handshake type is needed to correctly connect to the content server.
         /// </summary>
         private byte HandshakeType { get; } = 15;
 
         public Language Language { get; set; } = Language.English;
 
         /// <summary>
-        /// The page used in obtaining the content server handshake key.
+        ///     The page used in obtaining the content server handshake key.
         /// </summary>
         public string KeyPage { get; set; } = "http://world2.runescape.com";
 
         /// <summary>
-        /// The regex used to obtain the content server handshake key from the set <see cref="KeyPage"/>.
-        /// 
-        /// The first capture group needs to result in the key.
+        ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
+        ///     The first capture group needs to result in the key.
         /// </summary>
         public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
 
@@ -58,13 +66,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
         private TcpClient ContentClient { get; set; }
 
-        public bool Connected { get; private set; } = false;
+        public bool Connected { get; private set; }
 
-        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingRequests { get; } = new Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>>();
+        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingRequests { get; } =
+            new Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>>();
 
-        public Downloader(CacheBase cache)
+        public void Dispose()
         {
-            Cache = cache;
+            ContentClient.Dispose();
         }
 
         public void Connect()
@@ -140,7 +149,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
                 var key = KeyPageRegex.Match(responseString).Groups[1].Value;
 
                 if (string.IsNullOrWhiteSpace(key))
-                { 
+                {
                     throw new DownloaderException("Obtained handshake key is empty.");
                 }
 
@@ -149,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         }
 
         /// <summary>
-        /// Sends the initial connection status and login packets to the server.
+        ///     Sends the initial connection status and login packets to the server.
         /// </summary>
         private void SendConnectionInfo()
         {
@@ -188,12 +197,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
             if (fileIndexId != indexId)
             {
-                throw new DownloaderException($"Obtained file's index id ({fileIndexId}) does not match requested ({indexId}).");
+                throw new DownloaderException(
+                    $"Obtained file's index id ({fileIndexId}) does not match requested ({indexId}).");
             }
 
             if (fileFileId != fileId)
             {
-                throw new DownloaderException($"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
+                throw new DownloaderException(
+                    $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
             return new Container(ContentClient.GetStream());
@@ -201,26 +212,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
         public CacheFile DownloadFile(int indexId, int fileId)
         {
-            if (indexId == FileStore.MetadataIndexId)
+            if (indexId == RuneTek5Cache.MetadataIndexId)
             {
-                throw new DownloaderException("Index 255 can only be requested by using the DownloadReferenceTable method.");
+                throw new DownloaderException(
+                    "Index 255 can only be requested by using the DownloadReferenceTable method.");
             }
 
             var container = DownloadContainer(indexId, fileId);
 
-            return new CacheFile(indexId, fileId, new [] { container.Data }, container.Version);
+            return new CacheFile(indexId, fileId, new[] {container.Data}, container.Version);
         }
 
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
-            var container = DownloadContainer(FileStore.MetadataIndexId, indexId);
+            var container = DownloadContainer(RuneTek5Cache.MetadataIndexId, indexId);
 
-            return new ReferenceTable(new MemoryStream(container.Data));
-        }
-
-        public void Dispose()
-        {
-            ContentClient.Dispose();
+            return new ReferenceTable(container);
         }
     }
 }

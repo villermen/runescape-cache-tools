@@ -1,13 +1,12 @@
 ﻿using System;
-using System.IO;
 
 namespace Villermen.RuneScapeCacheTools
 {
     public static class PathExtensions
     {
         /// <summary>
-        /// Parses the given directory and unifies its format, to be applied to unpredictable user input.
-        /// Converts backslashes to forward slashes, and appends a directory separator.
+        ///     Parses the given directory and unifies its format, to be applied to unpredictable user input.
+        ///     Converts backslashes to forward slashes, and appends a directory separator.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>

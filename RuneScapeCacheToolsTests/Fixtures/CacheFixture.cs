@@ -1,8 +1,8 @@
 ﻿using System;
+using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader;
+using Villermen.RuneScapeCacheTools.Download;
 
 namespace RuneScapeCacheToolsTests.Fixtures
 {
@@ -20,7 +20,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
             CreateTestCache();
         }
 
-        public CacheBase Cache => RuneTek5Cache;
+        public Cache Cache => RuneTek5Cache;
 
         public RuneTek5Cache RuneTek5Cache { get; }
 

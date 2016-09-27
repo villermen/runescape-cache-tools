@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
+namespace Villermen.RuneScapeCacheTools.Download
 {
     public class DownloaderException : Exception
     {

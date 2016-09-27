@@ -8,45 +8,44 @@ using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-	/// <summary>
-	///   A <see cref="Container" /> holds an optionally compressed file.
-	///   This class can be used to decompress and compress containers.
-	///   A container can also have a two byte trailer which specifies the version of the file within it.
-	/// 
-	/// TODO: Automatically decode archives.
-	/// </summary>
-	/// <author>Graham</author>
-	/// <author>`Discardedx2</author>
-	public class Container
+    /// <summary>
+    ///     A <see cref="Container" /> holds an optionally compressed raw file.
+    ///     This class can be used to decompress and compress containers.
+    ///     A container can also have a two byte trailer which specifies the version of the file within it.
+    ///     TODO: Automatically decode archives.
+    /// </summary>
+    /// <author>Graham</author>
+    /// <author>`Discardedx2</author>
+    public class Container
     {
-		/// <summary>
-		///   Creates a new unversioned container.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="data"></param>
-		public Container(CompressionType type, byte[] data) : this(type, data, -1)
-		{
-		}
+        /// <summary>
+        ///     Creates a new unversioned container.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="data"></param>
+        public Container(CompressionType type, byte[] data) : this(type, data, -1)
+        {
+        }
 
-		/// <summary>
-		///   Creates a new versioned container.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="data"></param>
-		public Container(CompressionType type, byte[] data, int version)
-		{
-			Type = type;
-			Data = data;
-			Version = version;
-		}
+        /// <summary>
+        ///     Creates a new versioned container.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="data"></param>
+        public Container(CompressionType type, byte[] data, int version)
+        {
+            Type = type;
+            Data = data;
+            Version = version;
+        }
 
-	    public Container(Stream dataStream, uint[] key = null)
-	    {
+        public Container(Stream dataStream, uint[] key = null)
+        {
             var dataReader = new BinaryReader(dataStream);
 
             Type = (CompressionType) dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
-	        var totalLength = length + (Type == CompressionType.None ? 5 : 9);
+            var totalLength = length + (Type == CompressionType.None ? 5 : 9);
 
             // Decrypt the data if a key is given
             if (key != null)
@@ -83,17 +82,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
                         var bzipCompressedBytes = new byte[compressedBytes.Length + 4];
-                        bzipCompressedBytes[0] = (byte)'B';
-                        bzipCompressedBytes[1] = (byte)'Z';
-                        bzipCompressedBytes[2] = (byte)'h';
-                        bzipCompressedBytes[3] = (byte)'1';
+                        bzipCompressedBytes[0] = (byte) 'B';
+                        bzipCompressedBytes[1] = (byte) 'Z';
+                        bzipCompressedBytes[2] = (byte) 'h';
+                        bzipCompressedBytes[3] = (byte) '1';
                         Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
                         var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
                         var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
 
                         if (readBzipBytes != uncompressedLength)
                         {
-                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                            throw new CacheException(
+                                "Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
@@ -103,7 +103,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                         if (readGzipBytes != uncompressedLength)
                         {
-                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                            throw new CacheException(
+                                "Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
@@ -121,27 +122,28 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // Obtain the version if present
             Version = -1;
+            // TODO
             //if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
             //{
             //    Version = dataReader.ReadInt16BigEndian();
             //}
         }
 
-		public CompressionType Type { get; set; }
+        public CompressionType Type { get; set; }
 
-		/// <summary>
-		///   The decompressed data.
-		/// </summary>
-		public byte[] Data { get; set; }
+        /// <summary>
+        ///     The decompressed data.
+        /// </summary>
+        public byte[] Data { get; set; }
 
-		/// <summary>
-		///   The version of the file within this container.
-		/// </summary>
-		public int Version { get; set; }
+        /// <summary>
+        ///     The version of the file within this container.
+        /// </summary>
+        public int Version { get; set; }
 
-		public byte[] Encode()
-		{
-			throw new NotImplementedException();
-		}
-	}
+        public byte[] Encode()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

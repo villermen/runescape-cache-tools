@@ -1,6 +1,6 @@
 ﻿using System;
 using RuneScapeCacheToolsTests.Fixtures;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader;
+using Villermen.RuneScapeCacheTools.Download;
 using Xunit;
 using Xunit.Abstractions;
 

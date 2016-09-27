@@ -4,9 +4,9 @@ using System.Linq;
 using log4net;
 using log4net.Appender;
 using NDesk.Options;
+using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Audio;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
@@ -17,7 +17,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-		private static CacheBase Cache { get; set; }
+		private static Cache.Cache Cache { get; set; }
 
         private static string CacheDirectory { get; set; }
 
