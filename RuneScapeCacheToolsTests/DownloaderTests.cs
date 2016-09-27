@@ -18,21 +18,36 @@ namespace RuneScapeCacheToolsTests
             Fixture = fixture;
         }
 
-        [Fact]
+        [Fact(Skip = "Not implemented")]
         public void TestDownloadFile()
         {
-            var file175 = Fixture.Downloader.DownloadFile(17, 5);
-
             // TODO: HTTP worker or something similar for
             // Fixture.Downloader.DownloadFile(40, 30468);
+
+            // TODO: Verify result
+        }
+
+        [Fact(Skip = "Not implemented")]
+        public void TestDownloadFileEntries()
+        {
+            var archiveFile = Fixture.Downloader.DownloadFile(17, 5);
+
+            Assert.True(archiveFile.Entries.Length == 256);
         }
 
         [Fact]
         public void TestDownloadReferenceTable()
         {
-            Fixture.Downloader.DownloadReferenceTable(17);
+            var referenceTable = Fixture.Downloader.DownloadReferenceTable(17);
 
-            // TODO: This
+            Output.WriteLine($"Entries in reference table for index 17: {referenceTable.Entries.Count}.");
+
+            Assert.True(referenceTable.Entries.Count == 46);
+        }
+
+        [Fact(Skip = "Not implemented")]
+        public void TestDownloadReferenceTableTable()
+        {
             // Fixture.Downloader.DownloadReferenceTable(255);
 
             //buffer.position(5);

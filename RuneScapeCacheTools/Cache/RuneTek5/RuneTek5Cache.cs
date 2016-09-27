@@ -95,9 +95,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
-                var metaContainer =
-                    new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)));
-                return new ReferenceTable(metaContainer);
+                var cacheFile =
+                    new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)), 1); // TODO: Actual amount of entries
+                return new ReferenceTable(cacheFile);
             });
         }
 

@@ -208,7 +208,7 @@ namespace Villermen.RuneScapeCacheTools.Download
                     $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
-            return new RuneTek5CacheFile(ContentClient.GetStream());
+            return new RuneTek5CacheFile(ContentClient.GetStream(), 1); // TODO: Actual amount of entries
         }
 
         public CacheFile DownloadFile(int indexId, int fileId)
