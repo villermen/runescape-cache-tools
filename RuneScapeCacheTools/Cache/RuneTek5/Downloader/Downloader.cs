@@ -183,7 +183,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
 
             var reader = new BinaryReader(ContentClient.GetStream());
 
-            var fileIndexId = reader.ReadByte(); // EndOfStream with index 40 (non-existing file?)
+            var fileIndexId = reader.ReadByte();
             var fileFileId = reader.ReadInt32BigEndian() & 0x7fffffff;
 
             if (fileIndexId != indexId)

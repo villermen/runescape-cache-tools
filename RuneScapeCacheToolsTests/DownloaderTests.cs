@@ -22,11 +22,36 @@ namespace RuneScapeCacheToolsTests
         public void TestDownloadFile()
         {
             Fixture.Downloader.DownloadFile(17, 5);
-            Fixture.Downloader.DownloadReferenceTable(17);
             Fixture.Downloader.DownloadFile(12, 423);
 
             // TODO: HTTP worker or something similar for
             // Fixture.Downloader.DownloadFile(40, 30468);
+        }
+
+        [Fact]
+        public void TestDownloadReferenceTable()
+        {
+            Fixture.Downloader.DownloadReferenceTable(17);
+
+            // TODO: This
+            // Fixture.Downloader.DownloadReferenceTable(255);
+
+            //buffer.position(5);
+            //entryCount = buffer.get() & 0xff;
+            //entries = new Entry[entryCount];
+
+            ////System.out.println("#,crc,version,files,size");
+            //for (int i = 0; i < entryCount; i++)
+            //{
+            //    Entry entry = entries[i] = new Entry();
+            //    entry.crc = buffer.getInt();
+            //    entry.version = buffer.getInt();
+            //    int files = buffer.getInt();
+            //    int size = buffer.getInt();
+            //    entry.digest = new byte[64];
+            //    buffer.get(entry.digest);
+            //    //System.out.println(i + ":" + entry.crc + "," + entry.version + "," + files + "," + size);
+            //}
         }
 
         [Fact]

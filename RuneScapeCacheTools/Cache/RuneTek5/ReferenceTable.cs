@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 			// Read header
 			if (Format < 5 || Format > 7)
 			{
-				throw new CacheException("Incorrect JS5 protocol number: " + Format);
+				throw new CacheException($"Incorrect reference table protocol number: {Format}.");
 			}
 
 			if (Format >= 6)
