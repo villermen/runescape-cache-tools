@@ -96,7 +96,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
                 var cacheFile =
-                    new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)), 1); // TODO: Actual amount of entries
+                    new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)), 1);
                 return new ReferenceTable(cacheFile);
             });
         }
