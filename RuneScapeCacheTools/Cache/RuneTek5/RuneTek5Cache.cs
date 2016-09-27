@@ -78,7 +78,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
 		    {
-                container = new Container(FileStore.GetFileData(indexId, fileId));
+                container = new Container(new MemoryStream(FileStore.GetFileData(indexId, fileId)));
 		    }
 		    catch (SectorException exception)
 		    {
@@ -180,8 +180,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Try to get it from cache (I mean our own cache, it will be obtained from cache either way)
 	        return ReferenceTables.GetOrAdd(indexId, (indexId2) =>
 	        {
-                var metaContainer = new Container(FileStore.GetFileData(FileStore.MetadataIndexId, indexId2));
-                return new ReferenceTable(metaContainer.Data);
+                var metaContainer = new Container(new MemoryStream(FileStore.GetFileData(FileStore.MetadataIndexId, indexId2)));
+                return new ReferenceTable(new MemoryStream(metaContainer.Data));
             });
 	    }
 

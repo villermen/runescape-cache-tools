@@ -41,13 +41,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 		}
 
 		/// <summary>
-		///   Decodes the slave checksum table contained in the given byte array.
+		///   Decodes the reference table contained in the given stream.
 		/// </summary>
-		/// <param name="data"></param>
+		/// <param name="dataStream"></param>
 		/// <returns></returns>
-		public ReferenceTable(byte[] data)
+		public ReferenceTable(Stream dataStream)
 		{
-			var reader = new BinaryReader(new MemoryStream(data));
+			var reader = new BinaryReader(dataStream);
 
 			Format = reader.ReadByte();
 

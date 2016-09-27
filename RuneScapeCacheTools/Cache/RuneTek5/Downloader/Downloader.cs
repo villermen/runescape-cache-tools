@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 
@@ -57,6 +59,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
         private TcpClient ContentClient { get; set; }
 
         public bool Connected { get; private set; } = false;
+
+        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingRequests { get; } = new Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>>();
 
         public Downloader(CacheBase cache)
         {
@@ -163,7 +167,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             writer.Flush();
         }
 
-        public CacheFile DownloadFile(int indexId, int fileId)
+        private Container DownloadContainer(int indexId, int fileId)
         {
             if (!Connected)
             {
@@ -177,9 +181,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             writer.Write((byte) indexId);
             writer.WriteInt32BigEndian(fileId);
 
-            // Read back file
             var reader = new BinaryReader(ContentClient.GetStream());
-            var fileWriter = new BinaryWriter(new MemoryStream());
 
             var fileIndexId = reader.ReadByte(); // EndOfStream with index 40 (non-existing file?)
             var fileFileId = reader.ReadInt32BigEndian() & 0x7fffffff;
@@ -194,11 +196,26 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
                 throw new DownloaderException($"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
-            var container = new Container(ContentClient.GetStream());
+            return new Container(ContentClient.GetStream());
+        }
 
-            // TODO: Add support for archives
+        public CacheFile DownloadFile(int indexId, int fileId)
+        {
+            if (indexId == FileStore.MetadataIndexId)
+            {
+                throw new DownloaderException("Index 255 can only be requested by using the DownloadReferenceTable method.");
+            }
+
+            var container = DownloadContainer(indexId, fileId);
 
             return new CacheFile(indexId, fileId, new [] { container.Data }, container.Version);
+        }
+
+        public ReferenceTable DownloadReferenceTable(int indexId)
+        {
+            var container = DownloadContainer(FileStore.MetadataIndexId, indexId);
+
+            return new ReferenceTable(new MemoryStream(container.Data));
         }
 
         public void Dispose()

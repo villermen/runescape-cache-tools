@@ -12,6 +12,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 	///   A <see cref="Container" /> holds an optionally compressed file.
 	///   This class can be used to decompress and compress containers.
 	///   A container can also have a two byte trailer which specifies the version of the file within it.
+	/// 
+	/// TODO: Automatically decode archives.
 	/// </summary>
 	/// <author>Graham</author>
 	/// <author>`Discardedx2</author>
@@ -124,16 +126,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             //    Version = dataReader.ReadInt16BigEndian();
             //}
         }
-
-		/// <summary>
-		///   Decrypts and decompresses the file data.
-		/// </summary>
-		/// <param name="data"></param>
-		/// <param name="key">The XTEA key used for decrypting the data.</param>
-		public Container(byte[] data, uint[] key = null)
-            : this(new MemoryStream(data), key)
-		{
-		}
 
 		public CompressionType Type { get; set; }
 

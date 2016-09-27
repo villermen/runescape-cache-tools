@@ -18,12 +18,21 @@ namespace RuneScapeCacheToolsTests
             Fixture = fixture;
         }
 
-        [Fact(Skip = "Unfinished")]
+        [Fact]
         public void TestDownloadFile()
         {
             Fixture.Downloader.DownloadFile(17, 5);
+            Fixture.Downloader.DownloadReferenceTable(17);
             Fixture.Downloader.DownloadFile(12, 423);
-            Fixture.Downloader.DownloadFile(40, 30468);
+
+            // TODO: HTTP worker or something similar for
+            // Fixture.Downloader.DownloadFile(40, 30468);
+        }
+
+        [Fact]
+        public void TestDownloadMetadataFileDirectly()
+        {
+            Assert.Throws<DownloaderException>(() => Fixture.Downloader.DownloadFile(255, 40));
         }
 
         public void Dispose()
