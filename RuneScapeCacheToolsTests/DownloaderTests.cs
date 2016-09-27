@@ -18,7 +18,7 @@ namespace RuneScapeCacheToolsTests
             Fixture = fixture;
         }
 
-        [Fact]
+        [Fact(Skip = "Unfinished")]
         public void TestDownloadFile()
         {
             Fixture.Downloader.DownloadFile(17, 5);

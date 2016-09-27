@@ -119,10 +119,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // Obtain the version if present
             Version = -1;
-            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
-            {
-                Version = dataReader.ReadInt16BigEndian();
-            }
+            //if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
+            //{
+            //    Version = dataReader.ReadInt16BigEndian();
+            //}
         }
 
 		/// <summary>

@@ -181,12 +181,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Downloader
             var reader = new BinaryReader(ContentClient.GetStream());
             var fileWriter = new BinaryWriter(new MemoryStream());
 
-            var fileIndexId = reader.ReadByte();
+            var fileIndexId = reader.ReadByte(); // EndOfStream with index 40 (non-existing file?)
             var fileFileId = reader.ReadInt32BigEndian() & 0x7fffffff;
+
+            if (fileIndexId != indexId)
+            {
+                throw new DownloaderException($"Obtained file's index id ({fileIndexId}) does not match requested ({indexId}).");
+            }
+
+            if (fileFileId != fileId)
+            {
+                throw new DownloaderException($"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
+            }
 
             var container = new Container(ContentClient.GetStream());
 
-            return new CacheFile(0, 0, null, 0);
+            // TODO: Add support for archives
+
+            return new CacheFile(indexId, fileId, new [] { container.Data }, container.Version);
         }
 
         public void Dispose()
