@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Enums
 {

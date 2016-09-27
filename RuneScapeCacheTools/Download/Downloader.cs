@@ -9,6 +9,7 @@ using log4net;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Download
 {
@@ -20,12 +21,12 @@ namespace Villermen.RuneScapeCacheTools.Download
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Downloader));
 
-        public Downloader(Cache.Cache cache)
+        public Downloader(CacheBase cache)
         {
             Cache = cache;
         }
 
-        public Cache.Cache Cache { get; }
+        public CacheBase Cache { get; }
 
         public string ContentHost { get; set; } = "content.runescape.com";
 
@@ -176,7 +177,7 @@ namespace Villermen.RuneScapeCacheTools.Download
             writer.Flush();
         }
 
-        private Container DownloadContainer(int indexId, int fileId)
+        private RuneTek5CacheFile DownloadContainer(int indexId, int fileId)
         {
             if (!Connected)
             {
@@ -207,7 +208,7 @@ namespace Villermen.RuneScapeCacheTools.Download
                     $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
-            return new Container(ContentClient.GetStream());
+            return new RuneTek5CacheFile(ContentClient.GetStream());
         }
 
         public CacheFile DownloadFile(int indexId, int fileId)

@@ -20,7 +20,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
             CreateTestCache();
         }
 
-        public Cache Cache => RuneTek5Cache;
+        public CacheBase Cache => RuneTek5Cache;
 
         public RuneTek5Cache RuneTek5Cache { get; }
 

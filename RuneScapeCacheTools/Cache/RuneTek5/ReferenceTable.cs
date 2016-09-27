@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -41,13 +42,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     Decodes the reference table contained in the given container.
+        ///     Decodes the reference table contained in the given RuneTek5CacheFile.
         /// </summary>
-        /// <param name="container"></param>
+        /// <param name="runeTek5CacheFile"></param>
         /// <returns></returns>
-        public ReferenceTable(Container container)
+        public ReferenceTable(RuneTek5CacheFile runeTek5CacheFile)
         {
-            var reader = new BinaryReader(new MemoryStream(container.Data));
+            var reader = new BinaryReader(new MemoryStream(runeTek5CacheFile.Data));
 
             Format = reader.ReadByte();
 
@@ -285,15 +286,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             public int Index { get; set; }
         }
 
-//		/* write the header */
-//	try {
-//        DataOutputStream os = new DataOutputStream(bout);
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//                */
-//                * stream and then to the reader
-//                * we can't (easily) predict the size ahead of time, so we write to a
-
 //            /* 
+//                * we can't (easily) predict the size ahead of time, so we write to a
+//                * stream and then to the reader
+//                */
+//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//        DataOutputStream os = new DataOutputStream(bout);
+//	try {
+
+//		/* write the header */
 
 //        {
 //        public ByteBuffer encode() throws IOException

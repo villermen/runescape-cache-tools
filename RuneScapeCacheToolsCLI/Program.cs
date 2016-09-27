@@ -17,7 +17,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-		private static Cache.Cache Cache { get; set; }
+		private static Cache.CacheBase Cache { get; set; }
 
         private static string CacheDirectory { get; set; }
 

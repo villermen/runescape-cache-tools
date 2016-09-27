@@ -1,58 +1,59 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    ///     A <see cref="Container" /> holds an optionally compressed raw file.
-    ///     This class can be used to decompress and compress containers.
-    ///     A container can also have a two byte trailer which specifies the version of the file within it.
-    ///     TODO: Automatically decode archives.
+    ///     A <see cref="RuneTek5CacheFile" /> holds raw file data.
+    ///     This data can be decrypted and decompressed from the cache, and can be converted back into its encrypted and
+    ///     compressed form.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
-    public class Container
+    /// <author>Villermen</author>
+    public class RuneTek5CacheFile : CacheFile
     {
-        /// <summary>
-        ///     Creates a new unversioned container.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="data"></param>
-        public Container(CompressionType type, byte[] data) : this(type, data, -1)
-        {
-        }
-
         /// <summary>
         ///     Creates a new versioned container.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="data"></param>
-        public Container(CompressionType type, byte[] data, int version)
+        /// <param name="entries"></param>
+        /// <param name="compressionType"></param>
+        /// <param name="version"></param>
+        public RuneTek5CacheFile(byte[][] entries, CompressionType compressionType = CompressionType.None, int version = -1)
         {
-            Type = type;
-            Data = data;
+            CompressionType = compressionType;
+            Entries = entries;
             Version = version;
         }
 
-        public Container(Stream dataStream, uint[] key = null)
+        /// <summary>
+        /// </summary>
+        /// <param name="dataStream"></param>
+        /// <param name="amountOfEntries"></param>
+        /// <param name="key"></param>
+        public RuneTek5CacheFile(Stream dataStream, int amountOfEntries, uint[] key = null)
         {
+            Key = key;
+
             var dataReader = new BinaryReader(dataStream);
 
-            Type = (CompressionType) dataReader.ReadByte();
+            CompressionType = (CompressionType) dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
-            var totalLength = length + (Type == CompressionType.None ? 5 : 9);
+            var totalLength = length + (CompressionType == CompressionType.None ? 5 : 9);
 
             // Decrypt the data if a key is given
-            if (key != null)
+            if (Key != null)
             {
                 var byteKeyStream = new MemoryStream(16);
                 var byteKeyWriter = new BinaryWriter(byteKeyStream);
-                foreach (var keyValue in key)
+                foreach (var keyValue in Key)
                 {
                     byteKeyWriter.WriteUInt32BigEndian(keyValue);
                 }
@@ -65,10 +66,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 dataReader = new BinaryReader(new MemoryStream(decrypted));
             }
 
+            byte[] continuousData;
+
             // Check if we should decompress the data or not
-            if (Type == CompressionType.None)
+            if (CompressionType == CompressionType.None)
             {
-                Data = dataReader.ReadBytes(length);
+                continuousData = dataReader.ReadBytes(length);
             }
             else
             {
@@ -77,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var compressedBytes = dataReader.ReadBytes(length);
                 var uncompressedBytes = new byte[uncompressedLength];
 
-                switch (Type)
+                switch (CompressionType)
                 {
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
@@ -117,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         throw new CacheException("Invalid compression type given.");
                 }
 
-                Data = uncompressedBytes;
+                continuousData = uncompressedBytes;
             }
 
             // Obtain the version if present
@@ -127,23 +130,74 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             //{
             //    Version = dataReader.ReadInt16BigEndian();
             //}
+
+            Entries = amountOfEntries > 1 ? DecodeEntries(continuousData, amountOfEntries) : new[] {continuousData};
         }
 
-        public CompressionType Type { get; set; }
+        public CompressionType CompressionType { get; set; }
 
         /// <summary>
-        ///     The decompressed data.
+        ///     The key used in decrypting and encrypting the data.
         /// </summary>
-        public byte[] Data { get; set; }
-
-        /// <summary>
-        ///     The version of the file within this container.
-        /// </summary>
-        public int Version { get; set; }
+        public uint[] Key { get; set; }
 
         public byte[] Encode()
         {
             throw new NotImplementedException();
+        }
+
+        private byte[][] DecodeEntries(byte[] data, int amountOfEntries)
+        {
+            var entries = new byte[amountOfEntries][];
+
+            var reader = new BinaryReader(new MemoryStream(data));
+
+            reader.BaseStream.Position = reader.BaseStream.Length - 1;
+            var amountOfChunks = reader.ReadByte();
+
+            // Read the sizes of the child entries and individual chunks
+            var chunkSizes = new int[amountOfChunks, amountOfEntries];
+            var entrySizes = new int[amountOfEntries];
+
+            reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * amountOfEntries * 4;
+
+            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            {
+                var chunkSize = 0;
+                for (var entryId = 0; entryId < amountOfEntries; entryId++)
+                {
+                    // Read the delta encoded chunk length
+                    var delta = reader.ReadInt32BigEndian();
+                    chunkSize += delta;
+
+                    // Store the size of this chunk
+                    chunkSizes[chunkId, entryId] = chunkSize;
+
+                    // Add it to the size of the whole file
+                    entrySizes[entryId] += chunkSize;
+                }
+            }
+
+            // Read the data
+            reader.BaseStream.Position = 0;
+            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            {
+                for (var entryId = 0; entryId < amountOfEntries; entryId++)
+                {
+                    // Read the bytes of the entry into the archive entries
+                    var entrySize = chunkSizes[chunkId, entryId];
+                    var entryData = reader.ReadBytes(entrySize);
+
+                    if (entryData.Length != entrySize)
+                    {
+                        throw new CacheException("End of file reached while reading the archive.");
+                    }
+
+                    entries[entryId] = entryData.ToArray();
+                }
+            }
+
+            return entries;
         }
     }
 }

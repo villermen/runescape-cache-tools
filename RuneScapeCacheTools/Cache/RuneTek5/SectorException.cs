@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     public class SectorException : Exception
     {

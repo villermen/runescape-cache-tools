@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools
+namespace Villermen.RuneScapeCacheTools.Extensions
 {
     public static class PathExtensions
     {

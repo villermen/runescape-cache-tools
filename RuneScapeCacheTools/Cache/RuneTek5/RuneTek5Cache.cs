@@ -10,7 +10,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
-    public class RuneTek5Cache : Cache
+    public class RuneTek5Cache : CacheBase
     {
         /// <summary>
         ///     Index that contains metadata about the other indexes.
@@ -79,42 +79,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             var referenceTableEntry = referenceTable.Entries[fileId];
 
-            Container container;
-
             try
             {
-                container = new Container(new MemoryStream(FileStore.GetFileData(indexId, fileId)));
+                return new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(indexId, fileId)), referenceTableEntry.ChildEntries.Count);
             }
             catch (SectorException exception)
             {
                 throw new CacheException($"Cache file {fileId} in index {indexId} is incomplete or corrupted.",
                     exception);
             }
-
-            // Archives (files with multiple entries) are handled differently
-            byte[][] data;
-
-            var amountOfEntries = referenceTableEntry.ChildEntries.Count;
-
-            if (amountOfEntries == 1)
-            {
-                data = new[] {container.Data};
-            }
-            else
-            {
-                var archive = new Archive(container.Data, amountOfEntries);
-                data = archive.Entries;
-            }
-
-            return new CacheFile(indexId, fileId, data, referenceTableEntry.Version);
         }
 
         public ReferenceTable GetReferenceTable(int indexId)
         {
-            // Try to get it from cache (I mean our own cache, it will be obtained from cache either way)
+            // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
-                var metaContainer = new Container(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)));
+                var metaContainer =
+                    new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(MetadataIndexId, indexId2)));
                 return new ReferenceTable(metaContainer);
             });
         }

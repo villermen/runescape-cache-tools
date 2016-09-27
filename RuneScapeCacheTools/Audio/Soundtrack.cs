@@ -23,12 +23,12 @@ namespace Villermen.RuneScapeCacheTools.Audio
         /// </summary>
         private readonly Random _random = new Random();
 
-        public Soundtrack(Cache.Cache cache)
+        public Soundtrack(CacheBase cache)
         {
             Cache = cache;
         }
 
-        public Cache.Cache Cache { get; set; }
+        public CacheBase Cache { get; set; }
 
         /// <summary>
         ///     Returns the track names and their corresponding jaga file id in index 40.
@@ -81,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 .GroupBy(pair => pair.Value)
                 .Where(group => group.Count() > 1)
                 .Select(group => group.Skip(1));
-                // Select only the second and up, because the first one doesn't have to be renamed
+            // Select only the second and up, because the first one doesn't have to be renamed
 
             foreach (var duplicateNameGroup in duplicateNameGroups)
             {

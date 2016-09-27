@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -12,15 +13,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
     ///     Base class for current cache systems.
     ///     For cache structures expressing the notion of indexes and archives.
     /// </summary>
-    public abstract class Cache : IDisposable
+    public abstract class CacheBase : IDisposable
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(Cache));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheBase));
 
         private string _outputDirectory;
 
         private string _temporaryDirectory;
 
-        protected Cache(string cacheDirectory)
+        protected CacheBase(string cacheDirectory)
         {
             CacheDirectory = cacheDirectory;
             OutputDirectory = "output";

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
