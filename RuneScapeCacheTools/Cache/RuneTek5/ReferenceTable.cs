@@ -42,13 +42,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     Decodes the reference table contained in the given RuneTek5CacheFile.
+        ///     Decodes the reference table contained in the given data.
         /// </summary>
-        /// <param name="runeTek5CacheFile"></param>
+        /// <param name="data"></param>
+        /// <param name="isReferenceTableReferenceTable"></param>
         /// <returns></returns>
-        public ReferenceTable(RuneTek5CacheFile runeTek5CacheFile)
+        public ReferenceTable(byte[] data, bool isReferenceTableReferenceTable = false)
         {
-            var reader = new BinaryReader(new MemoryStream(runeTek5CacheFile.Data));
+            var reader = new BinaryReader(new MemoryStream(data));
 
             Format = reader.ReadByte();
 

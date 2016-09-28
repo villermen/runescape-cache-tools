@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
-using log4net.Appender;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;

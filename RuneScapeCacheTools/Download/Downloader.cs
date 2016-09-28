@@ -177,7 +177,7 @@ namespace Villermen.RuneScapeCacheTools.Download
             writer.Flush();
         }
 
-        private RuneTek5CacheFile DownloadContainer(int indexId, int fileId)
+        public RuneTek5CacheFile DownloadFile(int indexId, int fileId)
         {
             if (!Connected)
             {
@@ -187,7 +187,7 @@ namespace Villermen.RuneScapeCacheTools.Download
             var writer = new BinaryWriter(ContentClient.GetStream());
 
             // Send the file request to the content server
-            writer.Write((byte) (indexId == 255 ? 1 : 0));
+            writer.Write((byte) (indexId == RuneTek5Cache.MetadataIndexId ? 1 : 0));
             writer.Write((byte) indexId);
             writer.WriteInt32BigEndian(fileId);
 
@@ -211,24 +211,9 @@ namespace Villermen.RuneScapeCacheTools.Download
             return new RuneTek5CacheFile(ContentClient.GetStream(), 1); // TODO: Actual amount of entries
         }
 
-        public CacheFile DownloadFile(int indexId, int fileId)
-        {
-            if (indexId == RuneTek5Cache.MetadataIndexId)
-            {
-                throw new DownloaderException(
-                    "Index 255 can only be requested by using the DownloadReferenceTable method.");
-            }
-
-            var container = DownloadContainer(indexId, fileId);
-
-            return new CacheFile(indexId, fileId, new[] {container.Data}, container.Version);
-        }
-
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
-            var container = DownloadContainer(RuneTek5Cache.MetadataIndexId, indexId);
-
-            return new ReferenceTable(container);
-        }
+            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId).Data);
+        }   
     }
 }

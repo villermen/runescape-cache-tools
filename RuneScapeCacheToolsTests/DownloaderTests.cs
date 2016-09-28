@@ -1,5 +1,6 @@
 ﻿using System;
 using RuneScapeCacheToolsTests.Fixtures;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Download;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,6 +22,7 @@ namespace RuneScapeCacheToolsTests
         [Fact(Skip = "Not implemented")]
         public void TestDownloadFile()
         {
+            Fixture.Downloader.DownloadFile(12, 3);
             // TODO: HTTP worker or something similar for
             // Fixture.Downloader.DownloadFile(40, 30468);
 
@@ -38,6 +40,8 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadReferenceTable()
         {
+            var rawReferenceTable = Fixture.Downloader.DownloadFile(RuneTek5Cache.MetadataIndexId, 17);
+
             var referenceTable = Fixture.Downloader.DownloadReferenceTable(17);
 
             Output.WriteLine($"Entries in reference table for index 17: {referenceTable.Entries.Count}.");
@@ -46,9 +50,9 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact(Skip = "Not implemented")]
-        public void TestDownloadReferenceTableTable()
+        public void TestDownloadReferenceTableReferenceTable()
         {
-            // Fixture.Downloader.DownloadReferenceTable(255);
+            Fixture.Downloader.DownloadReferenceTable(RuneTek5Cache.MetadataIndexId);
 
             //buffer.position(5);
             //entryCount = buffer.get() & 0xff;
@@ -66,12 +70,6 @@ namespace RuneScapeCacheToolsTests
             //    buffer.get(entry.digest);
             //    //System.out.println(i + ":" + entry.crc + "," + entry.version + "," + files + "," + size);
             //}
-        }
-
-        [Fact]
-        public void TestDownloadMetadataFileDirectly()
-        {
-            Assert.Throws<DownloaderException>(() => Fixture.Downloader.DownloadFile(255, 40));
         }
 
         public void Dispose()

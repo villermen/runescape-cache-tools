@@ -33,12 +33,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Version = version;
         }
 
+        public RuneTek5CacheFile(byte[] data, int amountOfEntries = 1, uint[] key = null)
+            : this(new MemoryStream(data), amountOfEntries, key)
+        {
+        }
+
         /// <summary>
         /// </summary>
         /// <param name="dataStream"></param>
         /// <param name="amountOfEntries"></param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(Stream dataStream, int amountOfEntries, uint[] key = null)
+        public RuneTek5CacheFile(Stream dataStream, int amountOfEntries = 1, uint[] key = null)
         {
             Key = key;
 
