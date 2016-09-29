@@ -90,17 +90,17 @@ namespace Villermen.RuneScapeCacheTools.Download
                 var handshakeWriter = new BinaryWriter(ContentClient.GetStream());
                 var handshakeReader = new BinaryReader(ContentClient.GetStream());
 
-                var handshakeLength = (byte) (9 + key.Length + 1);
+                var handshakeLength = (byte)(9 + key.Length + 1);
 
                 handshakeWriter.Write(HandshakeType);
                 handshakeWriter.Write(handshakeLength);
                 handshakeWriter.WriteInt32BigEndian(MajorVersion);
                 handshakeWriter.WriteInt32BigEndian(MinorVersion);
                 handshakeWriter.WriteNullTerminatedString(key);
-                handshakeWriter.Write((byte) Language);
+                handshakeWriter.Write((byte)Language);
                 handshakeWriter.Flush();
 
-                var response = (HandshakeResponse) handshakeReader.ReadByte();
+                var response = (HandshakeResponse)handshakeReader.ReadByte();
 
                 switch (response)
                 {
@@ -215,7 +215,7 @@ namespace Villermen.RuneScapeCacheTools.Download
 
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
-            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId).Data, indexId);
+            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
         }   
     }
 }

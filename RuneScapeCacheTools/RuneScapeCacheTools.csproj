@@ -89,6 +89,7 @@
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\Language.cs" />
+    <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTableFileEntry.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTableFile.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />

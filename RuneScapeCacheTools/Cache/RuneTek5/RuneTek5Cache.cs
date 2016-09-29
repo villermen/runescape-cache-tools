@@ -80,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
                 var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(MetadataIndexId, indexId2), null);
-                return new ReferenceTable(cacheFile.Data, indexId);
+                return new ReferenceTable(cacheFile, indexId);
             });
         }
 

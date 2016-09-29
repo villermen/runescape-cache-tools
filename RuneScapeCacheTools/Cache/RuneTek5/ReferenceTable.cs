@@ -19,12 +19,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     Decodes the reference table contained in the given data.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="cacheFile"></param>
         /// <param name="indexId"></param>
         /// <returns></returns>
-        public ReferenceTable(byte[] data, int indexId)
+        public ReferenceTable(CacheFile cacheFile, int indexId)
         {
-            var reader = new BinaryReader(new MemoryStream(data));
+            var reader = new BinaryReader(new MemoryStream(cacheFile.Data));
 
             Format = reader.ReadByte();
 
