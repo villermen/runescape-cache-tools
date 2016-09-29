@@ -33,17 +33,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Version = version;
         }
 
-        public RuneTek5CacheFile(byte[] data, int amountOfEntries = 1, uint[] key = null)
-            : this(new MemoryStream(data), amountOfEntries, key)
+        public RuneTek5CacheFile(byte[] data, ReferenceTable.Entry referenceTableEntry, uint[] key = null)
+            : this(new MemoryStream(data), referenceTableEntry, key)
         {
         }
 
         /// <summary>
         /// </summary>
         /// <param name="dataStream"></param>
-        /// <param name="amountOfEntries"></param>
+        /// <param name="referenceTableEntry"></param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(Stream dataStream, int amountOfEntries = 1, uint[] key = null)
+        public RuneTek5CacheFile(Stream dataStream, ReferenceTable.Entry referenceTableEntry, uint[] key = null)
         {
             Key = key;
 
@@ -128,15 +128,27 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            // Obtain the version if present
-            Version = -1;
-            // TODO
-            //if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
-            //{
-            //    Version = dataReader.ReadInt16BigEndian();
-            //}
+            if (referenceTableEntry != null && referenceTableEntry.ChildEntries.Count > 1)
+            {
+                Entries = DecodeEntries(continuousData, referenceTableEntry.ChildEntries.Count);
+            }
+            else
+            {
+                Entries = new[] { continuousData };
+            }
 
-            Entries = amountOfEntries > 1 ? DecodeEntries(continuousData, amountOfEntries) : new[] {continuousData};
+            if (referenceTableEntry != null)
+            {
+                Version = referenceTableEntry.Version;
+            }
+
+            // if (dataReader.BaseStream.CanSeek && dataReader.BaseStream.Position < dataReader.BaseStream.Length - 1)
+            // {
+            //     var amountOfBytesRemaining = (int)(dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1);
+            //     var bytesRemaining = dataReader.ReadBytes(amountOfBytesRemaining);
+            //
+            //     throw new CacheException($"Cache file decoded with {amountOfBytesRemaining} bytes remaining in supplied buffer.");
+            // }
         }
 
         public CompressionType CompressionType { get; set; }

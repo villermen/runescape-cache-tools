@@ -81,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
             {
-                return new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(indexId, fileId)), referenceTableEntry.ChildEntries.Count);
+                return new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(indexId, fileId)), referenceTableEntry);
             }
             catch (SectorException exception)
             {
@@ -95,7 +95,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
-                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(MetadataIndexId, indexId2));
+                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(MetadataIndexId, indexId2), null);
                 return new ReferenceTable(cacheFile.Data);
             });
         }
