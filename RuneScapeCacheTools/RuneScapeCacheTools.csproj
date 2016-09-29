@@ -88,8 +88,8 @@
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\Language.cs" />
-    <Compile Include="Cache\RuneTek5\ReferenceTable.ChildEntry.cs" />
-    <Compile Include="Cache\RuneTek5\ReferenceTable.Entry.cs" />
+    <Compile Include="Cache\RuneTek5\ReferenceTableFileEntry.cs" />
+    <Compile Include="Cache\RuneTek5\ReferenceTableFile.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek5\SectorException.cs" />
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />

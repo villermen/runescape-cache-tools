@@ -14,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>`Discardedx2</author>
     /// <author>Sean</author>
     /// <author>Villermen</author>
-    public partial class ReferenceTable
+    public class ReferenceTable
     {
         [Flags]
         public enum DataFlags
@@ -45,9 +45,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     Decodes the reference table contained in the given data.
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="isReferenceTableReferenceTable"></param>
+        /// <param name="indexId"></param>
         /// <returns></returns>
-        public ReferenceTable(byte[] data, bool isReferenceTableReferenceTable = false)
+        public ReferenceTable(byte[] data, int indexId)
         {
             var reader = new BinaryReader(new MemoryStream(data));
 
@@ -64,126 +64,98 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 Version = reader.ReadInt32BigEndian();
             }
 
-            Flags = (DataFlags) reader.ReadByte();
+            Flags = (DataFlags)reader.ReadByte();
 
-            // Read the ids
-            var ids = new int[Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
-            int accumulator = 0, size = -1;
-            for (var i = 0; i < ids.Length; i++)
+            // Read the ids of the files (delta encoded)
+            var fileCount = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+
+            var fileId = 0;
+            for (var fileNumber = 0; fileNumber < fileCount; fileNumber++)
             {
-                var delta = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
-                ids[i] = accumulator += delta;
+                fileId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                if (ids[i] > size)
-                {
-                    size = ids[i];
-                }
-            }
-
-            size++;
-
-            // Indices = ids;
-
-            // Allocate specific entries within the ids array
-            var index = 0;
-            foreach (var id in ids)
-            {
-                Entries.Add(id, new Entry(index++));
+                Files.Add(fileId, new ReferenceTableFile(indexId, fileId));
             }
 
             // Read the identifiers if present
             if ((Flags & DataFlags.Identifiers) != 0)
             {
-                foreach (var id in ids)
+                foreach (var file in Files.Values)
                 {
-                    Entries[id].Identifier = reader.ReadInt32BigEndian();
+                    file.Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the CRC32 checksums
-            foreach (var id in ids)
+            foreach (var file in Files.Values)
             {
-                Entries[id].CRC = reader.ReadInt32BigEndian();
+                file.CRC = reader.ReadInt32BigEndian();
             }
 
             // Read some type of hash
             if ((Flags & DataFlags.MysteryHashes) != 0)
             {
-                foreach (var id in ids)
+                foreach (var file in Files.Values)
                 {
-                    Entries[id].MysteryHash = reader.ReadInt32BigEndian();
+                    file.MysteryHash = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the whirlpool digests if present
             if ((Flags & DataFlags.WhirlpoolDigests) != 0)
             {
-                foreach (var id in ids)
+                foreach (var file in Files.Values)
                 {
-                    Entries[id].Whirlpool = reader.ReadBytes(64);
+                    file.Whirlpool = reader.ReadBytes(64);
                 }
             }
 
             // Read the compressed and uncompressed sizes
             if ((Flags & DataFlags.Sizes) != 0)
             {
-                foreach (var id in ids)
+                foreach (var file in Files.Values)
                 {
-                    Entries[id].CompressedSize = reader.ReadInt32BigEndian();
-                    Entries[id].UncompressedSize = reader.ReadInt32BigEndian();
+                    file.CompressedSize = reader.ReadInt32BigEndian();
+                    file.UncompressedSize = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the version numbers
-            foreach (var id in ids)
+            foreach (var file in Files.Values)
             {
                 var version = reader.ReadInt32BigEndian();
-                Entries[id].Version = version;
+                file.Version = version;
             }
 
-            // Read the child sizes
-            var members = new int[size][];
-            foreach (var id in ids)
+            // Read the entry counts
+            var entryCounts = new Dictionary<int, int>();
+            foreach(var file in Files.Values)
             {
-                members[id] = new int[Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian()];
+                entryCounts.Add(file.Id, Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
             }
 
-            // Read the child ids
-            foreach (var id in ids)
+            // Read the entry ids (delta encoded)
+            foreach (var entryCountPair in entryCounts)
             {
-                // Reset the accumulator and size
-                accumulator = 0;
-                size = -1;
+                var entryCountFileId = entryCountPair.Key;
+                var entryCount = entryCountPair.Value;
 
-                // Loop through the array of ids
-                for (var i = 0; i < members[id].Length; i++)
+                var entryId = 0;
+                for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {
-                    var delta = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
-                    members[id][i] = accumulator += delta;
-                    if (members[id][i] > size)
-                    {
-                        size = members[id][i];
-                    }
-                }
-
-                // size++;
-
-                // Allocate specific entries within the ids array
-                index = 0;
-                foreach (var child in members[id])
-                {
-                    Entries[id].ChildEntries.Add(child, new ChildEntry(index++));
+                    entryId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                    Files[entryCountFileId].Entries.Add(entryId, new ReferenceTableFileEntry(entryId));
                 }
             }
 
-            /* read the child identifiers if present */
+            // Read the entry identifiers if present
             if ((Flags & DataFlags.Identifiers) != 0)
             {
-                foreach (var id in ids)
+                foreach (var file in Files.Values)
                 {
-                    foreach (var child in members[id])
+                    foreach (var entry in file.Entries.Values)
                     {
-                        Entries[id].ChildEntries[child].Identifier = reader.ReadInt32BigEndian();
+                        entry.Identifier = reader.ReadInt32BigEndian();
                     }
                 }
             }
@@ -207,134 +179,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The entries in this table.
         /// </summary>
-        public IDictionary<int, Entry> Entries { get; } = new SortedDictionary<int, Entry>();
-
-//            /* 
-//                * we can't (easily) predict the size ahead of time, so we write to a
-//                * stream and then to the reader
-//                */
-//            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//        DataOutputStream os = new DataOutputStream(bout);
-//	try {
-
-//		/* write the header */
-
-//        {
-//        public ByteBuffer encode() throws IOException
-
-        /**
-            * Encodes this {@link ReferenceTable} into a {@link ByteBuffer}.
-            * @return The {@link ByteBuffer}.
-            * @throws IOException if an I/O error occurs.
-            */
-//		os.write(format);
-//		if (format >= 6) {
-//			os.writeInt(version);
-//		}
-//    os.write(flags);
-
-//        /* calculate and write the number of non-null entries */
-//        putSmartFormat(entries.size(), os);
-
-//		/* write the ids */
-//		int last = 0;
-//		for (int id = 0; id<capacity(); id++) {
-//			if (entries.containsKey(id)) {
-//				int delta = id - last;
-
-//                putSmartFormat(delta, os);
-//    last = id;
-//			}
-//}
-
-//		/* write the identifiers if required */
-//		if ((flags & FLAG_IDENTIFIERS) != 0) {
-//			for (ReferenceTable.Entry entry : entries.values()) {
-//				os.writeInt(entry.identifier);
-//			}
-//		}
-
-//		/* write the CRC checksums */
-//		for (ReferenceTable.Entry entry : entries.values()) {
-//			os.writeInt(entry.crc);
-//		}
-
-//		if(Suite.build >= 816) {
-//			/* unknown 816+ flag */
-//			if ((flags & FLAG_UNKOWN_HASH) != 0) {
-//				for (ReferenceTable.Entry entry : entries.values()) {
-//					os.writeInt(entry.mysteryHash);
-//				}
-//			}
-//		}
-
-//		/* write the whirlpool digests if required */
-//		if ((flags & FLAG_WHIRLPOOL) != 0) {
-//			for (ReferenceTable.Entry entry : entries.values()) {
-//				os.write(entry.whirlpool);
-//			}
-//		}
-//		if(Suite.build >= 816) {
-//			/* unknown 816+ flag */
-//			if ((flags & FLAG_SIZES) != 0) {
-//				for (ReferenceTable.Entry entry : entries.values()) {
-//					os.writeInt(entry.compressedSize);
-//					os.writeInt(entry.uncompressedSize);
-//				}
-//			}
-//		}
-//		/* write the versions */
-//		for (ReferenceTable.Entry entry : entries.values()) {
-//			os.writeInt(entry.version);
-//		}
-
-//		/* calculate and write the number of non-null child entries */
-//		for (ReferenceTable.Entry entry : entries.values()) {
-
-//            putSmartFormat(entry.entries.size(), os);
-//		}
-
-//		/* write the child ids */
-//		for (ReferenceTable.Entry entry : entries.values()) {
-//			last = 0;
-//			for (int id = 0; id<entry.capacity(); id++) {
-//				if (entry.entries.containsKey(id)) {
-//					int delta = id - last;
-
-//                    putSmartFormat(delta, os);
-//last = id;
-//				}
-//			}
-//		}
-
-//		/* write the child identifiers if required  */
-//		if ((flags & FLAG_IDENTIFIERS) != 0) {
-//			for (ReferenceTable.Entry entry : entries.values()) {
-//				for (ReferenceTable.ChildEntry child : entry.entries.values()) {
-//					os.writeInt(child.identifier);
-//				}
-//			}
-//		}
-
-//		/* convert the stream to a byte array and then wrap a reader */
-//		byte[] bytes = bout.toByteArray();
-//		return ByteBuffer.wrap(bytes);
-//	} finally {
-//		os.close();
-//	}
-
-        ///**
-        // * Puts the data into a certain type by the format id.
-        // * @param val The value to put into the reader.
-        // * @param reader The reader.
-        // * @throws IOException The exception thrown if an i/o error occurs.
-        // */
-        //public void putSmartFormat(int val, DataOutputStream os) throws IOException
-        //{
-        //  if(format >= 7)
-        //   ReferenceTable.putSmartInt(os, val);
-        //  else 
-        //   os.writeShort((short) val);
-        //}
+        public IDictionary<int, ReferenceTableFile> Files { get; } = new Dictionary<int, ReferenceTableFile>();
     }
 }

@@ -33,7 +33,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Version = version;
         }
 
-        public RuneTek5CacheFile(byte[] data, ReferenceTable.Entry referenceTableEntry, uint[] key = null)
+        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableEntry, uint[] key = null)
             : this(new MemoryStream(data), referenceTableEntry, key)
         {
         }
@@ -43,7 +43,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="dataStream"></param>
         /// <param name="referenceTableEntry"></param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(Stream dataStream, ReferenceTable.Entry referenceTableEntry, uint[] key = null)
+        public RuneTek5CacheFile(Stream dataStream, ReferenceTableFile referenceTableEntry, uint[] key = null)
         {
             Key = key;
 
@@ -128,9 +128,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            if (referenceTableEntry != null && referenceTableEntry.ChildEntries.Count > 1)
+            if (referenceTableEntry != null && referenceTableEntry.Entries.Count > 1)
             {
-                Entries = DecodeEntries(continuousData, referenceTableEntry.ChildEntries.Count);
+                Entries = DecodeEntries(continuousData, referenceTableEntry.Entries.Count);
             }
             else
             {
@@ -141,14 +141,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 Version = referenceTableEntry.Version;
             }
-
-            // if (dataReader.BaseStream.CanSeek && dataReader.BaseStream.Position < dataReader.BaseStream.Length - 1)
-            // {
-            //     var amountOfBytesRemaining = (int)(dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1);
-            //     var bytesRemaining = dataReader.ReadBytes(amountOfBytesRemaining);
-            //
-            //     throw new CacheException($"Cache file decoded with {amountOfBytesRemaining} bytes remaining in supplied buffer.");
-            // }
         }
 
         public CompressionType CompressionType { get; set; }

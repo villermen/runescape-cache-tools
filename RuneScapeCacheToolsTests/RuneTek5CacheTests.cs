@@ -54,6 +54,7 @@ namespace RuneScapeCacheToolsTests
         {
             var referenceTable40 = Fixture.RuneTek5Cache.GetReferenceTable(40);
             var referenceTable17 = Fixture.RuneTek5Cache.GetReferenceTable(17);
+            var referenceTable12 = Fixture.RuneTek5Cache.GetReferenceTable(12);
         }
 
         [Fact(Skip = "Not implemented")]

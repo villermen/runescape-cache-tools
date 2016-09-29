@@ -40,13 +40,15 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadReferenceTable()
         {
+            var referenceTable12 = Fixture.Downloader.DownloadReferenceTable(12);
+
             var rawReferenceTable = Fixture.Downloader.DownloadFile(RuneTek5Cache.MetadataIndexId, 17);
 
             var referenceTable = Fixture.Downloader.DownloadReferenceTable(17);
 
-            Output.WriteLine($"Entries in reference table for index 17: {referenceTable.Entries.Count}.");
+            Output.WriteLine($"Files in reference table for index 17: {referenceTable.Files.Count}.");
 
-            Assert.True(referenceTable.Entries.Count == 46);
+            Assert.True(referenceTable.Files.Count == 46);
         }
 
         [Fact(Skip = "Not implemented")]
@@ -61,7 +63,7 @@ namespace RuneScapeCacheToolsTests
             ////System.out.println("#,crc,version,files,size");
             //for (int i = 0; i < entryCount; i++)
             //{
-            //    Entry entry = entries[i] = new Entry();
+            //    Entry entry = entries[i] = new ReferenceTableFile();
             //    entry.crc = buffer.getInt();
             //    entry.version = buffer.getInt();
             //    int files = buffer.getInt();

@@ -41,16 +41,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             new ConcurrentDictionary<int, ReferenceTable>();
 
         /// <summary>
-        ///     Computes the <see cref="ChecksumTable" /> for this cache.
-        ///     The checksum table forms part of the so-called "update keys".
-        /// </summary>
-        /// <returns></returns>
-        public ChecksumTable CreateChecksumTable()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         ///     Gets the number of files in the specified index.
         /// </summary>
         /// <param name="indexId"></param>
@@ -60,24 +50,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return FileStore.GetFileCount(indexId);
         }
 
-        //public override int GetArchiveFileCount(int indexId, int archiveId)
-        //{
-        //	var archive = GetArchive(indexId, archiveId);
-        //	return archive.Entries.Length;
-        //}
-
         public override CacheFile GetFile(int indexId, int fileId)
         {
             // Obtain the reference table for the requested index
             var referenceTable = GetReferenceTable(indexId);
 
             // The file must at least be defined in the reference table (doesn't mean it is actually complete)
-            if (!referenceTable.Entries.ContainsKey(fileId))
+            if (!referenceTable.Files.ContainsKey(fileId))
             {
                 throw new CacheException($"Given cache file {fileId} in index {indexId} does not exist.");
             }
 
-            var referenceTableEntry = referenceTable.Entries[fileId];
+            var referenceTableEntry = referenceTable.Files[fileId];
 
             try
             {
@@ -96,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
                 var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(MetadataIndexId, indexId2), null);
-                return new ReferenceTable(cacheFile.Data);
+                return new ReferenceTable(cacheFile.Data, indexId);
             });
         }
 

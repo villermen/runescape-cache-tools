@@ -208,14 +208,14 @@ namespace Villermen.RuneScapeCacheTools.Download
                     $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
-            var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Entries[fileId] : null;
+            var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
 
             return new RuneTek5CacheFile(ContentClient.GetStream(), referenceTableEntry);
         }
 
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
-            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId).Data);
+            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId).Data, indexId);
         }   
     }
 }
