@@ -184,6 +184,13 @@ namespace Villermen.RuneScapeCacheTools.Download
                 throw new DownloaderException("Can't request file when disconnected.");
             }
 
+            if (ContentClient.Available > 0)
+            {
+                var untouchedBytes = new BinaryReader(ContentClient.GetStream()).ReadBytes(ContentClient.Available);
+
+                throw new DownloaderException("Network data was received before sending a file request.");
+            }
+
             var writer = new BinaryWriter(ContentClient.GetStream());
 
             // Send the file request to the content server
@@ -208,6 +215,7 @@ namespace Villermen.RuneScapeCacheTools.Download
                     $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
             }
 
+            // TODO: Caching for reference tables
             var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
 
             return new RuneTek5CacheFile(ContentClient.GetStream(), referenceTableEntry);
