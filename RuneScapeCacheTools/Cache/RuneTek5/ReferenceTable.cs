@@ -16,31 +16,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Villermen</author>
     public class ReferenceTable
     {
-        [Flags]
-        public enum DataFlags
-        {
-            /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
-            /// </summary>
-            Identifiers = 0x01,
-
-            /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" />} contains whirlpool digests for its entries.
-            /// </summary>
-            WhirlpoolDigests = 0x02,
-
-            /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" /> contains sizes for its entries.
-            /// </summary>
-            Sizes = 0x04,
-
-            /// <summary>
-            ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
-            ///     the RuneScape client.
-            /// </summary>
-            MysteryHashes = 0x08
-        }
-
         /// <summary>
         ///     Decodes the reference table contained in the given data.
         /// </summary>
@@ -64,7 +39,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 Version = reader.ReadInt32BigEndian();
             }
 
-            Flags = (DataFlags)reader.ReadByte();
+            Options = (CacheFileOptions)reader.ReadByte();
 
             // Read the ids of the files (delta encoded)
             var fileCount = Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
@@ -78,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the identifiers if present
-            if ((Flags & DataFlags.Identifiers) != 0)
+            if ((Options & CacheFileOptions.Identifiers) != 0)
             {
                 foreach (var file in Files.Values)
                 {
@@ -93,7 +68,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read some type of hash
-            if ((Flags & DataFlags.MysteryHashes) != 0)
+            if ((Options & CacheFileOptions.MysteryHashes) != 0)
             {
                 foreach (var file in Files.Values)
                 {
@@ -102,7 +77,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the whirlpool digests if present
-            if ((Flags & DataFlags.WhirlpoolDigests) != 0)
+            if ((Options & CacheFileOptions.WhirlpoolDigests) != 0)
             {
                 foreach (var file in Files.Values)
                 {
@@ -111,7 +86,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the compressed and uncompressed sizes
-            if ((Flags & DataFlags.Sizes) != 0)
+            if ((Options & CacheFileOptions.Sizes) != 0)
             {
                 foreach (var file in Files.Values)
                 {
@@ -149,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the entry identifiers if present
-            if ((Flags & DataFlags.Identifiers) != 0)
+            if ((Options & CacheFileOptions.Identifiers) != 0)
             {
                 foreach (var file in Files.Values)
                 {
@@ -174,7 +149,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The flags of this table.
         /// </summary>
-        public DataFlags Flags { get; set; }
+        public CacheFileOptions Options { get; set; }
 
         /// <summary>
         ///     The entries in this table.
