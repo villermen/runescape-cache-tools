@@ -216,6 +216,11 @@ namespace Villermen.RuneScapeCacheTools.Download
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
             return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
-        }   
+        }
+
+        public MasterReferenceTable DownloadMasterReferenceTable()
+        {
+            return new MasterReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
+        }
     }
 }

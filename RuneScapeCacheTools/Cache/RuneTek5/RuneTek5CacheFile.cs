@@ -51,7 +51,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             CompressionType = (CompressionType) dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
-            var totalLength = length + (CompressionType == CompressionType.None ? 5 : 9);
 
             // Decrypt the data if a key is given
             if (Key != null)
@@ -62,6 +61,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 {
                     byteKeyWriter.WriteUInt32BigEndian(keyValue);
                 }
+
+                var totalLength = length + (CompressionType == CompressionType.None ? 5 : 9);
 
                 var xtea = new XteaEngine();
                 xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));

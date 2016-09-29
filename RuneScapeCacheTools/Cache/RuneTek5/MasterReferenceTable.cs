@@ -1,4 +1,8 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+﻿using System.Collections.Generic;
+using System.IO;
+using Villermen.RuneScapeCacheTools.Extensions;
+
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     /// A master reference table holds information on the other reference tables.
@@ -7,6 +11,31 @@
     /// </summary>
     public class MasterReferenceTable
     {
-        
+        public MasterReferenceTable(CacheFile cacheFile)
+        {
+            var reader = new BinaryReader(new MemoryStream(cacheFile.Data));
+
+            var tableCount = reader.ReadByte();
+
+            for (var tableId = 0; tableId < tableCount; tableId++)
+            {
+                var table = new MasterReferenceTableTable(tableId)
+                {
+                    CRC = reader.ReadInt32BigEndian(),
+                    Version = reader.ReadInt32BigEndian(),
+                    FileCount = reader.ReadInt32BigEndian(),
+                    Length = reader.ReadInt32BigEndian(),
+                    WhirlpoolDigest = reader.ReadBytes(64)
+                };
+
+                ReferenceTableFiles.Add(tableId, table);
+            }
+
+            RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+        }
+
+        public IDictionary<int, MasterReferenceTableTable> ReferenceTableFiles { get; } = new Dictionary<int, MasterReferenceTableTable>();
+
+        public byte[] RSAEncryptedWhirlpoolDigest { get; set; }
     }
 }

@@ -32,10 +32,10 @@ namespace RuneScapeCacheToolsTests
 
             _output.WriteLine($"Amount of track names: {trackNames.Count}");
 
-            Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"));
+            Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        // [Fact] // Removed because test data is not customized yet
+        [Fact(Skip = "Cache is not customized to contain \"Soundscape\".")]
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
@@ -44,14 +44,14 @@ namespace RuneScapeCacheToolsTests
             const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
 
             // Verify that Soundscape.ogg has been created
-            Assert.True(File.Exists(expectedOutputPath));
+            Assert.True(File.Exists(expectedOutputPath), "Soundscape.ogg should've been created during extraction.");
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime);
+            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted)."); // TODO: I believe oggCat does not update mtime that weirdly enough
         }
 
-        // [Fact]
+        [Fact(Skip = "Depends on other tests and \"Soundscape\" to be available.")]
         public void TestGetVersionFromCombinedTrackFile()
         {
             // Enforce order of tests? Extract again?

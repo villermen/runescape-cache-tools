@@ -42,7 +42,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The whirlpool digest of this entry.
         /// </summary>
-        public byte[] Whirlpool { get; set; }
+        public byte[] WhirlpoolDigest { get; set; }
 
         /// <summary>
         ///     The version of the described file usually stored as the time the file was last edited in seconds since the unix epoch.

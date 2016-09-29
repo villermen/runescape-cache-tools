@@ -81,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 foreach (var file in Files.Values)
                 {
-                    file.Whirlpool = reader.ReadBytes(64);
+                    file.WhirlpoolDigest = reader.ReadBytes(64);
                 }
             }
 
@@ -119,6 +119,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {
                     entryId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+
                     Files[entryCountFileId].Entries.Add(entryId, new ReferenceTableFileEntry(entryId));
                 }
             }
