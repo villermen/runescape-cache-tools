@@ -11,6 +11,14 @@
             Level = -1;
         }
 
+        public Vector3(int level, int x, int y, int z)
+        {
+            Level = level;
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
         private Vector3(Vector3 vector)
         {
             Level = vector.Level;
@@ -27,8 +35,8 @@
             }
             else
             {
-                Level = unknownInteger >> 28 & 3;
-                X = (unknownInteger >> 14 & 0x3fff) << 9;
+                Level = (unknownInteger >> 28) & 3;
+                X = ((unknownInteger >> 14) & 0x3fff) << 9;
                 Y = 0;
                 Z = (unknownInteger & 0x3fff) << 9;
 
@@ -40,17 +48,9 @@
             }
         }
 
-        public Vector3(int level, int x, int y, int z)
-        {
-            Level = level;
-            X = x;
-            Y = y;
-            Z = z;
-        }
-
         public int Level { get; }
-        public int Y { get; }
         public int X { get; }
+        public int Y { get; }
         public int Z { get; }
 
         // TODO: implement other methods

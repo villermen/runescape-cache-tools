@@ -25,14 +25,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     The size of the file in bytes.
-        /// </summary>
-        public int Size { get; private set; }
-
-        /// <summary>
         ///     The number of the first sector that contains the file.
         /// </summary>
         public int Sector { get; private set; }
+
+        /// <summary>
+        ///     The size of the file in bytes.
+        /// </summary>
+        public int Size { get; private set; }
 
         public byte[] Encode()
         {

@@ -13,9 +13,9 @@ namespace Villermen.RuneScapeCacheTools.Enums
             var dataReader = new BinaryReader(new MemoryStream(data));
             var ended = false;
 
-            while (dataReader.BaseStream.Position < dataReader.BaseStream.Length && !ended)
+            while ((dataReader.BaseStream.Position < dataReader.BaseStream.Length) && !ended)
             {
-                var opcode = (EnumOpcode) dataReader.ReadByte();
+                var opcode = (EnumOpcode)dataReader.ReadByte();
 
                 switch (opcode)
                 {
@@ -111,13 +111,19 @@ namespace Villermen.RuneScapeCacheTools.Enums
             }
         }
 
-        public object this[int key] => Values[key];
+        public int DefaultInteger { get; }
+        public string DefaultString { get; } = "null";
 
         public ScriptVarType KeyType { get; }
-        public ScriptVarType ValueType { get; }
         public Dictionary<int, object> Values { get; }
-        public string DefaultString { get; } = "null";
-        public int DefaultInteger { get; }
+        public ScriptVarType ValueType { get; }
+
+        public object this[int key] => Values[key];
+
+        public bool ContainsKey(int key)
+        {
+            return Values.ContainsKey(key);
+        }
 
         public IEnumerator<KeyValuePair<int, object>> GetEnumerator()
         {
@@ -127,11 +133,6 @@ namespace Villermen.RuneScapeCacheTools.Enums
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        public bool ContainsKey(int key)
-        {
-            return Values.ContainsKey(key);
         }
     }
 }

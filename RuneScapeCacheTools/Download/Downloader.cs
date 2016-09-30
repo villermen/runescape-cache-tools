@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using Org.BouncyCastle.Pkcs;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
@@ -27,11 +26,43 @@ namespace Villermen.RuneScapeCacheTools.Download
             Cache = cache;
         }
 
+        public int BlockLength { get; set; } = 102400;
+
         public CacheBase Cache { get; }
+
+        public bool Connected { get; private set; }
 
         public string ContentHost { get; set; } = "content.runescape.com";
 
         public int ContentPort { get; set; } = 43594;
+
+        /// <summary>
+        ///     The page used in obtaining the content server handshake key.
+        /// </summary>
+        public string KeyPage { get; set; } = "http://world2.runescape.com";
+
+        /// <summary>
+        ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
+        ///     The first capture group needs to result in the key.
+        /// </summary>
+        public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
+
+        public Language Language { get; set; } = Language.English;
+
+        /// <summary>
+        ///     The minor version is needed to correctly connect to the content server.
+        ///     This seems to always be 1.
+        /// </summary>
+        public int MinorVersion { get; set; } = 1;
+
+        private TcpClient ContentClient { get; set; }
+
+        /// <summary>
+        ///     The handshake type is needed to correctly connect to the content server.
+        /// </summary>
+        private byte HandshakeType { get; } = 15;
+
+        private int LoadingRequirementsLength { get; } = 26 * 4;
 
         /// <summary>
         ///     The major version is needed to correctly connect to the content server.
@@ -40,45 +71,8 @@ namespace Villermen.RuneScapeCacheTools.Download
         /// </summary>
         private int MajorVersion { get; set; } = 873;
 
-        /// <summary>
-        ///     The minor version is needed to correctly connect to the content server.
-        ///     This seems to always be 1.
-        /// </summary>
-        public int MinorVersion { get; set; } = 1;
-
-        /// <summary>
-        ///     The handshake type is needed to correctly connect to the content server.
-        /// </summary>
-        private byte HandshakeType { get; } = 15;
-
-        public Language Language { get; set; } = Language.English;
-
-        /// <summary>
-        ///     The page used in obtaining the content server handshake key.
-        /// </summary>
-        public string KeyPage { get; set; } = "http://world2.runescape.com";
-
-        public int BlockLength { get; set; } = 102400;
-
-        /// <summary>
-        ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
-        ///     The first capture group needs to result in the key.
-        /// </summary>
-        public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
-
-        private int LoadingRequirementsLength { get; } = 26 * 4;
-
-        private TcpClient ContentClient { get; set; }
-
-        public bool Connected { get; private set; }
-
         private Dictionary<Tuple<int, int>, FileRequest> PendingFileRequests { get; } =
             new Dictionary<Tuple<int, int>, FileRequest>();
-
-        public void Dispose()
-        {
-            ContentClient.Dispose();
-        }
 
         public void Connect()
         {
@@ -109,13 +103,13 @@ namespace Villermen.RuneScapeCacheTools.Download
                 {
                     case HandshakeResponse.Success:
                         connected = true;
-                        Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
+                        Downloader.Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
                         break;
 
                     case HandshakeResponse.Outdated:
                         ContentClient.Dispose();
                         ContentClient = null;
-                        Logger.Info($"Content server says {MajorVersion} is outdated.");
+                        Downloader.Logger.Info($"Content server says {MajorVersion} is outdated.");
                         MajorVersion++;
                         break;
 
@@ -135,49 +129,9 @@ namespace Villermen.RuneScapeCacheTools.Download
             Connected = true;
         }
 
-        private string GetKeyFromPage()
+        public void Dispose()
         {
-            var request = WebRequest.Create(KeyPage);
-            var response = request.GetResponse();
-            var responseStream = response.GetResponseStream();
-
-            if (responseStream == null)
-            {
-                throw new DownloaderException($"No handshake key could be obtained from \"{KeyPage}\".");
-            }
-
-            using (var reader = new StreamReader(responseStream))
-            {
-                var responseString = reader.ReadToEnd();
-
-                var key = KeyPageRegex.Match(responseString).Groups[1].Value;
-
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    throw new DownloaderException("Obtained handshake key is empty.");
-                }
-
-                return key;
-            }
-        }
-
-        /// <summary>
-        ///     Sends the initial connection status and login packets to the server.
-        /// </summary>
-        private void SendConnectionInfo()
-        {
-            var writer = new BinaryWriter(ContentClient.GetStream());
-
-            // I don't know
-            writer.Write((byte) 6);
-            writer.WriteUInt24BigEndian(4);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
-
-            writer.Write((byte) 3);
-            writer.WriteUInt24BigEndian(0);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
+            ContentClient.Dispose();
         }
 
         public RuneTek5CacheFile DownloadFile(int indexId, int fileId)
@@ -214,14 +168,14 @@ namespace Villermen.RuneScapeCacheTools.Download
             return new RuneTek5CacheFile(fileRequest.DataStream.ToArray(), referenceTableEntry);
         }
 
-        public ReferenceTable DownloadReferenceTable(int indexId)
-        {
-            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
-        }
-
         public MasterReferenceTable DownloadMasterReferenceTable()
         {
             return new MasterReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
+        }
+
+        public ReferenceTable DownloadReferenceTable(int indexId)
+        {
+            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
         }
 
         public void ProcessRequests()
@@ -282,6 +236,51 @@ namespace Villermen.RuneScapeCacheTools.Download
 
                 // var leftoverBytes = new BinaryReader(ContentClient.GetStream()).ReadBytes(ContentClient.Available);
             }
+        }
+
+        private string GetKeyFromPage()
+        {
+            var request = WebRequest.Create(KeyPage);
+            var response = request.GetResponse();
+            var responseStream = response.GetResponseStream();
+
+            if (responseStream == null)
+            {
+                throw new DownloaderException($"No handshake key could be obtained from \"{KeyPage}\".");
+            }
+
+            using (var reader = new StreamReader(responseStream))
+            {
+                var responseString = reader.ReadToEnd();
+
+                var key = KeyPageRegex.Match(responseString).Groups[1].Value;
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    throw new DownloaderException("Obtained handshake key is empty.");
+                }
+
+                return key;
+            }
+        }
+
+        /// <summary>
+        ///     Sends the initial connection status and login packets to the server.
+        /// </summary>
+        private void SendConnectionInfo()
+        {
+            var writer = new BinaryWriter(ContentClient.GetStream());
+
+            // I don't know
+            writer.Write((byte)6);
+            writer.WriteUInt24BigEndian(4);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
+
+            writer.Write((byte)3);
+            writer.WriteUInt24BigEndian(0);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
         }
     }
 }

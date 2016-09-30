@@ -2,7 +2,6 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Sockets;
 using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -87,10 +86,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
                         var bzipCompressedBytes = new byte[compressedBytes.Length + 4];
-                        bzipCompressedBytes[0] = (byte) 'B';
-                        bzipCompressedBytes[1] = (byte) 'Z';
-                        bzipCompressedBytes[2] = (byte) 'h';
-                        bzipCompressedBytes[3] = (byte) '1';
+                        bzipCompressedBytes[0] = (byte)'B';
+                        bzipCompressedBytes[1] = (byte)'Z';
+                        bzipCompressedBytes[2] = (byte)'h';
+                        bzipCompressedBytes[3] = (byte)'1';
                         Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
                         var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
                         var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
@@ -125,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            if (referenceTableEntry != null && referenceTableEntry.Entries.Count > 1)
+            if ((referenceTableEntry != null) && (referenceTableEntry.Entries.Count > 1))
             {
                 Entries = DecodeEntries(continuousData, referenceTableEntry.Entries.Count);
             }

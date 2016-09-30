@@ -7,11 +7,11 @@ namespace Villermen.RuneScapeCacheTools.Download
     {
         public MemoryStream DataStream { get; } = new MemoryStream();
 
-        private TaskCompletionSource<bool> CompletionSource { get; } = new TaskCompletionSource<bool>();
-
         public int FileSize { get; set; }
 
         public int RemainingLength => (int)(FileSize - DataStream.Length);
+
+        private TaskCompletionSource<bool> CompletionSource { get; } = new TaskCompletionSource<bool>();
 
         public void Complete()
         {

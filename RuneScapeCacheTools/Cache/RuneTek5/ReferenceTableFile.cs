@@ -14,25 +14,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     Some unknown hash added on build 816.
-        ///     It is hard to pinpoint what exactly this is because it is not used in the client.
-        /// </summary>
-        public int MysteryHash { get; set; }
-
-        /// <summary>
         ///     The compressed size of this entry.
         /// </summary>
         public int CompressedSize { get; set; }
-
-        /// <summary>
-        ///     The uncompressed size of this entry.
-        /// </summary>
-        public int UncompressedSize { get; set; }
-
-        /// <summary>
-        ///     The identifier of this entry.
-        /// </summary>
-        public int Identifier { get; set; } = -1;
 
         /// <summary>
         ///     The CRC32 checksum of this entry.
@@ -40,22 +24,39 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public int CRC { get; set; }
 
         /// <summary>
-        ///     The whirlpool digest of this entry.
+        ///     The children in this entry.
         /// </summary>
-        public byte[] WhirlpoolDigest { get; set; }
-
-        /// <summary>
-        ///     The version of the described file usually stored as the time the file was last edited in seconds since the unix epoch.
-        /// </summary>
-        public int Version { get; set; }
-
-        public int IndexId { get; set; }
+        public IDictionary<int, ReferenceTableFileEntry> Entries { get; } = new Dictionary<int, ReferenceTableFileEntry>();
 
         public int Id { get; set; }
 
         /// <summary>
-        ///     The children in this entry.
+        ///     The identifier of this entry.
         /// </summary>
-        public IDictionary<int, ReferenceTableFileEntry> Entries { get; } = new Dictionary<int, ReferenceTableFileEntry>();
+        public int Identifier { get; set; } = -1;
+
+        public int IndexId { get; set; }
+
+        /// <summary>
+        ///     Some unknown hash added on build 816.
+        ///     It is hard to pinpoint what exactly this is because it is not used in the client.
+        /// </summary>
+        public int MysteryHash { get; set; }
+
+        /// <summary>
+        ///     The uncompressed size of this entry.
+        /// </summary>
+        public int UncompressedSize { get; set; }
+
+        /// <summary>
+        ///     The version of the described file usually stored as the time the file was last edited in seconds since the unix
+        ///     epoch.
+        /// </summary>
+        public int Version { get; set; }
+
+        /// <summary>
+        ///     The whirlpool digest of this entry.
+        /// </summary>
+        public byte[] WhirlpoolDigest { get; set; }
     }
 }

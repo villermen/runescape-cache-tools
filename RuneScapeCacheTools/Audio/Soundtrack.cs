@@ -31,71 +31,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public CacheBase Cache { get; set; }
 
         /// <summary>
-        ///     Returns the track names and their corresponding jaga file id in index 40.
-        ///     Track names are made filename-safe, and empty ones are filtered out.
-        /// </summary>
-        /// <returns></returns>
-        public IDictionary<int, string> GetTrackNames()
-        {
-            // Read out the two enums that, when combined, make up the awesome lookup table
-            var trackNames = new EnumFile(Cache.GetFile(17, 5).Entries[65]);
-            var jagaFileIds = new EnumFile(Cache.GetFile(17, 5).Entries[71]);
-
-            // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
-            var result = new SortedDictionary<int, string>();
-            foreach (var trackNamePair in trackNames)
-            {
-                var trackName = (string) trackNamePair.Value;
-
-                if (!jagaFileIds.ContainsKey(trackNamePair.Key))
-                {
-                    continue;
-                }
-
-                var trackFileId = (int) jagaFileIds[trackNamePair.Key];
-
-                // Make trackName filename-safe
-                foreach (var invalidChar in Path.GetInvalidFileNameChars())
-                {
-                    trackName = trackName.Replace(invalidChar.ToString(), "");
-                }
-
-                // Don't add empty filenames to the array
-                if (string.IsNullOrWhiteSpace(trackName))
-                {
-                    continue;
-                }
-
-                if (!result.ContainsKey(trackFileId))
-                {
-                    result.Add(trackFileId, trackName);
-                }
-                else
-                {
-                    result[trackFileId] = trackName;
-                }
-            }
-
-            // Rename duplicate names, as those are a thing apparently...
-            var duplicateNameGroups = result
-                .GroupBy(pair => pair.Value)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Skip(1));
-            // Select only the second and up, because the first one doesn't have to be renamed
-
-            foreach (var duplicateNameGroup in duplicateNameGroups)
-            {
-                var duplicateId = 2;
-                foreach (var duplicateNamePair in duplicateNameGroup)
-                {
-                    result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
         ///     Combines and exports the soundtracks from the audio chunks in archive 40 into full soundtrack files.
         /// </summary>
         /// <param name="overwriteExisting">
@@ -115,12 +50,12 @@ namespace Villermen.RuneScapeCacheTools.Audio
             Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(Cache.TemporaryDirectory);
 
-            Logger.Info("Done obtaining soundtrack names and file ids.");
+            Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
 
             if (nameFilter != null)
             {
                 trackNames = trackNames.Where(
-                    trackName => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                        trackName => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
@@ -141,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         if (existingVersion == jagaCacheFile.Version)
                         {
-                            Logger.Info($"Skipping {outputFilename} because it already exists and version is unchanged.");
+                            Soundtrack.Logger.Info($"Skipping {outputFilename} because it already exists and version is unchanged.");
                             return;
                         }
                     }
@@ -189,19 +124,104 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         var soundtrackException =
                             new SoundtrackException(
                                 $"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
-                        Logger.Error(soundtrackException.Message, soundtrackException);
+                        Soundtrack.Logger.Error(soundtrackException.Message, soundtrackException);
                         throw soundtrackException;
                     }
 
-                    Logger.Info($"Combined {outputFilename}.");
+                    Soundtrack.Logger.Info($"Combined {outputFilename}.");
                 }
                 catch (CacheException)
                 {
-                    Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                    Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
                 }
             }));
 
-            Logger.Info("Done combining soundtracks.");
+            Soundtrack.Logger.Info("Done combining soundtracks.");
+        }
+
+        /// <summary>
+        ///     Returns the track names and their corresponding jaga file id in index 40.
+        ///     Track names are made filename-safe, and empty ones are filtered out.
+        /// </summary>
+        /// <returns></returns>
+        public IDictionary<int, string> GetTrackNames()
+        {
+            // Read out the two enums that, when combined, make up the awesome lookup table
+            var trackNames = new EnumFile(Cache.GetFile(17, 5).Entries[65]);
+            var jagaFileIds = new EnumFile(Cache.GetFile(17, 5).Entries[71]);
+
+            // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
+            var result = new SortedDictionary<int, string>();
+            foreach (var trackNamePair in trackNames)
+            {
+                var trackName = (string)trackNamePair.Value;
+
+                if (!jagaFileIds.ContainsKey(trackNamePair.Key))
+                {
+                    continue;
+                }
+
+                var trackFileId = (int)jagaFileIds[trackNamePair.Key];
+
+                // Make trackName filename-safe
+                foreach (var invalidChar in Path.GetInvalidFileNameChars())
+                {
+                    trackName = trackName.Replace(invalidChar.ToString(), "");
+                }
+
+                // Don't add empty filenames to the array
+                if (string.IsNullOrWhiteSpace(trackName))
+                {
+                    continue;
+                }
+
+                if (!result.ContainsKey(trackFileId))
+                {
+                    result.Add(trackFileId, trackName);
+                }
+                else
+                {
+                    result[trackFileId] = trackName;
+                }
+            }
+
+            // Rename duplicate names, as those are a thing apparently...
+            var duplicateNameGroups = result
+                .GroupBy(pair => pair.Value)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Skip(1));
+            // Select only the second and up, because the first one doesn't have to be renamed
+
+            foreach (var duplicateNameGroup in duplicateNameGroups)
+            {
+                var duplicateId = 2;
+                foreach (var duplicateNamePair in duplicateNameGroup)
+                {
+                    result[duplicateNamePair.Key] = $"{duplicateNamePair.Value} ({duplicateId++})";
+                }
+            }
+
+            return result;
+        }
+
+        public int GetVersionFromExportedTrackFile(string path)
+        {
+            var vorbisReader = new VorbisReader(path);
+
+            foreach (var comment in vorbisReader.Comments)
+            {
+                if (!comment.StartsWith("VERSION=", true, null))
+                {
+                    continue;
+                }
+
+                var value = comment.Split('=')[1];
+                var version = int.Parse(value);
+
+                return version;
+            }
+
+            throw new SoundtrackException("No version comment in specified file.");
         }
 
         private string[] GetRandomTemporaryFilenames(int amountOfNames)
@@ -226,26 +246,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
             }
 
             return result;
-        }
-
-        public int GetVersionFromExportedTrackFile(string path)
-        {
-            var vorbisReader = new VorbisReader(path);
-
-            foreach (var comment in vorbisReader.Comments)
-            {
-                if (!comment.StartsWith("VERSION=", true, null))
-                {
-                    continue;
-                }
-
-                var value = comment.Split('=')[1];
-                var version = int.Parse(value);
-
-                return version;
-            }
-
-            throw new SoundtrackException("No version comment in specified file.");
         }
     }
 }

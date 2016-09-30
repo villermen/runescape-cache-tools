@@ -64,14 +64,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             MetaStream = File.Open(metaFile, FileMode.Open);
         }
 
-        private Stream DataStream { get; }
-        private IDictionary<int, Stream> IndexStreams { get; } = new Dictionary<int, Stream>();
-        private Stream MetaStream { get; }
-
         /// <summary>
         ///     The number of index files, not including the meta index file.
         /// </summary>
         public int IndexCount => IndexStreams.Count;
+
+        private Stream DataStream { get; }
+        private IDictionary<int, Stream> IndexStreams { get; } = new Dictionary<int, Stream>();
+        private Stream MetaStream { get; }
 
         public void Dispose()
         {
@@ -91,7 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new CacheException("Invalid index specified.");
             }
 
-            return (int) (IndexStreams[indexId].Length / Index.Length);
+            return (int)(IndexStreams[indexId].Length / Index.Length);
         }
 
         public byte[] GetFileData(int indexId, int fileId)
@@ -105,9 +105,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             var indexReader = new BinaryReader(meta ? MetaStream : IndexStreams[indexId]);
 
-            var indexPosition = (long) fileId * Index.Length;
+            var indexPosition = (long)fileId * Index.Length;
 
-            if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
+            if ((indexPosition < 0) || (indexPosition >= indexReader.BaseStream.Length))
             {
                 throw new CacheException("Given file does not exist.");
             }
@@ -124,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var chunkId = 0;
                 var remaining = index.Size;
                 var dataReader = new BinaryReader(DataStream);
-                var dataPosition = (long) index.Sector * Sector.Length;
+                var dataPosition = (long)index.Sector * Sector.Length;
 
                 var dataStream = new MemoryStream(index.Size);
                 do
@@ -138,7 +138,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     dataStream.Write(sector.Data, 0, bytesRead);
                     remaining -= bytesRead;
 
-                    dataPosition = (long) sector.NextSectorId * Sector.Length;
+                    dataPosition = (long)sector.NextSectorId * Sector.Length;
                     chunkId++;
                 }
                 while (remaining > 0);

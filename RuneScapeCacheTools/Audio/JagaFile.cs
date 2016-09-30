@@ -14,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
             var reader = new BinaryReader(new MemoryStream(data));
 
             // Verify magic number
-            if (!reader.ReadBytes(4).SequenceEqual(MagicNumber))
+            if (!reader.ReadBytes(4).SequenceEqual(JagaFile.MagicNumber))
             {
                 throw new JagaParseException("Magic number incorrect");
             }
@@ -27,7 +27,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             ChunkDescriptors = new AudioChunkDescriptor[ChunkCount];
 
-            var position = (int) reader.BaseStream.Position + ChunkCount * 8;
+            var position = (int)reader.BaseStream.Position + ChunkCount * 8;
             for (var chunkIndex = 0; chunkIndex < ChunkCount; chunkIndex++)
             {
                 ChunkDescriptors[chunkIndex] = new AudioChunkDescriptor(position, reader.ReadInt32BigEndian(),
@@ -38,12 +38,16 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             // The rest of the file is the first chunk
             var containedChunkStartPosition = reader.BaseStream.Position;
-            ContainedChunkData = reader.ReadBytes((int) (reader.BaseStream.Length - containedChunkStartPosition));
+            ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
         }
+
+        public int ChunkCount { get; }
 
         public AudioChunkDescriptor[] ChunkDescriptors { get; }
 
         public byte[] ContainedChunkData { get; }
+
+        public int SampleFrequency { get; }
 
         public int UnknownInteger1 { get; }
 
@@ -53,9 +57,5 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public int UnknownInteger2 { get; }
 
         public int UnknownInteger3 { get; }
-
-        public int SampleFrequency { get; }
-
-        public int ChunkCount { get; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -29,7 +28,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Format = reader.ReadByte();
 
             // Read header
-            if (Format < 5 || Format > 7)
+            if ((Format < 5) || (Format > 7))
             {
                 throw new CacheException($"Incorrect reference table protocol number: {Format}.");
             }
@@ -104,7 +103,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // Read the entry counts
             var entryCounts = new Dictionary<int, int>();
-            foreach(var file in Files.Values)
+            foreach (var file in Files.Values)
             {
                 entryCounts.Add(file.Id, Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
             }
@@ -138,14 +137,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
+        ///     The entries in this table.
+        /// </summary>
+        public IDictionary<int, ReferenceTableFile> Files { get; } = new Dictionary<int, ReferenceTableFile>();
+
+        /// <summary>
         ///     The format of this table.
         /// </summary>
         public int Format { get; set; }
-
-        /// <summary>
-        ///     The version of this table.
-        /// </summary>
-        public int Version { get; set; }
 
         /// <summary>
         ///     The flags of this table.
@@ -153,8 +152,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public CacheFileOptions Options { get; set; }
 
         /// <summary>
-        ///     The entries in this table.
+        ///     The version of this table.
         /// </summary>
-        public IDictionary<int, ReferenceTableFile> Files { get; } = new Dictionary<int, ReferenceTableFile>();
+        public int Version { get; set; }
     }
 }

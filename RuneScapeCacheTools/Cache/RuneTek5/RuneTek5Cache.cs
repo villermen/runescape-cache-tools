@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -22,33 +21,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         /// <param name="cacheDirectory"></param>
         public RuneTek5Cache(string cacheDirectory = null) :
-            base(cacheDirectory ?? DefaultCacheDirectory)
+            base(cacheDirectory ?? RuneTek5Cache.DefaultCacheDirectory)
         {
             FileStore = new FileStore(CacheDirectory);
         }
+
+        public static string DefaultCacheDirectory
+            => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
+
+        public override int IndexCount => FileStore.IndexCount;
 
         /// <summary>
         ///     The <see cref="RuneTek5.FileStore" /> that backs this cache.
         /// </summary>
         public FileStore FileStore { get; }
 
-        public override int IndexCount => FileStore.IndexCount;
-
-        public static string DefaultCacheDirectory
-            => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
-
         private ConcurrentDictionary<int, ReferenceTable> ReferenceTables { get; } =
             new ConcurrentDictionary<int, ReferenceTable>();
-
-        /// <summary>
-        ///     Gets the number of files in the specified index.
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <returns></returns>
-        public override int GetFileCount(int indexId)
-        {
-            return FileStore.GetFileCount(indexId);
-        }
 
         public override CacheFile GetFile(int indexId, int fileId)
         {
@@ -74,12 +63,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
+        /// <summary>
+        ///     Gets the number of files in the specified index.
+        /// </summary>
+        /// <param name="indexId"></param>
+        /// <returns></returns>
+        public override int GetFileCount(int indexId)
+        {
+            return FileStore.GetFileCount(indexId);
+        }
+
         public ReferenceTable GetReferenceTable(int indexId)
         {
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return ReferenceTables.GetOrAdd(indexId, indexId2 =>
             {
-                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(MetadataIndexId, indexId2), null);
+                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(RuneTek5Cache.MetadataIndexId, indexId2), null);
                 return new ReferenceTable(cacheFile, indexId);
             });
         }

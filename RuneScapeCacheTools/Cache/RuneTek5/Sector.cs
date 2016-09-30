@@ -13,11 +13,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class Sector
     {
         /// <summary>
-        ///     The size of the header within a sector in bytes.
-        /// </summary>
-        public const int HeaderLength = 8;
-
-        /// <summary>
         ///     The size of the data within a sector in bytes.
         /// </summary>
         public const int DataLength = 512;
@@ -33,9 +28,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public const int ExtendedHeaderLength = 10;
 
         /// <summary>
+        ///     The size of the header within a sector in bytes.
+        /// </summary>
+        public const int HeaderLength = 8;
+
+        /// <summary>
         ///     The total size of a sector in bytes.
         /// </summary>
-        public const int Length = HeaderLength + DataLength;
+        public const int Length = Sector.HeaderLength + Sector.DataLength;
 
         /// <summary>
         ///     Decodes the given byte array into a <see cref="Sector" /> object.
@@ -47,10 +47,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public Sector(int expectedIndexId, int expectedFileId, int expectedChunkId, byte[] data)
         {
-            if (data.Length != Length)
+            if (data.Length != Sector.Length)
             {
                 throw new ArgumentException(
-                    $"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
+                    $"Sector data must be exactly {Sector.Length} bytes in length, {data.Length} given.");
             }
 
             // Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data)
@@ -81,18 +81,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new SectorException("Index id mismatch.");
             }
 
-            Data = dataReader.ReadBytes(extended ? ExtendedDataLength : DataLength);
+            Data = dataReader.ReadBytes(extended ? Sector.ExtendedDataLength : Sector.DataLength);
         }
-
-        /// <summary>
-        ///     The type of file this sector contains.
-        /// </summary>
-        public int IndexId { get; }
-
-        /// <summary>
-        ///     The id of the file this sector contains.
-        /// </summary>
-        public int FileId { get; }
 
         /// <summary>
         ///     The chunk within the file that this sector contains.
@@ -100,14 +90,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public int ChunkId { get; }
 
         /// <summary>
-        ///     The position of next sector.
-        /// </summary>
-        public int NextSectorId { get; }
-
-        /// <summary>
         ///     The data in this sector.
         /// </summary>
         public byte[] Data { get; }
+
+        /// <summary>
+        ///     The id of the file this sector contains.
+        /// </summary>
+        public int FileId { get; }
+
+        /// <summary>
+        ///     The type of file this sector contains.
+        /// </summary>
+        public int IndexId { get; }
+
+        /// <summary>
+        ///     The position of next sector.
+        /// </summary>
+        public int NextSectorId { get; }
 
         /// <summary>
         ///     Encodes this <see cref="Sector" /> into a byte array.
@@ -115,7 +115,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public byte[] Encode()
         {
-            var dataStream = new MemoryStream(new byte[Length]);
+            var dataStream = new MemoryStream(new byte[Sector.Length]);
             var dataWriter = new BinaryWriter(dataStream);
 
             var extended = FileId > 65535;
@@ -126,12 +126,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
             else
             {
-                dataWriter.WriteUInt16BigEndian((ushort) FileId);
+                dataWriter.WriteUInt16BigEndian((ushort)FileId);
             }
 
-            dataWriter.WriteUInt16BigEndian((ushort) ChunkId);
+            dataWriter.WriteUInt16BigEndian((ushort)ChunkId);
             dataWriter.WriteUInt24BigEndian(NextSectorId);
-            dataWriter.Write((byte) IndexId);
+            dataWriter.Write((byte)IndexId);
             dataWriter.Write(Data);
 
             return dataStream.ToArray();

@@ -11,13 +11,13 @@
         }
 
         /// <summary>
-        ///     This entry's identifier.
-        /// </summary>
-        public int Identifier { get; set; } = -1;
-
-        /// <summary>
         ///     The entry's id.
         /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        ///     This entry's identifier.
+        /// </summary>
+        public int Identifier { get; set; } = -1;
     }
 }

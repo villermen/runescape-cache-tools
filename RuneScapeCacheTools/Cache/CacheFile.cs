@@ -20,9 +20,10 @@
         public byte[] Data => Entries[0];
 
         /// <summary>
-        ///     The cache index this file originated from.
+        ///     The individual data entries in this file.
+        ///     Most files only contain one entry.
         /// </summary>
-        public int IndexId { get; set; }
+        public byte[][] Entries { get; set; }
 
         /// <summary>
         ///     The file id within the index this file originated from.
@@ -30,10 +31,9 @@
         public int FileId { get; set; }
 
         /// <summary>
-        ///     The individual data entries in this file.
-        ///     Most files only contain one entry.
+        ///     The cache index this file originated from.
         /// </summary>
-        public byte[][] Entries { get; set; }
+        public int IndexId { get; set; }
 
         /// <summary>
         ///     The version of the file within the cache.

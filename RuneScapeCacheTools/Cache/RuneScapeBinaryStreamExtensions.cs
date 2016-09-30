@@ -14,31 +14,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
             '\u203A', '\u0153', '\0', '\u017E', '\u0178'
         };
 
-        public static short ReadSmartShort(this BinaryReader reader)
-        {
-            var firstByte = reader.ReadByte();
-
-            if (firstByte < 128)
-            {
-                return firstByte;
-            }
-
-            return (short) ((firstByte << 8) + reader.ReadByte() - 32768);
-        }
-
-        public static int ReadSmartInt(this BinaryReader reader)
-        {
-            var readByte = reader.ReadSByte();
-            if (readByte < 0)
-            {
-                return ((readByte << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte()) &
-                       0x7fffffff;
-            }
-
-            var f = ((readByte << 8) + reader.ReadByte()) & 0xffff;
-            return f == 32767 ? -1 : f;
-        }
-
         /// <summary>
         ///     Reads a byte, and turns it into a char using some awkward ruleset Jagex came up with.
         ///     I mean...
@@ -54,30 +29,55 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 throw new IOException("Non cp1252 character provided, 0x00 given.");
             }
 
-            if (value < 128 || value >= 160)
+            if ((value < 128) || (value >= 160))
             {
-                return (char) value;
+                return (char)value;
             }
 
-            value = (byte) AwkwardCharacters[value - 128];
+            value = (byte)RuneScapeBinaryStreamExtensions.AwkwardCharacters[value - 128];
 
             if (value == 0)
             {
                 value = 63;
             }
 
-            return (char) value;
+            return (char)value;
+        }
+
+        public static int ReadSmartInt(this BinaryReader reader)
+        {
+            var readByte = reader.ReadSByte();
+            if (readByte < 0)
+            {
+                return ((readByte << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte()) &
+                       0x7fffffff;
+            }
+
+            var f = ((readByte << 8) + reader.ReadByte()) & 0xffff;
+            return f == 32767 ? -1 : f;
+        }
+
+        public static short ReadSmartShort(this BinaryReader reader)
+        {
+            var firstByte = reader.ReadByte();
+
+            if (firstByte < 128)
+            {
+                return firstByte;
+            }
+
+            return (short)((firstByte << 8) + reader.ReadByte() - 32768);
         }
 
         public static void WriteSmartInt(this BinaryWriter writer, int value)
         {
             if ((value & 0xffff) < 32768)
             {
-                writer.WriteInt16BigEndian((short) value);
+                writer.WriteInt16BigEndian((short)value);
             }
             else
             {
-                writer.WriteInt32BigEndian((int) (value | 0x80000000));
+                writer.WriteInt32BigEndian((int)(value | 0x80000000));
             }
         }
     }

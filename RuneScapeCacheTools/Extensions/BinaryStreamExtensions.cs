@@ -6,49 +6,11 @@ namespace Villermen.RuneScapeCacheTools.Extensions
     public static class BinaryStreamExtensions
     {
         /// <summary>
-        ///     Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.
-        /// </summary>
-        public static ushort ReadUInt16BigEndian(this BinaryReader reader)
-        {
-            return (ushort) ((reader.ReadByte() << 8) + reader.ReadByte());
-        }
-
-        /// <summary>
-        ///     Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
-        /// </summary>
-        public static int ReadUInt24BigEndian(this BinaryReader reader)
-        {
-            return (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte();
-        }
-
-        /// <summary>
-        ///     Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
-        /// </summary>
-        public static uint ReadUInt32BigEndian(this BinaryReader reader)
-        {
-            return
-                (uint)
-                    ((reader.ReadByte() << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) +
-                     reader.ReadByte());
-        }
-
-        /// <summary>
-        ///     Reads a 6-byte unsigned big endian integer and advances the current position of the stream by 6 bytes.
-        /// </summary>
-        public static long ReadUInt48BigEndian(this BinaryReader reader)
-        {
-            return
-                (reader.ReadByte() << 40) + (reader.ReadByte() << 32) + (reader.ReadByte() << 24) +
-                (reader.ReadByte() << 16) +
-                (reader.ReadByte() << 8) + reader.ReadByte();
-        }
-
-        /// <summary>
         ///     Reads a 2-byte signed big endian integer and advances the current position of the stream by 2 bytes.
         /// </summary>
         public static short ReadInt16BigEndian(this BinaryReader reader)
         {
-            return (short) ((reader.ReadByte() << 8) + reader.ReadByte());
+            return (short)((reader.ReadByte() << 8) + reader.ReadByte());
         }
 
         /// <summary>
@@ -87,39 +49,56 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             return new string(chars.ToArray());
         }
 
-        public static void WriteUInt16BigEndian(this BinaryWriter writer, ushort value)
+        /// <summary>
+        ///     Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.
+        /// </summary>
+        public static ushort ReadUInt16BigEndian(this BinaryReader reader)
         {
-            writer.Write((byte) (value >> 8));
-            writer.Write((byte) value);
+            return (ushort)((reader.ReadByte() << 8) + reader.ReadByte());
         }
 
-        public static void WriteUInt24BigEndian(this BinaryWriter writer, int value)
+        /// <summary>
+        ///     Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
+        /// </summary>
+        public static int ReadUInt24BigEndian(this BinaryReader reader)
         {
-            writer.Write((byte) (value >> 16));
-            writer.Write((byte) (value >> 8));
-            writer.Write((byte) value);
+            return (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte();
         }
 
-        public static void WriteUInt32BigEndian(this BinaryWriter writer, uint value)
+        /// <summary>
+        ///     Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
+        /// </summary>
+        public static uint ReadUInt32BigEndian(this BinaryReader reader)
         {
-            writer.Write((byte) (value >> 24));
-            writer.Write((byte) (value >> 16));
-            writer.Write((byte) (value >> 8));
-            writer.Write((byte) value);
+            return
+                (uint)
+                ((reader.ReadByte() << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) +
+                 reader.ReadByte());
+        }
+
+        /// <summary>
+        ///     Reads a 6-byte unsigned big endian integer and advances the current position of the stream by 6 bytes.
+        /// </summary>
+        public static long ReadUInt48BigEndian(this BinaryReader reader)
+        {
+            return
+                (reader.ReadByte() << 40) + (reader.ReadByte() << 32) + (reader.ReadByte() << 24) +
+                (reader.ReadByte() << 16) +
+                (reader.ReadByte() << 8) + reader.ReadByte();
         }
 
         public static void WriteInt16BigEndian(this BinaryWriter writer, short value)
         {
-            writer.Write((byte) (value >> 8));
-            writer.Write((byte) value);
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)value);
         }
 
         public static void WriteInt32BigEndian(this BinaryWriter writer, int value)
         {
-            writer.Write((byte) (value >> 24));
-            writer.Write((byte) (value >> 16));
-            writer.Write((byte) (value >> 8));
-            writer.Write((byte) value);
+            writer.Write((byte)(value >> 24));
+            writer.Write((byte)(value >> 16));
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)value);
         }
 
         /// <summary>
@@ -130,7 +109,28 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             var chars = str.ToCharArray();
 
             writer.Write(chars);
-            writer.Write((byte) 0);
+            writer.Write((byte)0);
+        }
+
+        public static void WriteUInt16BigEndian(this BinaryWriter writer, ushort value)
+        {
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)value);
+        }
+
+        public static void WriteUInt24BigEndian(this BinaryWriter writer, int value)
+        {
+            writer.Write((byte)(value >> 16));
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)value);
+        }
+
+        public static void WriteUInt32BigEndian(this BinaryWriter writer, uint value)
+        {
+            writer.Write((byte)(value >> 24));
+            writer.Write((byte)(value >> 16));
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)value);
         }
     }
 }

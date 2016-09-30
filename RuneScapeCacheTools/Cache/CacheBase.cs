@@ -28,10 +28,17 @@ namespace Villermen.RuneScapeCacheTools.Cache
             TemporaryDirectory = Path.GetTempPath() + "rsct";
         }
 
+        public abstract int IndexCount { get; }
+
         /// <summary>
         ///     The directory where the cache is located.
         /// </summary>
         public string CacheDirectory { get; }
+
+        /// <summary>
+        ///     Processor used on obtained data.
+        /// </summary>
+        public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
 
         /// <summary>
         ///     The directory where the extracted cache files will be stored.
@@ -52,19 +59,20 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        ///     Processor used on obtained data.
+        ///     Returns the data and metadata for the requested file.
         /// </summary>
-        public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
+        /// <param name="indexId"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public abstract CacheFile GetFile(int indexId, int fileId);
 
-        public abstract int IndexCount { get; }
+        public abstract int GetFileCount(int indexId);
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        public abstract int GetFileCount(int indexId);
 
         // public abstract int GetArchiveFileCount(int indexId, int archiveId);
 
@@ -149,7 +157,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     if (!overwrite)
                     {
-                        Logger.Info(
+                        CacheBase.Logger.Info(
                             $"Skipped index {indexId} file {fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
                         return;
                     }
@@ -163,19 +171,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 // Create directories where necessary, before writing to file
                 Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
                 File.WriteAllBytes(newFilePath, currentData);
-                Logger.Info($"Extracted index {indexId} file {fileId}.");
+                CacheBase.Logger.Info($"Extracted index {indexId} file {fileId}.");
             }
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
-        public string GetIndexOutputPath(int indexId)
-        {
-            string indexPath = $"{OutputDirectory}extracted/{indexId}/";
-
-            return Directory.Exists(indexPath) ? indexPath : null;
         }
 
         /// <summary>
@@ -190,7 +187,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             try
             {
                 // Suffix fileId with entryId + 1 if nonzero
-                var fileIdString = fileId + (entryId > 0 ? "-" + (entryId) : "");
+                var fileIdString = fileId + (entryId > 0 ? "-" + entryId : "");
 
                 var path = Directory
                     .EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileIdString}*")
@@ -207,12 +204,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        ///     Returns the data and metadata for the requested file.
         /// </summary>
         /// <param name="indexId"></param>
-        /// <param name="fileId"></param>
-        /// <returns></returns>
-        public abstract CacheFile GetFile(int indexId, int fileId);
+        /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
+        public string GetIndexOutputPath(int indexId)
+        {
+            string indexPath = $"{OutputDirectory}extracted/{indexId}/";
+
+            return Directory.Exists(indexPath) ? indexPath : null;
+        }
 
         protected virtual void Dispose(bool disposing)
         {

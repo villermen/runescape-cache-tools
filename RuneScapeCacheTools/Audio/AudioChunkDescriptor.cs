@@ -10,9 +10,10 @@
         }
 
         /// <summary>
-        ///     Position in bytes of the combined audio data.
+        ///     The file id within the same index that contains the next chunk.
+        ///     If 0, this is the file contained within the jaga file.
         /// </summary>
-        public int Position { get; }
+        public int FileId { get; }
 
         /// <summary>
         ///     The length in bytes of this chunk.
@@ -20,9 +21,8 @@
         public int Length { get; }
 
         /// <summary>
-        ///     The file id within the same index that contains the next chunk.
-        ///     If 0, this is the file contained within the jaga file.
+        ///     Position in bytes of the combined audio data.
         /// </summary>
-        public int FileId { get; }
+        public int Position { get; }
     }
 }
