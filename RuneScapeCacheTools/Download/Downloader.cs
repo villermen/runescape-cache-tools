@@ -194,8 +194,8 @@ namespace Villermen.RuneScapeCacheTools.Download
             var writer = new BinaryWriter(ContentClient.GetStream());
 
             // Send the file request to the content server
-            writer.Write((byte) (indexId == RuneTek5Cache.MetadataIndexId ? 1 : 0));
-            writer.Write((byte) indexId);
+            writer.Write((byte)(indexId == RuneTek5Cache.MetadataIndexId ? 1 : 0));
+            writer.Write((byte)indexId);
             writer.WriteInt32BigEndian(fileId);
 
             var reader = new BinaryReader(ContentClient.GetStream());

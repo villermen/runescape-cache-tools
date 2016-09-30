@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Sockets;
 using ICSharpCode.SharpZipLib.BZip2;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -49,7 +50,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             var dataReader = new BinaryReader(dataStream);
 
-            CompressionType = (CompressionType) dataReader.ReadByte();
+            CompressionType = (CompressionType)dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
 
             // Decrypt the data if a key is given
@@ -138,9 +139,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 Entries = new[] { continuousData };
             }
 
-            if (referenceTableEntry != null)
+            // Obtain the version for regular files
+            if (referenceTableEntry != null && referenceTableEntry.IndexId != RuneTek5Cache.MetadataIndexId)
             {
-                Version = referenceTableEntry.Version;
+                Version = dataReader.ReadInt16BigEndian();
             }
         }
 
