@@ -66,7 +66,7 @@ namespace RuneScapeCacheToolsTests
         {
             var expectedFilePath = $"output/extracted/{indexId}/{fileId}";
 
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
             Fixture.RuneTek5Cache.Extract(indexId, fileId, true);
 
@@ -80,9 +80,9 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestExtractWithEntries()
         {
-            var expectedFilePath = $"output/extracted/17/5-65";
+            var expectedFilePath = "output/extracted/17/5-65";
 
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
             Fixture.RuneTek5Cache.Extract(17, 5, true);
 
