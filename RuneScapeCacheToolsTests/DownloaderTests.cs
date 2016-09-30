@@ -19,18 +19,19 @@ namespace RuneScapeCacheToolsTests
             Fixture = fixture;
         }
 
-        [Fact(Skip = "Not implemented.")]
+        [Fact]
         public void TestDownloadFile()
         {
-            Fixture.Downloader.DownloadFile(12, 3); // TODO: Error in reference table decoding, see TestDownloadReferenceTable
+            var file1 = Fixture.Downloader.DownloadFile(12, 3);
+            var file2 = Fixture.Downloader.DownloadFile(12, 3);
 
-            // TODO: HTTP worker or something similar for
+            // TODO: HTTP worker or something similar for index 40, as the content server does not seem to respond to these requests
             // Fixture.Downloader.DownloadFile(40, 30468);
 
-            // TODO: Verify result
+            Assert.True(file1.Data.Length == file2.Data.Length, "Two of the downloaded files with the same id did not have the same size.");
         }
 
-        [Fact(Skip = "Not implemented.")]
+        [Fact]
         public void TestDownloadFileEntries()
         {
             var archiveFile = Fixture.Downloader.DownloadFile(17, 5);
@@ -41,9 +42,8 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadReferenceTable()
         {
-            // TODO: There are some issues with these ones, investigate
-            // var referenceTable12 = Fixture.Downloader.DownloadReferenceTable(12); // Trying to add item with same key on file entry
-            // var referenceTable40 = Fixture.Downloader.DownloadReferenceTable(40); // Not being able to decode bzip stream
+            var referenceTable12 = Fixture.Downloader.DownloadReferenceTable(12);
+            var referenceTable40 = Fixture.Downloader.DownloadReferenceTable(40);
 
             var rawReferenceTable = Fixture.Downloader.DownloadFile(RuneTek5Cache.MetadataIndexId, 17);
 

@@ -65,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
             {
-                return new RuneTek5CacheFile(new MemoryStream(FileStore.GetFileData(indexId, fileId)), referenceTableEntry);
+                return new RuneTek5CacheFile(FileStore.GetFileData(indexId, fileId), referenceTableEntry);
             }
             catch (SectorException exception)
             {

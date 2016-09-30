@@ -72,8 +72,8 @@ namespace Villermen.RuneScapeCacheTools.Download
 
         public bool Connected { get; private set; }
 
-        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingFileRequests { get; } =
-            new Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>>();
+        private Dictionary<Tuple<int, int>, FileRequest> PendingFileRequests { get; } =
+            new Dictionary<Tuple<int, int>, FileRequest>();
 
         public void Dispose()
         {
@@ -187,13 +187,6 @@ namespace Villermen.RuneScapeCacheTools.Download
                 throw new DownloaderException("Can't request file when disconnected.");
             }
 
-            if (ContentClient.Available > 0)
-            {
-                var untouchedBytes = new BinaryReader(ContentClient.GetStream()).ReadBytes(ContentClient.Available);
-
-                throw new DownloaderException("Network data was received before sending a file request.");
-            }
-
             var writer = new BinaryWriter(ContentClient.GetStream());
 
             // Send the file request to the content server
@@ -201,27 +194,24 @@ namespace Villermen.RuneScapeCacheTools.Download
             writer.Write((byte)indexId);
             writer.WriteInt32BigEndian(fileId);
 
-            var reader = new BinaryReader(ContentClient.GetStream());
+            var fileRequest = new FileRequest();
 
-            var fileIndexId = reader.ReadByte();
-            var fileFileId = reader.ReadInt32BigEndian() & 0x7fffffff;
+            var pendingFileRequestCount = PendingFileRequests.Count;
 
-            if (fileIndexId != indexId)
+            PendingFileRequests.Add(new Tuple<int, int>(indexId, fileId), fileRequest);
+
+            // Spin up the processor when it is not running
+            if (pendingFileRequestCount == 0)
             {
-                throw new DownloaderException(
-                    $"Obtained file's index id ({fileIndexId}) does not match requested ({indexId}).");
-            }
-
-            if (fileFileId != fileId)
-            {
-                throw new DownloaderException(
-                    $"Obtained file's file id ({fileFileId}) does not match requested ({fileId}).");
+                Task.Run(() => ProcessRequests());
             }
 
             // TODO: Caching for reference tables
             var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
 
-            return new RuneTek5CacheFile(ContentClient.GetStream(), referenceTableEntry);
+            fileRequest.WaitForCompletion();
+
+            return new RuneTek5CacheFile(fileRequest.DataStream.ToArray(), referenceTableEntry);
         }
 
         public ReferenceTable DownloadReferenceTable(int indexId)
@@ -234,11 +224,63 @@ namespace Villermen.RuneScapeCacheTools.Download
             return new MasterReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
         }
 
-        public Task ProcessRequestsAsync()
+        public void ProcessRequests()
         {
             while (PendingFileRequests.Count > 0)
             {
-                
+                // Read one chunk (or the leftover)
+                if (ContentClient.Available >= 5)
+                {
+                    var reader = new BinaryReader(ContentClient.GetStream());
+
+                    var readByteCount = 0;
+
+                    var indexId = reader.ReadByte();
+                    var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
+
+                    readByteCount += 5;
+
+                    var requestKey = new Tuple<int, int>(indexId, fileId);
+
+                    if (!PendingFileRequests.ContainsKey(requestKey))
+                    {
+                        throw new DownloaderException("Invalid response received (maybe not all data was consumed by the previous operation?");
+                    }
+
+                    var request = PendingFileRequests[requestKey];
+                    var writer = new BinaryWriter(request.DataStream);
+
+                    // The first part of the file always contains the filesize, which we need to know, but is also part of the file
+                    if (request.FileSize == 0)
+                    {
+                        var compressionType = (CompressionType)reader.ReadByte();
+                        var length = reader.ReadInt32BigEndian();
+
+                        readByteCount += 5;
+
+                        request.FileSize = 5 + (compressionType != CompressionType.None ? 4 : 0) + length;
+
+                        writer.Write((byte)compressionType);
+                        writer.WriteInt32BigEndian(length);
+                    }
+
+                    var remainingBlockLength = BlockLength - readByteCount;
+
+                    if (remainingBlockLength > request.RemainingLength)
+                    {
+                        remainingBlockLength = request.RemainingLength;
+                    }
+
+                    writer.Write(reader.ReadBytes(remainingBlockLength));
+
+                    if (request.RemainingLength == 0)
+                    {
+                        request.Complete();
+                        PendingFileRequests.Remove(requestKey);
+                    }
+                }
+
+                // var leftoverBytes = new BinaryReader(ContentClient.GetStream()).ReadBytes(ContentClient.Available);
             }
         }
     }

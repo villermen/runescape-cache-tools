@@ -103,6 +103,7 @@
     <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
     <Compile Include="Download\DownloaderException.cs" />
     <Compile Include="Download\Downloader.cs" />
+    <Compile Include="Download\FileRequest.cs" />
     <Compile Include="Download\HandshakeResponse.cs" />
     <Compile Include="Enums\EnumFile.cs" />
     <Compile Include="Enums\EnumParseException.cs" />
