@@ -1,4 +1,6 @@
-﻿using RuneScapeCacheToolsTests.Fixtures;
+﻿using System;
+using System.IO;
+using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
@@ -49,12 +51,48 @@ namespace RuneScapeCacheToolsTests
             }
         }
 
-        [Fact]
-        public void TestGetReferenceTable()
+        [Theory]
+        [InlineData(40)]
+        [InlineData(17)]
+        [InlineData(12)]
+        public void TestGetReferenceTable(int indexId)
         {
-            var referenceTable40 = Fixture.RuneTek5Cache.GetReferenceTable(40);
-            var referenceTable17 = Fixture.RuneTek5Cache.GetReferenceTable(17);
-            var referenceTable12 = Fixture.RuneTek5Cache.GetReferenceTable(12);
+            var referenceTable = Fixture.RuneTek5Cache.GetReferenceTable(indexId);
         }
+
+        [Theory]
+        [InlineData(12, 3)]
+        public void TestExtract(int indexId, int fileId)
+        {
+            var expectedFilePath = $"output/extracted/{indexId}/{fileId}";
+
+            var startTime = DateTime.UtcNow;
+
+            Fixture.RuneTek5Cache.Extract(indexId, fileId, true);
+
+            Assert.True(File.Exists(expectedFilePath), $"File was not extracted, or not extracted to {expectedFilePath}.");
+
+            var modifiedTime = File.GetLastAccessTimeUtc(expectedFilePath);
+
+            Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
+        }
+
+        [Fact]
+        public void TestExtractWithEntries()
+        {
+            var expectedFilePath = $"output/extracted/17/5-65";
+
+            var startTime = DateTime.UtcNow;
+
+            Fixture.RuneTek5Cache.Extract(17, 5, true);
+
+            Assert.True(File.Exists(expectedFilePath), $"File entry was not extracted, or not extracted to {expectedFilePath}.");
+
+            var modifiedTime = File.GetLastAccessTimeUtc(expectedFilePath);
+
+            Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
+        }
+
+        // TODO: Test file extension naming
     }
 }

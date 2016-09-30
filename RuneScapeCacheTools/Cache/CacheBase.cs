@@ -128,6 +128,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
                 var currentData = file.Entries[entryId];
+
+                // Skip empty entries
+                if (currentData.Length < 2)
+                {
+                    continue;
+                }
+
                 var extension = ExtensionGuesser.GuessExtension(currentData);
 
                 // Throw an exception if the output directory is not yet set or does not exist
@@ -143,7 +150,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     if (!overwrite)
                     {
                         Logger.Info(
-                            $"Skipped index {indexId} file {fileId}{(entryId > 0 ? "-" + (entryId + 1) : "")} because it is already extracted.");
+                            $"Skipped index {indexId} file {fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
                         return;
                     }
 
@@ -151,11 +158,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
 
                 // Construct new path for file
-                string newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}";
-                if (!string.IsNullOrWhiteSpace(extension))
-                {
-                    newFilePath += $".{extension}";
-                }
+                var newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
 
                 // Create directories where necessary, before writing to file
                 Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
@@ -168,7 +171,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="indexId"></param>
         /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
-        public virtual string GetIndexOutputPath(int indexId)
+        public string GetIndexOutputPath(int indexId)
         {
             string indexPath = $"{OutputDirectory}extracted/{indexId}/";
 
@@ -182,12 +185,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="fileId"></param>
         /// <param name="entryId"></param>
         /// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-        public virtual string GetFileOutputPath(int indexId, int fileId, int entryId = 0)
+        public string GetFileOutputPath(int indexId, int fileId, int entryId = 0)
         {
             try
             {
                 // Suffix fileId with entryId + 1 if nonzero
-                var fileIdString = fileId + (entryId > 0 ? "-" + (entryId + 1) : "");
+                var fileIdString = fileId + (entryId > 0 ? "-" + (entryId) : "");
 
                 var path = Directory
                     .EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileIdString}*")
