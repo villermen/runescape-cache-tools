@@ -56,11 +56,5 @@ namespace RuneScapeCacheToolsTests
             var referenceTable17 = Fixture.RuneTek5Cache.GetReferenceTable(17);
             var referenceTable12 = Fixture.RuneTek5Cache.GetReferenceTable(12);
         }
-
-        [Fact(Skip = "Not implemented")]
-        public void TestGetReferenceTableReferenceTable()
-        {
-            Fixture.RuneTek5Cache.GetReferenceTable(RuneTek5Cache.MetadataIndexId);
-        }
     }
 }
