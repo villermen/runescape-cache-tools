@@ -34,21 +34,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             Version = version;
         }
 
-        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableEntry, uint[] key = null)
-            : this(new MemoryStream(data), referenceTableEntry, key)
-        {
-        }
-
         /// <summary>
         /// </summary>
-        /// <param name="dataStream"></param>
+        /// <param name="data"></param>
         /// <param name="referenceTableEntry"></param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(Stream dataStream, ReferenceTableFile referenceTableEntry, uint[] key = null)
+        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableEntry, uint[] key = null)
         {
             Key = key;
 
-            var dataReader = new BinaryReader(dataStream);
+            var dataReader = new BinaryReader(new MemoryStream(data));
 
             CompressionType = (CompressionType)dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
@@ -139,8 +134,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 Entries = new[] { continuousData };
             }
 
-            // Obtain the version for regular files
-            if (referenceTableEntry != null && referenceTableEntry.IndexId != RuneTek5Cache.MetadataIndexId)
+            // Obtain the version if available
+            Version = -1;
+            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
             {
                 Version = dataReader.ReadInt16BigEndian();
             }

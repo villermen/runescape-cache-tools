@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Org.BouncyCastle.Pkcs;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
@@ -57,6 +58,8 @@ namespace Villermen.RuneScapeCacheTools.Download
         /// </summary>
         public string KeyPage { get; set; } = "http://world2.runescape.com";
 
+        public int BlockLength { get; set; } = 102400;
+
         /// <summary>
         ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
         ///     The first capture group needs to result in the key.
@@ -69,7 +72,7 @@ namespace Villermen.RuneScapeCacheTools.Download
 
         public bool Connected { get; private set; }
 
-        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingRequests { get; } =
+        private Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>> PendingFileRequests { get; } =
             new Dictionary<Tuple<int, int>, TaskCompletionSource<Stream>>();
 
         public void Dispose()
@@ -229,6 +232,14 @@ namespace Villermen.RuneScapeCacheTools.Download
         public MasterReferenceTable DownloadMasterReferenceTable()
         {
             return new MasterReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
+        }
+
+        public Task ProcessRequestsAsync()
+        {
+            while (PendingFileRequests.Count > 0)
+            {
+                
+            }
         }
     }
 }
