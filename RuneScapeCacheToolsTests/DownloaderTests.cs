@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
@@ -21,11 +22,11 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileVersusDownloadFileAsync()
         {
-            var file1 = Fixture.CacheDownloader.GetFile(12, 3);
-            var file2 = Fixture.CacheDownloader.DownloadFileAsync(12, 3).Result;
+            var file1 = Fixture.Downloader.GetFile(12, 3);
+            var file2 = Fixture.Downloader.DownloadFileAsync(12, 3).Result;
 
             // TODO: HTTP worker or something similar for index 40, as the content server does not seem to respond to these requests
-            // Fixture.CacheDownloader.DownloadFile(40, 30468);
+            // Fixture.Downloader.DownloadFile(40, 30468);
 
             Assert.True(file1.Data.Length == file2.Data.Length, "Two of the downloaded files with the same id did not have the same size.");
         }
@@ -33,7 +34,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileWithEntries()
         {
-            var archiveFile = Fixture.CacheDownloader.GetFile(17, 5);
+            var archiveFile = Fixture.Downloader.GetFile(17, 5);
 
             Assert.True(archiveFile.Entries.Length == 256, $"File 5 in archive 17 has {archiveFile.Entries.Length} entries instead of the expected 256.");
         }
@@ -41,12 +42,12 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadReferenceTable()
         {
-            var referenceTable12 = Fixture.CacheDownloader.DownloadReferenceTable(12);
-            var referenceTable40 = Fixture.CacheDownloader.DownloadReferenceTable(40);
+            var referenceTable12 = Fixture.Downloader.DownloadReferenceTable(12);
+            var referenceTable40 = Fixture.Downloader.DownloadReferenceTable(40);
 
-            var rawReferenceTable = Fixture.CacheDownloader.GetFile(RuneTek5Cache.MetadataIndexId, 17);
+            var rawReferenceTable = Fixture.Downloader.GetFile(RuneTek5Cache.MetadataIndexId, 17);
 
-            var referenceTable17 = Fixture.CacheDownloader.DownloadReferenceTable(17);
+            var referenceTable17 = Fixture.Downloader.DownloadReferenceTable(17);
 
             Output.WriteLine($"Files in reference table for index 17: {referenceTable17.Files.Count}.");
 
@@ -56,9 +57,27 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadMasterReferenceTable()
         {
-            var masterReferenceTable = Fixture.CacheDownloader.DownloadMasterReferenceTable();
+            var masterReferenceTable = Fixture.Downloader.DownloadMasterReferenceTable();
 
             Assert.True(masterReferenceTable.ReferenceTableFiles.Count == 50, $"Master reference table reported having {masterReferenceTable.ReferenceTableFiles.Count} files instead of the expected 50.");
+        }
+
+        [Theory]
+        [InlineData(17, 46)]
+        public void TestGetFileIds(int indexId, int expectedFileCount)
+        {
+            var reportedFileCount = Fixture.Downloader.GetFileIds(indexId).Count();
+
+            Assert.True(reportedFileCount == expectedFileCount, $"Downloader reported {reportedFileCount} files in index {indexId}, {expectedFileCount} expected.");
+        }
+
+        [Theory]
+        [InlineData(50)]
+        public void TestIndexIds(int expectedIndexCount)
+        {
+            var reportedIndexCount = Fixture.Downloader.IndexIds.Count();
+
+            Assert.True(reportedIndexCount == expectedIndexCount, $"Downloader reported {reportedIndexCount} indexes, {expectedIndexCount} expected.");
         }
 
         public void Dispose()

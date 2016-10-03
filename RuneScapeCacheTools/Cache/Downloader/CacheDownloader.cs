@@ -13,6 +13,7 @@ using Villermen.RuneScapeCacheTools.Extensions;
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
+    ///     The <see cref="CacheDownloader"/> provides the means to download current cache files from the runescape servers.
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Method</author>
