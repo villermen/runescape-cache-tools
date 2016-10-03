@@ -65,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     The number of index files, not including the meta index file.
+        ///     The number of indexes, not including the meta index.
         /// </summary>
         public int IndexCount => IndexStreams.Count;
 
@@ -77,21 +77,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     Returns the number of files of the specified type.
-        /// </summary>
-        /// <param name="indexId"></param>
-        /// <returns></returns>
-        public int GetFileCount(int indexId)
-        {
-            if (!IndexStreams.ContainsKey(indexId))
-            {
-                throw new CacheException("Invalid index specified.");
-            }
-
-            return (int)(IndexStreams[indexId].Length / Index.Length);
         }
 
         public byte[] GetFileData(int indexId, int fileId)

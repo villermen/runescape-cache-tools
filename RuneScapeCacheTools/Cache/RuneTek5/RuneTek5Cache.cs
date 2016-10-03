@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -29,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public static string DefaultCacheDirectory
             => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
-        public override int IndexCount => FileStore.IndexCount;
+        public override IEnumerable<int> IndexIds => Enumerable.Range(0, FileStore.IndexCount);
 
         /// <summary>
         ///     The <see cref="RuneTek5.FileStore" /> that backs this cache.
@@ -64,13 +66,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     Gets the number of files in the specified index.
+        ///     Gets the files specified in the given index.
+        ///     Returned files might still not be present in the cache however.
         /// </summary>
         /// <param name="indexId"></param>
         /// <returns></returns>
-        public override int GetFileCount(int indexId)
+        public override IEnumerable<int> GetFileIds(int indexId)
         {
-            return FileStore.GetFileCount(indexId);
+            var referenceTable = GetReferenceTable(indexId);
+            return referenceTable.Files.Keys;
         }
 
         public ReferenceTable GetReferenceTable(int indexId)

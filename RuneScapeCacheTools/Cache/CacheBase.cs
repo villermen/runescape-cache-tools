@@ -28,7 +28,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             TemporaryDirectory = Path.GetTempPath() + "rsct";
         }
 
-        public abstract int IndexCount { get; }
+        public abstract IEnumerable<int> IndexIds { get; }
 
         /// <summary>
         ///     The directory where the cache is located.
@@ -66,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public abstract CacheFile GetFile(int indexId, int fileId);
 
-        public abstract int GetFileCount(int indexId);
+        public abstract IEnumerable<int> GetFileIds(int indexId);
 
         public void Dispose()
         {
@@ -83,7 +83,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(bool overwrite = false)
         {
-            var indexIds = Enumerable.Range(0, IndexCount);
+            var indexIds = IndexIds;
             Parallel.ForEach(indexIds, indexId => { Extract(indexId, overwrite); });
         }
 
@@ -106,7 +106,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(int indexId, bool overwrite = false)
         {
-            var fileIds = Enumerable.Range(0, GetFileCount(indexId));
+            var fileIds = GetFileIds(indexId);
             Parallel.ForEach(fileIds, fileId => { Extract(indexId, fileId, overwrite); });
         }
 
@@ -152,7 +152,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
 
                 // Delete existing file (if allowed)
-                var existingFilePath = GetFileOutputPath(indexId, fileId, entryId);
+                var existingFilePath = GetFileExtractionPath(indexId, fileId, entryId);
                 if (existingFilePath != null)
                 {
                     if (!overwrite)
@@ -182,7 +182,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="fileId"></param>
         /// <param name="entryId"></param>
         /// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-        public string GetFileOutputPath(int indexId, int fileId, int entryId = 0)
+        public string GetFileExtractionPath(int indexId, int fileId, int entryId = 0)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="indexId"></param>
         /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
-        public string GetIndexOutputPath(int indexId)
+        public string GetIndexExtractionPath(int indexId)
         {
             string indexPath = $"{OutputDirectory}extracted/{indexId}/";
 
