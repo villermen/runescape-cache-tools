@@ -6,25 +6,19 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Download
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Method</author>
-    public class Downloader : IDisposable
+    public class CacheDownloader : CacheBase
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(Downloader));
-
-        public Downloader(CacheBase cache)
-        {
-            Cache = cache;
-        }
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheDownloader));
 
         public int BlockLength { get; set; } = 102400;
 
@@ -74,6 +68,13 @@ namespace Villermen.RuneScapeCacheTools.Download
         private Dictionary<Tuple<int, int>, FileRequest> PendingFileRequests { get; } =
             new Dictionary<Tuple<int, int>, FileRequest>();
 
+        public override IEnumerable<int> IndexIds => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
+
+        public override IEnumerable<int> GetFileIds(int indexId)
+        {
+            return DownloadReferenceTable(indexId).Files.Keys;
+        }
+
         public void Connect()
         {
             var key = GetKeyFromPage();
@@ -103,13 +104,13 @@ namespace Villermen.RuneScapeCacheTools.Download
                 {
                     case HandshakeResponse.Success:
                         connected = true;
-                        Downloader.Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
+                        Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
                         break;
 
                     case HandshakeResponse.Outdated:
                         ContentClient.Dispose();
                         ContentClient = null;
-                        Downloader.Logger.Info($"Content server says {MajorVersion} is outdated.");
+                        Logger.Info($"Content server says {MajorVersion} is outdated.");
                         MajorVersion++;
                         break;
 
@@ -129,12 +130,17 @@ namespace Villermen.RuneScapeCacheTools.Download
             Connected = true;
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
             ContentClient.Dispose();
         }
 
-        public RuneTek5CacheFile DownloadFile(int indexId, int fileId)
+        public override CacheFile GetFile(int indexId, int fileId)
+        {
+            return DownloadFileAsync(indexId, fileId).Result;
+        }
+
+        public async Task<RuneTek5CacheFile> DownloadFileAsync(int indexId, int fileId)
         {
             if (!Connected)
             {
@@ -163,19 +169,19 @@ namespace Villermen.RuneScapeCacheTools.Download
             // TODO: Caching for reference tables
             var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
 
-            fileRequest.WaitForCompletion();
+            await fileRequest.WaitForCompletionAsync();
 
             return new RuneTek5CacheFile(fileRequest.DataStream.ToArray(), referenceTableEntry);
         }
 
         public MasterReferenceTable DownloadMasterReferenceTable()
         {
-            return new MasterReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
+            return new MasterReferenceTable(GetFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
         }
 
         public ReferenceTable DownloadReferenceTable(int indexId)
         {
-            return new ReferenceTable(DownloadFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
+            return new ReferenceTable(GetFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
         }
 
         public void ProcessRequests()

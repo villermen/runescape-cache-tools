@@ -21,19 +21,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         private string _temporaryDirectory;
 
-        protected CacheBase(string cacheDirectory)
+        protected CacheBase()
         {
-            CacheDirectory = cacheDirectory;
             OutputDirectory = "output";
             TemporaryDirectory = Path.GetTempPath() + "rsct";
         }
 
         public abstract IEnumerable<int> IndexIds { get; }
-
-        /// <summary>
-        ///     The directory where the cache is located.
-        /// </summary>
-        public string CacheDirectory { get; }
 
         /// <summary>
         ///     Processor used on obtained data.

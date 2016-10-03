@@ -22,11 +22,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     Creates an interface on the cache stored in the given directory.
         /// </summary>
         /// <param name="cacheDirectory"></param>
-        public RuneTek5Cache(string cacheDirectory = null) :
-            base(cacheDirectory ?? RuneTek5Cache.DefaultCacheDirectory)
+        public RuneTek5Cache(string cacheDirectory = null)
         {
+            CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
             FileStore = new FileStore(CacheDirectory);
         }
+
+        /// <summary>
+        ///     The directory where the cache is located.
+        /// </summary>
+        public string CacheDirectory { get; }
 
         public static string DefaultCacheDirectory
             => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";

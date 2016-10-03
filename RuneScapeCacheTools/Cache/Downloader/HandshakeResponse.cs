@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Download
+﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public enum HandshakeResponse
     {

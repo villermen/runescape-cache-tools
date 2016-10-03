@@ -1,8 +1,8 @@
 ﻿using System;
 using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Download;
 
 namespace RuneScapeCacheToolsTests.Fixtures
 {
@@ -15,7 +15,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
         {
             RuneTek5Cache = new RuneTek5Cache("TestCache");
             Soundtrack = new Soundtrack(Cache);
-            Downloader = new Downloader(Cache);
+            CacheDownloader = new CacheDownloader();
 
             CreateTestCache();
         }
@@ -26,24 +26,24 @@ namespace RuneScapeCacheToolsTests.Fixtures
 
         public Soundtrack Soundtrack { get; }
 
-        private Downloader _downloader;
+        private CacheDownloader _cacheDownloader;
 
         /// <summary>
         /// Returns a downloader which is already connected.
         /// Connecting beforehand is done to reduce network overhead each time a test is started.
         /// </summary>
-        public Downloader Downloader
+        public CacheDownloader CacheDownloader
         {
             get
             {
-                if (!_downloader.Connected)
+                if (!_cacheDownloader.Connected)
                 {
-                    _downloader.Connect();
+                    _cacheDownloader.Connect();
                 }
 
-                return _downloader;
+                return _cacheDownloader;
             }
-            private set { _downloader = value; }
+            private set { _cacheDownloader = value; }
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace Villermen.RuneScapeCacheTools.Download
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class FileRequest
     {
@@ -21,6 +21,11 @@ namespace Villermen.RuneScapeCacheTools.Download
         public void WaitForCompletion()
         {
             CompletionSource.Task.Wait();
+        }
+
+        public async Task WaitForCompletionAsync()
+        {
+            await CompletionSource.Task;
         }
     }
 }
