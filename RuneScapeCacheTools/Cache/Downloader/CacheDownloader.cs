@@ -23,8 +23,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         static CacheDownloader()
         {
-            // Set the (static) security protocol used for web requests
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            // // Set the (static) security protocol used for web requests
+            // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
         public int BlockLength { get; set; } = 102400;
@@ -38,7 +38,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// <summary>
         ///     The page used in obtaining the content server handshake key.
         /// </summary>
-        public string KeyPage { get; set; } = "https://world2.runescape.com";
+        public string KeyPage { get; set; } = "http://world2.runescape.com";
 
         /// <summary>
         ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
@@ -154,7 +154,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             {
                 var referenceTableEntryHttp = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
 
-                var webRequest = WebRequest.CreateHttp($"https://{ContentHost}/ms?m=0&a={indexId}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
+                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={indexId}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
                 var response = (HttpWebResponse)webRequest.GetResponse();
 
                 if (response.StatusCode != HttpStatusCode.OK)
