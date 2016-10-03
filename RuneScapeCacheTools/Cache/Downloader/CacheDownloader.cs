@@ -23,8 +23,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public int BlockLength { get; set; } = 102400;
 
-        public CacheBase Cache { get; }
-
         public bool Connected { get; private set; }
 
         public string ContentHost { get; set; } = "content.runescape.com";
