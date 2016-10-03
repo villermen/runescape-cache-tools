@@ -21,6 +21,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheDownloader));
 
+        static CacheDownloader()
+        {
+            // Set the (static) security protocol used for web requests
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        }
+
         public int BlockLength { get; set; } = 102400;
 
         public bool Connected { get; private set; }
@@ -32,7 +38,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// <summary>
         ///     The page used in obtaining the content server handshake key.
         /// </summary>
-        public string KeyPage { get; set; } = "http://world2.runescape.com";
+        public string KeyPage { get; set; } = "https://world2.runescape.com";
 
         /// <summary>
         ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
@@ -66,6 +72,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private Dictionary<Tuple<int, int>, FileRequest> PendingFileRequests { get; } =
             new Dictionary<Tuple<int, int>, FileRequest>();
+
+        public IList<int> IndexesUsingHttpInterface { get; set; } = new List<int> { 40 };
 
         public override IEnumerable<int> IndexIds => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
 
@@ -141,6 +149,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public async Task<RuneTek5CacheFile> DownloadFileAsync(int indexId, int fileId)
         {
+            // TODO: Properly clean and split this functionality
+            if (IndexesUsingHttpInterface.Contains(indexId))
+            {
+                var referenceTableEntryHttp = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
+
+                var webRequest = WebRequest.CreateHttp($"https://{ContentHost}/ms?m=0&a={indexId}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
+                var response = (HttpWebResponse)webRequest.GetResponse();
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new DownloaderException($"HTTP interface responsed with status code: {response.StatusCode}.");
+                }
+
+                var responseReader = new BinaryReader(response.GetResponseStream());
+                var responseData = responseReader.ReadBytes((int) response.ContentLength);
+                return new RuneTek5CacheFile(responseData, referenceTableEntryHttp);
+            }
+
             if (!Connected)
             {
                 throw new DownloaderException("Can't request file when disconnected.");
@@ -245,7 +271,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private string GetKeyFromPage()
         {
-            var request = WebRequest.Create(KeyPage);
+            var request = WebRequest.CreateHttp(KeyPage);
             var response = request.GetResponse();
             var responseStream = response.GetResponseStream();
 

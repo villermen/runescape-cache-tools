@@ -25,9 +25,6 @@ namespace RuneScapeCacheToolsTests
             var file1 = Fixture.Downloader.GetFile(12, 3);
             var file2 = Fixture.Downloader.DownloadFileAsync(12, 3).Result;
 
-            // TODO: HTTP worker or something similar for index 40, as the content server does not seem to respond to these requests
-            // Fixture.Downloader.DownloadFile(40, 30468);
-
             Assert.True(file1.Data.Length == file2.Data.Length, "Two of the downloaded files with the same id did not have the same size.");
         }
 
@@ -78,6 +75,12 @@ namespace RuneScapeCacheToolsTests
             var reportedIndexCount = Fixture.Downloader.IndexIds.Count();
 
             Assert.True(reportedIndexCount == expectedIndexCount, $"Downloader reported {reportedIndexCount} indexes, {expectedIndexCount} expected.");
+        }
+
+        [Fact]
+        public void TestHttpInterface()
+        {
+            var httpFile = Fixture.Downloader.GetFile(40, 30498);
         }
 
         public void Dispose()
