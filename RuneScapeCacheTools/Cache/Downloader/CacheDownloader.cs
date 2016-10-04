@@ -32,6 +32,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
+        public CacheDownloader(bool connect = false)
+        {
+            if (connect)
+            {
+                TcpConnect();
+            }
+        }
+
         public override IEnumerable<Index> Indexes => GetMasterReferenceTable().ReferenceTableFiles.Keys;
 
         public string ContentHost { get; set; } = "content.runescape.com";
@@ -153,8 +161,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
         {
-            // TODO: Caching for reference tables and master reference table
-            var referenceTableFile = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
+            var referenceTableFile = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
 
             byte[] fileData;
 
@@ -184,7 +191,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public ReferenceTable GetReferenceTable(Index index)
         {
-            return CachedReferenceTables.GetOrAdd(index, DownloadReferenceTable(index));
+            return CachedReferenceTables.GetOrAdd(index, index2 => new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index));
         }
 
         protected override void Dispose(bool disposing)
@@ -210,12 +217,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             if (!TcpConnected)
             {
-                TcpConnect();
-            }
-
-            if (!TcpConnected)
-            {
-                throw new DownloaderException("Something went wrong while attempting to make a TCP connection to the content server.");
+                throw new DownloaderException("TCP client is disconnected.");
             }
 
             var requestKey = new Tuple<Index, int>(index, fileId);
@@ -230,6 +232,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
                 writer.Write((byte)index);
                 writer.WriteInt32BigEndian(fileId);
+
+                CacheDownloader.Logger.Debug($"Requesting {index}/{fileId}");
 
                 if (PendingTcpFileRequests.IsEmpty)
                 {
@@ -251,11 +255,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         private MasterReferenceTable DownloadMasterReferenceTable()
         {
             return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
-        }
-
-        private ReferenceTable DownloadReferenceTable(Index index)
-        {
-            return new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index);
         }
 
         private string GetTcpKeyFromPage()
@@ -286,6 +285,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private void ProcessTcpRequests()
         {
+            CacheDownloader.Logger.Debug("Starting TCP request processor.");
+
             while (PendingTcpFileRequests.Count > 0)
             {
                 // Read one chunk (or the leftover)
@@ -344,6 +345,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                 // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
             }
+
+            CacheDownloader.Logger.Debug("TCP request processor finished.");
         }
 
         /// <summary>
