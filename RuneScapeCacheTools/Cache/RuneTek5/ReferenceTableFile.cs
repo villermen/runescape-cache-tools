@@ -7,9 +7,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// </summary>
     public class ReferenceTableFile
     {
-        public ReferenceTableFile(int indexId, int id)
+        public ReferenceTableFile(Index index, int id)
         {
-            IndexId = indexId;
+            Index = index;
             Id = id;
         }
 
@@ -35,7 +35,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public int Identifier { get; set; } = -1;
 
-        public int IndexId { get; set; }
+        public Index Index { get; set; }
 
         /// <summary>
         ///     Some unknown hash added on build 816.

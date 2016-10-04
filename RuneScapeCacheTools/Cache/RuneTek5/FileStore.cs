@@ -46,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     continue;
                 }
 
-                IndexStreams.Add(indexId, File.Open(indexFile, FileMode.Open));
+                IndexStreams.Add((Index)indexId, File.Open(indexFile, FileMode.Open));
             }
 
             if (IndexStreams.Count == 0)
@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new CacheException("No index files found.");
             }
 
-            var metaFile = Path.Combine(cacheDirectory + $"main_file_cache.idx{RuneTek5Cache.MetadataIndexId}");
+            var metaFile = Path.Combine(cacheDirectory + $"main_file_cache.idx{(int)Index.ReferenceTables}");
 
             if (!File.Exists(metaFile))
             {
@@ -70,7 +70,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public int IndexCount => IndexStreams.Count;
 
         private Stream DataStream { get; }
-        private IDictionary<int, Stream> IndexStreams { get; } = new Dictionary<int, Stream>();
+        private IDictionary<Index, Stream> IndexStreams { get; } = new Dictionary<Index, Stream>();
         private Stream MetaStream { get; }
 
         public void Dispose()
@@ -79,18 +79,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             GC.SuppressFinalize(this);
         }
 
-        public byte[] GetFileData(int indexId, int fileId)
+        public byte[] GetFileData(Index index, int fileId)
         {
-            var meta = indexId == RuneTek5Cache.MetadataIndexId;
+            var meta = index == Index.ReferenceTables;
 
-            if (!meta && !IndexStreams.ContainsKey(indexId))
+            if (!meta && !IndexStreams.ContainsKey(index))
             {
                 throw new CacheException("Invalid index specified.");
             }
 
-            var indexReader = new BinaryReader(meta ? MetaStream : IndexStreams[indexId]);
+            var indexReader = new BinaryReader(meta ? MetaStream : IndexStreams[index]);
 
-            var indexPosition = (long)fileId * Index.Length;
+            var indexPosition = (long)fileId * IndexPointer.Length;
 
             if ((indexPosition < 0) || (indexPosition >= indexReader.BaseStream.Length))
             {
@@ -102,21 +102,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 indexReader.BaseStream.Position = indexPosition;
 
-                var indexBytes = indexReader.ReadBytes(Index.Length);
+                var indexBytes = indexReader.ReadBytes(IndexPointer.Length);
 
-                var index = new Index(indexBytes);
+                var indexPointer = new IndexPointer(indexBytes);
 
                 var chunkId = 0;
-                var remaining = index.Size;
+                var remaining = indexPointer.Size;
                 var dataReader = new BinaryReader(DataStream);
-                var dataPosition = (long)index.Sector * Sector.Length;
+                var dataPosition = (long)indexPointer.Sector * Sector.Length;
 
-                var dataStream = new MemoryStream(index.Size);
+                var dataStream = new MemoryStream(indexPointer.Size);
                 do
                 {
                     dataReader.BaseStream.Position = dataPosition;
 
-                    var sector = new Sector(indexId, fileId, chunkId, dataReader.ReadBytes(Sector.Length));
+                    var sector = new Sector(index, fileId, chunkId, dataReader.ReadBytes(Sector.Length));
 
                     var bytesRead = Math.Min(sector.Data.Length, remaining);
 

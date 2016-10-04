@@ -70,16 +70,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private int MajorVersion { get; set; } = 873;
 
-        private Dictionary<Tuple<int, int>, FileRequest> PendingFileRequests { get; } =
-            new Dictionary<Tuple<int, int>, FileRequest>();
+        private Dictionary<Tuple<Index, int>, FileRequest> PendingFileRequests { get; } =
+            new Dictionary<Tuple<Index, int>, FileRequest>();
 
-        public IList<int> IndexesUsingHttpInterface { get; set; } = new List<int> { 40 };
+        public IList<Index> IndexesUsingHttpInterface { get; set; } = new List<Index> { Index.Music };
 
-        public override IEnumerable<int> IndexIds => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
+        public override IEnumerable<Index> Indexes => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
 
-        public override IEnumerable<int> GetFileIds(int indexId)
+        public override IEnumerable<int> GetFileIds(Index index)
         {
-            return DownloadReferenceTable(indexId).Files.Keys;
+            return DownloadReferenceTable(index).Files.Keys;
         }
 
         public void Connect()
@@ -142,19 +142,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             ContentClient.Dispose();
         }
 
-        public override CacheFile GetFile(int indexId, int fileId)
+        public override CacheFile GetFile(Index index, int fileId)
         {
-            return DownloadFileAsync(indexId, fileId).Result;
+            return DownloadFileAsync(index, fileId).Result;
         }
 
-        public async Task<RuneTek5CacheFile> DownloadFileAsync(int indexId, int fileId)
+        public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
         {
             // TODO: Properly clean and split this functionality
-            if (IndexesUsingHttpInterface.Contains(indexId))
+            if (IndexesUsingHttpInterface.Contains(index))
             {
-                var referenceTableEntryHttp = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
+                var referenceTableEntryHttp = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
 
-                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={indexId}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
+                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)index}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
                 var response = (HttpWebResponse)webRequest.GetResponse();
 
                 if (response.StatusCode != HttpStatusCode.OK)
@@ -175,15 +175,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             var writer = new BinaryWriter(ContentClient.GetStream());
 
             // Send the file request to the content server
-            writer.Write((byte)(indexId == RuneTek5Cache.MetadataIndexId ? 1 : 0));
-            writer.Write((byte)indexId);
+            writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
+            writer.Write((byte)index);
             writer.WriteInt32BigEndian(fileId);
 
             var fileRequest = new FileRequest();
 
             var pendingFileRequestCount = PendingFileRequests.Count;
 
-            PendingFileRequests.Add(new Tuple<int, int>(indexId, fileId), fileRequest);
+            PendingFileRequests.Add(new Tuple<Index, int>(index, fileId), fileRequest);
 
             // Spin up the processor when it is not running
             if (pendingFileRequestCount == 0)
@@ -192,7 +192,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             // TODO: Caching for reference tables
-            var referenceTableEntry = indexId != RuneTek5Cache.MetadataIndexId ? DownloadReferenceTable(indexId).Files[fileId] : null;
+            var referenceTableEntry = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
 
             await fileRequest.WaitForCompletionAsync();
 
@@ -201,12 +201,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public MasterReferenceTable DownloadMasterReferenceTable()
         {
-            return new MasterReferenceTable(GetFile(RuneTek5Cache.MetadataIndexId, RuneTek5Cache.MetadataIndexId));
+            return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
         }
 
-        public ReferenceTable DownloadReferenceTable(int indexId)
+        public ReferenceTable DownloadReferenceTable(Index index)
         {
-            return new ReferenceTable(GetFile(RuneTek5Cache.MetadataIndexId, indexId), indexId);
+            return new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index);
         }
 
         public void ProcessRequests()
@@ -220,12 +220,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                     var readByteCount = 0;
 
-                    var indexId = reader.ReadByte();
+                    var index = (Index)reader.ReadByte();
                     var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
 
                     readByteCount += 5;
 
-                    var requestKey = new Tuple<int, int>(indexId, fileId);
+                    var requestKey = new Tuple<Index, int>(index, fileId);
 
                     if (!PendingFileRequests.ContainsKey(requestKey))
                     {

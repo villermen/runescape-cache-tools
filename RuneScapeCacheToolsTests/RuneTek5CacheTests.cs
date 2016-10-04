@@ -27,13 +27,13 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFile()
         {
-            var file = Fixture.RuneTek5Cache.GetFile(12, 3);
+            var file = Fixture.RuneTek5Cache.GetFile(Index.ClientScripts, 3);
 
             var fileData = file.Data;
 
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
-            var archiveFile = Fixture.RuneTek5Cache.GetFile(17, 5);
+            var archiveFile = Fixture.RuneTek5Cache.GetFile(Index.Enums, 5);
 
             var archiveEntry = archiveFile.Entries[255];
 
@@ -41,7 +41,7 @@ namespace RuneScapeCacheToolsTests
 
             try
             {
-                Fixture.RuneTek5Cache.GetFile(40, 30);
+                Fixture.RuneTek5Cache.GetFile(Index.Music, 30);
 
                 Assert.True(false, "Cache returned a file that shouldn't exist.");
             }
@@ -52,23 +52,23 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        [InlineData(40)]
-        [InlineData(17)]
-        [InlineData(12)]
-        public void TestGetReferenceTable(int indexId)
+        [InlineData(Index.Music)]
+        [InlineData(Index.Enums)]
+        [InlineData(Index.ClientScripts)]
+        public void TestGetReferenceTable(Index index)
         {
-            var referenceTable = Fixture.RuneTek5Cache.GetReferenceTable(indexId);
+            var referenceTable = Fixture.RuneTek5Cache.GetReferenceTable(index);
         }
 
         [Theory]
-        [InlineData(12, 3)]
-        public void TestExtract(int indexId, int fileId)
+        [InlineData(Index.ClientScripts, 3)]
+        public void TestExtract(Index index, int fileId)
         {
-            var expectedFilePath = $"output/extracted/{indexId}/{fileId}";
+            var expectedFilePath = $"output/extracted/{index}/{fileId}";
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
-            Fixture.RuneTek5Cache.Extract(indexId, fileId, true);
+            Fixture.RuneTek5Cache.Extract(index, fileId, true);
 
             Assert.True(File.Exists(expectedFilePath), $"File was not extracted, or not extracted to {expectedFilePath}.");
 
@@ -80,11 +80,11 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestExtractWithEntries()
         {
-            var expectedFilePath = "output/extracted/17/5-65";
+            var expectedFilePath = $"output/extracted/{Index.Enums}/5-65";
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
-            Fixture.RuneTek5Cache.Extract(17, 5, true);
+            Fixture.RuneTek5Cache.Extract(Index.Enums, 5, true);
 
             Assert.True(File.Exists(expectedFilePath), $"File entry was not extracted, or not extracted to {expectedFilePath}.");
 

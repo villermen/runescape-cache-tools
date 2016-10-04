@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-		private static Cache.CacheBase Cache { get; set; }
+		private static CacheBase Cache { get; set; }
 
         private static string CacheDirectory { get; set; }
 
@@ -26,7 +26,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         private static int TriggeredActions { get; set; }
 
-		private static IEnumerable<int> IndexIds { get; set; }
+		private static IEnumerable<Index> Indexes { get; set; }
 
 		private static IEnumerable<int> FileIds { get; set; }
 
@@ -79,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"index=|i", "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
 				value =>
 				{
-					IndexIds = ExpandIntegerRangeString(value);
+					Indexes = ExpandIntegerRangeString(value).Cast<Index>();
 				}
 			},
 
@@ -224,7 +224,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void Extract()
 		{
-			if (IndexIds == null && FileIds == null)
+			if (Program.Indexes == null && FileIds == null)
 			{
 				// Extract everything
 				Cache.Extract(Overwrite);
@@ -232,12 +232,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			else if (FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Cache.Extract(IndexIds, Overwrite);
+				Cache.Extract(Program.Indexes, Overwrite);
 			}
-			else if (IndexIds.Count() == 1)
+			else if (Program.Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-				Cache.Extract(IndexIds.First(), FileIds, Overwrite);
+				Cache.Extract(Program.Indexes.First(), FileIds, Overwrite);
 			}
 			else
 			{

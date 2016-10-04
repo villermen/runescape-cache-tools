@@ -5,19 +5,19 @@ using Villermen.RuneScapeCacheTools.Extensions;
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    ///     An <see cref="Index" /> points to a file inside a <see cref="FileStore" />.
+    ///     An <see cref="IndexPointer" /> points to a file inside a <see cref="FileStore" />.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
-    public class Index
+    public class IndexPointer
     {
         /// <summary>
         ///     Length of index data in bytes.
         /// </summary>
         public const int Length = 6;
 
-        public Index(byte[] data)
+        public IndexPointer(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
             Size = reader.ReadUInt24BigEndian();

@@ -27,7 +27,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             TemporaryDirectory = Path.GetTempPath() + "rsct";
         }
 
-        public abstract IEnumerable<int> IndexIds { get; }
+        public abstract IEnumerable<Index> Indexes { get; }
 
         /// <summary>
         ///     Processor used on obtained data.
@@ -55,12 +55,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         ///     Returns the data and metadata for the requested file.
         /// </summary>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        public abstract CacheFile GetFile(int indexId, int fileId);
+        public abstract CacheFile GetFile(Index index, int fileId);
 
-        public abstract IEnumerable<int> GetFileIds(int indexId);
+        public abstract IEnumerable<int> GetFileIds(Index index);
 
         public void Dispose()
         {
@@ -77,55 +77,54 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(bool overwrite = false)
         {
-            var indexIds = IndexIds;
-            Parallel.ForEach(indexIds, indexId => { Extract(indexId, overwrite); });
+            Parallel.ForEach(Indexes, index => { Extract(index, overwrite); });
         }
 
         /// <summary>
         ///     Extracts specified indexes fully.
         /// </summary>
-        /// <param name="indexIds"></param>
+        /// <param name="indexes"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public void Extract(IEnumerable<int> indexIds, bool overwrite = false)
+        public void Extract(IEnumerable<Index> indexes, bool overwrite = false)
         {
-            Parallel.ForEach(indexIds, indexId => { Extract(indexId, overwrite); });
+            Parallel.ForEach(indexes, index => { Extract(index, overwrite); });
         }
 
         /// <summary>
         ///     Extracts specified index fully.
         /// </summary>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public void Extract(int indexId, bool overwrite = false)
+        public void Extract(Index index, bool overwrite = false)
         {
-            var fileIds = GetFileIds(indexId);
-            Parallel.ForEach(fileIds, fileId => { Extract(indexId, fileId, overwrite); });
+            var fileIds = GetFileIds(index);
+            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
         }
 
         /// <summary>
         ///     Extracts specified files from the specified index.
         /// </summary>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <param name="fileIds"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public void Extract(int indexId, IEnumerable<int> fileIds, bool overwrite = false)
+        public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false)
         {
-            Parallel.ForEach(fileIds, fileId => { Extract(indexId, fileId, overwrite); });
+            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
         }
 
         /// <summary>
         ///     Extracts the specified file from the specified index.
         /// </summary>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public void Extract(int indexId, int fileId, bool overwrite = false)
+        public void Extract(Index index, int fileId, bool overwrite = false)
         {
-            var file = GetFile(indexId, fileId);
+            var file = GetFile(index, fileId);
 
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
@@ -146,13 +145,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
 
                 // Delete existing file (if allowed)
-                var existingFilePath = GetFileExtractionPath(indexId, fileId, entryId);
+                var existingFilePath = GetExtractedFilePath(index, fileId, entryId);
                 if (existingFilePath != null)
                 {
                     if (!overwrite)
                     {
                         CacheBase.Logger.Info(
-                            $"Skipped index {indexId} file {fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
+                            $"Skipped index {index} file {fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
                         return;
                     }
 
@@ -160,23 +159,24 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
 
                 // Construct new path for file
-                var newFilePath = $"{OutputDirectory}extracted/{indexId}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
+                // TODO: Use GetFileExtractionPath
+                var newFilePath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
 
                 // Create directories where necessary, before writing to file
                 Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
                 File.WriteAllBytes(newFilePath, currentData);
-                CacheBase.Logger.Info($"Extracted index {indexId} file {fileId}.");
+                CacheBase.Logger.Info($"Extracted index {index} file {fileId}.");
             }
         }
 
         /// <summary>
         ///     Finds the path for the given extracted file.
         /// </summary>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <param name="entryId"></param>
         /// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-        public string GetFileExtractionPath(int indexId, int fileId, int entryId = 0)
+        public string GetExtractedFilePath(Index index, int fileId, int entryId = 0)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 var fileIdString = fileId + (entryId > 0 ? "-" + entryId : "");
 
                 var path = Directory
-                    .EnumerateFiles($"{OutputDirectory}extracted/{indexId}/", $"{fileIdString}*")
+                    .EnumerateFiles($"{OutputDirectory}extracted/{index}/", $"{fileIdString}*")
 
                     // Check if fileIdString is the full name of the file minus extension, prevents matching 234 with 2345.ext
                     .FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileIdString}(\..+)?$"));
@@ -201,7 +201,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="indexId"></param>
         /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
-        public string GetIndexExtractionPath(int indexId)
+        public string GetExtractedIndexPath(int indexId)
         {
             string indexPath = $"{OutputDirectory}extracted/{indexId}/";
 

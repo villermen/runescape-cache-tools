@@ -18,7 +18,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             for (var tableId = 0; tableId < tableCount; tableId++)
             {
-                var table = new MasterReferenceTableTable(tableId)
+                var index = (Index)tableId;
+
+                var table = new MasterReferenceTableTable(index)
                 {
                     CRC = reader.ReadInt32BigEndian(),
                     Version = reader.ReadInt32BigEndian(),
@@ -27,13 +29,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                ReferenceTableFiles.Add(tableId, table);
+                ReferenceTableFiles.Add(index, table);
             }
 
             RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
         }
 
-        public IDictionary<int, MasterReferenceTableTable> ReferenceTableFiles { get; } = new Dictionary<int, MasterReferenceTableTable>();
+        public IDictionary<Index, MasterReferenceTableTable> ReferenceTableFiles { get; } = new Dictionary<Index, MasterReferenceTableTable>();
 
         public byte[] RSAEncryptedWhirlpoolDigest { get; set; }
     }

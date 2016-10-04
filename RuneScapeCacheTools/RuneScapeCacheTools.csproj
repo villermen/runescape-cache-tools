@@ -90,6 +90,7 @@
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />
     <Compile Include="Cache\Downloader\HandshakeResponse.cs" />
+    <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\Language.cs" />
@@ -108,7 +109,7 @@
     <Compile Include="Enums\EnumFile.cs" />
     <Compile Include="Enums\EnumParseException.cs" />
     <Compile Include="Cache\RuneTek5\FileStore.cs" />
-    <Compile Include="Cache\RuneTek5\Index.cs" />
+    <Compile Include="Cache\RuneTek5\IndexPointer.cs" />
     <Compile Include="Cache\ExtendableExtensionGuesser.cs" />
     <Compile Include="Enums\EnumOpcode.cs" />
     <Compile Include="Enums\BaseVarType.cs" />

@@ -19,9 +19,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     Decodes the reference table contained in the given data.
         /// </summary>
         /// <param name="cacheFile"></param>
-        /// <param name="indexId"></param>
+        /// <param name="index"></param>
         /// <returns></returns>
-        public ReferenceTable(CacheFile cacheFile, int indexId)
+        public ReferenceTable(CacheFile cacheFile, Index index)
         {
             var reader = new BinaryReader(new MemoryStream(cacheFile.Data));
 
@@ -48,7 +48,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 fileId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                Files.Add(fileId, new ReferenceTableFile(indexId, fileId));
+                Files.Add(fileId, new ReferenceTableFile(index, fileId));
             }
 
             // Read the identifiers if present

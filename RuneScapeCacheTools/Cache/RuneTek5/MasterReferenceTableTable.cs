@@ -2,16 +2,16 @@
 {
     public class MasterReferenceTableTable
     {
-        public MasterReferenceTableTable(int indexId)
+        public MasterReferenceTableTable(Index index)
         {
-            IndexId = indexId;
+            Index = index;
         }
 
         public int CRC { get; set; }
 
         public int FileCount { get; set; }
 
-        public int IndexId { get; set; }
+        public Index Index { get; set; }
 
         public int Length { get; set; }
 

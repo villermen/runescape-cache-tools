@@ -66,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                 try
                 {
-                    var jagaCacheFile = Cache.GetFile(40, trackNamePair.Key);
+                    var jagaCacheFile = Cache.GetFile(Index.Music, trackNamePair.Key);
 
                     // Skip file if not overwriting existing and the file exists
                     if (!overwriteExisting && File.Exists(outputPath))
@@ -92,7 +92,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                     {
                         File.WriteAllBytes(randomTemporaryFilenames[chunkIndex],
-                            Cache.GetFile(40, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
+                            Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                     }
 
                     // Combine the files using oggCat
@@ -147,8 +147,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public IDictionary<int, string> GetTrackNames()
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
-            var trackNames = new EnumFile(Cache.GetFile(17, 5).Entries[65]);
-            var jagaFileIds = new EnumFile(Cache.GetFile(17, 5).Entries[71]);
+            var trackNames = new EnumFile(Cache.GetFile(Index.Enums, 5).Entries[65]);
+            var jagaFileIds = new EnumFile(Cache.GetFile(Index.Enums, 5).Entries[71]);
 
             // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
             var result = new SortedDictionary<int, string>();

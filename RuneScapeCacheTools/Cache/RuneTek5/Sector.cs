@@ -40,12 +40,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     Decodes the given byte array into a <see cref="Sector" /> object.
         /// </summary>
-        /// <param name="expectedIndexId"></param>
+        /// <param name="expectedIndex"></param>
         /// <param name="expectedFileId"></param>
         /// <param name="expectedChunkId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Sector(int expectedIndexId, int expectedFileId, int expectedChunkId, byte[] data)
+        public Sector(Index expectedIndex, int expectedFileId, int expectedChunkId, byte[] data)
         {
             if (data.Length != Sector.Length)
             {
@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             NextSectorId = dataReader.ReadUInt24BigEndian();
             IndexId = dataReader.ReadByte();
 
-            if (IndexId != expectedIndexId)
+            if (IndexId != (int)expectedIndex)
             {
                 throw new SectorException("Index id mismatch.");
             }
