@@ -38,7 +38,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
             {
                 if (!_cacheDownloader.TcpConnected)
                 {
-                    _cacheDownloader.Connect();
+                    _cacheDownloader.TcpConnect();
                 }
 
                 return _cacheDownloader;

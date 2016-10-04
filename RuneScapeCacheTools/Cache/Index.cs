@@ -9,7 +9,7 @@
         AnimationFrames = 0,
         AnimationFrameBases = 1,
         Miscellaneous = 2,
-        Interfaces =  3,
+        Interfaces = 3,
         EmptyUsedToBeSoundEffects = 4,
         Maps = 5,
         EmptyUsedToBeMidis = 6,
@@ -57,6 +57,6 @@
         RuneTek7Animations = 48,
         DatabaseTableIndex = 49,
 
-        ReferenceTables = 255,
+        ReferenceTables = 255
     }
 }

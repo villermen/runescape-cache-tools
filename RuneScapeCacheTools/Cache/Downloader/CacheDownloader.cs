@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -13,8 +14,9 @@ using Villermen.RuneScapeCacheTools.Extensions;
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
-    ///     The <see cref="CacheDownloader"/> provides the means to download current cache files from the runescape servers.
-    ///     Downloading uses 2 different interfaces depending on the <see cref="Index"/> of the requested file: The original TCP based interface, and a much simpler HTTP interface.
+    ///     The <see cref="CacheDownloader" /> provides the means to download current cache files from the runescape servers.
+    ///     Downloading uses 2 different interfaces depending on the <see cref="Index" /> of the requested file: The original
+    ///     TCP based interface, and a much simpler HTTP interface.
     ///     Properties prefixed with Tcp or Http will only be used by the specified downloading method.
     /// </summary>
     /// <author>Villermen</author>
@@ -30,11 +32,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
+        public override IEnumerable<Index> Indexes => GetMasterReferenceTable().ReferenceTableFiles.Keys;
+
+        public string ContentHost { get; set; } = "content.runescape.com";
+
+        public IList<Index> IndexesUsingHttpInterface { get; } = new List<Index> { Index.Music };
+
+        public Language Language { get; set; } = Language.English;
+
         public int TcpBlockLength { get; set; } = 102400;
 
         public bool TcpConnected { get; private set; }
-
-        public string ContentHost { get; set; } = "content.runescape.com";
 
         public int TcpContentPort { get; set; } = 43594;
 
@@ -49,13 +57,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         public Regex TcpKeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
 
-        public Language Language { get; set; } = Language.English;
-
         /// <summary>
         ///     The minor version is needed to correctly connect to the content server.
         ///     This seems to always be 1.
         /// </summary>
         public int TcpMinorVersion { get; set; } = 1;
+
+        private MasterReferenceTable CachedMasterReferenceTable { get; set; }
+
+        private ConcurrentDictionary<Index, ReferenceTable> CachedReferenceTables { get; } = new ConcurrentDictionary<Index, ReferenceTable>();
+
+        private Dictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
+            new Dictionary<Tuple<Index, int>, TcpFileRequest>();
 
         private TcpClient TcpContentClient { get; set; }
 
@@ -73,21 +86,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private int TcpMajorVersion { get; set; } = 873;
 
-        private Dictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
-            new Dictionary<Tuple<Index, int>, TcpFileRequest>();
-
-        public IList<Index> IndexesUsingHttpInterface { get; } = new List<Index> { Index.Music };
-
-        public override IEnumerable<Index> Indexes => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
+        public override CacheFile GetFile(Index index, int fileId)
+        {
+            return DownloadFileAsync(index, fileId).Result;
+        }
 
         public override IEnumerable<int> GetFileIds(Index index)
         {
-            return DownloadReferenceTable(index).Files.Keys;
+            return GetReferenceTable(index).Files.Keys;
         }
 
-        public void Connect()
+        public void TcpConnect()
         {
-            var key = GetKeyFromPage();
+            var key = GetTcpKeyFromPage();
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
             var connected = false;
@@ -114,13 +125,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case TcpHandshakeResponse.Success:
                         connected = true;
-                        Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
+                        CacheDownloader.Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
                         break;
 
                     case TcpHandshakeResponse.Outdated:
                         TcpContentClient.Dispose();
                         TcpContentClient = null;
-                        Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
+                        CacheDownloader.Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
                         TcpMajorVersion++;
                         break;
 
@@ -135,19 +146,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             var contentReader = new BinaryReader(TcpContentClient.GetStream());
             contentReader.ReadBytes(TcpLoadingRequirementsLength);
 
-            SendConnectionInfo();
+            SendTcpConnectionInfo();
 
             TcpConnected = true;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            TcpContentClient.Dispose();
-        }
-
-        public override CacheFile GetFile(Index index, int fileId)
-        {
-            return DownloadFileAsync(index, fileId).Result;
         }
 
         public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
@@ -169,6 +170,28 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return new RuneTek5CacheFile(fileData, referenceTableFile);
         }
 
+        public MasterReferenceTable GetMasterReferenceTable()
+        {
+            if (CachedMasterReferenceTable != null)
+            {
+                return CachedMasterReferenceTable;
+            }
+
+            CachedMasterReferenceTable = DownloadMasterReferenceTable();
+
+            return CachedMasterReferenceTable;
+        }
+
+        public ReferenceTable GetReferenceTable(Index index)
+        {
+            return CachedReferenceTables.GetOrAdd(index, DownloadReferenceTable(index));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            TcpContentClient.Dispose();
+        }
+
         private async Task<byte[]> DownloadFileDataHttpAsync(Index index, int fileId, ReferenceTableFile referenceTableFile)
         {
             var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)index}&g={fileId}&c={referenceTableFile.CRC}&v={referenceTableFile.Version}");
@@ -176,7 +199,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new DownloaderException($"HTTP interface responsed with status code: {response.StatusCode}.");
+                throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
             }
 
             var responseReader = new BinaryReader(response.GetResponseStream());
@@ -206,23 +229,49 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // Spin up the processor when it is not running
             if (pendingFileRequestCount == 0)
             {
-                Task.Run(() => ProcessRequests());
+                Task.Run(() => ProcessTcpRequests());
             }
 
             return await fileRequest.WaitForCompletionAsync();
         }
 
-        public MasterReferenceTable DownloadMasterReferenceTable()
+        private MasterReferenceTable DownloadMasterReferenceTable()
         {
             return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
         }
 
-        public ReferenceTable DownloadReferenceTable(Index index)
+        private ReferenceTable DownloadReferenceTable(Index index)
         {
             return new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index);
         }
 
-        public void ProcessRequests()
+        private string GetTcpKeyFromPage()
+        {
+            var request = WebRequest.CreateHttp(TcpKeyPage);
+            var response = request.GetResponse();
+            var responseStream = response.GetResponseStream();
+
+            if (responseStream == null)
+            {
+                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
+            }
+
+            using (var reader = new StreamReader(responseStream))
+            {
+                var responseString = reader.ReadToEnd();
+
+                var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    throw new DownloaderException("Obtained handshake key is empty.");
+                }
+
+                return key;
+            }
+        }
+
+        private void ProcessTcpRequests()
         {
             while (PendingTcpFileRequests.Count > 0)
             {
@@ -282,36 +331,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
         }
 
-        private string GetKeyFromPage()
-        {
-            var request = WebRequest.CreateHttp(TcpKeyPage);
-            var response = request.GetResponse();
-            var responseStream = response.GetResponseStream();
-
-            if (responseStream == null)
-            {
-                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
-            }
-
-            using (var reader = new StreamReader(responseStream))
-            {
-                var responseString = reader.ReadToEnd();
-
-                var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
-
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    throw new DownloaderException("Obtained handshake key is empty.");
-                }
-
-                return key;
-            }
-        }
-
         /// <summary>
         ///     Sends the initial connection status and login packets to the server.
         /// </summary>
-        private void SendConnectionInfo()
+        private void SendTcpConnectionInfo()
         {
             var writer = new BinaryWriter(TcpContentClient.GetStream());
 
