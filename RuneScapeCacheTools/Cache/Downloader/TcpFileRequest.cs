@@ -1,28 +1,31 @@
 ﻿using System.IO;
-using System.Threading.Tasks;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    public class TcpFileRequest
+    public class TcpFileRequest : FileRequest
     {
-        public MemoryStream DataStream { get; } = new MemoryStream();
+        public TcpFileRequest(Index index, int fileId, ReferenceTableFile referenceTableFile) : base (index, fileId, referenceTableFile)
+        {
+        }
 
         public int FileSize { get; set; }
 
         public int RemainingLength => (int)(FileSize - DataStream.Length);
 
-        private TaskCompletionSource<bool> CompletionSource { get; } = new TaskCompletionSource<bool>();
-
-        public void Complete()
+        public override void Write(byte[] data)
         {
-            CompletionSource.SetResult(true);
-        }
+            if (data.Length > RemainingLength)
+            {
+                throw new DownloaderException("Tried to write more bytes than were remaining in the file.");
+            }
 
-        public async Task<byte[]> WaitForCompletionAsync()
-        {
-            await CompletionSource.Task;
+            base.Write(data);
 
-            return DataStream.ToArray();
+            if (RemainingLength == 0)
+            {
+                Complete();
+            }
         }
     }
 }

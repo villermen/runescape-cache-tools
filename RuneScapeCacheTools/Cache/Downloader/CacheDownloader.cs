@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -75,8 +76,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private ConcurrentDictionary<Index, ReferenceTable> CachedReferenceTables { get; } = new ConcurrentDictionary<Index, ReferenceTable>();
 
-        private ConcurrentDictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
-            new ConcurrentDictionary<Tuple<Index, int>, TcpFileRequest>();
+        // TODO: Use a bag
+        private ConcurrentDictionary<Tuple<Index, int>, FileRequest> PendingFileRequests { get; } =
+            new ConcurrentDictionary<Tuple<Index, int>, FileRequest>();
 
         private TcpClient TcpContentClient { get; set; }
 
@@ -93,6 +95,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         ///     accepted.
         /// </summary>
         private int TcpMajorVersion { get; set; } = 873;
+
+        private object TcpResponseProcessorLock { get; } = new object();
 
         public override CacheFile GetFile(Index index, int fileId)
         {
@@ -163,16 +167,28 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             var referenceTableFile = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
 
-            byte[] fileData;
+            var newFileRequest = IndexesUsingHttpInterface.Contains(index) ? new FileRequest(index, fileId, referenceTableFile) : new TcpFileRequest(index, fileId, referenceTableFile);
 
-            if (IndexesUsingHttpInterface.Contains(index))
+            var requestKey = new Tuple<Index, int>(index, fileId);
+
+            var fileRequest = PendingFileRequests.GetOrAdd(requestKey, newFileRequest);
+
+            var requestOwner = fileRequest == newFileRequest;
+
+            // Start downloading if our request was the one added
+            if (requestOwner)
             {
-                fileData = await DownloadFileDataHttpAsync(index, fileId, referenceTableFile);
+                if (fileRequest is TcpFileRequest)
+                {
+                    Task.Run(() => DownloadFileTcp(fileRequest));
+                }
+                else
+                {
+                    Task.Run(() => DownloadFileHttp(fileRequest));
+                }
             }
-            else
-            {
-                fileData = await DownloadFileDataTcpAsync(index, fileId);
-            }
+
+            var fileData = await fileRequest.WaitForCompletionAsync();
 
             return new RuneTek5CacheFile(fileData, referenceTableFile);
         }
@@ -199,10 +215,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             TcpContentClient.Dispose();
         }
 
-        private async Task<byte[]> DownloadFileDataHttpAsync(Index index, int fileId, ReferenceTableFile referenceTableFile)
+        private void DownloadFileHttp(FileRequest fileRequest)
         {
-            var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)index}&g={fileId}&c={referenceTableFile.CRC}&v={referenceTableFile.Version}");
-            var response = (HttpWebResponse)await webRequest.GetResponseAsync();
+            var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.ReferenceTableFile.CRC}&v={fileRequest.ReferenceTableFile.Version}");
+            var response = (HttpWebResponse)webRequest.GetResponse();
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -210,46 +226,104 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             var responseReader = new BinaryReader(response.GetResponseStream());
-            return responseReader.ReadBytes((int)response.ContentLength);
+
+            fileRequest.Write(responseReader.ReadBytes((int)response.ContentLength));
+
+            FileRequest removedRequest;
+            PendingFileRequests.TryRemove(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId), out removedRequest);
+
+            fileRequest.Complete();
         }
 
-        private async Task<byte[]> DownloadFileDataTcpAsync(Index index, int fileId)
+        private void DownloadFileTcp(FileRequest fileRequest)
         {
             if (!TcpConnected)
             {
                 throw new DownloaderException("TCP client is disconnected.");
             }
 
-            var requestKey = new Tuple<Index, int>(index, fileId);
+            // Send the request
+            var writer = new BinaryWriter(TcpContentClient.GetStream());
 
-            // Only request if it isn't being requested yet
-            var startProcessing = false;
-            var fileRequest = PendingTcpFileRequests.GetOrAdd(requestKey, requestKey2 =>
+            // Send the file request to the content server
+            writer.Write((byte)(fileRequest.Index == Index.ReferenceTables ? 1 : 0));
+            writer.Write((byte)fileRequest.Index);
+            writer.WriteInt32BigEndian(fileRequest.FileId);
+
+            // This will process all received TCP chunks until the given requested file is complete (so it might also complete other requested files).
+            // Only one processor may be running at any given moment
+            lock (TcpResponseProcessorLock)
             {
-                var writer = new BinaryWriter(TcpContentClient.GetStream());
+                CacheDownloader.Logger.Debug("Starting TCP request processor.");
 
-                // Send the file request to the content server
-                writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
-                writer.Write((byte)index);
-                writer.WriteInt32BigEndian(fileId);
-
-                CacheDownloader.Logger.Debug($"Requesting {index}/{fileId}");
-
-                if (PendingTcpFileRequests.IsEmpty)
+                while (PendingFileRequests.ContainsKey(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId)))
                 {
-                    startProcessing = true;
+                    // Read one chunk
+                    if (TcpContentClient.Available >= 5)
+                    {
+                        var reader = new BinaryReader(TcpContentClient.GetStream());
+
+                        var readByteCount = 0;
+
+                        var index = (Index)reader.ReadByte();
+                        var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
+
+                        readByteCount += 5;
+
+                        var requestKey = new Tuple<Index, int>(index, fileId);
+
+                        if (!PendingFileRequests.ContainsKey(requestKey))
+                        {
+                            throw new DownloaderException("Invalid response received (maybe not all data was consumed by the previous operation?");
+                        }
+
+                        var request = (TcpFileRequest)PendingFileRequests[requestKey];
+                        var dataWriter = new BinaryWriter(request.DataStream);
+
+                        // The first part of the file always contains the filesize, which we need to know, but is also part of the file
+                        if (request.FileSize == 0)
+                        {
+                            var compressionType = (CompressionType)reader.ReadByte();
+                            var length = reader.ReadInt32BigEndian();
+
+                            readByteCount += 5;
+
+                            request.FileSize = 5 + (compressionType != CompressionType.None ? 4 : 0) + length;
+
+                            dataWriter.Write((byte)compressionType);
+                            dataWriter.WriteInt32BigEndian(length);
+                        }
+
+                        var remainingBlockLength = TcpBlockLength - readByteCount;
+
+                        if (remainingBlockLength > request.RemainingLength)
+                        {
+                            remainingBlockLength = request.RemainingLength;
+                        }
+
+                        dataWriter.Write(reader.ReadBytes(remainingBlockLength));
+
+                        if (request.RemainingLength == 0)
+                        {
+                            // The request got completed, remove it from the list of pending requests
+                            FileRequest removedRequest;
+                            PendingFileRequests.TryRemove(requestKey, out removedRequest);
+
+                            removedRequest.Complete();
+
+                            // Exit the loop if this was the file originally requested
+                            if (removedRequest == fileRequest)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
                 }
 
-                return new TcpFileRequest();
-            });
-
-            // Spin up the processor when we just added the first element
-            if (startProcessing)
-            {
-                Task.Run(() => ProcessTcpRequests());
+                CacheDownloader.Logger.Debug("TCP request processor finished.");
             }
-
-            return await fileRequest.WaitForCompletionAsync();
         }
 
         private MasterReferenceTable DownloadMasterReferenceTable()
@@ -281,72 +355,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                 return key;
             }
-        }
-
-        private void ProcessTcpRequests()
-        {
-            CacheDownloader.Logger.Debug("Starting TCP request processor.");
-
-            while (PendingTcpFileRequests.Count > 0)
-            {
-                // Read one chunk (or the leftover)
-                if (TcpContentClient.Available >= 5)
-                {
-                    var reader = new BinaryReader(TcpContentClient.GetStream());
-
-                    var readByteCount = 0;
-
-                    var index = (Index)reader.ReadByte();
-                    var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
-
-                    readByteCount += 5;
-
-                    var requestKey = new Tuple<Index, int>(index, fileId);
-
-                    if (!PendingTcpFileRequests.ContainsKey(requestKey))
-                    {
-                        throw new DownloaderException("Invalid response received (maybe not all data was consumed by the previous operation?");
-                    }
-
-                    var request = PendingTcpFileRequests[requestKey];
-                    var writer = new BinaryWriter(request.DataStream);
-
-                    // The first part of the file always contains the filesize, which we need to know, but is also part of the file
-                    if (request.FileSize == 0)
-                    {
-                        var compressionType = (CompressionType)reader.ReadByte();
-                        var length = reader.ReadInt32BigEndian();
-
-                        readByteCount += 5;
-
-                        request.FileSize = 5 + (compressionType != CompressionType.None ? 4 : 0) + length;
-
-                        writer.Write((byte)compressionType);
-                        writer.WriteInt32BigEndian(length);
-                    }
-
-                    var remainingBlockLength = TcpBlockLength - readByteCount;
-
-                    if (remainingBlockLength > request.RemainingLength)
-                    {
-                        remainingBlockLength = request.RemainingLength;
-                    }
-
-                    writer.Write(reader.ReadBytes(remainingBlockLength));
-
-                    if (request.RemainingLength == 0)
-                    {
-                        // The request got completed, remove it from the list of pending requests
-                        request.Complete();
-                        TcpFileRequest removedRequest;
-                        PendingTcpFileRequests.TryRemove(requestKey, out removedRequest);
-                    }
-                }
-
-                // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
-            }
-
-            CacheDownloader.Logger.Debug("TCP request processor finished.");
         }
 
         /// <summary>
