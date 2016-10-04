@@ -2,7 +2,6 @@
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 using Xunit.Abstractions;
 

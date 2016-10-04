@@ -210,7 +210,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             if (!TcpConnected)
             {
-                throw new DownloaderException("Can't request file when disconnected.");
+                TcpConnect();
+            }
+
+            if (!TcpConnected)
+            {
+                throw new DownloaderException("Something went wrong while attempting to make a TCP connection to the content server.");
             }
 
             var writer = new BinaryWriter(TcpContentClient.GetStream());

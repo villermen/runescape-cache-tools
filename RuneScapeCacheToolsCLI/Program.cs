@@ -5,6 +5,7 @@ using log4net;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -36,6 +37,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static bool DoSoundtrackCombine { get; set; }
 
+        private static bool Download { get; set; }
+
 		private static readonly OptionSet ArgumentParser = new OptionSet
 		{
 			{
@@ -46,6 +49,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					CacheDirectory = value;
 				}
 			},
+
+		    {
+		        "download|d",
+                "Download all requested files straight from Jagex's servers instead of using a local cache.",
+		        value =>
+		        {
+		            Download = value != null;
+		        }
+		    },
 
 			{
 				"output-directory=|o",
@@ -145,7 +157,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				}
 
                 // Initialize the cache
-                Cache = new RuneTek5Cache(CacheDirectory);
+                Cache = Download ? (CacheBase)new CacheDownloader() : new RuneTek5Cache(CacheDirectory);
 
 			    if (OutputDirectory != null)
 			    {
