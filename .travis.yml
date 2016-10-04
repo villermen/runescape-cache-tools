@@ -3,3 +3,7 @@ solution: RuneScapeCacheTools.sln
 script:
   - xbuild /p:Configuration=Release RuneScapeCacheTools.sln
   - mono packages/xunit.runner.console.*/tools/xunit.console.exe RuneScapeCacheToolsTests/bin/Release/RuneScapeCacheToolsTests.dll
+addons:
+  apt:
+    packages:
+      - oggvideotools
