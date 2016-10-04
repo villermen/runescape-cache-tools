@@ -67,8 +67,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private ConcurrentDictionary<Index, ReferenceTable> CachedReferenceTables { get; } = new ConcurrentDictionary<Index, ReferenceTable>();
 
-        private Dictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
-            new Dictionary<Tuple<Index, int>, TcpFileRequest>();
+        private ConcurrentDictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
+            new ConcurrentDictionary<Tuple<Index, int>, TcpFileRequest>();
 
         private TcpClient TcpContentClient { get; set; }
 
@@ -218,21 +218,29 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 throw new DownloaderException("Something went wrong while attempting to make a TCP connection to the content server.");
             }
 
-            var writer = new BinaryWriter(TcpContentClient.GetStream());
+            var requestKey = new Tuple<Index, int>(index, fileId);
 
-            // Send the file request to the content server
-            writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
-            writer.Write((byte)index);
-            writer.WriteInt32BigEndian(fileId);
+            // Only request if it isn't being requested yet
+            var startProcessing = false;
+            var fileRequest = PendingTcpFileRequests.GetOrAdd(requestKey, requestKey2 =>
+            {
+                var writer = new BinaryWriter(TcpContentClient.GetStream());
 
-            var fileRequest = new TcpFileRequest();
+                // Send the file request to the content server
+                writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
+                writer.Write((byte)index);
+                writer.WriteInt32BigEndian(fileId);
 
-            var pendingFileRequestCount = PendingTcpFileRequests.Count;
+                if (PendingTcpFileRequests.IsEmpty)
+                {
+                    startProcessing = true;
+                }
 
-            PendingTcpFileRequests.Add(new Tuple<Index, int>(index, fileId), fileRequest);
+                return new TcpFileRequest();
+            });
 
-            // Spin up the processor when it is not running
-            if (pendingFileRequestCount == 0)
+            // Spin up the processor when we just added the first element
+            if (startProcessing)
             {
                 Task.Run(() => ProcessTcpRequests());
             }
@@ -327,8 +335,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                     if (request.RemainingLength == 0)
                     {
+                        // The request got completed, remove it from the list of pending requests
                         request.Complete();
-                        PendingTcpFileRequests.Remove(requestKey);
+                        TcpFileRequest removedRequest;
+                        PendingTcpFileRequests.TryRemove(requestKey, out removedRequest);
                     }
                 }
 
