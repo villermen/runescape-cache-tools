@@ -105,7 +105,6 @@
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
-    <Compile Include="Cache\RuneTek5\ChecksumTable.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
     <Compile Include="Enums\EnumFile.cs" />
     <Compile Include="Enums\EnumParseException.cs" />
