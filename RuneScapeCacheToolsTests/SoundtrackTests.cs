@@ -10,14 +10,14 @@ namespace RuneScapeCacheToolsTests
     [Collection("TestCache")]
     public class SoundtrackTests
     {
-        private readonly ITestOutputHelper _output;
+        private ITestOutputHelper Output { get; }
 
-        private readonly CacheFixture _fixture;
+        private CacheFixture Fixture { get; }
 
         public SoundtrackTests(ITestOutputHelper output, CacheFixture fixture)
         {
-            _output = output;
-            _fixture = fixture;
+            Output = output;
+            Fixture = fixture;
         }
 
         /// <summary>
@@ -28,18 +28,18 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetTrackNames()
         {
-            var trackNames = _fixture.Soundtrack.GetTrackNames();
+            var trackNames = Fixture.Soundtrack.GetTrackNames();
 
-            _output.WriteLine($"Amount of track names: {trackNames.Count}");
+            Output.WriteLine($"Amount of track names: {trackNames.Count}");
 
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        [Fact(Skip = "Cache is not customized to contain \"Soundscape\".")]
+        [Fact]
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
-            _fixture.Soundtrack.ExportTracksAsync(true, "soundscape").Wait();
+            Fixture.Soundtrack.ExportTracksAsync(true, "soundscape").Wait();
 
             const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
 
@@ -48,14 +48,12 @@ namespace RuneScapeCacheToolsTests
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted)."); // TODO: I believe oggCat does not update mtime that weirdly enough
-        }
+            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted)."); // TODO: I believe oggCat does not update mtime weirdly enough
 
-        [Fact(Skip = "Depends on other tests and \"Soundscape\" to be available.")]
-        public void TestGetVersionFromCombinedTrackFile()
-        {
-            // Enforce order of tests? Extract again?
-            var version = _fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
+            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
+
+            // TODO: Make this happen
+            // Assert.True(version > 0, "Version of Soundscape.ogg was 0.");
         }
     }
 }
