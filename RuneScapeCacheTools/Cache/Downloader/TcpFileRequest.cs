@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    public class FileRequest
+    public class TcpFileRequest
     {
         public MemoryStream DataStream { get; } = new MemoryStream();
 
@@ -18,14 +18,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             CompletionSource.SetResult(true);
         }
 
-        public void WaitForCompletion()
-        {
-            CompletionSource.Task.Wait();
-        }
-
-        public async Task WaitForCompletionAsync()
+        public async Task<byte[]> WaitForCompletionAsync()
         {
             await CompletionSource.Task;
+
+            return DataStream.ToArray();
         }
     }
 }

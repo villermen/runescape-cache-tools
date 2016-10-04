@@ -14,6 +14,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
     ///     The <see cref="CacheDownloader"/> provides the means to download current cache files from the runescape servers.
+    ///     Downloading uses 2 different interfaces depending on the <see cref="Index"/> of the requested file: The original TCP based interface, and a much simpler HTTP interface.
+    ///     Properties prefixed with Tcp or Http will only be used by the specified downloading method.
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Method</author>
@@ -23,28 +25,29 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         static CacheDownloader()
         {
-            // // Set the (static) security protocol used for web requests
+            // Set the (static) security protocol used for web requests
+            // Mono does not seem to be capable of this yet: http://www.c-sharpcorner.com/news/mono-now-comes-with-support-for-tls-12
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        public int BlockLength { get; set; } = 102400;
+        public int TcpBlockLength { get; set; } = 102400;
 
-        public bool Connected { get; private set; }
+        public bool TcpConnected { get; private set; }
 
         public string ContentHost { get; set; } = "content.runescape.com";
 
-        public int ContentPort { get; set; } = 43594;
+        public int TcpContentPort { get; set; } = 43594;
 
         /// <summary>
         ///     The page used in obtaining the content server handshake key.
         /// </summary>
-        public string KeyPage { get; set; } = "http://world2.runescape.com";
+        public string TcpKeyPage { get; set; } = "http://world2.runescape.com";
 
         /// <summary>
-        ///     The regex used to obtain the content server handshake key from the set <see cref="KeyPage" />.
+        ///     The regex used to obtain the content server handshake key from the set <see cref="TcpKeyPage" />.
         ///     The first capture group needs to result in the key.
         /// </summary>
-        public Regex KeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
+        public Regex TcpKeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
 
         public Language Language { get; set; } = Language.English;
 
@@ -52,28 +55,28 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         ///     The minor version is needed to correctly connect to the content server.
         ///     This seems to always be 1.
         /// </summary>
-        public int MinorVersion { get; set; } = 1;
+        public int TcpMinorVersion { get; set; } = 1;
 
-        private TcpClient ContentClient { get; set; }
+        private TcpClient TcpContentClient { get; set; }
 
         /// <summary>
         ///     The handshake type is needed to correctly connect to the content server.
         /// </summary>
-        private byte HandshakeType { get; } = 15;
+        private byte TcpHandshakeType { get; } = 15;
 
-        private int LoadingRequirementsLength { get; } = 26 * 4;
+        private int TcpLoadingRequirementsLength { get; } = 26 * 4;
 
         /// <summary>
         ///     The major version is needed to correctly connect to the content server.
-        ///     If connection states the version is outdated, the <see cref="MajorVersion" /> will be increased until it is
+        ///     If connection states the version is outdated, the <see cref="TcpMajorVersion" /> will be increased until it is
         ///     accepted.
         /// </summary>
-        private int MajorVersion { get; set; } = 873;
+        private int TcpMajorVersion { get; set; } = 873;
 
-        private Dictionary<Tuple<Index, int>, FileRequest> PendingFileRequests { get; } =
-            new Dictionary<Tuple<Index, int>, FileRequest>();
+        private Dictionary<Tuple<Index, int>, TcpFileRequest> PendingTcpFileRequests { get; } =
+            new Dictionary<Tuple<Index, int>, TcpFileRequest>();
 
-        public IList<Index> IndexesUsingHttpInterface { get; set; } = new List<Index> { Index.Music };
+        public IList<Index> IndexesUsingHttpInterface { get; } = new List<Index> { Index.Music };
 
         public override IEnumerable<Index> Indexes => DownloadMasterReferenceTable().ReferenceTableFiles.Keys;
 
@@ -90,56 +93,56 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             var connected = false;
             while (!connected)
             {
-                ContentClient = new TcpClient(ContentHost, ContentPort);
+                TcpContentClient = new TcpClient(ContentHost, TcpContentPort);
 
-                var handshakeWriter = new BinaryWriter(ContentClient.GetStream());
-                var handshakeReader = new BinaryReader(ContentClient.GetStream());
+                var handshakeWriter = new BinaryWriter(TcpContentClient.GetStream());
+                var handshakeReader = new BinaryReader(TcpContentClient.GetStream());
 
                 var handshakeLength = (byte)(9 + key.Length + 1);
 
-                handshakeWriter.Write(HandshakeType);
+                handshakeWriter.Write(TcpHandshakeType);
                 handshakeWriter.Write(handshakeLength);
-                handshakeWriter.WriteInt32BigEndian(MajorVersion);
-                handshakeWriter.WriteInt32BigEndian(MinorVersion);
+                handshakeWriter.WriteInt32BigEndian(TcpMajorVersion);
+                handshakeWriter.WriteInt32BigEndian(TcpMinorVersion);
                 handshakeWriter.WriteNullTerminatedString(key);
                 handshakeWriter.Write((byte)Language);
                 handshakeWriter.Flush();
 
-                var response = (HandshakeResponse)handshakeReader.ReadByte();
+                var response = (TcpHandshakeResponse)handshakeReader.ReadByte();
 
                 switch (response)
                 {
-                    case HandshakeResponse.Success:
+                    case TcpHandshakeResponse.Success:
                         connected = true;
-                        Logger.Info($"Successfully connected to content server with major version {MajorVersion}.");
+                        Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
                         break;
 
-                    case HandshakeResponse.Outdated:
-                        ContentClient.Dispose();
-                        ContentClient = null;
-                        Logger.Info($"Content server says {MajorVersion} is outdated.");
-                        MajorVersion++;
+                    case TcpHandshakeResponse.Outdated:
+                        TcpContentClient.Dispose();
+                        TcpContentClient = null;
+                        Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
+                        TcpMajorVersion++;
                         break;
 
                     default:
-                        ContentClient.Dispose();
-                        ContentClient = null;
+                        TcpContentClient.Dispose();
+                        TcpContentClient = null;
                         throw new DownloaderException($"Content server responded to handshake with {response}.");
                 }
             }
 
             // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
-            var contentReader = new BinaryReader(ContentClient.GetStream());
-            contentReader.ReadBytes(LoadingRequirementsLength);
+            var contentReader = new BinaryReader(TcpContentClient.GetStream());
+            contentReader.ReadBytes(TcpLoadingRequirementsLength);
 
             SendConnectionInfo();
 
-            Connected = true;
+            TcpConnected = true;
         }
 
         protected override void Dispose(bool disposing)
         {
-            ContentClient.Dispose();
+            TcpContentClient.Dispose();
         }
 
         public override CacheFile GetFile(Index index, int fileId)
@@ -149,41 +152,56 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
         {
-            // TODO: Properly clean and split this functionality
+            // TODO: Caching for reference tables and master reference table
+            var referenceTableFile = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
+
+            byte[] fileData;
+
             if (IndexesUsingHttpInterface.Contains(index))
             {
-                var referenceTableEntryHttp = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
-
-                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)index}&g={fileId}&c={referenceTableEntryHttp.CRC}&v={referenceTableEntryHttp.Version}");
-                var response = (HttpWebResponse)webRequest.GetResponse();
-
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new DownloaderException($"HTTP interface responsed with status code: {response.StatusCode}.");
-                }
-
-                var responseReader = new BinaryReader(response.GetResponseStream());
-                var responseData = responseReader.ReadBytes((int) response.ContentLength);
-                return new RuneTek5CacheFile(responseData, referenceTableEntryHttp);
+                fileData = await DownloadFileDataHttpAsync(index, fileId, referenceTableFile);
+            }
+            else
+            {
+                fileData = await DownloadFileDataTcpAsync(index, fileId);
             }
 
-            if (!Connected)
+            return new RuneTek5CacheFile(fileData, referenceTableFile);
+        }
+
+        private async Task<byte[]> DownloadFileDataHttpAsync(Index index, int fileId, ReferenceTableFile referenceTableFile)
+        {
+            var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)index}&g={fileId}&c={referenceTableFile.CRC}&v={referenceTableFile.Version}");
+            var response = (HttpWebResponse)await webRequest.GetResponseAsync();
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new DownloaderException($"HTTP interface responsed with status code: {response.StatusCode}.");
+            }
+
+            var responseReader = new BinaryReader(response.GetResponseStream());
+            return responseReader.ReadBytes((int)response.ContentLength);
+        }
+
+        private async Task<byte[]> DownloadFileDataTcpAsync(Index index, int fileId)
+        {
+            if (!TcpConnected)
             {
                 throw new DownloaderException("Can't request file when disconnected.");
             }
 
-            var writer = new BinaryWriter(ContentClient.GetStream());
+            var writer = new BinaryWriter(TcpContentClient.GetStream());
 
             // Send the file request to the content server
             writer.Write((byte)(index == Index.ReferenceTables ? 1 : 0));
             writer.Write((byte)index);
             writer.WriteInt32BigEndian(fileId);
 
-            var fileRequest = new FileRequest();
+            var fileRequest = new TcpFileRequest();
 
-            var pendingFileRequestCount = PendingFileRequests.Count;
+            var pendingFileRequestCount = PendingTcpFileRequests.Count;
 
-            PendingFileRequests.Add(new Tuple<Index, int>(index, fileId), fileRequest);
+            PendingTcpFileRequests.Add(new Tuple<Index, int>(index, fileId), fileRequest);
 
             // Spin up the processor when it is not running
             if (pendingFileRequestCount == 0)
@@ -191,12 +209,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 Task.Run(() => ProcessRequests());
             }
 
-            // TODO: Caching for reference tables
-            var referenceTableEntry = index != Index.ReferenceTables ? DownloadReferenceTable(index).Files[fileId] : null;
-
-            await fileRequest.WaitForCompletionAsync();
-
-            return new RuneTek5CacheFile(fileRequest.DataStream.ToArray(), referenceTableEntry);
+            return await fileRequest.WaitForCompletionAsync();
         }
 
         public MasterReferenceTable DownloadMasterReferenceTable()
@@ -211,12 +224,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public void ProcessRequests()
         {
-            while (PendingFileRequests.Count > 0)
+            while (PendingTcpFileRequests.Count > 0)
             {
                 // Read one chunk (or the leftover)
-                if (ContentClient.Available >= 5)
+                if (TcpContentClient.Available >= 5)
                 {
-                    var reader = new BinaryReader(ContentClient.GetStream());
+                    var reader = new BinaryReader(TcpContentClient.GetStream());
 
                     var readByteCount = 0;
 
@@ -227,12 +240,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                     var requestKey = new Tuple<Index, int>(index, fileId);
 
-                    if (!PendingFileRequests.ContainsKey(requestKey))
+                    if (!PendingTcpFileRequests.ContainsKey(requestKey))
                     {
                         throw new DownloaderException("Invalid response received (maybe not all data was consumed by the previous operation?");
                     }
 
-                    var request = PendingFileRequests[requestKey];
+                    var request = PendingTcpFileRequests[requestKey];
                     var writer = new BinaryWriter(request.DataStream);
 
                     // The first part of the file always contains the filesize, which we need to know, but is also part of the file
@@ -249,7 +262,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         writer.WriteInt32BigEndian(length);
                     }
 
-                    var remainingBlockLength = BlockLength - readByteCount;
+                    var remainingBlockLength = TcpBlockLength - readByteCount;
 
                     if (remainingBlockLength > request.RemainingLength)
                     {
@@ -261,30 +274,30 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     if (request.RemainingLength == 0)
                     {
                         request.Complete();
-                        PendingFileRequests.Remove(requestKey);
+                        PendingTcpFileRequests.Remove(requestKey);
                     }
                 }
 
-                // var leftoverBytes = new BinaryReader(ContentClient.GetStream()).ReadBytes(ContentClient.Available);
+                // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
             }
         }
 
         private string GetKeyFromPage()
         {
-            var request = WebRequest.CreateHttp(KeyPage);
+            var request = WebRequest.CreateHttp(TcpKeyPage);
             var response = request.GetResponse();
             var responseStream = response.GetResponseStream();
 
             if (responseStream == null)
             {
-                throw new DownloaderException($"No handshake key could be obtained from \"{KeyPage}\".");
+                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
             }
 
             using (var reader = new StreamReader(responseStream))
             {
                 var responseString = reader.ReadToEnd();
 
-                var key = KeyPageRegex.Match(responseString).Groups[1].Value;
+                var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
 
                 if (string.IsNullOrWhiteSpace(key))
                 {
@@ -300,7 +313,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private void SendConnectionInfo()
         {
-            var writer = new BinaryWriter(ContentClient.GetStream());
+            var writer = new BinaryWriter(TcpContentClient.GetStream());
 
             // I don't know
             writer.Write((byte)6);

@@ -36,7 +36,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
         {
             get
             {
-                if (!_cacheDownloader.Connected)
+                if (!_cacheDownloader.TcpConnected)
                 {
                     _cacheDownloader.Connect();
                 }

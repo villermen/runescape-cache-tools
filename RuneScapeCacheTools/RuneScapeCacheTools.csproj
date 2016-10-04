@@ -88,8 +88,8 @@
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
-    <Compile Include="Cache\Downloader\FileRequest.cs" />
-    <Compile Include="Cache\Downloader\HandshakeResponse.cs" />
+    <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
+    <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />

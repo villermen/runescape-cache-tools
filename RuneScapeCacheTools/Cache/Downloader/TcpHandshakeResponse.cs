@@ -1,6 +1,6 @@
 ﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    public enum HandshakeResponse
+    public enum TcpHandshakeResponse
     {
         Success = 0,
         Outdated = 6,
