@@ -139,6 +139,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 Version = dataReader.ReadInt16BigEndian();
             }
+
+            // TODO: CRC goes here
         }
 
         public CompressionType CompressionType { get; set; }

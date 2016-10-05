@@ -14,13 +14,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             ReferenceTableFile = referenceTableFile;
         }
 
-        public Index Index { get; }
+        public MemoryStream DataStream { get; } = new MemoryStream();
 
         public int FileId { get; }
 
-        public ReferenceTableFile ReferenceTableFile { get; }
+        public Index Index { get; }
 
-        public MemoryStream DataStream { get; } = new MemoryStream();
+        public ReferenceTableFile ReferenceTableFile { get; }
 
         private TaskCompletionSource<byte[]> CompletionSource { get; } = new TaskCompletionSource<byte[]>();
 

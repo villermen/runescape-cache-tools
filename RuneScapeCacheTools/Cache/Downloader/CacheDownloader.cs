@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -108,6 +107,53 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return GetReferenceTable(index).Files.Keys;
         }
 
+        public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
+        {
+            var referenceTableFile = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
+
+            var newFileRequest = IndexesUsingHttpInterface.Contains(index) ? new FileRequest(index, fileId, referenceTableFile) : new TcpFileRequest(index, fileId, referenceTableFile);
+
+            var requestKey = new Tuple<Index, int>(index, fileId);
+
+            var fileRequest = PendingFileRequests.GetOrAdd(requestKey, newFileRequest);
+
+            var requestOwner = fileRequest == newFileRequest;
+
+            // Start downloading if our request was the one added
+            if (requestOwner)
+            {
+                if (fileRequest is TcpFileRequest)
+                {
+                    Task.Run(() => DownloadFileTcp(fileRequest));
+                }
+                else
+                {
+                    Task.Run(() => DownloadFileHttp(fileRequest));
+                }
+            }
+
+            var fileData = await fileRequest.WaitForCompletionAsync();
+
+            return new RuneTek5CacheFile(fileData, referenceTableFile);
+        }
+
+        public MasterReferenceTable GetMasterReferenceTable()
+        {
+            if (CachedMasterReferenceTable != null)
+            {
+                return CachedMasterReferenceTable;
+            }
+
+            CachedMasterReferenceTable = DownloadMasterReferenceTable();
+
+            return CachedMasterReferenceTable;
+        }
+
+        public ReferenceTable GetReferenceTable(Index index)
+        {
+            return CachedReferenceTables.GetOrAdd(index, index2 => new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index));
+        }
+
         public void TcpConnect()
         {
             var key = GetTcpKeyFromPage();
@@ -161,53 +207,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             SendTcpConnectionInfo();
 
             TcpConnected = true;
-        }
-
-        public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
-        {
-            var referenceTableFile = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
-
-            var newFileRequest = IndexesUsingHttpInterface.Contains(index) ? new FileRequest(index, fileId, referenceTableFile) : new TcpFileRequest(index, fileId, referenceTableFile);
-
-            var requestKey = new Tuple<Index, int>(index, fileId);
-
-            var fileRequest = PendingFileRequests.GetOrAdd(requestKey, newFileRequest);
-
-            var requestOwner = fileRequest == newFileRequest;
-
-            // Start downloading if our request was the one added
-            if (requestOwner)
-            {
-                if (fileRequest is TcpFileRequest)
-                {
-                    Task.Run(() => DownloadFileTcp(fileRequest));
-                }
-                else
-                {
-                    Task.Run(() => DownloadFileHttp(fileRequest));
-                }
-            }
-
-            var fileData = await fileRequest.WaitForCompletionAsync();
-
-            return new RuneTek5CacheFile(fileData, referenceTableFile);
-        }
-
-        public MasterReferenceTable GetMasterReferenceTable()
-        {
-            if (CachedMasterReferenceTable != null)
-            {
-                return CachedMasterReferenceTable;
-            }
-
-            CachedMasterReferenceTable = DownloadMasterReferenceTable();
-
-            return CachedMasterReferenceTable;
-        }
-
-        public ReferenceTable GetReferenceTable(Index index)
-        {
-            return CachedReferenceTables.GetOrAdd(index, index2 => new ReferenceTable(GetFile(Index.ReferenceTables, (int)index), index));
         }
 
         protected override void Dispose(bool disposing)

@@ -14,8 +14,8 @@ namespace RuneScapeCacheToolsTests.Fixtures
         public CacheFixture()
         {
             RuneTek5Cache = new RuneTek5Cache("TestCache");
-            Downloader = new CacheDownloader();
-            Soundtrack = new Soundtrack(Downloader);
+            _cacheDownloader = new CacheDownloader();
+            Soundtrack = new Soundtrack(_cacheDownloader);
 
             CreateTestCache();
         }

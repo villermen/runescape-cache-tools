@@ -104,7 +104,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             UseShellExecute = false,
                             CreateNoWindow = true,
                             Arguments =
-                                $"-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;VERSION={jagaCacheFile.Version}\" " +
+                                $"-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;JAGA_CRC={jagaCacheFile}\" " +
                                 $"\"{outputPath}\" " +
                                 "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
                         }
@@ -210,7 +210,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             foreach (var comment in vorbisReader.Comments)
             {
-                if (!comment.StartsWith("VERSION=", true, null))
+                if (!comment.StartsWith("JAGA_CRC=", true, null))
                 {
                     continue;
                 }

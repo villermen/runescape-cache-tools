@@ -48,12 +48,11 @@ namespace RuneScapeCacheToolsTests
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted)."); // TODO: I believe oggCat does not update mtime weirdly enough
+            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted).");
 
             var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
 
-            // TODO: Make this happen
-            // Assert.True(version > 0, "Version of Soundscape.ogg was 0.");
+            Assert.True(version > -1, "Version of Soundscape.ogg was not set.");
         }
     }
 }

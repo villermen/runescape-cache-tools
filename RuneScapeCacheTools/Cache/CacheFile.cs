@@ -14,6 +14,8 @@
             Version = version;
         }
 
+        public int CRC { get; protected set; }
+
         /// <summary>
         ///     Shorthand to get the first entry, which the full file in most cases.
         /// </summary>
