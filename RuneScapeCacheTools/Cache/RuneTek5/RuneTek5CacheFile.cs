@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.Checksums;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
@@ -36,10 +37,27 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="referenceTableEntry"></param>
+        /// <param name="referenceTableFile"></param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableEntry, uint[] key = null)
+        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableFile, uint[] key = null)
         {
+            ReferenceTableFile = referenceTableFile;
+
+            // Verify data where possible
+            if (ReferenceTableFile != null)
+            {
+                // Calculate and verify crc
+                var crc = new Crc32();
+                crc.Update(data);
+
+                CRC = (int)crc.Value;
+
+                if (CRC != ReferenceTableFile.CRC)
+                {
+                    throw new CacheException($"Calculated checksum (0x{CRC:X}) did not match expected (0x{ReferenceTableFile.CRC:X}).");
+                }
+            }
+
             Key = key;
 
             var dataReader = new BinaryReader(new MemoryStream(data));
@@ -124,23 +142,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            if ((referenceTableEntry != null) && (referenceTableEntry.Entries.Count > 1))
+            if ((referenceTableFile != null) && (referenceTableFile.Entries.Count > 1))
             {
-                Entries = DecodeEntries(continuousData, referenceTableEntry.Entries.Count);
+                Entries = DecodeEntries(continuousData, referenceTableFile.Entries.Count);
             }
             else
             {
                 Entries = new[] { continuousData };
             }
-
-            // Obtain the version if available
-            Version = -1;
-            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position - 1 >= 2)
-            {
-                Version = dataReader.ReadInt16BigEndian();
-            }
-
-            // TODO: CRC goes here
         }
 
         public CompressionType CompressionType { get; set; }
@@ -149,6 +158,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     The key used in decrypting and encrypting the data.
         /// </summary>
         public uint[] Key { get; set; }
+
+        public ReferenceTableFile ReferenceTableFile { get; private set; }
 
         public byte[] Encode()
         {
