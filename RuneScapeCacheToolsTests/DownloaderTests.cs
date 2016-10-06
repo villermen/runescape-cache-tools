@@ -25,7 +25,7 @@ namespace RuneScapeCacheToolsTests
         public void TestGetFileVersusDownloadFileAsync()
         {
             var file1 = Fixture.Downloader.GetFile(Index.ClientScripts, 3);
-            var file2 = Fixture.Downloader.DownloadFileAsync(Index.ClientScripts, 3).Result;
+            var file2 = Fixture.Downloader.GetFile(Index.ClientScripts, 3);
 
             Assert.True(file1.Data.Length == file2.Data.Length, "Two of the downloaded files with the same id did not have the same size.");
         }

@@ -2,7 +2,7 @@
 {
     public class Vector3
     {
-        private static int UnknownInteger;
+        // private static int UnknownInteger;
 
         private static Vector3[] UnknownVector3Array = new Vector3[0];
 

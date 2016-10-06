@@ -115,7 +115,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.LZMA:
-                        // TODO: Implement LZMA
                         throw new NotImplementedException();
                         break;
 

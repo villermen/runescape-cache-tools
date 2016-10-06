@@ -43,6 +43,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public override CacheFile GetFile(Index index, int fileId)
         {
+            return GetRuneTek5File(index, fileId);
+        }
+
+        public RuneTek5CacheFile GetRuneTek5File(Index index, int fileId)
+        {
             // Obtain the reference table for the requested index
             var referenceTable = GetReferenceTable(index);
 

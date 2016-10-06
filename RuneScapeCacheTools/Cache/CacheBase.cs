@@ -60,6 +60,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public abstract CacheFile GetFile(Index index, int fileId);
 
+        public async Task<CacheFile> GetFileAsync(Index index, int fileId)
+        {
+            return await Task.Run(() => GetFile(index, fileId));
+        }
+
         public abstract IEnumerable<int> GetFileIds(Index index);
 
         public void Dispose()
@@ -100,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public void Extract(Index index, bool overwrite = false)
         {
             var fileIds = GetFileIds(index);
-            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
+            Parallel.ForEach(fileIds, fileId => { ExtractAsync(index, fileId, overwrite).Wait(); });
         }
 
         /// <summary>
@@ -112,7 +117,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false)
         {
-            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
+            Parallel.ForEach(fileIds, fileId => { ExtractAsync(index, fileId, overwrite).Wait(); });
         }
 
         /// <summary>
@@ -122,9 +127,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="fileId"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public void Extract(Index index, int fileId, bool overwrite = false)
+        public async Task ExtractAsync(Index index, int fileId, bool overwrite = false)
         {
-            var file = GetFile(index, fileId);
+            var file = await GetFileAsync(index, fileId);
 
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
@@ -159,7 +164,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
 
                 // Construct new path for file
-                // TODO: Use GetFileExtractionPath
                 var newFilePath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
 
                 // Create directories where necessary, before writing to file
@@ -167,6 +171,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 File.WriteAllBytes(newFilePath, currentData);
                 CacheBase.Logger.Info($"Extracted index {index} file {fileId}.");
             }
+        }
+
+        public void Extract(Index index, int fileId, bool overwrite = false)
+        {
+            ExtractAsync(index, fileId, overwrite).Wait();
         }
 
         /// <summary>

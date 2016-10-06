@@ -122,14 +122,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // Start downloading if our request was the one added
             if (requestOwner)
             {
+#pragma warning disable 4014
                 if (fileRequest is TcpFileRequest)
                 {
+
                     Task.Run(() => DownloadFileTcp(fileRequest));
                 }
                 else
                 {
                     Task.Run(() => DownloadFileHttp(fileRequest));
                 }
+#pragma warning restore 4014
             }
 
             var fileData = await fileRequest.WaitForCompletionAsync();
