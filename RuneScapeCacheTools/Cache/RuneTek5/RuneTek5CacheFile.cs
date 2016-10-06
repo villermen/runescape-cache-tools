@@ -41,23 +41,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="key"></param>
         public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableFile, uint[] key = null)
         {
-            ReferenceTableFile = referenceTableFile;
-
-            // Verify data where possible
-            if (ReferenceTableFile != null)
-            {
-                // Calculate and verify crc
-                var crc = new Crc32();
-                crc.Update(data);
-
-                CRC = (int)crc.Value;
-
-                if (CRC != ReferenceTableFile.CRC)
-                {
-                    throw new CacheException($"Calculated checksum (0x{CRC:X}) did not match expected (0x{ReferenceTableFile.CRC:X}).");
-                }
-            }
-
             Key = key;
 
             var dataReader = new BinaryReader(new MemoryStream(data));
@@ -149,6 +132,38 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             else
             {
                 Entries = new[] { continuousData };
+            }
+
+            // Read the version of the file if possible
+            if (dataReader.BaseStream.Length - dataReader.BaseStream.Position >= 2)
+            {
+                Version = dataReader.ReadUInt16BigEndian();
+            }
+
+            ReferenceTableFile = referenceTableFile;
+
+            // Verify metadata where possible
+            if (ReferenceTableFile != null)
+            {
+                // Calculate and verify crc
+                // CRC excludes the version of the file added to the end
+                var crc = new Crc32();
+                crc.Update(data, 0, data.Length - 2);
+
+                CRC = (int)crc.Value;
+
+                if (CRC != ReferenceTableFile.CRC)
+                {
+                    throw new CacheException($"Calculated checksum (0x{CRC:x}) did not match expected (0x{ReferenceTableFile.CRC:x}).");
+                }
+
+                // Verify the obtained version
+                // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
+                var truncatedReferenceVersion = (int)(ushort)ReferenceTableFile.Version;
+                if (Version != truncatedReferenceVersion)
+                {
+                    throw new CacheException($"Obtained version part ({Version}) did not match expected ({truncatedReferenceVersion}).");
+                }
             }
         }
 
