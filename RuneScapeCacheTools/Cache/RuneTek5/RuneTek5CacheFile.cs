@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Linq;
 using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksums;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
@@ -160,6 +161,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 {
                     throw new CacheException($"Calculated checksum (0x{CRC:X}) did not match expected (0x{ReferenceTableFile.CRC:X}).");
                 }
+
+                // Calculate and verify the whirlpool digest if set in the reference table file
+                if (ReferenceTableFile.WhirlpoolDigest != null)
+                {
+                    var whirlpool = new WhirlpoolDigest();
+                    whirlpool.BlockUpdate(data, 0, data.Length - 2);
+
+                    WhirlpoolDigest = new byte[whirlpool.GetDigestSize()];
+                    whirlpool.DoFinal(WhirlpoolDigest, 0);
+
+                    if (WhirlpoolDigest != ReferenceTableFile.WhirlpoolDigest)
+                    {
+                        throw new CacheException("Calculated whirlpool digest did not match expected.");
+                    }
+                }
             }
         }
 
@@ -171,6 +187,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public uint[] Key { get; set; }
 
         public ReferenceTableFile ReferenceTableFile { get; private set; }
+
+        public byte[] WhirlpoolDigest { get; set; }
 
         public byte[] Encode()
         {
