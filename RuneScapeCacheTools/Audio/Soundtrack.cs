@@ -37,12 +37,12 @@ namespace Villermen.RuneScapeCacheTools.Audio
         ///     If true, export and overwrite existing files. Overwriting is done regardless for files
         ///     that have a changed version.
         /// </param>
-        /// <param name="nameFilter">
-        ///     If non-null, only soundtrack names that contain the case-insensitive nameFilter string will be
+        /// <param name="nameFilters">
+        ///     If non-null, only soundtrack names that contain one the case-insensitive strings will be
         ///     extracted.
         /// </param>
         /// <returns></returns>
-        public async Task ExportTracksAsync(bool overwriteExisting = false, string nameFilter = null)
+        public async Task ExportTracksAsync(bool overwriteExisting = false, IEnumerable<string> nameFilters = null)
         {
             var trackNames = GetTrackNames();
             var outputDirectory = Cache.OutputDirectory + "soundtrack/";
@@ -52,10 +52,11 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
 
-            if (nameFilter != null)
+            if (nameFilters != null)
             {
                 trackNames = trackNames.Where(
-                        trackName => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                    trackName => nameFilters.Any(
+                        nameFilter => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
