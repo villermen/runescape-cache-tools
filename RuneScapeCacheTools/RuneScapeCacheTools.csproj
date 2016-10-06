@@ -86,6 +86,7 @@
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
     <Compile Include="Cache\CacheFile.cs" />
+    <Compile Include="Cache\CacheFileInfo.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />
@@ -100,6 +101,7 @@
     <Compile Include="Cache\RuneTek5\MasterReferenceTableTable.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTableFileEntry.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTableFile.cs" />
+    <Compile Include="Cache\RuneTek5\RuneTek5CacheFileInfo.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek5\SectorException.cs" />
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />

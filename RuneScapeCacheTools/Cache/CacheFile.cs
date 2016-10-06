@@ -6,15 +6,11 @@
         {
         }
 
-        public CacheFile(int indexId, int fileId, byte[][] entries, int version)
+        public CacheFile(byte[][] entries, CacheFileInfo info)
         {
-            IndexId = indexId;
-            FileId = fileId;
+            info = Info;
             Entries = entries;
-            Version = version;
         }
-
-        public int CRC { get; protected set; }
 
         /// <summary>
         ///     Shorthand to get the first entry, which the full file in most cases.
@@ -27,20 +23,6 @@
         /// </summary>
         public byte[][] Entries { get; set; }
 
-        /// <summary>
-        ///     The file id within the index this file originated from.
-        /// </summary>
-        public int FileId { get; set; }
-
-        /// <summary>
-        ///     The cache index this file originated from.
-        /// </summary>
-        public int IndexId { get; set; }
-
-        /// <summary>
-        ///     The version of the file within the cache.
-        ///     Sometimes a unix timestamp is used to express this value.
-        /// </summary>
-        public int Version { get; set; } = -1;
+        public CacheFileInfo Info { get; set; }
     }
 }

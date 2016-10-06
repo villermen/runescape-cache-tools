@@ -67,7 +67,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                 try
                 {
-                    var jagaCacheFile = Cache.GetFile(Index.Music, trackNamePair.Key);
+                    var jagaFileInfo = Cache.GetFileInfo(Index.Music, trackNamePair.Key);
 
                     // Skip file if not overwriting existing and the file exists
                     if (!overwriteExisting && File.Exists(outputPath))
@@ -75,14 +75,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         // But only if the version of the file is unchanged
                         var existingVersion = GetVersionFromExportedTrackFile(outputPath);
 
-                        if (existingVersion == jagaCacheFile.Version)
+                        if (existingVersion == jagaFileInfo.Version)
                         {
                             Soundtrack.Logger.Info($"Skipping {outputFilename} because it already exists and version is unchanged.");
                             return;
                         }
                     }
 
-                    var jagaFile = new JagaFile(jagaCacheFile.Data);
+                    var jagaFile = new JagaFile(Cache.GetFile(Index.Music, trackNamePair.Key).Data);
 
                     // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
                     var randomTemporaryFilenames = GetRandomTemporaryFilenames(jagaFile.ChunkCount);

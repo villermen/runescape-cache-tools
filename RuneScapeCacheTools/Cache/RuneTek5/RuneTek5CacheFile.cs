@@ -181,16 +181,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
-        public CompressionType CompressionType { get; set; }
-
         /// <summary>
         ///     The key used in decrypting and encrypting the data.
         /// </summary>
         public uint[] Key { get; set; }
-
-        public ReferenceTableFile ReferenceTableFile { get; private set; }
-
-        public byte[] WhirlpoolDigest { get; set; }
 
         public byte[] Encode()
         {
