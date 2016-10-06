@@ -140,14 +140,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             if (ReferenceTableFile != null)
             {
                 // Read and verify the version of the file
-                Version = dataReader.ReadUInt16BigEndian();
+                var containedVersion = dataReader.ReadUInt16BigEndian();
 
                 // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
                 var truncatedReferenceVersion = (int)(ushort)ReferenceTableFile.Version;
-                if (Version != truncatedReferenceVersion)
+                if (containedVersion != truncatedReferenceVersion)
                 {
                     throw new CacheException($"Obtained version part ({Version}) did not match expected ({truncatedReferenceVersion}).");
                 }
+
+                // Set version to the full value, for completeness
+                Version = ReferenceTableFile.Version;
 
                 // Calculate and verify crc
                 // CRC excludes the version of the file added to the end
