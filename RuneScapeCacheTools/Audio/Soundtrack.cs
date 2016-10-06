@@ -96,6 +96,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                     }
 
+                    // Delete existing file because oggCat doesn't do overwriting properly
+                    File.Delete(outputPath);
+
                     // Combine the files using oggCat
                     var combineProcess = new Process
                     {
@@ -105,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             UseShellExecute = false,
                             CreateNoWindow = true,
                             Arguments =
-                                $"-x -c \"EXTRACTED_BY=Viller's RuneScape Cache Tools;VERSION={jagaCacheFile.Version}\" " +
+                                $"-c \"EXTRACTED_BY=Viller\\'s RuneScape Cache Tools;VERSION={jagaCacheFile.Version}\" " +
                                 $"\"{outputPath}\" " +
                                 "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
                         }
