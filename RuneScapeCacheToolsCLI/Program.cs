@@ -117,9 +117,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"soundtrack-combine:|s", "Extract and name the soundtrack, optionally filtered by the given comma-separated name filters.",
 				value =>
 				{
-					DoSoundtrackCombine = (value != null);
+				    DoSoundtrackCombine = true;
 
-				    if (DoSoundtrackCombine)
+                    if (!string.IsNullOrWhiteSpace(value))
 				    {
 				        SoundtrackNameFilter = ExpandListString(value);
 				    }
