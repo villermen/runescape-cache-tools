@@ -37,6 +37,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static bool DoSoundtrackCombine { get; set; }
 
+        private static IEnumerable<string> SoundtrackNameFilter { get; set; }
+
         private static bool Download { get; set; }
 
 		private static readonly OptionSet ArgumentParser = new OptionSet
@@ -112,11 +114,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			},
 
 			{
-				"soundtrack-combine|s", "Extract and name the entire soundtrack.",
+				"soundtrack-combine:|s", "Extract and name the soundtrack, optionally filtered by the given comma-separated name filters.",
 				value =>
 				{
 					DoSoundtrackCombine = (value != null);
-					TriggeredActions++;
+
+				    if (DoSoundtrackCombine)
+				    {
+				        SoundtrackNameFilter = ExpandListString(value);
+				    }
+
+				    TriggeredActions++;
 				}
 			},
 
@@ -201,7 +209,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// <returns></returns>
 		private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
 		{
-			var rangeStringParts = integerRangeString.Split(',', ';');
+		    var rangeStringParts = ExpandListString(integerRangeString);
 			var result = new List<int>();
 
 			foreach (var rangeStringPart in rangeStringParts)
@@ -225,6 +233,11 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			// Filter duplicates
 			return result.Distinct();
 		}
+
+	    private static IEnumerable<string> ExpandListString(string listString)
+	    {
+            return listString.Split(',', ';');
+        }
 
 		private static void ShowHelp()
 		{
@@ -261,7 +274,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			var soundtrack = new Soundtrack(Cache);
 
-			soundtrack.ExportTracksAsync(Overwrite).Wait();
+			soundtrack.ExportTracksAsync(Overwrite, SoundtrackNameFilter).Wait();
 
 			Console.WriteLine("Done!");
 		}
