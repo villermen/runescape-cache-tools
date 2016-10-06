@@ -8,12 +8,12 @@ using Xunit.Abstractions;
 namespace RuneScapeCacheToolsTests
 {
     [Collection("TestCache")]
-    public class DownloaderTests : IDisposable
+    public class CacheDownloaderTests : IDisposable
     {
         private ITestOutputHelper Output { get; }
         private CacheFixture Fixture { get; }
 
-        public DownloaderTests(ITestOutputHelper output, CacheFixture fixture)
+        public CacheDownloaderTests(ITestOutputHelper output, CacheFixture fixture)
         {
             Output = output;
             Fixture = fixture;

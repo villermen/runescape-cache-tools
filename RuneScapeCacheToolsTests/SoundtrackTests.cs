@@ -37,7 +37,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        [Fact]
+        [Fact(Skip = "oggvideotools package not yet whitelisted in Travis CI.")]
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
