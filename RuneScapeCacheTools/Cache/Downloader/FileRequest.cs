@@ -5,9 +5,9 @@ using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     // TODO: Split into HtppFileRequest and BaseFileRequest 
-    public class FileRequest
+    public abstract class FileRequest
     {
-        public FileRequest(Index index, int fileId, ReferenceTableFile referenceTableFile)
+        protected FileRequest(Index index, int fileId, ReferenceTableFile referenceTableFile)
         {
             Index = index;
             FileId = fileId;

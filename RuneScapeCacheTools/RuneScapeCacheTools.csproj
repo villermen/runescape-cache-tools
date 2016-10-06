@@ -89,6 +89,7 @@
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />
+    <Compile Include="Cache\Downloader\HttpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
     <Compile Include="Cache\Index.cs" />
