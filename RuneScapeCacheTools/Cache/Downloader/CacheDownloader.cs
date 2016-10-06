@@ -156,6 +156,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public void TcpConnect()
         {
+            if (TcpConnected)
+            {
+                // No need for this now is there?
+                return;
+            }
+
             var key = GetTcpKeyFromPage();
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
@@ -230,6 +236,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             FileRequest removedRequest;
             PendingFileRequests.TryRemove(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId), out removedRequest);
+
+            AppendVersionToRequestData(fileRequest);
 
             fileRequest.Complete();
         }
@@ -308,6 +316,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                             FileRequest removedRequest;
                             PendingFileRequests.TryRemove(requestKey, out removedRequest);
 
+                            AppendVersionToRequestData(removedRequest);
+
                             removedRequest.Complete();
 
                             // Exit the loop if this was the file originally requested
@@ -322,6 +332,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 }
 
                 CacheDownloader.Logger.Debug("TCP request processor finished.");
+            }
+        }
+
+        private void AppendVersionToRequestData(FileRequest request)
+        {
+            if (request.ReferenceTableFile != null)
+            {
+                var dataWriter = new BinaryWriter(request.DataStream);
+                dataWriter.WriteUInt16BigEndian((ushort)request.ReferenceTableFile.Version);
             }
         }
 

@@ -14,8 +14,8 @@ namespace RuneScapeCacheToolsTests.Fixtures
         public CacheFixture()
         {
             RuneTek5Cache = new RuneTek5Cache("TestCache");
-            _cacheDownloader = new CacheDownloader();
-            Soundtrack = new Soundtrack(_cacheDownloader);
+            Downloader = new CacheDownloader();
+            Soundtrack = new Soundtrack(Downloader);
 
             CreateTestCache();
         }
@@ -26,25 +26,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
 
         public Soundtrack Soundtrack { get; }
 
-        private CacheDownloader _cacheDownloader;
-
-        /// <summary>
-        /// Returns a downloader which is already connected.
-        /// Connecting beforehand is done to reduce network overhead each time a test is started.
-        /// </summary>
-        public CacheDownloader Downloader
-        {
-            get
-            {
-                if (!_cacheDownloader.TcpConnected)
-                {
-                    _cacheDownloader.TcpConnect();
-                }
-
-                return _cacheDownloader;
-            }
-            private set { _cacheDownloader = value; }
-        }
+        public CacheDownloader Downloader { get; }
 
         /// <summary>
         /// Generates a test cache by downloading just enough files to perform the basic testing.

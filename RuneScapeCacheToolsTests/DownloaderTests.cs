@@ -17,6 +17,8 @@ namespace RuneScapeCacheToolsTests
         {
             Output = output;
             Fixture = fixture;
+
+            Fixture.Downloader.TcpConnect();
         }
 
         [Fact]
