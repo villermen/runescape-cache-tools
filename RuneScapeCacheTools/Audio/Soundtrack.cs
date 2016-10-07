@@ -125,18 +125,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                     if (combineProcess.ExitCode != 0)
                     {
-                        var soundtrackException =
-                            new SoundtrackException(
-                                $"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
-                        Soundtrack.Logger.Error(soundtrackException.Message, soundtrackException);
-                        throw soundtrackException;
+                        throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                     }
 
                     Soundtrack.Logger.Info($"Combined {outputFilename}.");
                 }
                 catch (CacheException)
                 {
-                    Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                    Soundtrack.Logger.Debug($"Skipped {outputFilename} because of corrupted or incomplete data.");
                 }
             }));
 
