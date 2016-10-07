@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    // TODO: Split into HtppFileRequest and BaseFileRequest 
     public abstract class FileRequest
     {
         protected FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)
