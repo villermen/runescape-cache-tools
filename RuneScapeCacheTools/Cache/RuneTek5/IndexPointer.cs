@@ -33,10 +33,5 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     The size of the file in bytes.
         /// </summary>
         public int Size { get; private set; }
-
-        public byte[] Encode()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
