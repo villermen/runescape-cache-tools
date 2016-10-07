@@ -210,19 +210,21 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         public int GetVersionFromExportedTrackFile(string path)
         {
-            var vorbisReader = new VorbisReader(path);
-
-            foreach (var comment in vorbisReader.Comments)
+            using (var vorbisReader = new VorbisReader(path))
             {
-                if (!comment.StartsWith("VERSION=", true, null))
+
+                foreach (var comment in vorbisReader.Comments)
                 {
-                    continue;
+                    if (!comment.StartsWith("VERSION=", true, null))
+                    {
+                        continue;
+                    }
+
+                    var value = comment.Split('=')[1];
+                    var version = int.Parse(value);
+
+                    return version;
                 }
-
-                var value = comment.Split('=')[1];
-                var version = int.Parse(value);
-
-                return version;
             }
 
             throw new SoundtrackException("No version comment in specified file.");
