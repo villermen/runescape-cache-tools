@@ -132,16 +132,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
-        public void WriteFile(int indexId, int fileId, byte[] data)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteFile(int indexId, int fileId, byte[] data, bool overwrite)
-        {
-            throw new NotImplementedException();
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
