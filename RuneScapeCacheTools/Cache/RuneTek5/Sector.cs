@@ -35,7 +35,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The total size of a sector in bytes.
         /// </summary>
-        public const int Length = Sector.HeaderLength + Sector.DataLength;
+        public const int Length = HeaderLength + DataLength;
 
         /// <summary>
         ///     Decodes the given byte array into a <see cref="Sector" /> object.
@@ -47,10 +47,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public Sector(Index expectedIndex, int expectedFileId, int expectedChunkId, byte[] data)
         {
-            if (data.Length != Sector.Length)
+            if (data.Length != Length)
             {
                 throw new ArgumentException(
-                    $"Sector data must be exactly {Sector.Length} bytes in length, {data.Length} given.");
+                    $"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
             }
 
             // Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data)
@@ -81,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new SectorException("Index id mismatch.");
             }
 
-            Data = dataReader.ReadBytes(extended ? Sector.ExtendedDataLength : Sector.DataLength);
+            Data = dataReader.ReadBytes(extended ? ExtendedDataLength : DataLength);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public byte[] Encode()
         {
-            var dataStream = new MemoryStream(new byte[Sector.Length]);
+            var dataStream = new MemoryStream(new byte[Length]);
             var dataWriter = new BinaryWriter(dataStream);
 
             var extended = FileId > 65535;

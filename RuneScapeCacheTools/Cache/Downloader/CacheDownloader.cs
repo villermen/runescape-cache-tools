@@ -188,13 +188,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case TcpHandshakeResponse.Success:
                         connected = true;
-                        CacheDownloader.Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
+                        Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
                         break;
 
                     case TcpHandshakeResponse.Outdated:
                         TcpContentClient.Dispose();
                         TcpContentClient = null;
-                        CacheDownloader.Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
+                        Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
                         TcpMajorVersion++;
                         break;
 
@@ -324,7 +324,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 // Only one processor may be running at any given moment
                 lock (TcpResponseProcessorLock)
                 {
-                    CacheDownloader.Logger.Debug("Starting TCP request processor.");
+                    Logger.Debug("Starting TCP request processor.");
 
                     while (PendingFileRequests.ContainsKey(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId)))
                     {
@@ -394,7 +394,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
                     }
 
-                    CacheDownloader.Logger.Debug("TCP request processor finished.");
+                    Logger.Debug("TCP request processor finished.");
                 }
             });
         }

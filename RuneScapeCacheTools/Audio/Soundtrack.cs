@@ -50,7 +50,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
             Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(Cache.TemporaryDirectory);
 
-            Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
+            Logger.Info("Done obtaining soundtrack names and file ids.");
 
             if (nameFilters.Length > 0)
             {
@@ -130,15 +130,15 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                     }
 
-                    Soundtrack.Logger.Info($"Combined {outputFilename}.");
+                    Logger.Info($"Combined {outputFilename}.");
                 }
                 catch (CacheException)
                 {
-                    Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                    Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
                 }
             });
 
-            Soundtrack.Logger.Info("Done combining soundtracks.");
+            Logger.Info("Done combining soundtracks.");
         }
 
         /// <summary>

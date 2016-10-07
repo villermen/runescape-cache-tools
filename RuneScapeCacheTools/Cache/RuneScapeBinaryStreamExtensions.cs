@@ -34,7 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return (char)value;
             }
 
-            value = (byte)RuneScapeBinaryStreamExtensions.AwkwardCharacters[value - 128];
+            value = (byte)AwkwardCharacters[value - 128];
 
             if (value == 0)
             {

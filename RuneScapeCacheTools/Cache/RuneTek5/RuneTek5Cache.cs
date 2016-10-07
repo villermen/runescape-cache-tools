@@ -19,7 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="cacheDirectory"></param>
         public RuneTek5Cache(string cacheDirectory = null)
         {
-            CacheDirectory = cacheDirectory ?? RuneTek5Cache.DefaultCacheDirectory;
+            CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
             FileStore = new FileStore(CacheDirectory);
         }
 

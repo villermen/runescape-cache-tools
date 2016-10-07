@@ -158,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     if (!overwrite)
                     {
-                        CacheBase.Logger.Info(
+                        Logger.Info(
                             $"Skipped index {index} file {fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
                         return;
                     }
@@ -172,7 +172,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 // Create directories where necessary, before writing to file
                 Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
                 File.WriteAllBytes(newFilePath, currentData);
-                CacheBase.Logger.Info($"Extracted index {index} file {fileId}.");
+                Logger.Info($"Extracted index {index} file {fileId}.");
             }
         }
 
