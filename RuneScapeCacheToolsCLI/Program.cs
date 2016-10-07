@@ -249,7 +249,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void Extract()
 		{
-			if (Program.Indexes == null && FileIds == null)
+			if (Indexes == null && FileIds == null)
 			{
 				// Extract everything
 				Cache.Extract(Overwrite);
@@ -257,12 +257,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			else if (FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Cache.Extract(Program.Indexes, Overwrite);
+				Cache.Extract(Indexes, Overwrite);
 			}
-			else if (Program.Indexes.Count() == 1)
+			else if (Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-				Cache.Extract(Program.Indexes.First(), FileIds, Overwrite);
+				Cache.Extract(Indexes.First(), FileIds, Overwrite);
 			}
 			else
 			{
