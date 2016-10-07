@@ -1,26 +1,25 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     // TODO: Split into HtppFileRequest and BaseFileRequest 
     public abstract class FileRequest
     {
-        protected FileRequest(Index index, int fileId, ReferenceTableFile referenceTableFile)
+        protected FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)
         {
             Index = index;
             FileId = fileId;
-            ReferenceTableFile = referenceTableFile;
+            CacheFileInfo = cacheFileInfo;
         }
+
+        public CacheFileInfo CacheFileInfo { get; }
 
         public MemoryStream DataStream { get; } = new MemoryStream();
 
         public int FileId { get; }
 
         public Index Index { get; }
-
-        public ReferenceTableFile ReferenceTableFile { get; }
 
         private TaskCompletionSource<byte[]> CompletionSource { get; } = new TaskCompletionSource<byte[]>();
 
@@ -34,9 +33,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             CompletionSource.SetResult(DataStream.ToArray());
         }
 
-        public async Task<byte[]> WaitForCompletionAsync()
+        public byte[] WaitForCompletion()
         {
-            return await CompletionSource.Task;
+            return CompletionSource.Task.Result;
         }
     }
 }

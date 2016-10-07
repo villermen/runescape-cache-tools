@@ -98,19 +98,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public override CacheFile GetFile(Index index, int fileId)
         {
-            return DownloadFileAsync(index, fileId).Result;
-        }
+            var fileInfo = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
 
-        public override IEnumerable<int> GetFileIds(Index index)
-        {
-            return GetReferenceTable(index).Files.Keys;
-        }
-
-        public async Task<RuneTek5CacheFile> DownloadFileAsync(Index index, int fileId)
-        {
-            var referenceTableFile = index != Index.ReferenceTables ? GetReferenceTable(index).Files[fileId] : null;
-
-            var newFileRequest = IndexesUsingHttpInterface.Contains(index) ? (FileRequest)new HttpFileRequest(index, fileId, referenceTableFile) : new TcpFileRequest(index, fileId, referenceTableFile);
+            var newFileRequest = IndexesUsingHttpInterface.Contains(index) ? (FileRequest)new HttpFileRequest(index, fileId, fileInfo) : new TcpFileRequest(index, fileId, fileInfo);
 
             var requestKey = new Tuple<Index, int>(index, fileId);
 
@@ -127,13 +117,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 }
                 else
                 {
-                   StartFileDownloadHttp((HttpFileRequest)fileRequest);
+                    StartFileDownloadHttp((HttpFileRequest)fileRequest);
                 }
             }
 
-            var fileData = await fileRequest.WaitForCompletionAsync();
+            var fileData = fileRequest.WaitForCompletion();
 
-            return new RuneTek5CacheFile(fileData, referenceTableFile);
+            return new RuneTek5CacheFile(fileData, fileInfo);
+        }
+
+        public override IEnumerable<int> GetFileIds(Index index)
+        {
+            return GetReferenceTable(index).Files.Keys;
+        }
+
+        public override CacheFileInfo GetFileInfo(Index index, int fileId)
+        {
+            return GetReferenceTable(index).Files[fileId];
         }
 
         public MasterReferenceTable GetMasterReferenceTable()
@@ -219,11 +219,70 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             TcpContentClient.Dispose();
         }
 
+        private void AppendVersionToRequestData(FileRequest request)
+        {
+            if (request.CacheFileInfo != null)
+            {
+                var dataWriter = new BinaryWriter(request.DataStream);
+                dataWriter.WriteUInt16BigEndian((ushort)request.CacheFileInfo.Version);
+            }
+        }
+
+        private MasterReferenceTable DownloadMasterReferenceTable()
+        {
+            return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
+        }
+
+        private string GetTcpKeyFromPage()
+        {
+            var request = WebRequest.CreateHttp(TcpKeyPage);
+            var response = request.GetResponse();
+            var responseStream = response.GetResponseStream();
+
+            if (responseStream == null)
+            {
+                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
+            }
+
+            using (var reader = new StreamReader(responseStream))
+            {
+                var responseString = reader.ReadToEnd();
+
+                var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    throw new DownloaderException("Obtained handshake key is empty.");
+                }
+
+                return key;
+            }
+        }
+
+        /// <summary>
+        ///     Sends the initial connection status and login packets to the server.
+        /// </summary>
+        private void SendTcpConnectionInfo()
+        {
+            var writer = new BinaryWriter(TcpContentClient.GetStream());
+
+            // I don't know
+            writer.Write((byte)6);
+            writer.WriteUInt24BigEndian(4);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
+
+            writer.Write((byte)3);
+            writer.WriteUInt24BigEndian(0);
+            writer.WriteInt16BigEndian(0);
+            writer.Flush();
+        }
+
         private void StartFileDownloadHttp(HttpFileRequest fileRequest)
         {
             Task.Run(() =>
             {
-                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.ReferenceTableFile.CRC}&v={fileRequest.ReferenceTableFile.Version}");
+                var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.CRC}&v={fileRequest.CacheFileInfo.Version}");
                 var response = (HttpWebResponse)webRequest.GetResponse();
 
                 if (response.StatusCode != HttpStatusCode.OK)
@@ -338,65 +397,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     CacheDownloader.Logger.Debug("TCP request processor finished.");
                 }
             });
-        }
-
-        private void AppendVersionToRequestData(FileRequest request)
-        {
-            if (request.ReferenceTableFile != null)
-            {
-                var dataWriter = new BinaryWriter(request.DataStream);
-                dataWriter.WriteUInt16BigEndian((ushort)request.ReferenceTableFile.Version);
-            }
-        }
-
-        private MasterReferenceTable DownloadMasterReferenceTable()
-        {
-            return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
-        }
-
-        private string GetTcpKeyFromPage()
-        {
-            var request = WebRequest.CreateHttp(TcpKeyPage);
-            var response = request.GetResponse();
-            var responseStream = response.GetResponseStream();
-
-            if (responseStream == null)
-            {
-                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
-            }
-
-            using (var reader = new StreamReader(responseStream))
-            {
-                var responseString = reader.ReadToEnd();
-
-                var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
-
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    throw new DownloaderException("Obtained handshake key is empty.");
-                }
-
-                return key;
-            }
-        }
-
-        /// <summary>
-        ///     Sends the initial connection status and login packets to the server.
-        /// </summary>
-        private void SendTcpConnectionInfo()
-        {
-            var writer = new BinaryWriter(TcpContentClient.GetStream());
-
-            // I don't know
-            writer.Write((byte)6);
-            writer.WriteUInt24BigEndian(4);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
-
-            writer.Write((byte)3);
-            writer.WriteUInt24BigEndian(0);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
         }
     }
 }

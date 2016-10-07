@@ -53,19 +53,22 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        ///     Returns the data and metadata for the requested file.
+        ///     Returns the requested file.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
         public abstract CacheFile GetFile(Index index, int fileId);
 
-        public async Task<CacheFile> GetFileAsync(Index index, int fileId)
-        {
-            return await Task.Run(() => GetFile(index, fileId));
-        }
-
         public abstract IEnumerable<int> GetFileIds(Index index);
+
+        /// <summary>
+        ///     Returns info on the file without actually obtaining the file.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public abstract CacheFileInfo GetFileInfo(Index index, int fileId);
 
         public void Dispose()
         {
@@ -105,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public void Extract(Index index, bool overwrite = false)
         {
             var fileIds = GetFileIds(index);
-            Parallel.ForEach(fileIds, fileId => { ExtractAsync(index, fileId, overwrite).Wait(); });
+            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
         }
 
         /// <summary>
@@ -117,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false)
         {
-            Parallel.ForEach(fileIds, fileId => { ExtractAsync(index, fileId, overwrite).Wait(); });
+            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
         }
 
         /// <summary>
@@ -127,9 +130,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="fileId"></param>
         /// <param name="overwrite"></param>
         /// <returns></returns>
-        public async Task ExtractAsync(Index index, int fileId, bool overwrite = false)
+        public void Extract(Index index, int fileId, bool overwrite = false)
         {
-            var file = await GetFileAsync(index, fileId);
+            var file = GetFile(index, fileId);
 
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
@@ -171,11 +174,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 File.WriteAllBytes(newFilePath, currentData);
                 CacheBase.Logger.Info($"Extracted index {index} file {fileId}.");
             }
-        }
-
-        public void Extract(Index index, int fileId, bool overwrite = false)
-        {
-            ExtractAsync(index, fileId, overwrite).Wait();
         }
 
         /// <summary>

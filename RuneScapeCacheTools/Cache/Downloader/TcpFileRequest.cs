@@ -1,10 +1,8 @@
-﻿using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-
-namespace Villermen.RuneScapeCacheTools.Cache.Downloader
+﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class TcpFileRequest : FileRequest
     {
-        public TcpFileRequest(Index index, int fileId, ReferenceTableFile referenceTableFile) : base(index, fileId, referenceTableFile)
+        public TcpFileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo) : base(index, fileId, cacheFileInfo)
         {
         }
 

@@ -55,8 +55,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
             if (nameFilters != null)
             {
                 trackNames = trackNames.Where(
-                    trackName => nameFilters.Any(
-                        nameFilter => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0))
+                        trackName => nameFilters.Any(
+                            nameFilter => trackName.Value.IndexOf(nameFilter, StringComparison.CurrentCultureIgnoreCase) >= 0))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
@@ -108,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             UseShellExecute = false,
                             CreateNoWindow = true,
                             Arguments =
-                                $"-c \"EXTRACTED_BY=Viller\\'s RuneScape Cache Tools;VERSION={jagaCacheFile.Version}\" " +
+                                $"-c \"EXTRACTED_BY=Viller\\'s RuneScape Cache Tools;VERSION={jagaFileInfo.Version}\" " +
                                 $"\"{outputPath}\" " +
                                 "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
                         }

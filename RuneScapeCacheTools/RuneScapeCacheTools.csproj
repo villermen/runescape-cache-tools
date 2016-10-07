@@ -94,14 +94,12 @@
     <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
     <Compile Include="Cache\Index.cs" />
-    <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
+    <Compile Include="Cache\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\Language.cs" />
     <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
     <Compile Include="Cache\RuneTek5\MasterReferenceTableTable.cs" />
-    <Compile Include="Cache\RuneTek5\ReferenceTableFileEntry.cs" />
-    <Compile Include="Cache\RuneTek5\ReferenceTableFile.cs" />
-    <Compile Include="Cache\RuneTek5\RuneTek5CacheFileInfo.cs" />
+    <Compile Include="Cache\CacheFileEntryInfo.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek5\SectorException.cs" />
     <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />

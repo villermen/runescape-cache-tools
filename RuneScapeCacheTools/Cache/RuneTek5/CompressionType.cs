@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums
+﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     public enum CompressionType
     {

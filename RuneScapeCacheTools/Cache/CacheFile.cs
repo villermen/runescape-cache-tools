@@ -6,9 +6,8 @@
         {
         }
 
-        public CacheFile(byte[][] entries, CacheFileInfo info)
+        public CacheFile(byte[][] entries)
         {
-            info = Info;
             Entries = entries;
         }
 
@@ -23,6 +22,6 @@
         /// </summary>
         public byte[][] Entries { get; set; }
 
-        public CacheFileInfo Info { get; set; }
+        public CacheFileInfo Info { get; set; } = new CacheFileInfo();
     }
 }

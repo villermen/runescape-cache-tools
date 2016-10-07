@@ -46,6 +46,33 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return GetRuneTek5File(index, fileId);
         }
 
+        /// <summary>
+        ///     Gets the files specified in the given index.
+        ///     Returned files might still not be present in the cache however.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public override IEnumerable<int> GetFileIds(Index index)
+        {
+            var referenceTable = GetReferenceTable(index);
+            return referenceTable.Files.Keys;
+        }
+
+        public override CacheFileInfo GetFileInfo(Index index, int fileId)
+        {
+            return GetReferenceTable(index).Files[fileId];
+        }
+
+        public ReferenceTable GetReferenceTable(Index index)
+        {
+            // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
+            return ReferenceTables.GetOrAdd(index, index2 =>
+            {
+                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(Index.ReferenceTables, (int)index2), null);
+                return new ReferenceTable(cacheFile, index);
+            });
+        }
+
         public RuneTek5CacheFile GetRuneTek5File(Index index, int fileId)
         {
             // Obtain the reference table for the requested index
@@ -68,28 +95,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new CacheException($"Cache file {fileId} in index {index} is incomplete or corrupted.",
                     exception);
             }
-        }
-
-        /// <summary>
-        ///     Gets the files specified in the given index.
-        ///     Returned files might still not be present in the cache however.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public override IEnumerable<int> GetFileIds(Index index)
-        {
-            var referenceTable = GetReferenceTable(index);
-            return referenceTable.Files.Keys;
-        }
-
-        public ReferenceTable GetReferenceTable(Index index)
-        {
-            // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
-            return ReferenceTables.GetOrAdd(index, index2 =>
-            {
-                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(Index.ReferenceTables, (int)index2), null);
-                return new ReferenceTable(cacheFile, index);
-            });
         }
 
         protected override void Dispose(bool disposing)

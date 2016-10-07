@@ -48,7 +48,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 fileId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                Files.Add(fileId, new ReferenceTableFile(index, fileId));
+                Files.Add(fileId, new CacheFileInfo
+                {
+                    Index = index,
+                    FileId = fileId
+                });
             }
 
             // Read the identifiers if present
@@ -105,7 +109,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var entryCounts = new Dictionary<int, int>();
             foreach (var file in Files.Values)
             {
-                entryCounts.Add(file.Id, Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
+                entryCounts.Add(file.FileId, Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
             }
 
             // Read the entry ids (delta encoded)
@@ -119,7 +123,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 {
                     entryId += Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                    Files[entryCountFileId].Entries.Add(entryId, new ReferenceTableFileEntry(entryId));
+                    Files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
+                    {
+                        EntryId = entryId
+                    });
                 }
             }
 
@@ -139,7 +146,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The entries in this table.
         /// </summary>
-        public IDictionary<int, ReferenceTableFile> Files { get; } = new Dictionary<int, ReferenceTableFile>();
+        public IDictionary<int, CacheFileInfo> Files { get; } = new Dictionary<int, CacheFileInfo>();
 
         /// <summary>
         ///     The format of this table.

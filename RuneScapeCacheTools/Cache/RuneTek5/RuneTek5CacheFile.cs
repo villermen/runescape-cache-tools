@@ -7,7 +7,6 @@ using ICSharpCode.SharpZipLib.Checksums;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -23,30 +22,25 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class RuneTek5CacheFile : CacheFile
     {
         /// <summary>
-        ///     Creates a new versioned container.
-        /// </summary>
-        /// <param name="entries"></param>
-        /// <param name="compressionType"></param>
-        /// <param name="version"></param>
-        public RuneTek5CacheFile(byte[][] entries, CompressionType compressionType = CompressionType.None, int version = -1)
-        {
-            CompressionType = compressionType;
-            Entries = entries;
-            Version = version;
-        }
-
-        /// <summary>
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="referenceTableFile">The specification of this file according to the reference table describing it. Supply this for all files except for reference tables themselves.</param>
+        /// <param name="info">
+        ///     The specification of this file according to the reference table describing it. Supply this with as
+        ///     much obtained information as possible, so verification is performed.
+        /// </param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(byte[] data, ReferenceTableFile referenceTableFile, uint[] key = null)
+        public RuneTek5CacheFile(byte[] data, CacheFileInfo info, uint[] key = null)
         {
+            if (info != null)
+            {
+                Info = info;
+            }
+
             Key = key;
 
             var dataReader = new BinaryReader(new MemoryStream(data));
 
-            CompressionType = (CompressionType)dataReader.ReadByte();
+            Info.CompressionType = (CompressionType)dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
 
             // Decrypt the data if a key is given
@@ -59,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     byteKeyWriter.WriteUInt32BigEndian(keyValue);
                 }
 
-                var totalLength = length + (CompressionType == CompressionType.None ? 5 : 9);
+                var totalLength = length + (Info.CompressionType == CompressionType.None ? 5 : 9);
 
                 var xtea = new XteaEngine();
                 xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
@@ -72,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             byte[] continuousData;
 
             // Check if we should decompress the data or not
-            if (CompressionType == CompressionType.None)
+            if (Info.CompressionType == CompressionType.None)
             {
                 continuousData = dataReader.ReadBytes(length);
             }
@@ -83,7 +77,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var compressedBytes = dataReader.ReadBytes(length);
                 var uncompressedBytes = new byte[uncompressedLength];
 
-                switch (CompressionType)
+                switch (Info.CompressionType)
                 {
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
@@ -125,58 +119,49 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            if ((referenceTableFile != null) && (referenceTableFile.Entries.Count > 1))
-            {
-                Entries = DecodeEntries(continuousData, referenceTableFile.Entries.Count);
-            }
-            else
-            {
-                Entries = new[] { continuousData };
-            }
+            Entries = Info.Entries.Count > 1 ? DecodeEntries(continuousData, Info.Entries.Count) : new[] { continuousData };
 
-            ReferenceTableFile = referenceTableFile;
+            // Verify supplied info where possible
 
-            // Verify metadata where possible
-            if (ReferenceTableFile != null)
+            // Read and verify the version of the file
+            if (Info.Version > -1)
             {
-                // Read and verify the version of the file
-                var containedVersion = dataReader.ReadUInt16BigEndian();
+                var obtainedVersion = dataReader.ReadUInt16BigEndian();
 
                 // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
-                var truncatedReferenceVersion = (int)(ushort)ReferenceTableFile.Version;
-                if (containedVersion != truncatedReferenceVersion)
+                var truncatedInfoVersion = (int)(ushort)Info.Version;
+                if (obtainedVersion != truncatedInfoVersion)
                 {
-                    throw new CacheException($"Obtained version part ({Version}) did not match expected ({truncatedReferenceVersion}).");
+                    throw new CacheException($"Obtained version part ({obtainedVersion}) did not match expected ({truncatedInfoVersion}).");
                 }
-
-                // Set version to the full value, for completeness
-                Version = ReferenceTableFile.Version;
 
                 // Calculate and verify crc
                 // CRC excludes the version of the file added to the end
+
+                // There is no way to know if the CRC is zero or unset, so I've put it with the version check
                 var crc = new Crc32();
                 crc.Update(data, 0, data.Length - 2);
 
-                CRC = (int)crc.Value;
+                var calculatedCRC = (int)crc.Value;
 
-                if (CRC != ReferenceTableFile.CRC)
+                if (calculatedCRC != Info.CRC)
                 {
-                    throw new CacheException($"Calculated checksum (0x{CRC:X}) did not match expected (0x{ReferenceTableFile.CRC:X}).");
+                    throw new CacheException($"Calculated checksum (0x{calculatedCRC:X}) did not match expected (0x{Info.CRC:X}).");
                 }
+            }
 
-                // Calculate and verify the whirlpool digest if set in the reference table file
-                if (ReferenceTableFile.WhirlpoolDigest != null)
+            // Calculate and verify the whirlpool digest if set in the info
+            if (Info.WhirlpoolDigest != null)
+            {
+                var whirlpool = new WhirlpoolDigest();
+                whirlpool.BlockUpdate(data, 0, data.Length - 2);
+
+                var calculatedWhirlpool = new byte[whirlpool.GetDigestSize()];
+                whirlpool.DoFinal(calculatedWhirlpool, 0);
+
+                if (calculatedWhirlpool != Info.WhirlpoolDigest)
                 {
-                    var whirlpool = new WhirlpoolDigest();
-                    whirlpool.BlockUpdate(data, 0, data.Length - 2);
-
-                    WhirlpoolDigest = new byte[whirlpool.GetDigestSize()];
-                    whirlpool.DoFinal(WhirlpoolDigest, 0);
-
-                    if (WhirlpoolDigest != ReferenceTableFile.WhirlpoolDigest)
-                    {
-                        throw new CacheException("Calculated whirlpool digest did not match expected.");
-                    }
+                    throw new CacheException("Calculated whirlpool digest did not match expected.");
                 }
             }
         }
@@ -185,11 +170,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     The key used in decrypting and encrypting the data.
         /// </summary>
         public uint[] Key { get; set; }
-
-        public byte[] Encode()
-        {
-            throw new NotImplementedException();
-        }
 
         private byte[][] DecodeEntries(byte[] data, int amountOfEntries)
         {
