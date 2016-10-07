@@ -41,7 +41,7 @@ namespace RuneScapeCacheToolsTests
         public void TestExportTracksAsync()
         {
             var startTime = DateTime.UtcNow;
-            Fixture.Soundtrack.ExportTracksAsync(true, new []{ "soundscape" }).Wait();
+            Fixture.Soundtrack.Extract(true, "soundscape");
 
             const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
 

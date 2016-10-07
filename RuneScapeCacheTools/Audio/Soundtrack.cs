@@ -42,7 +42,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
         ///     extracted.
         /// </param>
         /// <returns></returns>
-        public async Task ExportTracksAsync(bool overwriteExisting = false, IEnumerable<string> nameFilters = null)
+        public void Extract(bool overwriteExisting = false, params string[] nameFilters)
         {
             var trackNames = GetTrackNames();
             var outputDirectory = Cache.OutputDirectory + "soundtrack/";
@@ -52,7 +52,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
 
-            if (nameFilters != null)
+            if (nameFilters.Length > 0)
             {
                 trackNames = trackNames.Where(
                         trackName => nameFilters.Any(
@@ -60,7 +60,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
-            await Task.Run(() => Parallel.ForEach(trackNames, trackNamePair =>
+            Parallel.ForEach(trackNames, trackNamePair =>
             {
                 var outputFilename = $"{trackNamePair.Value}.ogg";
                 var outputPath = Path.Combine(outputDirectory, outputFilename);
@@ -77,7 +77,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         if (existingVersion == jagaFileInfo.Version)
                         {
-                            Soundtrack.Logger.Info($"Skipping {outputFilename} because it already exists and version is unchanged.");
+                            var logMethod = nameFilters.Length > 0 ? (Action<string>)Logger.Info : Logger.Debug;
+
+                            logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
                             return;
                         }
                     }
@@ -132,9 +134,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 }
                 catch (CacheException)
                 {
-                    Soundtrack.Logger.Debug($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                    Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
                 }
-            }));
+            });
 
             Soundtrack.Logger.Info("Done combining soundtracks.");
         }
