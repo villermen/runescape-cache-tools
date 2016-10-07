@@ -32,14 +32,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        public CacheDownloader(bool connect = false)
-        {
-            if (connect)
-            {
-                TcpConnect();
-            }
-        }
-
         public override IEnumerable<Index> Indexes => GetMasterReferenceTable().ReferenceTableFiles.Keys;
 
         public string ContentHost { get; set; } = "content.runescape.com";
@@ -95,6 +87,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         private int TcpMajorVersion { get; set; } = 873;
 
         private object TcpResponseProcessorLock { get; } = new object();
+
+        private object TcpConnectLock { get; } = new object();
 
         public override CacheFile GetFile(Index index, int fileId)
         {
@@ -155,63 +149,66 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public void TcpConnect()
         {
-            if (TcpConnected)
+            lock (TcpConnectLock)
             {
-                // No need for this now is there?
-                return;
-            }
-
-            var key = GetTcpKeyFromPage();
-
-            // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            var connected = false;
-            while (!connected)
-            {
-                TcpContentClient = new TcpClient(ContentHost, TcpContentPort);
-
-                var handshakeWriter = new BinaryWriter(TcpContentClient.GetStream());
-                var handshakeReader = new BinaryReader(TcpContentClient.GetStream());
-
-                var handshakeLength = (byte)(9 + key.Length + 1);
-
-                handshakeWriter.Write(TcpHandshakeType);
-                handshakeWriter.Write(handshakeLength);
-                handshakeWriter.WriteInt32BigEndian(TcpMajorVersion);
-                handshakeWriter.WriteInt32BigEndian(TcpMinorVersion);
-                handshakeWriter.WriteNullTerminatedString(key);
-                handshakeWriter.Write((byte)Language);
-                handshakeWriter.Flush();
-
-                var response = (TcpHandshakeResponse)handshakeReader.ReadByte();
-
-                switch (response)
+                if (TcpConnected)
                 {
-                    case TcpHandshakeResponse.Success:
-                        connected = true;
-                        Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
-                        break;
-
-                    case TcpHandshakeResponse.Outdated:
-                        TcpContentClient.Dispose();
-                        TcpContentClient = null;
-                        Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
-                        TcpMajorVersion++;
-                        break;
-
-                    default:
-                        TcpContentClient.Dispose();
-                        TcpContentClient = null;
-                        throw new DownloaderException($"Content server responded to handshake with {response}.");
+                    // No need for this now is there?
+                    return;
                 }
+
+                var key = GetTcpKeyFromPage();
+
+                // Retry connecting with an increasing major version until the server no longer reports we're outdated
+                var connected = false;
+                while (!connected)
+                {
+                    TcpContentClient = new TcpClient(ContentHost, TcpContentPort);
+
+                    var handshakeWriter = new BinaryWriter(TcpContentClient.GetStream());
+                    var handshakeReader = new BinaryReader(TcpContentClient.GetStream());
+
+                    var handshakeLength = (byte) (9 + key.Length + 1);
+
+                    handshakeWriter.Write(TcpHandshakeType);
+                    handshakeWriter.Write(handshakeLength);
+                    handshakeWriter.WriteInt32BigEndian(TcpMajorVersion);
+                    handshakeWriter.WriteInt32BigEndian(TcpMinorVersion);
+                    handshakeWriter.WriteNullTerminatedString(key);
+                    handshakeWriter.Write((byte) Language);
+                    handshakeWriter.Flush();
+
+                    var response = (TcpHandshakeResponse) handshakeReader.ReadByte();
+
+                    switch (response)
+                    {
+                        case TcpHandshakeResponse.Success:
+                            connected = true;
+                            Logger.Info($"Successfully connected to content server with major version {TcpMajorVersion}.");
+                            break;
+
+                        case TcpHandshakeResponse.Outdated:
+                            TcpContentClient.Dispose();
+                            TcpContentClient = null;
+                            Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
+                            TcpMajorVersion++;
+                            break;
+
+                        default:
+                            TcpContentClient.Dispose();
+                            TcpContentClient = null;
+                            throw new DownloaderException($"Content server responded to handshake with {response}.");
+                    }
+                }
+
+                // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
+                var contentReader = new BinaryReader(TcpContentClient.GetStream());
+                contentReader.ReadBytes(TcpLoadingRequirementsLength);
+
+                SendTcpConnectionInfo();
+
+                TcpConnected = true;
             }
-
-            // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
-            var contentReader = new BinaryReader(TcpContentClient.GetStream());
-            contentReader.ReadBytes(TcpLoadingRequirementsLength);
-
-            SendTcpConnectionInfo();
-
-            TcpConnected = true;
         }
 
         protected override void Dispose(bool disposing)
@@ -309,7 +306,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             {
                 if (!TcpConnected)
                 {
-                    throw new DownloaderException("TCP client is disconnected.");
+                    TcpConnect();
                 }
 
                 // Send the request

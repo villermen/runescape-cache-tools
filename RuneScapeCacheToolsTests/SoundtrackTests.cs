@@ -18,8 +18,6 @@ namespace RuneScapeCacheToolsTests
         {
             Output = output;
             Fixture = fixture;
-
-            Fixture.Downloader.TcpConnect();
         }
 
         /// <summary>
@@ -38,7 +36,7 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact(Skip = "oggvideotools package not yet whitelisted in Travis CI.")]
-        public void TestExportTracksAsync()
+        public void TestExtract()
         {
             var startTime = DateTime.UtcNow;
             Fixture.Soundtrack.Extract(true, "soundscape");
