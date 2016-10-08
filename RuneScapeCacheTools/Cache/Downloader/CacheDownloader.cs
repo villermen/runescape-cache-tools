@@ -157,6 +157,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     return;
                 }
 
+                Logger.Debug("Connecting to content server with TCP.");
+
                 var key = GetTcpKeyFromPage();
 
                 // Retry connecting with an increasing major version until the server no longer reports we're outdated
@@ -190,7 +192,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         case TcpHandshakeResponse.Outdated:
                             TcpContentClient.Dispose();
                             TcpContentClient = null;
-                            Logger.Info($"Content server says {TcpMajorVersion} is outdated.");
+                            Logger.Info($"Requested connection used outdated version {TcpMajorVersion}. Retrying with higher major version.");
                             TcpMajorVersion++;
                             break;
 
@@ -256,6 +258,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private void SendTcpConnectionInfo()
         {
+            Logger.Debug("Sending initial connection status and login packets.");
+
             var writer = new BinaryWriter(TcpContentClient.GetStream());
 
             // I don't know
@@ -274,6 +278,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             Task.Run(() =>
             {
+                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
+
                 var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.CRC}&v={fileRequest.CacheFileInfo.Version}");
                 var response = (HttpWebResponse)webRequest.GetResponse();
 
@@ -303,6 +309,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     TcpConnect();
                 }
+
+                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
 
                 // Send the request
                 var writer = new BinaryWriter(TcpContentClient.GetStream());
