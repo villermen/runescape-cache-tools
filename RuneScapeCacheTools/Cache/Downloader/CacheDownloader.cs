@@ -310,7 +310,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     TcpConnect();
                 }
 
-                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
+                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using TCP.");
 
                 // Send the request
                 var writer = new BinaryWriter(TcpContentClient.GetStream());
