@@ -137,7 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 return CachedMasterReferenceTable;
             }
 
-            CachedMasterReferenceTable = DownloadMasterReferenceTable();
+            CachedMasterReferenceTable = new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
 
             return CachedMasterReferenceTable;
         }
@@ -223,11 +223,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 var dataWriter = new BinaryWriter(request.DataStream);
                 dataWriter.WriteUInt16BigEndian((ushort)request.CacheFileInfo.Version);
             }
-        }
-
-        private MasterReferenceTable DownloadMasterReferenceTable()
-        {
-            return new MasterReferenceTable(GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
         }
 
         private string GetTcpKeyFromPage()
