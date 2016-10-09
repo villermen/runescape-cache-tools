@@ -76,16 +76,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
             GC.SuppressFinalize(this);
         }
 
-        // public abstract int GetArchiveFileCount(int indexId, int archiveId);
-
         /// <summary>
         ///     Extracts every file from every index.
         /// </summary>
         /// <param name="overwrite"></param>
+        /// <param name="progress"></param>
         /// <returns></returns>
-        public void Extract(bool overwrite = false)
+        public void Extract(bool overwrite = false, ExtendedProgress progress = null)
         {
-            Parallel.ForEach(Indexes, index => { Extract(index, overwrite); });
+            Extract(Indexes, overwrite, progress);
         }
 
         /// <summary>
@@ -93,10 +92,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="indexes"></param>
         /// <param name="overwrite"></param>
+        /// <param name="progress"></param>
         /// <returns></returns>
-        public void Extract(IEnumerable<Index> indexes, bool overwrite = false)
+        public void Extract(IEnumerable<Index> indexes, bool overwrite = false, ExtendedProgress progress = null)
         {
-            Parallel.ForEach(indexes, index => { Extract(index, overwrite); });
+            Parallel.ForEach(indexes, index => { Extract(index, overwrite, progress); });
         }
 
         /// <summary>
@@ -104,11 +104,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="index"></param>
         /// <param name="overwrite"></param>
+        /// <param name="progress"></param>
         /// <returns></returns>
-        public void Extract(Index index, bool overwrite = false)
+        public void Extract(Index index, bool overwrite = false, ExtendedProgress progress = null)
         {
             var fileIds = GetFileIds(index);
-            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
+
+            Extract(index, fileIds, overwrite, progress);
         }
 
         /// <summary>
@@ -117,10 +119,23 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileIds"></param>
         /// <param name="overwrite"></param>
+        /// <param name="progress"></param>
         /// <returns></returns>
-        public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false)
+        public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false, ExtendedProgress progress = null)
         {
-            Parallel.ForEach(fileIds, fileId => { Extract(index, fileId, overwrite); });
+            var fileIdsArray = fileIds.ToArray();
+
+            if (progress != null)
+            {
+                progress.Total += fileIdsArray.Length;
+            }
+
+            Parallel.ForEach(fileIdsArray, fileId =>
+            {
+                var extractedPath = Extract(index, fileId, overwrite);
+
+                progress?.Report($"extracted {extractedPath}");
+            });
         }
 
         /// <summary>
@@ -129,28 +144,35 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <param name="overwrite"></param>
-        /// <returns></returns>
-        public void Extract(Index index, int fileId, bool overwrite = false)
+        /// <returns>Path of the extracted file, or the last extracted entry if there are multiple.</returns>
+        public string Extract(Index index, int fileId, bool overwrite = false)
         {
+            // Throw an exception if the output directory is not yet set or does not exist
+            if (string.IsNullOrWhiteSpace(OutputDirectory))
+            {
+                throw new CacheException("Output directory must be set before file extraction.");
+            }
+
             var file = GetFile(index, fileId);
 
+            // Create index directory to put the obtained file in
+            Directory.CreateDirectory($"{OutputDirectory}extracted/{index}");
+
+            string extractPath = null;
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
                 var currentData = file.Entries[entryId];
 
                 // Skip empty entries
-                if (currentData.Length < 2)
+                if (currentData.Length == 0)
                 {
                     continue;
                 }
 
                 var extension = ExtensionGuesser.GuessExtension(currentData);
 
-                // Throw an exception if the output directory is not yet set or does not exist
-                if (string.IsNullOrWhiteSpace(OutputDirectory))
-                {
-                    throw new CacheException("Output directory must be set before file extraction.");
-                }
+                // Construct new path for file
+                extractPath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
 
                 // Delete existing file (if allowed)
                 var existingFilePath = GetExtractedFilePath(index, fileId, entryId);
@@ -158,22 +180,19 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     if (!overwrite)
                     {
-                        Logger.Info(
-                            $"Skipped index {index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")} because it is already extracted.");
-                        return;
+                        Logger.Info($"Skipped {extractPath} because it is already extracted.");
+                        continue;
                     }
 
                     File.Delete(existingFilePath);
                 }
 
-                // Construct new path for file
-                var newFilePath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
+                File.WriteAllBytes(extractPath, currentData);
 
-                // Create directories where necessary, before writing to file
-                Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
-                File.WriteAllBytes(newFilePath, currentData);
-                Logger.Info($"Extracted {index}/{fileId}.");
+                Logger.Info($"Extracted {extractPath}.");
             }
+
+            return extractPath;
         }
 
         /// <summary>
