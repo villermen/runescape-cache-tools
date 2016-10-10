@@ -48,7 +48,7 @@ namespace RuneScapeCacheToolsTests
 
             Output.WriteLine($"Files in reference table for index 17: {referenceTable17.Files.Count}.");
 
-            Assert.True(referenceTable17.Files.Count == 46, $"Reference table for index 17 reported having {referenceTable17.Files.Count} files instead of the expected 46.");
+            Assert.True(referenceTable17.Files.Count == 47, $"Reference table for index 17 reported having {referenceTable17.Files.Count} files instead of the expected 46.");
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        [InlineData(Index.Enums, 46)]
+        [InlineData(Index.Enums, 47)]
         public void TestGetFileIds(Index index, int expectedFileCount)
         {
             var reportedFileCount = Fixture.Downloader.GetFileIds(index).Count();
