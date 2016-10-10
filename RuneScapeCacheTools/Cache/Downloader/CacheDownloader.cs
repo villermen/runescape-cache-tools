@@ -55,7 +55,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         ///     The regex used to obtain the content server handshake key from the set <see cref="TcpKeyPage" />.
         ///     The first capture group needs to result in the key.
         /// </summary>
-        public Regex TcpKeyPageRegex { get; set; } = new Regex(@"<param\s+name=""1""\s+value=""([^""]+)""");
+        public Regex TcpKeyPageRegex { get; set; } = new Regex(@"<param\s+name=""\-?\d+""\s+value=""([^""]{32})""");
 
         /// <summary>
         ///     The minor version is needed to correctly connect to the content server.
@@ -84,7 +84,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         ///     If connection states the version is outdated, the <see cref="TcpMajorVersion" /> will be increased until it is
         ///     accepted.
         /// </summary>
-        private int TcpMajorVersion { get; set; } = 873;
+        private int TcpMajorVersion { get; set; } = 874;
 
         private object TcpResponseProcessorLock { get; } = new object();
 
