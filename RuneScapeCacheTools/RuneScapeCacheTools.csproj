@@ -83,6 +83,7 @@
     <Compile Include="Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Audio\JagaFile.cs" />
     <Compile Include="Audio\JagaParseException.cs" />
+    <Compile Include="Audio\VorbisReader.cs" />
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
     <Compile Include="Cache\CacheFile.cs" />

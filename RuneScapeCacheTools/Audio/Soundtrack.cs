@@ -220,7 +220,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         public int GetVersionFromExportedTrackFile(string path)
         {
-            using (var vorbisReader = new VorbisReader(path))
+            using (var vorbisReader = new NVorbis.VorbisReader(path))
             {
 
                 foreach (var comment in vorbisReader.Comments)
