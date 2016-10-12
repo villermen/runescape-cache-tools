@@ -109,14 +109,26 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             FileName = "oggCat",
                             UseShellExecute = false,
                             CreateNoWindow = true,
+#if DEBUG
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true,
+#endif
                             Arguments =
-                                $"-C'EXTRACTED_BY=Villers RuneScape Cache Tools;VERSION={jagaFileInfo.Version}' " +
-                                $"'{outputPath}' " +
-                                "'" + string.Join("' '", randomTemporaryFilenames) + "'"
+                                $"-c\"EXTRACTED_BY=Villers_RuneScape_Cache_Tools;VERSION={jagaFileInfo.Version}\" -pa " +
+                                $"\"{outputPath}\" " +
+                                "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
                         }
                     };
 
                     combineProcess.Start();
+
+#if DEBUG
+                    combineProcess.OutputDataReceived += (sender, args) => Console.WriteLine($"oggCat output: {args.Data}");
+                    combineProcess.ErrorDataReceived += (sender, args) => Console.WriteLine($"oggCat error: {args.Data}");
+                    combineProcess.BeginOutputReadLine();
+                    combineProcess.BeginErrorReadLine();
+#endif
+
                     combineProcess.WaitForExit();
 
                     // Remove temporary files
@@ -230,7 +242,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         private string[] GetRandomTemporaryFilenames(int amountOfNames)
         {
-            const string validChars = @"abcdefghijklmnopqrstuvwxyz0123456789-_()&^%$#@![]{},`~=+";
+            const string validChars = @"abcdefghijklmnopqrstuvwxyz0123456789-_()&^#@![]{},~=+";
             const int nameLength = 16;
             var result = new string[amountOfNames];
 

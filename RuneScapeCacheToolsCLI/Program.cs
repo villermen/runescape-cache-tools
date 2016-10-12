@@ -140,6 +140,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static int Main(string[] args)
 		{
+		    var returnCode = 0;
+
 			try
 			{
 				var unknownArguments = ArgumentParser.Parse(args);
@@ -161,7 +163,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					Console.WriteLine("No action arguments specified.");
 					Console.WriteLine();
 					ShowHelp();
-					return 1;
+
+				    returnCode = 1;
 				}
 
                 // Initialize the cache
@@ -187,27 +190,33 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				{
 					CombineSoundtrack();
 				}
-
-				return 0;
 			}
 			catch (Exception exception) when (exception is OptionException || exception is CacheException || exception is CLIException)
 			{
 			    Console.WriteLine(exception);
-				return 1;
+
+			    returnCode = 1;
 			}
 			catch (Exception exception)
 			{
 				Console.WriteLine(exception);
-				return 1;
-			}
-		}
 
-		/// <summary>
-		///   Expands the given integer range into an enumerable of all individual integers.
-		/// </summary>
-		/// <param name="integerRangeString">An integer range, e.g. "0-4,6,34,200-201"</param>
-		/// <returns></returns>
-		private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
+			    returnCode = 1;
+			}
+
+#if DEBUG
+            Console.ReadLine();
+#endif
+
+            return returnCode;
+        }
+
+        /// <summary>
+        ///   Expands the given integer range into an enumerable of all individual integers.
+        /// </summary>
+        /// <param name="integerRangeString">An integer range, e.g. "0-4,6,34,200-201"</param>
+        /// <returns></returns>
+        private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
 		{
 		    var rangeStringParts = ExpandListString(integerRangeString);
 			var result = new List<int>();
@@ -275,6 +284,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			var soundtrack = new Soundtrack(Cache);
 
 			soundtrack.Extract(Overwrite, SoundtrackNameFilter?.ToArray() ?? new string[0]);
-		}
+        }
 	}
 }
