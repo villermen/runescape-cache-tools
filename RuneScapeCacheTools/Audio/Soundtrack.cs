@@ -8,7 +8,6 @@ using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Enums;
-using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
@@ -48,10 +47,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
             var trackNames = GetTrackNames();
             var outputDirectory = Cache.OutputDirectory + "soundtrack/";
 
-            var directoryInfo = Directory.CreateDirectory(outputDirectory);
+            Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(Cache.TemporaryDirectory);
-
-            Console.WriteLine($"{directoryInfo.FullName} exists?: {directoryInfo.Exists}");
 
             Logger.Info("Done obtaining soundtrack names and file ids.");
 
@@ -66,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
             Parallel.ForEach(trackNames, trackNamePair =>
             {
                 var outputFilename = $"{trackNamePair.Value}.ogg";
-                var outputPath = Path.Combine(PathExtensions.FixDirectory(Directory.GetCurrentDirectory()), outputDirectory, outputFilename);
+                var outputPath = Path.Combine(outputDirectory, outputFilename);
 
                 try
                 {
@@ -102,7 +99,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     }
 
                     // Delete existing file because oggCat doesn't do overwriting properly
-                    // TODO: File.Delete(outputPath);
+                    File.Delete(outputPath);
 
                     // Combine the files using oggCat
                     var combineProcess = new Process
@@ -113,7 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             UseShellExecute = false,
                             CreateNoWindow = true,
                             Arguments =
-                                $"-c\"EXTRACTED_BY=Villers RuneScape Cache Tools;VERSION={jagaFileInfo.Version}\" " +
+                                // $"-c\"EXTRACTED_BY=Villers RuneScape Cache Tools;VERSION={jagaFileInfo.Version}\" " +
                                 $"\"{outputPath}\" " +
                                 "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
                         }
