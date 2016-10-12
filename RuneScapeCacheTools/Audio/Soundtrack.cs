@@ -109,6 +109,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             FileName = "oggCat",
                             UseShellExecute = false,
                             CreateNoWindow = true,
+                            RedirectStandardOutput = true, // TODO: DEBUG
+                            RedirectStandardError = true, // TODO: DEBUG
                             Arguments =
                                 $"-c\"EXTRACTED_BY=Villers RuneScape Cache Tools;VERSION={jagaFileInfo.Version}\" " +
                                 $"\"{outputPath}\" " +
@@ -116,7 +118,16 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         }
                     };
 
+                    // TODO: DEBUG
+                    combineProcess.OutputDataReceived += (sender, args) => Console.WriteLine($"Output: {args.Data}");
+                    combineProcess.ErrorDataReceived += (sender, args) => Console.WriteLine($"Error: {args.Data}");
+
                     combineProcess.Start();
+
+                    // TODO: DEBUG
+                    combineProcess.BeginErrorReadLine();
+                    combineProcess.BeginOutputReadLine();
+
                     combineProcess.WaitForExit();
 
                     // Remove temporary files
