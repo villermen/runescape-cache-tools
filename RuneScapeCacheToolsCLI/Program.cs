@@ -5,6 +5,7 @@ using System.Linq;
 using log4net;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
+using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -141,6 +142,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static int Main(string[] args)
 		{
+            var vorbisReader = new VorbisReader("C:\\Data\\Temp\\rscache\\soundtrack\\Machines of War.ogg");
+
 		    var returnCode = 0;
 
 			try

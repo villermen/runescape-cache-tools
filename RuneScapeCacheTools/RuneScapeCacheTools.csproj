@@ -83,7 +83,15 @@
     <Compile Include="Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Audio\JagaFile.cs" />
     <Compile Include="Audio\JagaParseException.cs" />
-    <Compile Include="Audio\VorbisReader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisAudioPacket.cs" />
+    <Compile Include="Audio\Vorbis\VorbisException.cs" />
+    <Compile Include="Audio\Vorbis\VorbisHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisIdentificationHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisPacket.cs" />
+    <Compile Include="Audio\Vorbis\VorbisSetupHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisCommentHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisPage.cs" />
+    <Compile Include="Audio\Vorbis\VorbisReader.cs" />
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
     <Compile Include="Cache\CacheFile.cs" />
