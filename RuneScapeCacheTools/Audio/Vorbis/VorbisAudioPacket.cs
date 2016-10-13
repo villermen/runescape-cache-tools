@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public override void Encode(Stream stream)
         {
-            throw new NotImplementedException();
+            stream.Write(Data, 0, Data.Length);
         }
 
         /// <summary>

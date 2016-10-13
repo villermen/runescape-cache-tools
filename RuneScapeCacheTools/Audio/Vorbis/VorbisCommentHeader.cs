@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
@@ -73,7 +74,17 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public override void Encode(Stream stream)
         {
-            throw new NotImplementedException();
+            var packetWriter = new BinaryWriter(stream);
+            packetWriter.Write((uint)VendorString.Length);
+            packetWriter.Write(Encoding.UTF8.GetBytes(VendorString));
+            packetWriter.Write((uint)UserComments.Count);
+            foreach (var userComment in UserComments)
+            {
+                packetWriter.Write(Encoding.ASCII.GetBytes(userComment.Item1));
+                packetWriter.Write(0x3D);
+                packetWriter.Write(Encoding.UTF8.GetBytes(userComment.Item2));
+            }
+            packetWriter.Write((byte)1);
         }
     }
 }

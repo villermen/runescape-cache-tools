@@ -46,6 +46,16 @@ namespace RuneScapeCacheToolsTests
             Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("DATE", "2012")));
         }
 
+        [Fact]
+        public void TestCombineSamples()
+        {
+            VorbisPacket packet;
+            while ((packet = Reader1.ReadPacket()) != null)
+            {
+                Writer.WritePacket(packet);
+            }
+        }
+
         public void Dispose()
         {
             Reader1?.Dispose();
