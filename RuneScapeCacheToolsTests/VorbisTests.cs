@@ -44,7 +44,7 @@ namespace RuneScapeCacheToolsTests
             }
 
             Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("genre", "Soundtrack")));
-        } 
+        }
 
         public void Dispose()
         {
