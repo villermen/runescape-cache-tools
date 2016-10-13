@@ -9,9 +9,9 @@
             // Verify that this is indeed an audio packet
             var packetType = packetData[0] & 0x01;
 
-            if (packetType != 1)
+            if (packetType != 0)
             {
-                throw new VorbisException("Audio packet type must be 1, but 0 was read.");
+                throw new VorbisException("Audio packet type must be 0, but 1 was read.");
             }
 
             // I don't really care for the breakdown of the audio packet for now
