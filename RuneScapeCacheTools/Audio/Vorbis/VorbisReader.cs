@@ -1,68 +1,76 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
     public class VorbisReader : IDisposable
     {
-        public VorbisReader(string filePath)
+        public VorbisReader(Stream input)
         {
-            _filePath = filePath;
+            BaseStream = input;
 
-            var i = ReadPage();
-            var c = ReadPage();
-            var s = ReadPage();
+            var i = GetPacket();
+            var c = GetPacket();
+            var s = GetPacket();
         }
 
-        private readonly string _filePath;
-
-        private Stream _dataStream;
-
-        private Stream DataStream => _dataStream ?? (_dataStream = File.OpenRead(_filePath));
+        public Stream BaseStream { get; set; }
 
         private int NextPageSequenceNumber { get; set; }
 
-        private VorbisPacket ReadPacket()
-        {
-            // TODO: Read pages till a full packet is obtained
-            var packetData = new byte[0];
+        /// <summary>
+        ///     Can contain upcoming pages in stream that have been peeked at but have not been used yet.
+        /// </summary>
+        private Queue<VorbisPage> PageBuffer { get; } = new Queue<VorbisPage>();
 
+        private VorbisPacket GetPacket()
+        {
+            // Read pages till a full packet is obtained
+            var packetDataWriter = new MemoryStream();
+            var page = GetPage();
+            do
+            {
+                packetDataWriter.Write(page.Data, 0, page.Data.Length);
+
+                page = GetPage();
+            }
+            while (page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
+
+            // Last read page is not part of the packet: Save it for later.
+            PageBuffer.Enqueue(page);
+
+            var packetData = packetDataWriter.ToArray();
             var packetType = packetData[0];
 
             switch (packetType)
             {
                 // Identification header
-                case VorbisIdentificationHeader.PacketType:
-                    return VorbisIdentificationHeader.Decode(packetData);
-                    break;
+                case VorbisIdentificationHeaderPacket.PacketType:
+                    return VorbisIdentificationHeaderPacket.Decode(packetData);
 
                 // Comment header
-                case VorbisCommentHeader.PacketType:
-                    return VorbisCommentHeader.Decode(packetData);
-                    break;
+                case VorbisCommentHeaderPacket.PacketType:
+                    return VorbisCommentHeaderPacket.Decode(packetData);
 
                 // Setup header
-                case VorbisSetupHeader.PacketType:
-                    return VorbisSetupHeader.Decode(packetData);
-                    break;
+                case VorbisSetupHeaderPacket.PacketType:
+                    return VorbisSetupHeaderPacket.Decode(packetData);
 
                 // Audio packet
                 default:
                     return VorbisAudioPacket.Decode(packetData);
-                    break;
             }
         }
 
-        private VorbisPage ReadPage()
+        private VorbisPage GetPage()
         {
-            return VorbisPage.Decode(DataStream);
+            return PageBuffer.Count > 0 ? PageBuffer.Dequeue() : VorbisPage.Decode(BaseStream);
         }
 
         public void Dispose()
         {
-            DataStream?.Dispose();
+            BaseStream?.Dispose();
         }
     }
 }

@@ -6,47 +6,53 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
     public class VorbisPage
     {
+        public static readonly byte[] CapturePattern = { 0x4F, 0x67, 0x67, 0x53 };
+        public const byte StreamStructureVersion = 0x00;
+
         public static VorbisPage Decode(Stream pageStream)
         {
+            var page = new VorbisPage();
+
             var pageReader = new BinaryReader(pageStream);
 
             var capturePattern = pageReader.ReadBytes(4);
-            if (!capturePattern.SequenceEqual(new byte[] { 0x4F, 0x67, 0x67, 0x53 }))
+            if (!capturePattern.SequenceEqual(CapturePattern))
             {
-                throw new Exception("VorbisPageException, invalid capture pattern (magic number)");
+                throw new Exception($"Invalid capture pattern \"0x{BitConverter.ToString(capturePattern)}\" (magic number).");
             }
 
             var streamStructureVersion = pageReader.ReadByte();
-            if (streamStructureVersion != 0x00)
+            if (streamStructureVersion != StreamStructureVersion)
             {
-                throw new Exception("VorbisPageException, invalid stream structure version");
+                throw new VorbisException($"Invalid stream structure version \"{streamStructureVersion}\", only Vorbis I is supported.");
             }
 
-            var headerTypeFlag = pageReader.ReadByte();
-            var absoluteGranulePosition = pageReader.ReadInt64();
-            var streamSerialNumber = pageReader.ReadInt32();
+            page.HeaderType = (VorbisPageHeaderType)pageReader.ReadByte();
+            page.AbsoluteGranulePosition = pageReader.ReadInt64();
 
-            var pageSequenceNumber = pageReader.ReadInt32();
-            // TODO: compare sequence numbers in reader
-            //if (NextPageSequenceNumber++ != pageSequenceNumber)
-            //{
-            //    throw new Exception("VorbisPageException, invalid sequence number");
-            //}
+            page.StreamSerialNumber = pageReader.ReadInt32();
+            page.SequenceNumber = pageReader.ReadInt32();
 
-            var pageChecksum = pageReader.ReadInt32();
+            page.Checksum = pageReader.ReadInt32(); // TODO: Verify Vorbis page checksum
+
             var segmentCount = pageReader.ReadByte();
-
             var lacingValues = new byte[segmentCount];
-
             for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
             {
                 lacingValues[segmentIndex] = pageReader.ReadByte();
             }
 
             var packetLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
-            var pageData = pageReader.ReadBytes(packetLength);
+            page.Data = pageReader.ReadBytes(packetLength);
 
-            throw new NotImplementedException();
+            return page;
         }
+
+        public VorbisPageHeaderType HeaderType { get; private set; }
+        public long AbsoluteGranulePosition { get; private set; }
+        public int StreamSerialNumber { get; private set; }
+        public int SequenceNumber { get; private set; }
+        public int Checksum { get; private set; }
+        public byte[] Data { get; private set; }
     }
 }

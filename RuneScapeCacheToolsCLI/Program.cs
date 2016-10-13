@@ -142,7 +142,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static int Main(string[] args)
 		{
-            var vorbisReader = new VorbisReader("C:\\Data\\Temp\\rscache\\soundtrack\\Machines of War.ogg");
+            var vorbisReader = new VorbisReader(File.OpenRead("C:\\local\\temp\\Soundscape.ogg"));
 
 		    var returnCode = 0;
 
