@@ -46,16 +46,16 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             switch (packetType)
             {
                 // Identification header
-                case VorbisIdentificationHeaderPacket.PacketType:
-                    return VorbisIdentificationHeaderPacket.Decode(packetData);
+                case VorbisIdentificationHeader.PacketType:
+                    return VorbisIdentificationHeader.Decode(packetData);
 
                 // Comment header
-                case VorbisCommentHeaderPacket.PacketType:
-                    return VorbisCommentHeaderPacket.Decode(packetData);
+                case VorbisCommentHeader.PacketType:
+                    return VorbisCommentHeader.Decode(packetData);
 
                 // Setup header
-                case VorbisSetupHeaderPacket.PacketType:
-                    return VorbisSetupHeaderPacket.Decode(packetData);
+                case VorbisSetupHeader.PacketType:
+                    return VorbisSetupHeader.Decode(packetData);
 
                 // Audio packet
                 default:

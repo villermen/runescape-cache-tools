@@ -4,19 +4,19 @@ using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisIdentificationHeaderPacket : VorbisHeaderPacket
+    internal class VorbisIdentificationHeader : VorbisHeaderPacket
     {
         public const byte PacketType = 0x01;
         public static readonly ushort[] AllowedBlocksizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
 
-        public static VorbisIdentificationHeaderPacket Decode(byte[] packetData)
+        public static VorbisIdentificationHeader Decode(byte[] packetData)
         {
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
             VerifyHeaderSignature(packetStream, PacketType);
 
-            var packet = new VorbisIdentificationHeaderPacket();
+            var packet = new VorbisIdentificationHeader();
 
             var vorbisVersion = packetReader.ReadUInt32();
             if (vorbisVersion != 0)

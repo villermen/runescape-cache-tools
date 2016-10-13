@@ -3,18 +3,20 @@ using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisSetupHeaderPacket : VorbisHeaderPacket
+    internal class VorbisSetupHeader : VorbisHeaderPacket
     {
         public const byte PacketType = 0x05;
 
-        public static VorbisSetupHeaderPacket Decode(byte[] packetData)
+        public static VorbisSetupHeader Decode(byte[] packetData)
         {
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
             VerifyHeaderSignature(packetStream, PacketType);
 
-            throw new NotImplementedException();
+            // I don't really care about this header yet
+
+            return new VorbisSetupHeader();
         }
     }
 }
