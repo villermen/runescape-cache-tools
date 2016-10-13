@@ -3,36 +3,53 @@ using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
     public class VorbisTests : IDisposable
     {
-        private VorbisReader Reader { get; }
+        private ITestOutputHelper Output { get; }
+
+        private VorbisReader Reader1 { get; }
+        private VorbisReader Reader2 { get; }
         private VorbisWriter Writer { get; }
 
-        public VorbisTests()
+        public VorbisTests(ITestOutputHelper output)
         {
-            Reader = new VorbisReader(File.OpenRead("C:\\local\\temp\\Soundscape.ogg"));
-            Writer = new VorbisWriter(File.OpenWrite("C:\\local\\temp\\Out.ogg"));
+            Output = output;
+
+            Reader1 = new VorbisReader(File.OpenRead("testdata/sample1.ogg"));
+            Reader2 = new VorbisReader(File.OpenRead("testdata/sample2.ogg"));
+
+            Writer = new VorbisWriter(File.OpenWrite("out.ogg"));
         }
 
-        [Fact(Skip = "No files provided yet.")]
+        [Fact]
         public void TestReadComments()
         {
-            Reader.ReadPacket();
-            var commentPacket = Reader.ReadPacket();
+            Reader1.ReadPacket();
+            var commentPacket = Reader1.ReadPacket();
+
+            Output.WriteLine($"Type of packet: {commentPacket.GetType().FullName}");
 
             Assert.IsType<VorbisCommentHeader>(commentPacket);
 
             var commentHeader = (VorbisCommentHeader)commentPacket;
 
-            Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("EXTRACTED_BY", "Villers RuneScape Cache Tools")));
+            Output.WriteLine("Comments in header:");
+            foreach (var userComment in commentHeader.UserComments)
+            {
+                Output.WriteLine($" - {userComment.Item1}: {userComment.Item2}");
+            }
+
+            Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("genre", "Soundtrack")));
         } 
 
         public void Dispose()
         {
-            Reader?.Dispose();
+            Reader1?.Dispose();
+            Reader2?.Dispose();
             Writer?.Dispose();
         }
     }
