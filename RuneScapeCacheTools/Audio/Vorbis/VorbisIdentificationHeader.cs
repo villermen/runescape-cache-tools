@@ -77,5 +77,10 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public int BitrateMinimum { get; private set; }
         public ushort Blocksize0 { get; private set; }
         public ushort Blocksize1 { get; private set; }
+
+        public override void Encode(Stream stream)
+        {
+            
+        }
     }
 }

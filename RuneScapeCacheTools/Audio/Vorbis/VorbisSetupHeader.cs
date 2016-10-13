@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisSetupHeader : VorbisHeaderPacket
+    public class VorbisSetupHeader : VorbisHeaderPacket
     {
         public const byte PacketType = 0x05;
 
@@ -17,6 +17,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             // I don't really care about this header yet
 
             return new VorbisSetupHeader();
+        }
+
+        public override void Encode(Stream stream)
+        {
+            throw new NotImplementedException();
         }
     }
 }

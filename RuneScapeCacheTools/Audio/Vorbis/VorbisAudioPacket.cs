@@ -1,6 +1,9 @@
-﻿namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
+﻿using System;
+using System.IO;
+
+namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisAudioPacket : VorbisPacket
+    public class VorbisAudioPacket : VorbisPacket
     {
         public static VorbisAudioPacket Decode(byte[] packetData)
         {
@@ -18,6 +21,11 @@
             packet.Data = packetData;
 
             return packet;
+        }
+
+        public override void Encode(Stream stream)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

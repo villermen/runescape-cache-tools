@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,6 +9,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
     {
         public static readonly byte[] CapturePattern = { 0x4F, 0x67, 0x67, 0x53 };
         public const byte StreamStructureVersion = 0x00;
+        public const int MaxDataLength = 255 * 255;
 
         public static VorbisPage Decode(Stream pageStream)
         {
@@ -71,7 +73,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             return page;
         }
 
-        private void Encode(Stream pageStream)
+        public void Encode(Stream pageStream)
         {
             // Obtain data without checksum and add the checksum to it
             var data = EncodeWithoutChecksum();
@@ -132,6 +134,25 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public int StreamSerialNumber { get; private set; }
         public int SequenceNumber { get; private set; }
         public int Checksum { get; private set; }
-        public byte[] Data { get; private set; }
+
+        private byte[] _data;
+
+        public byte[] Data
+        {
+            get
+            {
+                return _data;
+            }
+
+            set
+            {
+                if (value.Length > MaxDataLength)
+                {
+                    throw new VorbisException($"One page cannot contain more than {MaxDataLength} bytes.");
+                }
+
+                _data = value;
+            }
+        }
     }
 }

@@ -96,6 +96,7 @@
     <Compile Include="Audio\Vorbis\VorbisReader.cs" />
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
+    <Compile Include="Audio\Vorbis\VorbisWriter.cs" />
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />

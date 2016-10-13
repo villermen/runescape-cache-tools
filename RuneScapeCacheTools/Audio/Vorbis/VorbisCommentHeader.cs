@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisCommentHeader : VorbisHeaderPacket
+    public class VorbisCommentHeader : VorbisHeaderPacket
     {
         public const byte PacketType = 0x03;
 
@@ -70,6 +69,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
 
             _userComments.Add(new Tuple<string, string>(key, value));
+        }
+
+        public override void Encode(Stream stream)
+        {
+            throw new NotImplementedException();
         }
     }
 }

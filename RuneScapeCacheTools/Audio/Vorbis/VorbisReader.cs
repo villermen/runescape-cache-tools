@@ -9,13 +9,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public VorbisReader(Stream input)
         {
             BaseStream = input;
-
-            var i = GetPacket();
-            var c = GetPacket();
-            var s = GetPacket();
         }
 
-        public Stream BaseStream { get; set; }
+        public Stream BaseStream { get; }
 
         private int NextPageSequenceNumber { get; set; }
 
@@ -24,16 +20,16 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         /// </summary>
         private Queue<VorbisPage> PageBuffer { get; } = new Queue<VorbisPage>();
 
-        private VorbisPacket GetPacket()
+        public VorbisPacket ReadPacket()
         {
             // Read pages till a full packet is obtained
             var packetDataWriter = new MemoryStream();
-            var page = GetPage();
+            var page = ReadPage();
             do
             {
                 packetDataWriter.Write(page.Data, 0, page.Data.Length);
 
-                page = GetPage();
+                page = ReadPage();
             }
             while (page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
 
@@ -63,7 +59,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
         }
 
-        private VorbisPage GetPage()
+        public VorbisPage ReadPage()
         {
             return PageBuffer.Count > 0 ? PageBuffer.Dequeue() : VorbisPage.Decode(BaseStream);
         }
