@@ -23,23 +23,37 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             VerifyHeaderSignature(packetStream, PacketType);
 
-            var vendorLength = packetReader.ReadUInt32();
-            var vendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
-            var userCommentListLength = packetReader.ReadUInt32();
+            var packet = new VorbisCommentHeaderPacket();
 
+            var vendorLength = packetReader.ReadUInt32();
+            packet.VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
+
+            var userCommentListLength = packetReader.ReadUInt32();
             for (var userCommentIndex = 0; userCommentIndex < userCommentListLength; userCommentIndex++)
             {
                 var userCommentLength = packetReader.ReadUInt32();
                 var userComment = Encoding.UTF8.GetString(packetReader.ReadBytes((int)userCommentLength));
+
+                var userCommentSeparatorPosition = userComment.IndexOf((char)0x3D);
+                if (userCommentSeparatorPosition == -1)
+                {
+                    throw new VorbisException("No user comment separator (=) found in user comment.");
+                }
+
+                packet.AddUserComment(userComment.Substring(0, userCommentSeparatorPosition), userComment.Substring(userCommentSeparatorPosition + 1));
             }
 
             var framingBit = packetReader.ReadByte() & 0x01;
 
-            if (packet.FramingFlag != 1)
+            if (framingBit != 1)
             {
-                throw new VorbisException("Framing flag should be 1 but is 0.");
+                throw new VorbisException("Framing bit should be 1 but is 0.");
             }
+
+            return packet;
         }
+
+        public string VendorString { get; private set; }
 
         private readonly List<Tuple<string, string>> _userComments = new List<Tuple<string, string>>();
 
