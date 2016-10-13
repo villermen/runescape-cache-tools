@@ -43,7 +43,7 @@ namespace RuneScapeCacheToolsTests
                 Output.WriteLine($" - {userComment.Item1}: {userComment.Item2}");
             }
 
-            Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("genre", "Soundtrack")));
+            Assert.True(commentHeader.UserComments.Contains(new Tuple<string, string>("DATE", "2012")));
         }
 
         public void Dispose()
