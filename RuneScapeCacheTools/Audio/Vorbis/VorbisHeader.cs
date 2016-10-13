@@ -29,8 +29,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public void EncodeHeader(Stream stream)
         {
             var headerWriter = new BinaryWriter(stream);
-            headerWriter.Write(VorbisSignature);
             headerWriter.Write(HeaderPacketType);
+            headerWriter.Write(VorbisSignature);
         }
     }
 }
