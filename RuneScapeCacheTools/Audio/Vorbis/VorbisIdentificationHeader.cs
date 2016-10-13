@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    internal class VorbisIdentificationHeader : VorbisHeaderPacket
+    internal class VorbisIdentificationHeader : VorbisHeader
     {
         public const byte PacketType = 0x01;
         public static readonly ushort[] AllowedBlocksizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
@@ -14,9 +14,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
-            VerifyHeaderSignature(packetStream, PacketType);
-
             var packet = new VorbisIdentificationHeader();
+
+            packet.DecodeHeader(packetStream, PacketType);
 
             var vorbisVersion = packetReader.ReadUInt32();
             if (vorbisVersion != 0)
@@ -80,7 +80,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public override void Encode(Stream stream)
         {
-            
+            EncodeHeader(stream);
+
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Org.BouncyCastle.Bcpg;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
@@ -15,6 +16,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         private int NextPageSequenceNumber { get; set; }
 
+        private bool LastPageRead { get; set; }
+
         /// <summary>
         ///     Can contain upcoming pages in stream that have been peeked at but have not been used yet.
         /// </summary>
@@ -25,16 +28,25 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             // Read pages till a full packet is obtained
             var packetDataWriter = new MemoryStream();
             var page = ReadPage();
+
+            if (page == null)
+            {
+                return null;
+            }
+
             do
             {
                 packetDataWriter.Write(page.Data, 0, page.Data.Length);
 
                 page = ReadPage();
             }
-            while (page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
+            while (page != null && page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
 
             // Last read page is not part of the packet: Save it for later.
-            PageBuffer.Enqueue(page);
+            if (page != null)
+            {
+                PageBuffer.Enqueue(page);
+            }
 
             var packetData = packetDataWriter.ToArray();
             var packetType = packetData[0];
@@ -61,7 +73,19 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public VorbisPage ReadPage()
         {
-            return PageBuffer.Count > 0 ? PageBuffer.Dequeue() : VorbisPage.Decode(BaseStream);
+            if (LastPageRead)
+            {
+                return null;
+            }
+
+            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : VorbisPage.Decode(BaseStream);
+
+            if (page.HeaderType.HasFlag(VorbisPageHeaderType.LastPage))
+            {
+                LastPageRead = true;
+            }
+
+            return page;
         }
 
         public void Dispose()

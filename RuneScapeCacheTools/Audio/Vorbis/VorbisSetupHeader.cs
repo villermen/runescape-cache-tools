@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    public class VorbisSetupHeader : VorbisHeaderPacket
+    public class VorbisSetupHeader : VorbisHeader
     {
         public const byte PacketType = 0x05;
 
@@ -12,16 +12,21 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
-            VerifyHeaderSignature(packetStream, PacketType);
+            var packet = new VorbisSetupHeader();
 
-            // I don't really care about this header yet
+            packet.DecodeHeader(packetStream, PacketType);
 
-            return new VorbisSetupHeader();
+            // I don't really care about the contents of this header yet
+            packet.Data = packetReader.ReadBytes((int)(packetStream.Length - packetStream.Position));
+
+            return packet;
         }
+
+        public byte[] Data { get; set; }
 
         public override void Encode(Stream stream)
         {
-            throw new NotImplementedException();
+            EncodeHeader(stream);
         }
     }
 }

@@ -86,7 +86,7 @@
     <Compile Include="Audio\Vorbis\VorbisCrc.cs" />
     <Compile Include="Audio\Vorbis\VorbisAudioPacket.cs" />
     <Compile Include="Audio\Vorbis\VorbisException.cs" />
-    <Compile Include="Audio\Vorbis\VorbisHeaderPacket.cs" />
+    <Compile Include="Audio\Vorbis\VorbisHeader.cs" />
     <Compile Include="Audio\Vorbis\VorbisIdentificationHeader.cs" />
     <Compile Include="Audio\Vorbis\VorbisPacket.cs" />
     <Compile Include="Audio\Vorbis\VorbisPageHeaderType.cs" />

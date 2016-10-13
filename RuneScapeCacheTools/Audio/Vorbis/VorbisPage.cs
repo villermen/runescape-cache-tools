@@ -91,6 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             dataWriter.Write(checksum);
 
+            dataStream.Position = 0;
             dataStream.CopyTo(pageStream);
         }
 

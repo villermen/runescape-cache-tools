@@ -7,7 +7,7 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
-    public class VorbisCommentHeader : VorbisHeaderPacket
+    public class VorbisCommentHeader : VorbisHeader
     {
         public const byte PacketType = 0x03;
 
@@ -21,9 +21,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
-            VerifyHeaderSignature(packetStream, PacketType);
-
             var packet = new VorbisCommentHeader();
+
+            packet.DecodeHeader(packetStream, PacketType);
 
             var vendorLength = packetReader.ReadUInt32();
             packet.VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
@@ -74,6 +74,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public override void Encode(Stream stream)
         {
+            EncodeHeader(stream);
+
             var packetWriter = new BinaryWriter(stream);
             packetWriter.Write((uint)VendorString.Length);
             packetWriter.Write(Encoding.UTF8.GetBytes(VendorString));
