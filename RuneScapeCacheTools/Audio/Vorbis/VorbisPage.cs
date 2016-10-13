@@ -12,7 +12,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public static VorbisPage Decode(Stream pageStream)
         {
             var page = new VorbisPage();
-
             var pageReader = new BinaryReader(pageStream);
 
             var capturePattern = pageReader.ReadBytes(4);
@@ -33,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             page.StreamSerialNumber = pageReader.ReadInt32();
             page.SequenceNumber = pageReader.ReadInt32();
 
-            page.Checksum = pageReader.ReadInt32(); // TODO: Verify Vorbis page checksum
+            var checksum = pageReader.ReadUInt32();
 
             var segmentCount = pageReader.ReadByte();
             var lacingValues = new byte[segmentCount];
@@ -42,10 +41,90 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
                 lacingValues[segmentIndex] = pageReader.ReadByte();
             }
 
-            var packetLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
-            page.Data = pageReader.ReadBytes(packetLength);
+            var dataLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
+            page.Data = pageReader.ReadBytes(dataLength);
+
+            // Calculate checksum from the obtained values.
+            // If the checksum is calculated from the reconstructed data, there might be inconsistencies (e.g. non-standard lacing values)
+            var crc = new VorbisCrc();
+            var checksumStream = new BinaryWriter(crc);
+            checksumStream.Write(capturePattern);
+            checksumStream.Write(streamStructureVersion);
+            checksumStream.Write((byte)page.HeaderType);
+            checksumStream.Write(page.AbsoluteGranulePosition);
+            checksumStream.Write(page.StreamSerialNumber);
+            checksumStream.Write(page.SequenceNumber);
+            checksumStream.Write(0); // Empty checksum
+            checksumStream.Write(segmentCount);
+            foreach (var lacingValue in lacingValues)
+            {
+                checksumStream.Write(lacingValue);
+            }
+            checksumStream.Write(page.Data);
+
+            var calculatedChecksum = crc.Value;
+            if (checksum != calculatedChecksum)
+            {
+                throw new VorbisException($"Calculated checksum \"{calculatedChecksum}\" doesn't match obtained checksum \"{checksum}\".");
+            }
 
             return page;
+        }
+
+        private void Encode(Stream pageStream)
+        {
+            // Obtain data without checksum and add the checksum to it
+            var data = EncodeWithoutChecksum();
+
+            var crc = new VorbisCrc();
+            crc.Update(data);
+            var checksum = crc.Value;
+
+            var dataStream = new MemoryStream(data)
+            {
+                Position = 4 + 1 + 1 + 8 + 4 + 4
+            };
+
+            var dataWriter = new BinaryWriter(dataStream);
+
+            dataWriter.Write(checksum);
+
+            dataStream.CopyTo(pageStream);
+        }
+
+        private byte[] EncodeWithoutChecksum()
+        {
+            var pageStream = new MemoryStream();
+            var pageWriter = new BinaryWriter(pageStream);
+
+            pageWriter.Write(CapturePattern);
+            pageWriter.Write(StreamStructureVersion);
+            pageWriter.Write((byte)HeaderType);
+            pageWriter.Write(AbsoluteGranulePosition);
+            pageWriter.Write(StreamSerialNumber);
+            pageWriter.Write(SequenceNumber);
+            pageWriter.Write(0);
+
+            var lacingValues = GetLacingValues();
+
+            pageWriter.Write((byte)lacingValues.Length);
+
+            foreach (var lacingValue in lacingValues)
+            {
+                pageWriter.Write(lacingValue);
+            }
+
+            pageWriter.Write(Data);
+
+            return pageStream.ToArray();
+        }
+
+        private byte[] GetLacingValues()
+        {
+            var dataLength = Data.Length;
+            var lacingValues = Enumerable.Repeat((byte)255, dataLength / 255).ToList();
+            lacingValues.Add((byte)(dataLength % 255));
+            return lacingValues.ToArray();
         }
 
         public VorbisPageHeaderType HeaderType { get; private set; }
