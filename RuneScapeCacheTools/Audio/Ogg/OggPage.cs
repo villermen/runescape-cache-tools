@@ -51,7 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var streamStructureVersion = pageReader.ReadByte();
             if (streamStructureVersion != StreamStructureVersion)
             {
-                throw new VorbisException($"Invalid stream structure version \"{streamStructureVersion}\", only Vorbis I is supported.");
+                throw new OggException($"Invalid stream structure version \"{streamStructureVersion}\", only Vorbis I is supported.");
             }
 
             HeaderType = (VorbisPageHeaderType)pageReader.ReadByte();
