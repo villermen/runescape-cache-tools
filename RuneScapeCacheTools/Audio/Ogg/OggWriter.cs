@@ -13,6 +13,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public Stream BaseStream { get; }
 
+        public void Dispose()
+        {
+            BaseStream?.Dispose();
+        }
+
         public void WritePacket(VorbisPacket packet)
         {
             foreach (var page in packet.ToPages())
@@ -24,11 +29,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         public void WritePage(OggPage page)
         {
             page.Encode(BaseStream);
-        }
-
-        public void Dispose()
-        {
-            BaseStream?.Dispose();
         }
     }
 }

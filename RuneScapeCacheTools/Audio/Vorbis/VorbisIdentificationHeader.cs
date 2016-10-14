@@ -7,8 +7,16 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
     internal class VorbisIdentificationHeader : VorbisHeader
     {
         public const byte PacketType = 0x01;
-        public static readonly ushort[] AllowedBlocksizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
         public const uint VorbisVersion = 0;
+        public static readonly ushort[] AllowedBlocksizes = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+
+        public byte AudioChannels { get; private set; }
+        public uint AudioSampleRate { get; private set; }
+        public int BitrateMaximum { get; private set; }
+        public int BitrateMinimum { get; private set; }
+        public int BitrateNominal { get; private set; }
+        public ushort Blocksize0 { get; private set; }
+        public ushort Blocksize1 { get; private set; }
 
         public static VorbisIdentificationHeader Decode(byte[] packetData)
         {
@@ -17,10 +25,10 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             var packet = new VorbisIdentificationHeader();
 
-            packet.DecodeHeader(packetStream, VorbisIdentificationHeader.PacketType);
+            packet.DecodeHeader(packetStream, PacketType);
 
             var vorbisVersion = packetReader.ReadUInt32();
-            if (vorbisVersion != VorbisIdentificationHeader.VorbisVersion)
+            if (vorbisVersion != VorbisVersion)
             {
                 throw new VorbisException("Vorbis version should report 0 (Vorbis I).");
             }
@@ -41,17 +49,17 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             packet.BitrateNominal = packetReader.ReadInt32();
             packet.BitrateMinimum = packetReader.ReadInt32();
 
-            byte blocksize = packetReader.ReadByte();
+            var blocksize = packetReader.ReadByte();
 
             packet.Blocksize0 = (ushort)Math.Pow(2, blocksize & 0x0F);
             packet.Blocksize1 = (ushort)Math.Pow(2, blocksize >> 4);
 
-            if (!VorbisIdentificationHeader.AllowedBlocksizes.Contains(packet.Blocksize0))
+            if (!AllowedBlocksizes.Contains(packet.Blocksize0))
             {
                 throw new VorbisException($"Invalid first blocksize \"{packet.Blocksize0}\".");
             }
 
-            if (!VorbisIdentificationHeader.AllowedBlocksizes.Contains(packet.Blocksize1))
+            if (!AllowedBlocksizes.Contains(packet.Blocksize1))
             {
                 throw new VorbisException($"Invalid second blocksize \"{packet.Blocksize1}\".");
             }
@@ -71,20 +79,12 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             return packet;
         }
 
-        public byte AudioChannels { get; private set; }
-        public uint AudioSampleRate { get; private set; }
-        public int BitrateMaximum { get; private set; }
-        public int BitrateNominal { get; private set; }
-        public int BitrateMinimum { get; private set; }
-        public ushort Blocksize0 { get; private set; }
-        public ushort Blocksize1 { get; private set; }
-
         public override void Encode(Stream stream)
         {
             EncodeHeader(stream);
 
             var packetWriter = new BinaryWriter(stream);
-            packetWriter.Write(VorbisIdentificationHeader.VorbisVersion);
+            packetWriter.Write(VorbisVersion);
             packetWriter.Write(AudioChannels);
             packetWriter.Write(AudioSampleRate);
             packetWriter.Write(BitrateMaximum);

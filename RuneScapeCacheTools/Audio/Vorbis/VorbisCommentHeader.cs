@@ -10,10 +10,16 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
     {
         public const byte PacketType = 0x03;
 
+        public IReadOnlyCollection<Tuple<string, string>> UserComments;
+
+        private readonly List<Tuple<string, string>> _userComments = new List<Tuple<string, string>>();
+
         public VorbisCommentHeader()
         {
             UserComments = new ReadOnlyCollection<Tuple<string, string>>(_userComments);
         }
+
+        public string VendorString { get; private set; }
 
         public static VorbisCommentHeader Decode(byte[] packetData)
         {
@@ -22,7 +28,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             var packet = new VorbisCommentHeader();
 
-            packet.DecodeHeader(packetStream, VorbisCommentHeader.PacketType);
+            packet.DecodeHeader(packetStream, PacketType);
 
             var vendorLength = packetReader.ReadUInt32();
             packet.VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
@@ -52,25 +58,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             return packet;
         }
 
-        public string VendorString { get; private set; }
-
-        private readonly List<Tuple<string, string>> _userComments = new List<Tuple<string, string>>();
-
-        public IReadOnlyCollection<Tuple<string, string>> UserComments;
-
-        public void AddUserComment(string key, string value)
-        {
-            foreach (var ch in key)
-            {
-                if (ch < 0x20 || ch > 0x7D || ch == 0x3D)
-                {
-                    throw new VorbisException($"Invalid character \"{ch}\" in comment key.");
-                }
-            }
-
-            _userComments.Add(new Tuple<string, string>(key, value));
-        }
-
         public override void Encode(Stream stream)
         {
             EncodeHeader(stream);
@@ -86,6 +73,19 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
                 packetWriter.Write(Encoding.UTF8.GetBytes(userComment.Item2));
             }
             packetWriter.Write((byte)1);
+        }
+
+        public void AddUserComment(string key, string value)
+        {
+            foreach (var ch in key)
+            {
+                if ((ch < 0x20) || (ch > 0x7D) || (ch == 0x3D))
+                {
+                    throw new VorbisException($"Invalid character \"{ch}\" in comment key.");
+                }
+            }
+
+            _userComments.Add(new Tuple<string, string>(key, value));
         }
     }
 }

@@ -14,14 +14,19 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public Stream BaseStream { get; }
 
-        private int NextPageSequenceNumber { get; set; }
-
         private bool LastPageRead { get; set; }
+
+        private int NextPageSequenceNumber { get; set; }
 
         /// <summary>
         ///     Can contain upcoming pages in stream that have been peeked at but have not been used yet.
         /// </summary>
         private Queue<OggPage> PageBuffer { get; } = new Queue<OggPage>();
+
+        public void Dispose()
+        {
+            BaseStream?.Dispose();
+        }
 
         public VorbisPacket ReadPacket()
         {
@@ -40,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
                 page = ReadPage();
             }
-            while (page != null && page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
+            while ((page != null) && page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
 
             // Last read page is not part of the packet: Save it for later.
             if (page != null)
@@ -86,11 +91,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             }
 
             return page;
-        }
-
-        public void Dispose()
-        {
-            BaseStream?.Dispose();
         }
     }
 }

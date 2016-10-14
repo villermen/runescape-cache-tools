@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         var existingVersion = GetVersionFromExportedTrackFile(outputPath);
 
                         if (existingVersion == jagaFileInfo.Version)
-                        {                 
+                        {
                             var logMethod = nameFilters.Length > 0 ? (Action<string>)Logger.Info : Logger.Debug;
 
                             logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
@@ -220,9 +220,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         public int GetVersionFromExportedTrackFile(string path)
         {
-            using (var vorbisReader = new NVorbis.VorbisReader(path))
+            using (var vorbisReader = new VorbisReader(path))
             {
-
                 foreach (var comment in vorbisReader.Comments)
                 {
                     if (!comment.StartsWith("VERSION=", true, null))

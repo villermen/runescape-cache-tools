@@ -7,9 +7,32 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
     public class OggPage
     {
-        public static readonly byte[] CapturePattern = { 0x4F, 0x67, 0x67, 0x53 };
-        public const byte StreamStructureVersion = 0x00;
         public const int MaxDataLength = 255 * 255;
+        public const byte StreamStructureVersion = 0x00;
+        public static readonly byte[] CapturePattern = { 0x4F, 0x67, 0x67, 0x53 };
+
+        private byte[] _data;
+        public long AbsoluteGranulePosition { get; private set; }
+        public int Checksum { get; private set; }
+
+        public byte[] Data
+        {
+            get { return _data; }
+
+            set
+            {
+                if (value.Length > MaxDataLength)
+                {
+                    throw new VorbisException($"One page cannot contain more than {MaxDataLength} bytes.");
+                }
+
+                _data = value;
+            }
+        }
+
+        public VorbisPageHeaderType HeaderType { get; private set; }
+        public int SequenceNumber { get; private set; }
+        public int StreamSerialNumber { get; private set; }
 
         public static OggPage Decode(Stream pageStream)
         {
@@ -17,13 +40,13 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var pageReader = new BinaryReader(pageStream);
 
             var capturePattern = pageReader.ReadBytes(4);
-            if (!capturePattern.SequenceEqual(OggPage.CapturePattern))
+            if (!capturePattern.SequenceEqual(CapturePattern))
             {
                 throw new OggException($"Invalid capture pattern \"0x{BitConverter.ToString(capturePattern)}\" (magic number).");
             }
 
             var streamStructureVersion = pageReader.ReadByte();
-            if (streamStructureVersion != OggPage.StreamStructureVersion)
+            if (streamStructureVersion != StreamStructureVersion)
             {
                 throw new VorbisException($"Invalid stream structure version \"{streamStructureVersion}\", only Vorbis I is supported.");
             }
@@ -100,8 +123,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var pageStream = new MemoryStream();
             var pageWriter = new BinaryWriter(pageStream);
 
-            pageWriter.Write(OggPage.CapturePattern);
-            pageWriter.Write(OggPage.StreamStructureVersion);
+            pageWriter.Write(CapturePattern);
+            pageWriter.Write(StreamStructureVersion);
             pageWriter.Write((byte)HeaderType);
             pageWriter.Write(AbsoluteGranulePosition);
             pageWriter.Write(StreamSerialNumber);
@@ -128,32 +151,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var lacingValues = Enumerable.Repeat((byte)255, dataLength / 255).ToList();
             lacingValues.Add((byte)(dataLength % 255));
             return lacingValues.ToArray();
-        }
-
-        public VorbisPageHeaderType HeaderType { get; private set; }
-        public long AbsoluteGranulePosition { get; private set; }
-        public int StreamSerialNumber { get; private set; }
-        public int SequenceNumber { get; private set; }
-        public int Checksum { get; private set; }
-
-        private byte[] _data;
-
-        public byte[] Data
-        {
-            get
-            {
-                return _data;
-            }
-
-            set
-            {
-                if (value.Length > OggPage.MaxDataLength)
-                {
-                    throw new VorbisException($"One page cannot contain more than {OggPage.MaxDataLength} bytes.");
-                }
-
-                _data = value;
-            }
         }
     }
 }

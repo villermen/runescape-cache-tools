@@ -7,6 +7,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
     {
         public static readonly byte[] VorbisSignature = { 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73 };
 
+        public byte HeaderPacketType { get; private set; }
+
         public void DecodeHeader(Stream dataStream, byte expectedPacketType)
         {
             var dataReader = new BinaryReader(dataStream);
@@ -18,19 +20,17 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
 
             var vorbisSignature = dataReader.ReadBytes(6);
-            if (!vorbisSignature.SequenceEqual(VorbisHeader.VorbisSignature))
+            if (!vorbisSignature.SequenceEqual(VorbisSignature))
             {
                 throw new VorbisException("Vorbis header signature incorrect.");
             }
         }
 
-        public byte HeaderPacketType { get; private set; }
-
         public void EncodeHeader(Stream stream)
         {
             var headerWriter = new BinaryWriter(stream);
             headerWriter.Write(HeaderPacketType);
-            headerWriter.Write(VorbisHeader.VorbisSignature);
+            headerWriter.Write(VorbisSignature);
         }
     }
 }

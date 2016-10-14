@@ -4,6 +4,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
     public class VorbisAudioPacket : VorbisPacket
     {
+        /// <summary>
+        ///     The full undecoded data of the packet.
+        /// </summary>
+        public byte[] Data { get; private set; }
+
         public static VorbisAudioPacket Decode(byte[] packetData)
         {
             var packet = new VorbisAudioPacket();
@@ -26,10 +31,5 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         {
             stream.Write(Data, 0, Data.Length);
         }
-
-        /// <summary>
-        /// The full undecoded data of the packet.
-        /// </summary>
-        public byte[] Data { get; private set; }
     }
 }
