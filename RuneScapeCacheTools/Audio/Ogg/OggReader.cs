@@ -72,9 +72,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         ///     Reads Ogg pages until a full packet is obtained.
         /// </summary>
         /// <returns></returns>
-        public byte[] ReadOggPacket()
+        public OggPacket ReadOggPacket()
         {
-            var packetDataStream = new MemoryStream();
+            var packet = new OggPacket();
 
             var page = ReadPage();
 
@@ -88,7 +88,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
             while (true)
             {
-                packetDataStream.Write(page.Data, 0, page.Data.Length);
+                packet.Pages.Add(page);
 
                 page = ReadPage();
 
@@ -101,11 +101,14 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
                 }
             }
 
-            return packetDataStream.ToArray();
+            return packet;
         }
 
         public OggPage ReadPage()
         {
+            // TODO: Convert to Page constructor?
+            asdf
+
             // Return null when the physical bitstream has ended
             if (FirstPageRead && LogicalBitstreams.Count == 0)
             {

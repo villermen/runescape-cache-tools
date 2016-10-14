@@ -104,7 +104,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         ///     Further details necessary for writing to a stream like sequence numbers must still be added.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<OggPage> FromData(byte[] data)
+        public static IEnumerable<OggPage> FromPacket(byte[] data)
         {
             var dataStream = new MemoryStream(data);
             var dataReader = new BinaryReader(dataStream);

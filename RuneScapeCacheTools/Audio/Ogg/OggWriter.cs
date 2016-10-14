@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
@@ -20,7 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public void WritePacket(byte[] packetData)
         {
-            var pages = OggPage.FromData(packetData);
+            var pages = OggPage.FromPacket(packetData);
 
             foreach (var page in pages)
             {
