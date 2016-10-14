@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         public override bool CanRead { get; } = true;
         public override bool CanSeek { get; }
         public override bool CanWrite { get; }
-        public override long Length { get; }
+        public override long Length => Pages.Aggregate(0, (current, page) => current + page.Data.Length);
         public override long Position { get; set; }
     }
 }

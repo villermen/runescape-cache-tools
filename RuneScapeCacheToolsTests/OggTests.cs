@@ -50,10 +50,10 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestTransferOggPackets()
         {
-            byte[] oggPacket;
+            OggPacket oggPacket;
             while ((oggPacket = Reader1.ReadOggPacket()) != null)
             {
-                Writer.WritePacket(oggPacket);
+                Writer.WriteOggPacket(oggPacket);
             }
 
             // Unfinished

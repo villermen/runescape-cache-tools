@@ -17,11 +17,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             BaseStream?.Dispose();
         }
 
-        public void WritePacket(byte[] packetData)
+        public void WriteOggPacket(OggPacket packet)
         {
-            var pages = OggPage.FromPacket(packetData);
-
-            foreach (var page in pages)
+            foreach (var page in packet.Pages)
             {
                 WritePage(page);
             }

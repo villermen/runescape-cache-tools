@@ -7,6 +7,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
     public class OggReader : IDisposable
     {
+        // TODO: Is interleaving between packets possible?
+
         public OggReader(Stream input)
         {
             BaseStream = input;
@@ -27,10 +29,10 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         private OggPage NextPage { get; set; }
 
         /// <summary>
-        ///     Might contain a stream of the bytes left over after the previous Vorbis packet was read.
+        ///     Might contain a packet containing the data left over after the previous Vorbis packet was read.
         ///     Indicates that another Vorbis packet is available if not null.
         /// </summary>
-        private MemoryStream VorbisPacketStream { get; set; }
+        private Stream CurrentOggPacket { get; set; }
 
         public void Dispose()
         {
@@ -39,13 +41,13 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         /// <summary>
         ///     Multiple Vorbis packets can be contained in one Ogg packet.
-        ///     This packet reads out one vorbis packet from a fresh or previously read Ogg packet.
+        ///     This packet reads out one vorbis packet from an Ogg packet.
         /// </summary>
         /// <returns></returns>
         public VorbisPacket ReadVorbisPacket()
         {
             // Obtain a new Ogg packet if the previous one is fully processed
-            if (VorbisPacketStream == null)
+            if (CurrentOggPacket == null)
             {
                 var oggPacket = ReadOggPacket();
 
@@ -54,22 +56,22 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
                     return null;
                 }
 
-                VorbisPacketStream = new MemoryStream(oggPacket);
+                CurrentOggPacket = oggPacket;
             }
 
-            var packet = VorbisPacket.Decode(VorbisPacketStream);
+            var packet = VorbisPacket.Decode(CurrentOggPacket);
 
             // Clear the packet stream if we have read it fully
-            if (VorbisPacketStream.Length - VorbisPacketStream.Position == 0)
+            if (CurrentOggPacket.Length - CurrentOggPacket.Position == 0)
             {
-                VorbisPacketStream = null;
+                CurrentOggPacket = null;
             }
 
             return packet;
         }
 
         /// <summary>
-        ///     Reads Ogg pages until a full packet is obtained.
+        ///     Reads a complete Ogg packet from the stream.
         /// </summary>
         /// <returns></returns>
         public OggPacket ReadOggPacket()
@@ -79,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var page = ReadPage();
 
             // Cancel reading Vorbis packets from the previous Ogg packet, since we've progressed further now
-            VorbisPacketStream = null;
+            CurrentOggPacket = null;
 
             if (page == null)
             {
@@ -106,9 +108,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public OggPage ReadPage()
         {
-            // TODO: Convert to Page constructor?
-            asdf
-
             // Return null when the physical bitstream has ended
             if (FirstPageRead && LogicalBitstreams.Count == 0)
             {
@@ -121,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             NextPage = null;
 
             // Cancel reading packets from the previous page, since we've progressed further now
-            VorbisPacketStream = null;
+            CurrentOggPacket = null;
 
             // Add the logical strema if this was its first packet
             if (page.HeaderType.HasFlag(VorbisPageHeaderType.FirstPage))
