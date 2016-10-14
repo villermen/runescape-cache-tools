@@ -18,9 +18,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         public ushort Blocksize0 { get; private set; }
         public ushort Blocksize1 { get; private set; }
 
-        public VorbisIdentificationHeader(byte[] packetData)
+        public VorbisIdentificationHeader(Stream packetStream)
         {
-            var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
             DecodeHeader(packetStream, PacketType);

@@ -14,78 +14,139 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public Stream BaseStream { get; }
 
-        private bool LastPageRead { get; set; }
+        /// <summary>
+        ///     Maps the serial number of the logical bitstreams encountered in the stream to their last read sequence number.
+        /// </summary>
+        private Dictionary<int, int> LogicalBitstreams { get; } = new Dictionary<int, int>();
+
+        private bool FirstPageRead { get; set; }
 
         /// <summary>
-        ///     Contains upcoming pages in stream that have been peeked at but have not been used yet.
+        ///     Might contain the next page in the stream, if it was needed only for its header.
         /// </summary>
-        private Queue<OggPage> PageBuffer { get; } = new Queue<OggPage>();
+        private OggPage NextPage { get; set; }
+
+        /// <summary>
+        ///     Might contain a stream of the bytes left over after the previous Vorbis packet was read.
+        ///     Indicates that another Vorbis packet is available if not null.
+        /// </summary>
+        private MemoryStream VorbisPacketStream { get; set; }
 
         public void Dispose()
         {
             BaseStream?.Dispose();
         }
 
+        /// <summary>
+        ///     Multiple Vorbis packets can be contained in one Ogg packet.
+        ///     This packet reads out one vorbis packet from a fresh or previously read Ogg packet.
+        /// </summary>
+        /// <returns></returns>
         public VorbisPacket ReadVorbisPacket()
         {
-            // Read pages till a full packet is obtained
-            var packetDataWriter = new MemoryStream();
+            // Obtain a new Ogg packet if the previous one is fully processed
+            if (VorbisPacketStream == null)
+            {
+                var oggPacket = ReadOggPacket();
+
+                if (oggPacket == null)
+                {
+                    return null;
+                }
+
+                VorbisPacketStream = new MemoryStream(oggPacket);
+            }
+
+            var packet = VorbisPacket.Decode(VorbisPacketStream);
+
+            // Clear the packet stream if we have read it fully
+            if (VorbisPacketStream.Length - VorbisPacketStream.Position == 0)
+            {
+                VorbisPacketStream = null;
+            }
+
+            return packet;
+        }
+
+        /// <summary>
+        ///     Reads Ogg pages until a full packet is obtained.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ReadOggPacket()
+        {
+            var packetDataStream = new MemoryStream();
+
             var page = ReadPage();
+
+            // Cancel reading Vorbis packets from the previous Ogg packet, since we've progressed further now
+            VorbisPacketStream = null;
 
             if (page == null)
             {
                 return null;
             }
 
-            do
+            while (true)
             {
-                packetDataWriter.Write(page.Data, 0, page.Data.Length);
+                packetDataStream.Write(page.Data, 0, page.Data.Length);
 
                 page = ReadPage();
+
+                // Check if the next page is a continuation of this one
+                if (page == null || !page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket))
+                {
+                    // Next page is part of the next packet, or null. Save it for later.
+                    NextPage = page;
+                    break;
+                }
             }
-            while ((page != null) && page.HeaderType.HasFlag(VorbisPageHeaderType.ContinuedPacket));
 
-            // Last read page is not part of the packet: Save it for later.
-            if (page != null)
-            {
-                PageBuffer.Enqueue(page);
-            }
-
-            var packetData = packetDataWriter.ToArray();
-            var packetType = packetData[0];
-
-            switch (packetType)
-            {
-                // Identification header
-                case VorbisIdentificationHeader.PacketType:
-                    return new VorbisIdentificationHeader(packetData);
-
-                // Comment header
-                case VorbisCommentHeader.PacketType:
-                    return new VorbisCommentHeader(packetData);
-
-                // Setup header
-                case VorbisSetupHeader.PacketType:
-                    return new VorbisSetupHeader(packetData);
-
-                // Audio packet
-                default:
-                    return new VorbisAudioPacket(packetData);
-            }
+            return packetDataStream.ToArray();
         }
 
         public OggPage ReadPage()
         {
-            if (LastPageRead)
+            // Return null when the physical bitstream has ended
+            if (FirstPageRead && LogicalBitstreams.Count == 0)
             {
                 return null;
             }
 
-            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : new OggPage(BaseStream);
+            var page = NextPage ?? new OggPage(BaseStream);
 
+            FirstPageRead = true;
+            NextPage = null;
+
+            // Cancel reading packets from the previous page, since we've progressed further now
+            VorbisPacketStream = null;
+
+            // Add the logical strema if this was its first packet
+            if (page.HeaderType.HasFlag(VorbisPageHeaderType.FirstPage))
+            {
+                LogicalBitstreams.Add(page.StreamSerialNumber, page.SequenceNumber);
+            }
+            else
+            {
+                // Logical stream must be known if this is not its first packet
+                if (!LogicalBitstreams.ContainsKey(page.StreamSerialNumber))
+                {
+                    throw new OggException($"Logical stream with serial number {page.StreamSerialNumber} was not started, yet a page of it was obtained.");
+                }
+
+                // Sequence number must be one higher than the previous one if not a continuation
+                if (page.SequenceNumber != LogicalBitstreams[page.StreamSerialNumber] + 1 && page.SequenceNumber != LogicalBitstreams[page.StreamSerialNumber])
+                {
+                    throw new OggException($"Obtained page does has wrong sequence number {page.SequenceNumber}, expected was {LogicalBitstreams[page.StreamSerialNumber] + 1}.");
+                }
+
+                // Update the sequence number
+                LogicalBitstreams[page.StreamSerialNumber] = page.SequenceNumber;
+            }
+
+            // Remove the logical stream if this was its last packet
             if (page.HeaderType.HasFlag(VorbisPageHeaderType.LastPage))
             {
-                LastPageRead = true;
+                LogicalBitstreams.Remove(page.StreamSerialNumber);
             }
 
             return page;

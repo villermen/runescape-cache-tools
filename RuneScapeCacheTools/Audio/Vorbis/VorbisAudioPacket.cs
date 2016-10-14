@@ -9,18 +9,20 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         /// </summary>
         public byte[] Data { get; private set; }
 
-        public VorbisAudioPacket(byte[] packetData)
+        public VorbisAudioPacket(Stream packetStream)
         {
+            var packetReader = new BinaryReader(packetStream);
+
             // Verify that this is indeed an audio packet
-            var packetType = packetData[0] & 0x01;
+            var packetType = packetReader.ReadByte() & 0x01;
 
             if (packetType != 0)
             {
                 throw new VorbisException("Audio packet type must be 0, but 1 was read.");
             }
 
-            // I don't really care for the breakdown of the audio packet for now
-            Data = packetData;
+            // I don't really care for the contents of the audio packet for now
+            Data = packetReader.ReadBytes((int)(packetStream.Length - packetStream.Position));
         }
 
         public override void Encode(Stream stream)

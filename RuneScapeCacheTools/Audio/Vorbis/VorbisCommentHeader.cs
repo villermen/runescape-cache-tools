@@ -21,9 +21,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public string VendorString { get; private set; }
 
-        public VorbisCommentHeader(byte[] packetData) : this()
+        public VorbisCommentHeader(Stream packetStream) : this()
         {
-            var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
             DecodeHeader(packetStream, PacketType);
