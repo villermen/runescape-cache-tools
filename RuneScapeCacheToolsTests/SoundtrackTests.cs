@@ -35,7 +35,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        [Fact]
+        [Fact(Skip = "Doesn't work properly on Linux with oggCat")]
         public void TestExtract()
         {
             var startTime = DateTime.UtcNow;
