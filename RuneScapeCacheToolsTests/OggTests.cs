@@ -56,7 +56,7 @@ namespace RuneScapeCacheToolsTests
                 Writer.WriteOggPacket(oggPacket);
             }
 
-            // Unfinished
+            // TODO: Doesn't work if creating lacing values ourselves. Why?
         }
 
         public void Dispose()
