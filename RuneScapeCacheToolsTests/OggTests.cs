@@ -57,6 +57,7 @@ namespace RuneScapeCacheToolsTests
             }
 
             // TODO: Doesn't work if creating lacing values ourselves. Why?
+            // TODO: Last packet is missing I believe.
         }
 
         public void Dispose()
