@@ -9,6 +9,12 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public byte HeaderPacketType { get; private set; }
 
+        /// <summary>
+        ///     Decodes and verifies the header of this header from the stream.
+        ///     Use before decoding the header's data.
+        /// </summary>
+        /// <param name="dataStream"></param>
+        /// <param name="expectedPacketType"></param>
         public void DecodeHeader(Stream dataStream, byte expectedPacketType)
         {
             var dataReader = new BinaryReader(dataStream);
@@ -26,6 +32,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
         }
 
+        /// <summary>
+        ///     Encode header of this header to the stream.
+        ///     Use before encoding the header's data.
+        /// </summary>
+        /// <param name="stream"></param>
         public void EncodeHeader(Stream stream)
         {
             var headerWriter = new BinaryWriter(stream);

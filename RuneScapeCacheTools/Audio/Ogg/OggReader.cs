@@ -58,19 +58,19 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             {
                 // Identification header
                 case VorbisIdentificationHeader.PacketType:
-                    return VorbisIdentificationHeader.Decode(packetData);
+                    return new VorbisIdentificationHeader(packetData);
 
                 // Comment header
                 case VorbisCommentHeader.PacketType:
-                    return VorbisCommentHeader.Decode(packetData);
+                    return new VorbisCommentHeader(packetData);
 
                 // Setup header
                 case VorbisSetupHeader.PacketType:
-                    return VorbisSetupHeader.Decode(packetData);
+                    return new VorbisSetupHeader(packetData);
 
                 // Audio packet
                 default:
-                    return VorbisAudioPacket.Decode(packetData);
+                    return new VorbisAudioPacket(packetData);
             }
         }
 
@@ -81,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
                 return null;
             }
 
-            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : OggPage.Decode(BaseStream);
+            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : new OggPage(BaseStream);
 
             if (page.HeaderType.HasFlag(VorbisPageHeaderType.LastPage))
             {

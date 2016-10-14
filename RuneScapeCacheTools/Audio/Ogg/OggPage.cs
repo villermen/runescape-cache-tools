@@ -34,9 +34,12 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         public int SequenceNumber { get; private set; }
         public int StreamSerialNumber { get; private set; }
 
-        public static OggPage Decode(Stream pageStream)
+        public OggPage()
+        { 
+        }
+
+        public OggPage(Stream pageStream)
         {
-            var page = new OggPage();
             var pageReader = new BinaryReader(pageStream);
 
             var capturePattern = pageReader.ReadBytes(4);
@@ -51,11 +54,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
                 throw new VorbisException($"Invalid stream structure version \"{streamStructureVersion}\", only Vorbis I is supported.");
             }
 
-            page.HeaderType = (VorbisPageHeaderType)pageReader.ReadByte();
-            page.AbsoluteGranulePosition = pageReader.ReadInt64();
+            HeaderType = (VorbisPageHeaderType)pageReader.ReadByte();
+            AbsoluteGranulePosition = pageReader.ReadInt64();
 
-            page.StreamSerialNumber = pageReader.ReadInt32();
-            page.SequenceNumber = pageReader.ReadInt32();
+            StreamSerialNumber = pageReader.ReadInt32();
+            SequenceNumber = pageReader.ReadInt32();
 
             var checksum = pageReader.ReadUInt32();
 
@@ -67,33 +70,31 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             }
 
             var dataLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
-            page.Data = pageReader.ReadBytes(dataLength);
+            Data = pageReader.ReadBytes(dataLength);
 
             // Calculate checksum from the obtained values.
             // If the checksum is calculated from the reconstructed data, there might be inconsistencies (e.g. non-standard lacing values)
-            var crc = new VorbisCrc();
+            var crc = new OggCrc();
             var checksumStream = new BinaryWriter(crc);
             checksumStream.Write(capturePattern);
             checksumStream.Write(streamStructureVersion);
-            checksumStream.Write((byte)page.HeaderType);
-            checksumStream.Write(page.AbsoluteGranulePosition);
-            checksumStream.Write(page.StreamSerialNumber);
-            checksumStream.Write(page.SequenceNumber);
+            checksumStream.Write((byte)HeaderType);
+            checksumStream.Write(AbsoluteGranulePosition);
+            checksumStream.Write(StreamSerialNumber);
+            checksumStream.Write(SequenceNumber);
             checksumStream.Write(0); // Empty checksum
             checksumStream.Write(segmentCount);
             foreach (var lacingValue in lacingValues)
             {
                 checksumStream.Write(lacingValue);
             }
-            checksumStream.Write(page.Data);
+            checksumStream.Write(Data);
 
             var calculatedChecksum = crc.Value;
             if (checksum != calculatedChecksum)
             {
-                throw new VorbisException($"Calculated checksum \"{calculatedChecksum}\" doesn't match obtained checksum \"{checksum}\".");
+                throw new OggException($"Calculated checksum \"{calculatedChecksum}\" doesn't match obtained checksum \"{checksum}\".");
             }
-
-            return page;
         }
 
         public void Encode(Stream pageStream)
@@ -101,7 +102,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             // Obtain data without checksum and add the checksum to it
             var data = EncodeWithoutChecksum();
 
-            var crc = new VorbisCrc();
+            var crc = new OggCrc();
             crc.Update(data);
             var checksum = crc.Value;
 

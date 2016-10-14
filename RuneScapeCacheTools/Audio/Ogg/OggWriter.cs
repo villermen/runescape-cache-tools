@@ -20,7 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public void WriteVorbisPacket(VorbisPacket packet)
         {
-            foreach (var page in packet.ToPages())
+            foreach (var page in packet.ToOggPages())
             {
                 WritePage(page);
             }

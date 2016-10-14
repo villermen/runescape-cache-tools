@@ -73,7 +73,7 @@
     <Compile Include="CacheDownloaderTests.cs" />
     <Compile Include="SoundtrackTests.cs" />
     <Compile Include="CacheBaseTests.cs" />
-    <Compile Include="VorbisTests.cs" />
+    <Compile Include="OggTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RuneScapeCacheTools\RuneScapeCacheTools.csproj">

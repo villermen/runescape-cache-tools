@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
+namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
     /// <summary>
     ///     Due to bit order, this algorithm behaves slightly different from the default CRC32 implementation.
     /// </summary>
-    internal class VorbisCrc : Stream
+    internal class OggCrc : Stream
     {
         private const uint polynomial = 0x04c11db7;
         private static readonly uint[] table = new uint[256];
 
-        static VorbisCrc()
+        static OggCrc()
         {
             for (uint i = 0; i < 256; i++)
             {

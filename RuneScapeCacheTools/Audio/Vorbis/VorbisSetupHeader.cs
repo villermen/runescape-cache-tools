@@ -8,19 +8,15 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public byte[] Data { get; set; }
 
-        public static VorbisSetupHeader Decode(byte[] packetData)
+        public VorbisSetupHeader(byte[] packetData)
         {
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
-            var packet = new VorbisSetupHeader();
-
-            packet.DecodeHeader(packetStream, PacketType);
+            DecodeHeader(packetStream, PacketType);
 
             // I don't really care about the contents of this header yet
-            packet.Data = packetReader.ReadBytes((int)(packetStream.Length - packetStream.Position));
-
-            return packet;
+            Data = packetReader.ReadBytes((int)(packetStream.Length - packetStream.Position));
         }
 
         public override void Encode(Stream stream)

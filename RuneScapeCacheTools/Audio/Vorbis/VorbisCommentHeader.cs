@@ -21,17 +21,15 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public string VendorString { get; private set; }
 
-        public static VorbisCommentHeader Decode(byte[] packetData)
+        public VorbisCommentHeader(byte[] packetData) : this()
         {
             var packetStream = new MemoryStream(packetData);
             var packetReader = new BinaryReader(packetStream);
 
-            var packet = new VorbisCommentHeader();
-
-            packet.DecodeHeader(packetStream, PacketType);
+            DecodeHeader(packetStream, PacketType);
 
             var vendorLength = packetReader.ReadUInt32();
-            packet.VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
+            VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));
 
             var userCommentListLength = packetReader.ReadUInt32();
             for (var userCommentIndex = 0; userCommentIndex < userCommentListLength; userCommentIndex++)
@@ -45,7 +43,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
                     throw new VorbisException("No user comment separator (=) found in user comment.");
                 }
 
-                packet.AddUserComment(userComment.Substring(0, userCommentSeparatorPosition), userComment.Substring(userCommentSeparatorPosition + 1));
+                AddUserComment(userComment.Substring(0, userCommentSeparatorPosition), userComment.Substring(userCommentSeparatorPosition + 1));
             }
 
             var framingBit = packetReader.ReadByte() & 0x01;
@@ -54,8 +52,6 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             {
                 throw new VorbisException("Framing bit should be 1 but is 0.");
             }
-
-            return packet;
         }
 
         public override void Encode(Stream stream)

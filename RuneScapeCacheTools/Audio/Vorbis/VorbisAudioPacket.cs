@@ -9,10 +9,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         /// </summary>
         public byte[] Data { get; private set; }
 
-        public static VorbisAudioPacket Decode(byte[] packetData)
+        public VorbisAudioPacket(byte[] packetData)
         {
-            var packet = new VorbisAudioPacket();
-
             // Verify that this is indeed an audio packet
             var packetType = packetData[0] & 0x01;
 
@@ -22,9 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
 
             // I don't really care for the breakdown of the audio packet for now
-            packet.Data = packetData;
-
-            return packet;
+            Data = packetData;
         }
 
         public override void Encode(Stream stream)

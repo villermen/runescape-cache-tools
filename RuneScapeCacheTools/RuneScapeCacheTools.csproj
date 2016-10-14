@@ -83,7 +83,7 @@
     <Compile Include="Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Audio\JagaFile.cs" />
     <Compile Include="Audio\JagaParseException.cs" />
-    <Compile Include="Audio\Vorbis\VorbisCrc.cs" />
+    <Compile Include="Audio\Ogg\OggCrc.cs" />
     <Compile Include="Audio\Vorbis\VorbisAudioPacket.cs" />
     <Compile Include="Audio\Ogg\OggException.cs" />
     <Compile Include="Audio\Vorbis\VorbisException.cs" />

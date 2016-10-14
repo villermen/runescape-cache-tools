@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
-    public class VorbisTests : IDisposable
+    public class OggTests : IDisposable
     {
         private ITestOutputHelper Output { get; }
 
@@ -16,7 +16,7 @@ namespace RuneScapeCacheToolsTests
         private OggReader Reader2 { get; }
         private OggWriter Writer { get; }
 
-        public VorbisTests(ITestOutputHelper output)
+        public OggTests(ITestOutputHelper output)
         {
             Output = output;
 
@@ -29,8 +29,8 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestReadComments()
         {
-            Reader1.ReadPacket();
-            var commentPacket = Reader1.ReadPacket();
+            Reader1.ReadVorbisPacket();
+            var commentPacket = Reader1.ReadVorbisPacket();
 
             Output.WriteLine($"Type of packet: {commentPacket.GetType().FullName}");
 
@@ -51,9 +51,9 @@ namespace RuneScapeCacheToolsTests
         public void TestCombineSamples()
         {
             VorbisPacket packet;
-            while ((packet = Reader1.ReadPacket()) != null)
+            while ((packet = Reader1.ReadVorbisPacket()) != null)
             {
-                Writer.WritePacket(packet);
+                Writer.WriteVorbisPacket(packet);
             }
         }
 
