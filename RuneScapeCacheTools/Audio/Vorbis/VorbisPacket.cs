@@ -15,7 +15,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         ///     Further details necessary for writing to a stream like sequence numbers must still be added.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<OggPage> ToPages()
+        public IEnumerable<OggPage> ToOggPages()
         {
             var packetStream = new MemoryStream();
 

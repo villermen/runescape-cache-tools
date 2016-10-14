@@ -16,10 +16,8 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         private bool LastPageRead { get; set; }
 
-        private int NextPageSequenceNumber { get; set; }
-
         /// <summary>
-        ///     Can contain upcoming pages in stream that have been peeked at but have not been used yet.
+        ///     Contains upcoming pages in stream that have been peeked at but have not been used yet.
         /// </summary>
         private Queue<OggPage> PageBuffer { get; } = new Queue<OggPage>();
 
@@ -28,7 +26,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             BaseStream?.Dispose();
         }
 
-        public VorbisPacket ReadPacket()
+        public VorbisPacket ReadVorbisPacket()
         {
             // Read pages till a full packet is obtained
             var packetDataWriter = new MemoryStream();

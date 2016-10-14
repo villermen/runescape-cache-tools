@@ -149,7 +149,13 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         {
             var dataLength = Data.Length;
             var lacingValues = Enumerable.Repeat((byte)255, dataLength / 255).ToList();
-            lacingValues.Add((byte)(dataLength % 255));
+
+            var remainder = (byte)(dataLength % 255);
+            if (remainder > 0)
+            {
+                lacingValues.Add(remainder);
+            }
+
             return lacingValues.ToArray();
         }
     }
