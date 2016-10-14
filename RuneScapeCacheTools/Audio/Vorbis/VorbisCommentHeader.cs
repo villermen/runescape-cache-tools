@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
-using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
@@ -23,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             var packet = new VorbisCommentHeader();
 
-            packet.DecodeHeader(packetStream, PacketType);
+            packet.DecodeHeader(packetStream, VorbisCommentHeader.PacketType);
 
             var vendorLength = packetReader.ReadUInt32();
             packet.VendorString = Encoding.UTF8.GetString(packetReader.ReadBytes((int)vendorLength));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Audio.Ogg;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
@@ -14,13 +15,13 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         ///     Further details necessary for writing to a stream like sequence numbers must still be added.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<VorbisPage> ToPages()
+        public IEnumerable<OggPage> ToPages()
         {
             var packetStream = new MemoryStream();
 
             Encode(packetStream);
 
-            var pages = new List<VorbisPage>();
+            var pages = new List<OggPage>();
 
             packetStream.Position = 0;
             var packetReader = new BinaryReader(packetStream);
@@ -29,17 +30,17 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             {
                 var remainingLength = (int)(packetStream.Length - packetStream.Position);
 
-                var pageDataLength = Math.Min(remainingLength, VorbisPage.MaxDataLength);
+                var pageDataLength = Math.Min(remainingLength, OggPage.MaxDataLength);
 
-                pages.Add(new VorbisPage
+                pages.Add(new OggPage
                 {
                     Data = packetReader.ReadBytes(pageDataLength)
                 });
 
                 // Add an extra empty "terminator" page when there hasn't been a lacing value lower than 255
-                if (remainingLength == VorbisPage.MaxDataLength)
+                if (remainingLength == OggPage.MaxDataLength)
                 {
-                    pages.Add(new VorbisPage());
+                    pages.Add(new OggPage());
                 }
             }
             while (packetStream.Length - packetStream.Position > 0);

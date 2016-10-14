@@ -19,9 +19,9 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
                 var s = i << 24;
                 for (var j = 0; j < 8; ++j)
                 {
-                    s = (s << 1) ^ (s >= 1U << 31 ? polynomial : 0);
+                    s = (s << 1) ^ (s >= 1U << 31 ? VorbisCrc.polynomial : 0);
                 }
-                table[i] = s;
+                VorbisCrc.table[i] = s;
             }
         }
 
@@ -29,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
         public void Update(byte value)
         {
-            Value = (Value << 8) ^ table[value ^ (Value >> 24)];
+            Value = (Value << 8) ^ VorbisCrc.table[value ^ (Value >> 24)];
         }
 
         public void Update(IEnumerable<byte> data)

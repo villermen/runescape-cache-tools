@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 {
@@ -14,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
 
             var packet = new VorbisSetupHeader();
 
-            packet.DecodeHeader(packetStream, PacketType);
+            packet.DecodeHeader(packetStream, VorbisSetupHeader.PacketType);
 
             // I don't really care about the contents of this header yet
             packet.Data = packetReader.ReadBytes((int)(packetStream.Length - packetStream.Position));

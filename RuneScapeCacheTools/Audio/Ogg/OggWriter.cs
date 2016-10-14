@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 
-namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
+namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
-    public class VorbisWriter : IDisposable
+    public class OggWriter : IDisposable
     {
-        public VorbisWriter(Stream output)
+        public OggWriter(Stream output)
         {
             BaseStream = output;
         }
@@ -20,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
         }
 
-        public void WritePage(VorbisPage page)
+        public void WritePage(OggPage page)
         {
             page.Encode(BaseStream);
         }

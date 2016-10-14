@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Audio.Ogg;
 using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 using Xunit;
 using Xunit.Abstractions;
@@ -11,18 +12,18 @@ namespace RuneScapeCacheToolsTests
     {
         private ITestOutputHelper Output { get; }
 
-        private VorbisReader Reader1 { get; }
-        private VorbisReader Reader2 { get; }
-        private VorbisWriter Writer { get; }
+        private OggReader Reader1 { get; }
+        private OggReader Reader2 { get; }
+        private OggWriter Writer { get; }
 
         public VorbisTests(ITestOutputHelper output)
         {
             Output = output;
 
-            Reader1 = new VorbisReader(File.OpenRead("testdata/sample1.ogg"));
-            Reader2 = new VorbisReader(File.OpenRead("testdata/sample2.ogg"));
+            Reader1 = new OggReader(File.OpenRead("testdata/sample1.ogg"));
+            Reader2 = new OggReader(File.OpenRead("testdata/sample2.ogg"));
 
-            Writer = new VorbisWriter(File.OpenWrite("out.ogg"));
+            Writer = new OggWriter(File.OpenWrite("out.ogg"));
         }
 
         [Fact]

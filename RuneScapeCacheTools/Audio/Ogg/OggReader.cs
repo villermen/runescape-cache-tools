@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Org.BouncyCastle.Bcpg;
+using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 
-namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
+namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 {
-    public class VorbisReader : IDisposable
+    public class OggReader : IDisposable
     {
-        public VorbisReader(Stream input)
+        public OggReader(Stream input)
         {
             BaseStream = input;
         }
@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         /// <summary>
         ///     Can contain upcoming pages in stream that have been peeked at but have not been used yet.
         /// </summary>
-        private Queue<VorbisPage> PageBuffer { get; } = new Queue<VorbisPage>();
+        private Queue<OggPage> PageBuffer { get; } = new Queue<OggPage>();
 
         public VorbisPacket ReadPacket()
         {
@@ -71,14 +71,14 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
         }
 
-        public VorbisPage ReadPage()
+        public OggPage ReadPage()
         {
             if (LastPageRead)
             {
                 return null;
             }
 
-            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : VorbisPage.Decode(BaseStream);
+            var page = PageBuffer.Count > 0 ? PageBuffer.Dequeue() : OggPage.Decode(BaseStream);
 
             if (page.HeaderType.HasFlag(VorbisPageHeaderType.LastPage))
             {

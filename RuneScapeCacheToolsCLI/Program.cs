@@ -5,7 +5,6 @@ using System.Linq;
 using log4net;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
-using Villermen.RuneScapeCacheTools.Audio.Vorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;

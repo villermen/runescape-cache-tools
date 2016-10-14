@@ -85,6 +85,7 @@
     <Compile Include="Audio\JagaParseException.cs" />
     <Compile Include="Audio\Vorbis\VorbisCrc.cs" />
     <Compile Include="Audio\Vorbis\VorbisAudioPacket.cs" />
+    <Compile Include="Audio\Ogg\OggException.cs" />
     <Compile Include="Audio\Vorbis\VorbisException.cs" />
     <Compile Include="Audio\Vorbis\VorbisHeader.cs" />
     <Compile Include="Audio\Vorbis\VorbisIdentificationHeader.cs" />
@@ -92,11 +93,11 @@
     <Compile Include="Audio\Vorbis\VorbisPageHeaderType.cs" />
     <Compile Include="Audio\Vorbis\VorbisSetupHeader.cs" />
     <Compile Include="Audio\Vorbis\VorbisCommentHeader.cs" />
-    <Compile Include="Audio\Vorbis\VorbisPage.cs" />
-    <Compile Include="Audio\Vorbis\VorbisReader.cs" />
+    <Compile Include="Audio\Ogg\OggPage.cs" />
+    <Compile Include="Audio\Ogg\OggReader.cs" />
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
-    <Compile Include="Audio\Vorbis\VorbisWriter.cs" />
+    <Compile Include="Audio\Ogg\OggWriter.cs" />
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />

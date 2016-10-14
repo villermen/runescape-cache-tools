@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
             }
 
             var vorbisSignature = dataReader.ReadBytes(6);
-            if (!vorbisSignature.SequenceEqual(VorbisSignature))
+            if (!vorbisSignature.SequenceEqual(VorbisHeader.VorbisSignature))
             {
                 throw new VorbisException("Vorbis header signature incorrect.");
             }
@@ -30,7 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Vorbis
         {
             var headerWriter = new BinaryWriter(stream);
             headerWriter.Write(HeaderPacketType);
-            headerWriter.Write(VorbisSignature);
+            headerWriter.Write(VorbisHeader.VorbisSignature);
         }
     }
 }
