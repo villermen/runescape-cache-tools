@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Audio.Vorbis;
@@ -95,6 +96,37 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             {
                 throw new OggException($"Calculated checksum \"{calculatedChecksum}\" doesn't match obtained checksum \"{checksum}\".");
             }
+        }
+
+        /// <summary>
+        ///     Converts the data into a page, or multiple pages if the packet exceeds the maximum page length.
+        ///     The pages will only have their data set.
+        ///     Further details necessary for writing to a stream like sequence numbers must still be added.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<OggPage> FromData(byte[] data)
+        {
+            var dataStream = new MemoryStream(data);
+            var dataReader = new BinaryReader(dataStream);
+
+            do
+            {
+                var remainingLength = (int)(dataStream.Length - dataStream.Position);
+
+                var pageDataLength = Math.Min(remainingLength, MaxDataLength);
+
+                yield return new OggPage
+                {
+                    Data = dataReader.ReadBytes(pageDataLength)
+                };
+
+                // Add an extra empty "terminator" page when there hasn't been a lacing value lower than 255
+                if (remainingLength == MaxDataLength)
+                {
+                   yield return new OggPage();
+                }
+            }
+            while (dataStream.Length - dataStream.Position > 0);
         }
 
         public void Encode(Stream pageStream)

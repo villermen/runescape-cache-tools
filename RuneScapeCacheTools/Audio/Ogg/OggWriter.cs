@@ -18,9 +18,11 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             BaseStream?.Dispose();
         }
 
-        public void WriteVorbisPacket(VorbisPacket packet)
+        public void WritePacket(byte[] packetData)
         {
-            foreach (var page in packet.ToOggPages())
+            var pages = OggPage.FromData(packetData);
+
+            foreach (var page in pages)
             {
                 WritePage(page);
             }

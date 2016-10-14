@@ -48,12 +48,12 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact]
-        public void TestCombineSamples()
+        public void TestTransferOggPackets()
         {
-            VorbisPacket packet;
-            while ((packet = Reader1.ReadVorbisPacket()) != null)
+            byte[] oggPacket;
+            while ((oggPacket = Reader1.ReadOggPacket()) != null)
             {
-                Writer.WriteVorbisPacket(packet);
+                Writer.WritePacket(oggPacket);
             }
 
             // Unfinished
