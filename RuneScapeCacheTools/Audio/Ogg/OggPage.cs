@@ -34,6 +34,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
         public VorbisPageHeaderType HeaderType { get; private set; }
         public int SequenceNumber { get; private set; }
         public int StreamSerialNumber { get; private set; }
+        public byte[] LacingValues { get; private set; }
 
         public OggPage()
         { 
@@ -64,13 +65,13 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             var checksum = pageReader.ReadUInt32();
 
             var segmentCount = pageReader.ReadByte();
-            var lacingValues = new byte[segmentCount];
+            LacingValues = new byte[segmentCount];
             for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
             {
-                lacingValues[segmentIndex] = pageReader.ReadByte();
+                LacingValues[segmentIndex] = pageReader.ReadByte();
             }
 
-            var dataLength = lacingValues.Aggregate(0, (total, addition) => total + addition);
+            var dataLength = LacingValues.Aggregate(0, (total, addition) => total + addition);
             Data = pageReader.ReadBytes(dataLength);
 
             // Calculate checksum from the obtained values.
@@ -85,7 +86,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             checksumStream.Write(SequenceNumber);
             checksumStream.Write(0); // Empty checksum
             checksumStream.Write(segmentCount);
-            foreach (var lacingValue in lacingValues)
+            foreach (var lacingValue in LacingValues)
             {
                 checksumStream.Write(lacingValue);
             }
@@ -166,11 +167,14 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             pageWriter.Write(SequenceNumber);
             pageWriter.Write(0);
 
-            var lacingValues = GetLacingValues();
+            if (LacingValues == null)
+            {
+                CalculateLacingValues();
+            }
 
-            pageWriter.Write((byte)lacingValues.Length);
+            pageWriter.Write((byte)LacingValues.Length);
 
-            foreach (var lacingValue in lacingValues)
+            foreach (var lacingValue in LacingValues)
             {
                 pageWriter.Write(lacingValue);
             }
@@ -180,18 +184,20 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
             return pageStream.ToArray();
         }
 
-        private byte[] GetLacingValues()
+        private void CalculateLacingValues()
         {
             var dataLength = Data.Length;
             var lacingValues = Enumerable.Repeat((byte)255, dataLength / 255).ToList();
 
             var remainder = (byte)(dataLength % 255);
-            if (remainder > 0)
+
+            // If the data length is the maximum allowed, a zero length page must be added
+            if (dataLength < MaxDataLength)
             {
                 lacingValues.Add(remainder);
             }
 
-            return lacingValues.ToArray();
+            LacingValues = lacingValues.ToArray();
         }
     }
 }
