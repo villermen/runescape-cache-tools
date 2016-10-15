@@ -108,13 +108,21 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
 
         public OggPage ReadPage()
         {
+            // NextPage has already been obtained
+            if (NextPage != null)
+            {
+                var nextPage = NextPage;
+                NextPage = null;
+                return nextPage;
+            }
+
             // Return null when the physical bitstream has ended
             if (FirstPageRead && LogicalBitstreams.Count == 0)
             {
                 return null;
             }
 
-            var page = NextPage ?? new OggPage(BaseStream);
+            var page = new OggPage(BaseStream);
 
             FirstPageRead = true;
             NextPage = null;
@@ -136,7 +144,7 @@ namespace Villermen.RuneScapeCacheTools.Audio.Ogg
                 }
 
                 // Sequence number must be one higher than the previous one if not a continuation
-                if (page.SequenceNumber != LogicalBitstreams[page.StreamSerialNumber] + 1 && page.SequenceNumber != LogicalBitstreams[page.StreamSerialNumber])
+                if (page.SequenceNumber != LogicalBitstreams[page.StreamSerialNumber] + 1)
                 {
                     throw new OggException($"Obtained page does has wrong sequence number {page.SequenceNumber}, expected was {LogicalBitstreams[page.StreamSerialNumber] + 1}.");
                 }
