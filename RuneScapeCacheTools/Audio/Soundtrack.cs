@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using FlacLibSharp;
 using log4net;
-using NAudio.Flac;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Enums;
