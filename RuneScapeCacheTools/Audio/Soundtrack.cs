@@ -264,7 +264,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     newPath =
                         new string(
                             Enumerable.Repeat(validChars, nameLength).Select(s => s[_random.Next(s.Length)]).ToArray());
-                    newPath = /* TODO: Cache.TemporaryDirectory */ "derr/" + newPath + ".ogg";
+                    newPath = $"{Cache.TemporaryDirectory}{newPath}.ogg";
                 }
                 while (File.Exists(newPath) || result.Contains(newPath));
 
