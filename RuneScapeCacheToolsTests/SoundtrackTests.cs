@@ -37,25 +37,25 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        [Fact]
-        public void TestExtract()
+        [Theory]
+        [InlineData("SoundScape", 15)]
+        public void TestExtract(string trackName, int expectedVersion)
         {
             var startTime = DateTime.UtcNow;
-            Fixture.Soundtrack.Extract(true, "soundscape");
+            Fixture.Soundtrack.Extract(true, trackName);
 
-            const string expectedOutputPath = "output/soundtrack/Soundscape.ogg";
+            string expectedOutputPath = $"output/soundtrack/{trackName}.ogg";
 
             // Verify that Soundscape.ogg has been created
-            Assert.True(File.Exists(expectedOutputPath), "Soundscape.ogg should've been created during extraction.");
+            Assert.True(File.Exists(expectedOutputPath), $"{trackName}.ogg should've been created during extraction.");
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modified time was not updated during extraction (so probably was not extracted).");
+            Assert.True(modifiedTime >= startTime, $"{trackName}.ogg's modified time was not updated during extraction (so probably was not extracted).");
 
-            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
+            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{trackName}.ogg");
 
-            Assert.True(version > -1, "Version of Soundscape.ogg was not set.");
-            // TODO: Fixate version
+            Assert.True(version == expectedVersion, "Version of Soundscape.ogg was incorrect ({version} instead of {expectedVersion}).");
         }
     }
 }

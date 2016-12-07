@@ -113,6 +113,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         "-metadata genre=\"Game\" " +
                         "-metadata comment=\"Extracted by Viller's RuneScape Cache Tools\" " +
                         "-metadata copyright=\"Jagex Games Studio\" " +
+                        "-y " +
                         outputPath;
 
                     // Combine the files using FFmpeg
