@@ -7,38 +7,72 @@
     <ProjectGuid>{A2C77AE9-5E36-4BDE-B6DE-EA5ADA87DAD2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RuneScapeCacheTools</RootNamespace>
+    <RootNamespace>Villermen.RuneScapeCacheTools</RootNamespace>
     <AssemblyName>RuneScapeCacheTools</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.103.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.103\lib\net46\System.Data.SQLite.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6, Version=1.0.103.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.EF6.1.0.103\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.103.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.103\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -46,62 +80,78 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache.cs" />
-    <Compile Include="CacheExtractJob.cs" />
-    <Compile Include="DirectoryHelper.cs" />
-    <Compile Include="EventArgs.cs" />
-    <Compile Include="CacheJob.cs" />
+    <Compile Include="Audio\AudioChunkDescriptor.cs" />
+    <Compile Include="Audio\JagaFile.cs" />
+    <Compile Include="Audio\JagaParseException.cs" />
+    <Compile Include="Audio\Ogg\OggCrc.cs" />
+    <Compile Include="Audio\Ogg\OggPacket.cs" />
+    <Compile Include="Audio\Vorbis\VorbisAudioPacket.cs" />
+    <Compile Include="Audio\Ogg\OggException.cs" />
+    <Compile Include="Audio\Vorbis\VorbisException.cs" />
+    <Compile Include="Audio\Vorbis\VorbisHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisIdentificationHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisPacket.cs" />
+    <Compile Include="Audio\Vorbis\VorbisPageHeaderType.cs" />
+    <Compile Include="Audio\Vorbis\VorbisSetupHeader.cs" />
+    <Compile Include="Audio\Vorbis\VorbisCommentHeader.cs" />
+    <Compile Include="Audio\Ogg\OggPage.cs" />
+    <Compile Include="Audio\Ogg\OggReader.cs" />
+    <Compile Include="Audio\Soundtrack.cs" />
+    <Compile Include="Audio\SoundtrackException.cs" />
+    <Compile Include="Audio\Ogg\OggWriter.cs" />
+    <Compile Include="Cache\CacheFile.cs" />
+    <Compile Include="Cache\CacheFileInfo.cs" />
+    <Compile Include="Cache\Downloader\CacheDownloader.cs" />
+    <Compile Include="Cache\Downloader\DownloaderException.cs" />
+    <Compile Include="Cache\Downloader\FileRequest.cs" />
+    <Compile Include="Cache\Downloader\HttpFileRequest.cs" />
+    <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
+    <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
+    <Compile Include="Cache\Index.cs" />
+    <Compile Include="Cache\CacheFileOptions.cs" />
+    <Compile Include="Cache\RuneTek5\CompressionType.cs" />
+    <Compile Include="Cache\RuneTek5\Language.cs" />
+    <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
+    <Compile Include="Cache\RuneTek5\MasterReferenceTableTable.cs" />
+    <Compile Include="Cache\CacheFileEntryInfo.cs" />
+    <Compile Include="Cache\RuneTek5\Sector.cs" />
+    <Compile Include="Cache\RuneTek5\SectorException.cs" />
+    <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
+    <Compile Include="Cache\CacheException.cs" />
+    <Compile Include="Cache\CacheBase.cs" />
+    <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
+    <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
+    <Compile Include="Enums\EnumFile.cs" />
+    <Compile Include="Enums\EnumParseException.cs" />
+    <Compile Include="Cache\RuneTek5\FileStore.cs" />
+    <Compile Include="Cache\RuneTek5\IndexPointer.cs" />
+    <Compile Include="Cache\ExtendableExtensionGuesser.cs" />
+    <Compile Include="Enums\EnumOpcode.cs" />
+    <Compile Include="Enums\BaseVarType.cs" />
+    <Compile Include="Enums\ScriptVarType.cs" />
+    <Compile Include="Cache\IExtensionGuesser.cs" />
+    <Compile Include="Cache\Vector3.cs" />
+    <Compile Include="Extensions\BinaryStreamExtensions.cs" />
+    <Compile Include="Extensions\PathExtensions.cs" />
+    <Compile Include="Extensions\ExtendedProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Soundtrack.cs" />
-    <Compile Include="SoundtrackCombineJob.cs" />
-    <Compile Include="StreamExtension.cs" />
+    <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <Folder Include="Cache\RuneTek7\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\libflac-8.dll">
+    <Content Include="bgd.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\libgcc_s_sjlj-1.dll">
+    <Content Include="oggCat.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\libgomp-1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libid3tag-0.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libogg-0.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libpng16-16.dll" />
-    <Content Include="lib\libsox-3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libssp-0.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libvorbis-0.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libvorbisenc-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libvorbisfile-3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libwavpack-1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libwinpthread-1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\sox.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\zlib1.dll">
+    <Content Include="SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -110,7 +160,14 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.103\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.103\build\net46\System.Data.SQLite.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.103\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.103\build\net46\System.Data.SQLite.Core.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
