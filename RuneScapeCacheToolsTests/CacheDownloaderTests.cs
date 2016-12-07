@@ -52,11 +52,12 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact]
-        public void TestDownloadMasterReferenceTable()
+        [InlineData(52)]
+        public void TestDownloadMasterReferenceTable(int expectedTableCount)
         {
             var masterReferenceTable = Fixture.Downloader.GetMasterReferenceTable();
 
-            Assert.True(masterReferenceTable.ReferenceTableFiles.Count == 50, $"Master reference table reported having {masterReferenceTable.ReferenceTableFiles.Count} files instead of the expected 50.");
+            Assert.True(masterReferenceTable.ReferenceTableFiles.Count == expectedTableCount, $"Master reference table reported having {masterReferenceTable.ReferenceTableFiles.Count} files instead of the expected {expectedTableCount}.");
         }
 
         [Theory]
@@ -69,7 +70,7 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        [InlineData(50)]
+        [InlineData(52)]
         public void TestIndexIds(int expectedIndexCount)
         {
             var reportedIndexCount = Fixture.Downloader.Indexes.Count();

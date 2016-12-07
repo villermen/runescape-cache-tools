@@ -37,7 +37,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
-        [Fact(Skip = "Doesn't work properly on Linux with oggCat")]
+        [Fact]
         public void TestExtract()
         {
             var startTime = DateTime.UtcNow;
@@ -50,11 +50,12 @@ namespace RuneScapeCacheToolsTests
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modiied time was not updated during extraction (so probably was not extracted).");
+            Assert.True(modifiedTime >= startTime, "Soundscape.ogg's modified time was not updated during extraction (so probably was not extracted).");
 
             var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile("output/soundtrack/Soundscape.ogg");
 
             Assert.True(version > -1, "Version of Soundscape.ogg was not set.");
+            // TODO: Fixate version
         }
     }
 }
