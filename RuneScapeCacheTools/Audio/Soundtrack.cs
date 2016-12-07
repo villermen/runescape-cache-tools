@@ -4,10 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FlacLibSharp;
 using log4net;
+using NAudio.Flac;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Enums;
+using File = System.IO.File;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
@@ -39,15 +42,18 @@ namespace Villermen.RuneScapeCacheTools.Audio
         ///     If true, export and overwrite existing files. Overwriting is done regardless for files
         ///     that have a changed version.
         /// </param>
+        /// <param name="lossless"></param>
         /// <param name="nameFilters">
         ///     If non-null, only soundtrack names that contain one the case-insensitive strings will be
         ///     extracted.
         /// </param>
         /// <returns></returns>
-        public void Extract(bool overwriteExisting = false, params string[] nameFilters)
+        public void Extract(bool overwriteExisting = false, bool lossless = false, params string[] nameFilters)
         {
             var trackNames = GetTrackNames();
             var outputDirectory = Cache.OutputDirectory + "soundtrack/";
+            var outputExtension = lossless ? "flac" : "ogg";
+            var compressionQuality = lossless ? 8 : 6;
 
             Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(Cache.TemporaryDirectory);
@@ -64,7 +70,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             Parallel.ForEach(trackNames, trackNamePair =>
             {
-                var outputFilename = $"{trackNamePair.Value}.ogg";
+                var outputFilename = $"{trackNamePair.Value}.{outputExtension}";
                 var outputPath = Path.Combine(outputDirectory, outputFilename);
 
                 try
@@ -104,16 +110,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     File.Delete(outputPath);
 
                     // Create argument to supply to FFmpeg (https://trac.ffmpeg.org/wiki/Concatenate#filter)
-                    var ffmpegArgument = randomTemporaryFilenames.Aggregate("", (result, value) => $"{result}-i \"{value}\" ") +
-                        Enumerable.Range(0, randomTemporaryFilenames.Length).Aggregate("-filter_complex \"", (result, streamIndex) => $"{result}[{streamIndex}:a:0] ") +
-                        $"concat=n={randomTemporaryFilenames.Length}:v=0:a=1 [a]\" -map \"[a]\" " +
-                        $"-metadata title=\"{trackNamePair.Value}\" " +
-                        $"-metadata version=\"{jagaFileInfo.Version}\" " +
-                        "-metadata album=\"RuneScape Original Soundtrack\" " + 
-                        "-metadata genre=\"Game\" " +
-                        "-metadata comment=\"Extracted by Viller's RuneScape Cache Tools\" " +
-                        "-metadata copyright=\"Jagex Games Studio\" " +
-                        "-y " +
+                    var soxArguments = string.Join(" ", randomTemporaryFilenames) + " " +
+                        $"--comment \"title={trackNamePair.Value}\" " +
+                        $"--comment \"version={jagaFileInfo.Version}\" " +
+                        "--comment \"album=RuneScape Original Soundtrack\" " +
+                        "--comment \"genre=Game\" " +
+                        "--comment \"comment=Extracted by Viller's RuneScape Cache Tools\" " +
+                        "--comment \"copyright=Jagex Games Studio\" " +
+                        $"-C {compressionQuality} " +
                         outputPath;
 
                     // Combine the files using FFmpeg
@@ -121,14 +125,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     {
                         StartInfo =
                         {
-                            FileName = "ffmpeg",
+                            FileName = "sox",
                             UseShellExecute = false,
                             CreateNoWindow = true,
 #if DEBUG
                             RedirectStandardError = true,
                             RedirectStandardOutput = true,
 #endif
-                            Arguments = ffmpegArgument
+                            Arguments = soxArguments
                         }
                     };
 
@@ -232,19 +236,32 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         public int GetVersionFromExportedTrackFile(string path)
         {
-            using (var vorbisReader = new VorbisReader(path))
+            if (path.EndsWith(".ogg"))
             {
-                foreach (var comment in vorbisReader.Comments)
+                using (var vorbisReader = new VorbisReader(path))
                 {
-                    if (!comment.StartsWith("VERSION=", true, null))
+                    foreach (var comment in vorbisReader.Comments)
                     {
-                        continue;
+                        if (!comment.StartsWith("VERSION=", true, null))
+                        {
+                            continue;
+                        }
+
+                        var value = comment.Split('=')[1];
+                        var version = int.Parse(value);
+
+                        return version;
                     }
-
-                    var value = comment.Split('=')[1];
-                    var version = int.Parse(value);
-
-                    return version;
+                }
+            }
+            else if (path.EndsWith(".flac"))
+            {
+                using (var flacFile = new FlacFile(path))
+                {
+                    if (flacFile.VorbisComment.ContainsField("version"))
+                    {
+                        return int.Parse(flacFile.VorbisComment["version"].Value);
+                    }
                 }
             }
 

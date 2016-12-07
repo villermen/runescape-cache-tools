@@ -38,24 +38,27 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        [InlineData("SoundScape", 15)]
-        public void TestExtract(string trackName, int expectedVersion)
+        [InlineData("Soundscape", 15, false)]
+        [InlineData("Soundscape", 15, true)]
+        public void TestExtract(string trackName, int expectedVersion, bool lossless)
         {
-            var startTime = DateTime.UtcNow;
-            Fixture.Soundtrack.Extract(true, trackName);
+            var expectedFilename = $"{trackName}.{(lossless ? "flac" : "ogg")}";
 
-            string expectedOutputPath = $"output/soundtrack/{trackName}.ogg";
+            var startTime = DateTime.UtcNow;
+            Fixture.Soundtrack.Extract(true, lossless, trackName);
+
+            string expectedOutputPath = $"output/soundtrack/{expectedFilename}";
 
             // Verify that Soundscape.ogg has been created
-            Assert.True(File.Exists(expectedOutputPath), $"{trackName}.ogg should've been created during extraction.");
+            Assert.True(File.Exists(expectedOutputPath), $"{expectedFilename} should've been created during extraction.");
 
             // Verify that it has been created during this test
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, $"{trackName}.ogg's modified time was not updated during extraction (so probably was not extracted).");
+            Assert.True(modifiedTime >= startTime, $"{expectedFilename}'s modified time was not updated during extraction (so probably was not extracted).");
 
-            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{trackName}.ogg");
+            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{expectedFilename}");
 
-            Assert.True(version == expectedVersion, "Version of Soundscape.ogg was incorrect ({version} instead of {expectedVersion}).");
+            Assert.True(version == expectedVersion, $"Version of {expectedFilename} was incorrect ({version} instead of {expectedVersion}).");
         }
     }
 }
