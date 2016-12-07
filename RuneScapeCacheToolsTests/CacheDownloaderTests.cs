@@ -51,7 +51,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(referenceTable17.Files.Count == 47, $"Reference table for index 17 reported having {referenceTable17.Files.Count} files instead of the expected 46.");
         }
 
-        [Fact]
+        [Theory]
         [InlineData(52)]
         public void TestDownloadMasterReferenceTable(int expectedTableCount)
         {
