@@ -11,6 +11,8 @@ using Villermen.RuneScapeCacheTools.Enums;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
+    using System.Text;
+
     /// <summary>
     ///     Contains tools for obtaining and combining soundtracks from the cache.
     /// </summary>
@@ -101,22 +103,31 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     // Delete existing file because oggCat doesn't do overwriting properly
                     File.Delete(outputPath);
 
-                    // Combine the files using oggCat
+                    // Create argument to supply to FFmpeg (https://trac.ffmpeg.org/wiki/Concatenate#filter)
+                    var ffmpegArgument = randomTemporaryFilenames.Aggregate("", (result, value) => $"{result}-i \"{value}\" ") +
+                        Enumerable.Range(0, randomTemporaryFilenames.Length).Aggregate("-filter_complex \"", (result, streamIndex) => $"{result}[{streamIndex}:a:0] ") +
+                        $"concat=n={randomTemporaryFilenames.Length}:v=0:a=1 [a]\" -map \"[a]\" " +
+                        $"-metadata title=\"{trackNamePair.Value}\" " +
+                        $"-metadata version=\"{jagaFileInfo.Version}\" " +
+                        "-metadata album=\"RuneScape Original Soundtrack\" " + 
+                        "-metadata genre=\"Game\" " +
+                        "-metadata comment=\"Extracted by Viller's RuneScape Cache Tools\" " +
+                        "-metadata copyright=\"Jagex Games Studio\" " +
+                        outputPath;
+
+                    // Combine the files using FFmpeg
                     var combineProcess = new Process
                     {
                         StartInfo =
                         {
-                            FileName = "oggCat",
+                            FileName = "ffmpeg",
                             UseShellExecute = false,
                             CreateNoWindow = true,
 #if DEBUG
                             RedirectStandardError = true,
                             RedirectStandardOutput = true,
 #endif
-                            Arguments =
-                                $"-c\"EXTRACTED_BY=Villers_RuneScape_Cache_Tools;VERSION={jagaFileInfo.Version}\" -pa " +
-                                $"\"{outputPath}\" " +
-                                "\"" + string.Join("\" \"", randomTemporaryFilenames) + "\""
+                            Arguments = ffmpegArgument
                         }
                     };
 
@@ -253,7 +264,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     newPath =
                         new string(
                             Enumerable.Repeat(validChars, nameLength).Select(s => s[_random.Next(s.Length)]).ToArray());
-                    newPath = Cache.TemporaryDirectory + newPath + ".ogg";
+                    newPath = /* TODO: Cache.TemporaryDirectory */ "derr/" + newPath + ".ogg";
                 }
                 while (File.Exists(newPath) || result.Contains(newPath));
 
