@@ -36,7 +36,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static bool Overwrite { get; set; }
 
-		private static bool DoSoundtrackCombine { get; set; }
+		private static bool Lossless { get; set; }
+
+        private static bool DoSoundtrackCombine { get; set; }
 
         private static IEnumerable<string> SoundtrackNameFilter { get; set; }
 
@@ -52,7 +54,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					CacheDirectory = value;
 				}
 			},
-
 		    {
 		        "download|d",
                 "Download all requested files straight from Jagex's servers instead of using a local cache.",
@@ -61,7 +62,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		            Download = value != null;
 		        }
 		    },
-
 			{
 				"output-directory=|o",
 				"The directory in which output files (mainly extracted files) will be stored.",
@@ -70,7 +70,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					OutputDirectory = value;
 				}
 			},
-
 			{
 				"temporary-directory=|t",
 				"The directory in which temporary files will be stored. If unspecified, the system's default directory + \"rsct\" will be used.",
@@ -79,7 +78,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					TemporaryDirectory = value;
 				}
 			},
-
 			{
 				"extract|e",
 				"Extract all files from the cache. You can specify which files to extract by using the index and file arguments.",
@@ -89,33 +87,33 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					TriggeredActions++;
 				}
 			},
-
 			{
-				"index=|i", "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
+				"index=|i",
+                "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
 				value =>
 				{
 					Indexes = ExpandIntegerRangeString(value).Cast<Index>();
 				}
 			},
-
 			{
-				"file=|f", "A file id or range of file ids to extract. E.g. \"1-2,4,6-7\".",
+				"file=|f",
+                "A file id or range of file ids to extract. E.g. \"1-2,4,6-7\".",
 				value =>
 				{
 					FileIds = ExpandIntegerRangeString(value);
 				}
 			},
-
 			{
-				"overwrite", "Overwrite extracted files if they already exist.",
+				"overwrite",
+                "Overwrite extracted files if they already exist.",
 				value =>
 				{
 					Overwrite = (value != null);
 				}
 			},
-
 			{
-				"soundtrack-combine:|s", "Extract and name the soundtrack, optionally filtered by the given comma-separated name filters.",
+				"soundtrack-combine:|s",
+                "Extract and name the soundtrack, optionally filtered by the given comma-separated name filters.",
 				value =>
 				{
 				    DoSoundtrackCombine = true;
@@ -128,9 +126,18 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				    TriggeredActions++;
 				}
 			},
-
+		    {
+		        "lossless",
+                "Use FLAC instead of OGG as audio format when combining, preventing quality loss.",
+		        value =>
+		        {
+		            Lossless = (value != null);
+		        }
+		    },
 			{
-				"help|h|?", "Show this message.", value =>
+				"help|h|?",
+                "Show this message.",
+                value =>
 				{
 					ShowHelp();
 
@@ -284,7 +291,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			var soundtrack = new Soundtrack(Cache);
 
-			soundtrack.Extract(Overwrite, false, SoundtrackNameFilter?.ToArray() ?? new string[0]); // TODO: Switch for lossless
+			soundtrack.Extract(Program.Overwrite, Program.Lossless, SoundtrackNameFilter?.ToArray() ?? new string[0]);
         }
 	}
 }
