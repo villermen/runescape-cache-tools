@@ -137,7 +137,13 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     combineProcess.Start();
 
 #if DEBUG
-                    combineProcess.ErrorDataReceived += (sender, args) => Console.WriteLine($"[SoX] {args.Data}");
+                    combineProcess.ErrorDataReceived += (sender, args) =>
+                    {
+                        if (!string.IsNullOrEmpty(args.Data))
+                        {
+                            Console.WriteLine($"[SoX] {args.Data}");
+                        }
+                    };
                     combineProcess.BeginErrorReadLine();
 #endif
 
