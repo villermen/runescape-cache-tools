@@ -143,7 +143,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     {
                         if (!string.IsNullOrEmpty(args.Data))
                         {
-                            Console.WriteLine($"[SoX] {args.Data}");
+                            Logger.Debug($"[SoX] {args.Data}");
                         }
                     };
                     combineProcess.BeginErrorReadLine();
