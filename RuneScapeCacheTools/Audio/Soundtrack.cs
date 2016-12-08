@@ -134,6 +134,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         }
                     };
 
+                    Logger.Debug("sox " + soxArguments);
+
                     combineProcess.Start();
 
 #if DEBUG
