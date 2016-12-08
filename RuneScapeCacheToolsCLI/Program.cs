@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using log4net;
 using NDesk.Options;
@@ -165,7 +164,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 					Console.WriteLine();
 				}
 
-				// Show help if "Nothing interesting happens." when arguments are specified, this is considered an error as it is unexpected
+				// Show help when no action arguments are specified. This is considered an error as it is unexpected.
 				if (TriggeredActions == 0 && args.Length > 0)
 				{
 					Console.WriteLine("No action arguments specified.");

@@ -84,7 +84,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         ///     If connection states the version is outdated, the <see cref="TcpMajorVersion" /> will be increased until it is
         ///     accepted.
         /// </summary>
-        private int TcpMajorVersion { get; set; } = 874;
+        private int TcpMajorVersion { get; set; } = 876;
 
         private object TcpResponseProcessorLock { get; } = new object();
 

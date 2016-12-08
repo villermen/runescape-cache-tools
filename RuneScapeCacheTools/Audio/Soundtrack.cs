@@ -105,10 +105,10 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                     }
 
-                    // Delete existing file because oggCat doesn't do overwriting properly
+                    // Delete existing file in case combiner application doesn't do overwriting properly
                     File.Delete(outputPath);
 
-                    // Create argument to supply to FFmpeg (https://trac.ffmpeg.org/wiki/Concatenate#filter)
+                    // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
                     var soxArguments = string.Join(" ", randomTemporaryFilenames) + " " +
                         $"--comment \"title={trackNamePair.Value}\" " +
                         $"--comment \"version={jagaFileInfo.Version}\" " +
@@ -119,7 +119,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         $"-C {compressionQuality} " +
                         outputPath;
 
-                    // Combine the files using FFmpeg
+                    // Combine the files
                     var combineProcess = new Process
                     {
                         StartInfo =
@@ -129,7 +129,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             CreateNoWindow = true,
 #if DEBUG
                             RedirectStandardError = true,
-                            RedirectStandardOutput = true,
 #endif
                             Arguments = soxArguments
                         }
@@ -138,9 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     combineProcess.Start();
 
 #if DEBUG
-                    combineProcess.OutputDataReceived += (sender, args) => Console.WriteLine($"oggCat output: {args.Data}");
-                    combineProcess.ErrorDataReceived += (sender, args) => Console.WriteLine($"oggCat error: {args.Data}");
-                    combineProcess.BeginOutputReadLine();
+                    combineProcess.ErrorDataReceived += (sender, args) => Console.WriteLine($"[SoX] {args.Data}");
                     combineProcess.BeginErrorReadLine();
 #endif
 
@@ -154,7 +151,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                     if (combineProcess.ExitCode != 0)
                     {
-                        throw new SoundtrackException($"oggCat returned with error code {combineProcess.ExitCode} for {outputFilename}.");
+                        throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                     }
 
                     Logger.Info($"Combined {outputFilename}.");
