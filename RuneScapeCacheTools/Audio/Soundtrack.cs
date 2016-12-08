@@ -268,9 +268,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
             {
                 using (var flacFile = new FlacFile(path))
                 {
-                    if (flacFile.VorbisComment.ContainsField("version"))
+                    if (flacFile.VorbisComment.ContainsField("VERSION"))
                     {
-                        return int.Parse(flacFile.VorbisComment["version"].Value);
+                        return int.Parse(flacFile.VorbisComment["VERSION"].Value);
                     }
                 }
             }
