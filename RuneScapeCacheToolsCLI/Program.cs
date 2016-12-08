@@ -147,56 +147,77 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static int Main(string[] args)
 		{
-		    var returnCode = 0;
+#if DEBUG
+		    Console.WriteLine("RSCT DEBUG BUILD");
+            Console.WriteLine();
+#endif
+            int returnCode;
 
 			try
 			{
 				var unknownArguments = ArgumentParser.Parse(args);
+			    var run = true;
 
-				// Show supplied argument that could not be parsed
-				foreach (var unknownArgument in unknownArguments)
-				{
-					Console.WriteLine($"Unknown argument \"{unknownArgument}\".");
-				}
-
+                // Show supplied argument that could not be parsed
 				if (unknownArguments.Count > 0)
 				{
-					Console.WriteLine();
+                    run = false;
+
+                    foreach (var unknownArgument in unknownArguments)
+                    {
+                        Console.WriteLine($"Unknown argument \"{unknownArgument}\".");
+                        Console.WriteLine();
+                    }
 				}
 
 				// Show help when no action arguments are specified. This is considered an error as it is unexpected.
-				if (TriggeredActions == 0 && args.Length > 0)
-				{
-					Console.WriteLine("No action arguments specified.");
-					Console.WriteLine();
-					ShowHelp();
-
-				    returnCode = 1;
-				}
-
-                // Initialize the cache
-                Cache = Download ? (CacheBase)new CacheDownloader() : new RuneTek5Cache(CacheDirectory);
-
-			    if (OutputDirectory != null)
+			    if (TriggeredActions == 0)
 			    {
-			        Cache.OutputDirectory = OutputDirectory;
+                    run = false;
+
+                    if (args.Length > 0)
+			        {
+                        Console.WriteLine("No action specified.");
+			            Console.WriteLine();
+			        }
 			    }
 
-			    if (TemporaryDirectory != null)
+                // Perform the action if everything is ok
+                if (run)
 			    {
-			        Cache.TemporaryDirectory = TemporaryDirectory;
+			        // Initialize the cache
+			        Cache = Download ? (CacheBase)new CacheDownloader() : new RuneTek5Cache(CacheDirectory);
+
+			        if (OutputDirectory != null)
+			        {
+			            Cache.OutputDirectory = OutputDirectory;
+			        }
+
+			        if (TemporaryDirectory != null)
+			        {
+			            Cache.TemporaryDirectory = TemporaryDirectory;
+			        }
+
+			        // Perform the specified actions
+			        if (DoExtract)
+			        {
+			            Extract();
+			        }
+
+			        if (DoSoundtrackCombine)
+			        {
+			            CombineSoundtrack();
+			        }
+
+			        returnCode = 0;
+			    }
+                else
+                {
+                    // Show help if something went wrong during argument parsing
+                    ShowHelp();
+
+                    returnCode = 1;
                 }
-
-				// Perform the specified actions
-				if (DoExtract)
-				{
-					Extract();
-				}
-
-				if (DoSoundtrackCombine)
-				{
-					CombineSoundtrack();
-				}
 			}
 			catch (Exception exception) when (exception is OptionException || exception is CacheException || exception is CLIException)
 			{
