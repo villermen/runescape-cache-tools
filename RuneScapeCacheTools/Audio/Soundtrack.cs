@@ -116,14 +116,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
                         var soxArguments = $"\"{string.Join("\" \"", randomTemporaryFilenames)}\" " +
-                                           $"--comment \"title={trackNamePair.Value}\" " +
-                                           $"--comment \"version={jagaFileInfo.Version}\" " +
-                                           "--comment \"album=RuneScape Original Soundtrack\" " +
-                                           "--comment \"genre=Game\" " +
-                                           "--comment \"comment=Extracted by Viller's RuneScape Cache Tools\" " +
-                                           "--comment \"copyright=Jagex Games Studio\" " +
-                                           $"-C {compressionQuality} " +
-                                           $" \"{outputPath}\"";
+                            $"--add-comment \"TITLE={trackNamePair.Value}\" " +
+                            $"--add-comment \"VERSION={jagaFileInfo.Version}\" " +
+                            "--add-comment \"ALBUM=RuneScape Original Soundtrack\" " +
+                            "--add-comment \"GENRE=Game\" " +
+                            "--add-comment \"COMMENT=Extracted by Viller's RuneScape Cache Tools\" " +
+                            "--add-comment \"COPYRIGHT=Jagex Games Studio\" " +
+                            $"-C {compressionQuality} " +
+                            $" \"{outputPath}\"";
 
                         // Combine the files
                         var combineProcess = new Process
