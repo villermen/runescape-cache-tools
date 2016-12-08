@@ -156,7 +156,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 throw new CacheException("Output directory must be set before extraction.");
             }
 
-            var existingEntryPaths = GetExtractedEntryPaths(index, fileId).ToList();
+            var existingEntryPaths = GetExtractedEntryPaths(index, fileId);
 
             // Don't extract if the file already exists and we are not going to overwrite
             if (!overwrite && existingEntryPaths.Any())
@@ -207,18 +207,19 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        public IEnumerable<string> GetExtractedEntryPaths(Index index, int fileId)
+        public List<string> GetExtractedEntryPaths(Index index, int fileId)
         {
             try
             {
                 // Get all files that start with the given fileId
                 return Directory.EnumerateFiles($"{OutputDirectory}extracted/{index}/", $"{fileId}*")
                     // Filter out false-positivies like 2345.ext when looking for 234.
-                    .Where(file => Regex.IsMatch(file, $@"[/\\]{fileId}(\-\d+)?(\..+)?$"));
+                    .Where(file => Regex.IsMatch(file, $@"[/\\]{fileId}(\-\d+)?(\..+)?$"))
+                    .ToList();
             }
             catch (DirectoryNotFoundException)
             {
-                return Enumerable.Empty<string>();
+                return new List<string>();
             }
         }
 
