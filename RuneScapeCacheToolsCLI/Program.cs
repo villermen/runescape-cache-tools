@@ -10,7 +10,9 @@ using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
-	internal static class Program
+    using log4net.Core;
+
+    internal static class Program
 	{
 		/// <summary>
 		/// Even when not used, this needs to be here to initialize the logging system.
@@ -150,6 +152,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
 #if DEBUG
 		    Console.WriteLine("RSCT DEBUG BUILD");
             Console.WriteLine();
+
+            // Set log4net log level to debug
+            ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
+            ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
 #endif
             int returnCode;
 

@@ -142,26 +142,42 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        ///     Extracts the specified file from the specified index.
+        /// Extracts the entries of the specified file in the specified index.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <param name="overwrite"></param>
-        /// <returns>Path of the extracted file, or the last extracted entry if there are multiple.</returns>
-        public string Extract(Index index, int fileId, bool overwrite = false)
+        /// <returns>Paths of the newly extracted file entries, or null when the file was already extracted and <see cref="overwrite"/> was false.</returns>
+        public List<string> Extract(Index index, int fileId, bool overwrite = false)
         {
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(OutputDirectory))
             {
-                throw new CacheException("Output directory must be set before file extraction.");
+                throw new CacheException("Output directory must be set before extraction.");
+            }
+
+            var existingEntryPaths = GetExtractedEntryPaths(index, fileId).ToList();
+
+            // Don't extract if the file already exists and we are not going to overwrite
+            if (!overwrite && existingEntryPaths.Any())
+            {
+                Logger.Info($"Skipped extracting {index}/{fileId} because it is already extracted.");
+                return null;
             }
 
             var file = GetFile(index, fileId);
 
-            // Create index directory to put the obtained file in
+            // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
+            foreach (var existingEntryPath in existingEntryPaths)
+            {
+                File.Delete(existingEntryPath);
+            }
+
+            // Create index directory for when it did not exist yet
             Directory.CreateDirectory($"{OutputDirectory}extracted/{index}");
 
-            string extractPath = null;
+            // Extract all entries
+            var extractedEntryPaths = new List<string>();
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
                 var currentData = file.Entries[entryId];
@@ -174,55 +190,35 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
                 var extension = ExtensionGuesser.GuessExtension(currentData);
 
-                // Construct new path for file
-                extractPath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (!string.IsNullOrWhiteSpace(extension) ? $".{extension}" : "");
+                // Construct new path for entry
+                var entryPath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (extension != null ? $".{extension}" : "");
 
-                // Delete existing file (if allowed)
-                var existingFilePath = GetExtractedFilePath(index, fileId, entryId);
-                if (existingFilePath != null)
-                {
-                    if (!overwrite)
-                    {
-                        Logger.Info($"Skipped {extractPath} because it is already extracted.");
-                        continue;
-                    }
+                File.WriteAllBytes(entryPath, currentData);
 
-                    File.Delete(existingFilePath);
-                }
-
-                File.WriteAllBytes(extractPath, currentData);
-
-                Logger.Info($"Extracted {extractPath}.");
+                Logger.Info($"Extracted {entryPath}.");
             }
 
-            return extractPath;
+            return extractedEntryPaths;
         }
 
         /// <summary>
-        ///     Finds the path for the given extracted file.
+        /// Returns paths to existing extracted entries of the file.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
-        /// <param name="entryId"></param>
-        /// <returns>Returns the path to the obtained file, or null if it does not exist.</returns>
-        public string GetExtractedFilePath(Index index, int fileId, int entryId = 0)
+        /// <returns></returns>
+        public IEnumerable<string> GetExtractedEntryPaths(Index index, int fileId)
         {
             try
             {
-                // Suffix fileId with entryId + 1 if nonzero
-                var fileIdString = fileId + (entryId > 0 ? "-" + entryId : "");
-
-                var path = Directory
-                    .EnumerateFiles($"{OutputDirectory}extracted/{index}/", $"{fileIdString}*")
-
-                    // Check if fileIdString is the full name of the file minus extension, prevents matching 234 with 2345.ext
-                    .FirstOrDefault(file => Regex.IsMatch(file, $@"(/|\\){fileIdString}(\..+)?$"));
-
-                return !string.IsNullOrWhiteSpace(path) ? path : null;
+                // Get all files that start with the given fileId
+                return Directory.EnumerateFiles($"{OutputDirectory}extracted/{index}/", $"{fileId}*")
+                    // Filter out false-positivies like 2345.ext when looking for 234.
+                    .Where(file => Regex.IsMatch(file, $@"[/\\]{fileId}(\-\d+)?(\..+)?$"));
             }
             catch (DirectoryNotFoundException)
             {
-                return null;
+                return Enumerable.Empty<string>();
             }
         }
 
