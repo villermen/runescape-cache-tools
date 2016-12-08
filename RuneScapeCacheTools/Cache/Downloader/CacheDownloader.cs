@@ -30,8 +30,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // Set the (static) security protocol used for web requests
             // Mono does not seem to be capable of this yet: http://www.c-sharpcorner.com/news/mono-now-comes-with-support-for-tls-12
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            WebRequest.DefaultWebProxy = null;
         }
 
         public override IEnumerable<Index> Indexes => GetMasterReferenceTable().ReferenceTableFiles.Keys;
