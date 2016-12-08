@@ -230,16 +230,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         private string GetTcpKeyFromPage()
         {
             var request = WebRequest.CreateHttp(TcpKeyPage);
-            var response = request.GetResponse();
-            var responseStream = response.GetResponseStream();
-
-            if (responseStream == null)
+            using (var response = request.GetResponse())
             {
-                throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
-            }
+                var responseStream = response.GetResponseStream();
 
-            using (var reader = new StreamReader(responseStream))
-            {
+                if (responseStream == null)
+                {
+                    throw new DownloaderException($"No handshake key could be obtained from \"{TcpKeyPage}\".");
+                }
+
+                var reader = new StreamReader(responseStream);
                 var responseString = reader.ReadToEnd();
 
                 var key = TcpKeyPageRegex.Match(responseString).Groups[1].Value;
@@ -281,23 +281,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
 
                 var webRequest = WebRequest.CreateHttp($"http://{ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.CRC}&v={fileRequest.CacheFileInfo.Version}");
-                var response = (HttpWebResponse)webRequest.GetResponse();
-
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (var response = (HttpWebResponse)webRequest.GetResponse())
                 {
-                    throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
+                    }
+
+                    var responseReader = new BinaryReader(response.GetResponseStream());
+                    fileRequest.Write(responseReader.ReadBytes((int)response.ContentLength));
+
+                    FileRequest removedRequest;
+                    PendingFileRequests.TryRemove(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId), out removedRequest);
+
+                    AppendVersionToRequestData(fileRequest);
+
+                    fileRequest.Complete();
                 }
-
-                var responseReader = new BinaryReader(response.GetResponseStream());
-
-                fileRequest.Write(responseReader.ReadBytes((int)response.ContentLength));
-
-                FileRequest removedRequest;
-                PendingFileRequests.TryRemove(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId), out removedRequest);
-
-                AppendVersionToRequestData(fileRequest);
-
-                fileRequest.Complete();
             });
         }
 
