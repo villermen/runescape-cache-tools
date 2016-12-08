@@ -96,7 +96,10 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(IEnumerable<Index> indexes, bool overwrite = false, ExtendedProgress progress = null)
         {
-            Parallel.ForEach(indexes, index => { Extract(index, overwrite, progress); });
+            foreach (var index in indexes)
+            {
+                Extract(index, overwrite, progress);
+            }
         }
 
         /// <summary>
