@@ -177,6 +177,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
             Directory.CreateDirectory($"{OutputDirectory}extracted/{index}");
 
             // Extract all entries
+            var extension = "";
+            var extractedEntries = 0;
             var extractedEntryPaths = new List<string>();
             for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
@@ -188,14 +190,24 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     continue;
                 }
 
-                var extension = ExtensionGuesser.GuessExtension(currentData);
+                extension = ExtensionGuesser.GuessExtension(currentData);
+                extension = extension != null ? $".{extension}" : "";
 
                 // Construct new path for entry
-                var entryPath = $"{OutputDirectory}extracted/{index}/{fileId}" + (entryId > 0 ? $"-{entryId}" : "") + (extension != null ? $".{extension}" : "");
+                var entryPath = $"{OutputDirectory}extracted/{index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
 
                 File.WriteAllBytes(entryPath, currentData);
 
-                Logger.Info($"Extracted {entryPath}.");
+                extractedEntries++;
+            }
+
+            if (extractedEntries > 0)
+            {
+                Logger.Info($"Extracted {index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
+            }
+            else
+            {
+                Logger.Info($"Did not extract {index}/{fileId} because it was empty.");
             }
 
             return extractedEntryPaths;
