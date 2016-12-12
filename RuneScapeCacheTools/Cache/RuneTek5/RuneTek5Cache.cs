@@ -98,6 +98,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
+        public override void PutFile(CacheFile file)
+        {
+            if (!(file is RuneTek5CacheFile))
+            {
+                throw new ArgumentException("Only RuneTek5CacheFiles can be put into a RuneTek5Cache.");
+            }
+
+            // Write data to file store
+            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
+
+            // TODO: Write reference table entry
+
+            throw new NotImplementedException("TODO: Write reference table entry");
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

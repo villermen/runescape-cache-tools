@@ -62,6 +62,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public abstract IEnumerable<int> GetFileIds(Index index);
 
+        public virtual void PutFile(CacheFile file)
+        {
+            throw new NotSupportedException("Writing of files is not supported for this type of cache");
+        }
+
         /// <summary>
         ///     Returns info on the file without actually obtaining the file.
         /// </summary>

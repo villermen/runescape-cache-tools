@@ -180,9 +180,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             reader.BaseStream.Position = reader.BaseStream.Length - 1;
             var amountOfChunks = reader.ReadByte();
 
+            if (amountOfChunks > 1)
+            {
+                throw new Exception("I don't know how to deal with more than one chunk in an entry file...");
+            }
+
             // Read the sizes of the child entries and individual chunks
             var chunkSizes = new int[amountOfChunks, amountOfEntries];
-            var entrySizes = new int[amountOfEntries];
+            // var entrySizes = new int[amountOfEntries];
 
             reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * amountOfEntries * 4;
 
@@ -199,7 +204,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     chunkSizes[chunkId, entryId] = chunkSize;
 
                     // Add it to the size of the whole file
-                    entrySizes[entryId] += chunkSize;
+                    // entrySizes[entryId] += chunkSize;
                 }
             }
 
@@ -223,6 +228,112 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             return entries;
+        }
+
+        // TODO: For decoding and encoding of entries: Figure out what happens when amount of chunks > 1
+        // Is it a way to increase the amount of entries above 256?
+        // Right now I'm throwing exceptions on occurrences
+        private byte[] EncodeEntries()
+        {
+            if (this.Entries.Length > 256)
+            {
+                throw new Exception("I don't know how to deal with more than 256 entries in a file...");
+            }
+
+            var memoryStream = new MemoryStream();
+            var writer = new BinaryWriter(memoryStream);
+
+            // Write the entries' data
+            foreach (var entry in this.Entries)
+            {
+                writer.Write(entry);
+            }
+
+            byte amountOfChunks = 1;
+
+            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            {
+                // Write delta encoded entry sizes
+
+                var previousEntrySize = 0;
+                foreach (var entry in this.Entries)
+                {
+                    var entrySize = entry.Length;
+
+                    var delta = entrySize - previousEntrySize;
+
+                    writer.Write(delta);
+
+                    previousEntrySize = entrySize;
+                }
+            }
+
+            // Finish of with the amount of chunks
+            writer.Write(amountOfChunks);
+
+            return memoryStream.ToArray();
+        }
+
+
+        public override byte[] Encode()
+        {
+            var memoryStream = new MemoryStream();
+            var writer = new BinaryWriter(memoryStream);
+
+            writer.Write((byte)this.Info.CompressionType);
+
+            // TODO: Add support for encryption
+
+            // Encode data (file or entries)
+            var data = this.Info.Entries.Count > 1 ? this.EncodeEntries() : this.Data;
+
+            // Compression
+            var uncompressedSize = data.Length;
+            switch (this.Info.CompressionType)
+            {
+                case CompressionType.Bzip2:
+                    var compressionStream = new MemoryStream();
+                    using (var bzip2Stream = new BZip2OutputStream(compressionStream))
+                    {
+                        bzip2Stream.Write(data, 0, data.Length);
+                    }
+
+                    // TODO: Check if BZh1 is added, and remove it if it is
+
+                    data = compressionStream.ToArray();
+                    break;
+
+                case CompressionType.Gzip:
+                    throw new NotImplementedException();
+                    break;
+
+                case CompressionType.LZMA:
+                    throw new NotImplementedException();
+                    break;
+
+                case CompressionType.None:
+                    break;
+
+                default:
+                    throw new CacheException("Invalid compression type given.");
+            }
+
+            // Compressed/total size
+            writer.WriteInt32BigEndian(data.Length);
+
+            // Add uncompressed size when compressing
+            if (this.Info.CompressionType != CompressionType.None)
+            {
+                writer.WriteInt32BigEndian(data.Length);
+            }
+
+            writer.Write(data);
+
+            // TODO: What to do with crc and whirlpool that need to be stored in reference table but can only be calculated here?
+
+            throw new NotImplementedException();
+
+            return memoryStream.ToArray();
         }
     }
 }
