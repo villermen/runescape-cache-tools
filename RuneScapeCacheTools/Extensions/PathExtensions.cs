@@ -4,6 +4,8 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 {
     public static class PathExtensions
     {
+        public static char[] InvalidCharacters = { '/', ':', '"', '*', '?', '>', '<', '|' };
+
         /// <summary>
         ///     Parses the given directory and unifies its format, to be applied to unpredictable user input.
         ///     Converts backslashes to forward slashes, and appends a directory separator.

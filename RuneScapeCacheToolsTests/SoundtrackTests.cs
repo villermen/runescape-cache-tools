@@ -38,12 +38,11 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        [InlineData("Soundscape", 15, false)]
-        [InlineData("Soundscape", 15, true)]
-        public void TestExtract(string trackName, int expectedVersion, bool lossless)
+        [InlineData("Soundscape", "Soundscape.ogg", 15, false)] // OGG
+        [InlineData("undsca", "Soundscape.flac", 15, true)] // FLAC and partial case insensitive filter matching
+        [InlineData("Black Zabeth LIVE!", "Black Zabeth LIVE!.ogg", 15, false)] // Fixing invalid filenames (Actual name is "Black Zabeth: LIVE!" which is invalid on Windows)
+        public void TestExtract(string trackName, string expectedFilename, int expectedVersion, bool lossless)
         {
-            var expectedFilename = $"{trackName}.{(lossless ? "flac" : "ogg")}";
-
             var startTime = DateTime.UtcNow;
             this.Fixture.Soundtrack.Extract(true, lossless, trackName);
 

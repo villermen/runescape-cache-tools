@@ -9,6 +9,7 @@ using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Enums;
+using Villermen.RuneScapeCacheTools.Extensions;
 using File = System.IO.File;
 
 namespace Villermen.RuneScapeCacheTools.Audio
@@ -203,7 +204,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 var trackFileId = (int)jagaFileIds[trackNamePair.Key];
 
                 // Make trackName filename-safe
-                foreach (var invalidChar in Path.GetInvalidFileNameChars())
+                foreach (var invalidChar in PathExtensions.InvalidCharacters)
                 {
                     trackName = trackName.Replace(invalidChar.ToString(), "");
                 }
