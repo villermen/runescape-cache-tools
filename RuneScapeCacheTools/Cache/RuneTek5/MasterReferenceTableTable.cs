@@ -4,7 +4,7 @@
     {
         public MasterReferenceTableTable(Index index)
         {
-            Index = index;
+            this.Index = index;
         }
 
         public int CRC { get; set; }

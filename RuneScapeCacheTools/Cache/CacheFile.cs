@@ -8,13 +8,13 @@
 
         public CacheFile(byte[][] entries)
         {
-            Entries = entries;
+            this.Entries = entries;
         }
 
         /// <summary>
         ///     Shorthand to get the first entry, which the full file in most cases.
         /// </summary>
-        public byte[] Data => Entries[0];
+        public byte[] Data => this.Entries[0];
 
         /// <summary>
         ///     The individual data entries in this file.

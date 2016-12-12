@@ -7,9 +7,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     {
         protected FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)
         {
-            Index = index;
-            FileId = fileId;
-            CacheFileInfo = cacheFileInfo;
+            this.Index = index;
+            this.FileId = fileId;
+            this.CacheFileInfo = cacheFileInfo;
         }
 
         public CacheFileInfo CacheFileInfo { get; }
@@ -24,17 +24,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public virtual void Write(byte[] data)
         {
-            DataStream.Write(data, 0, data.Length);
+            this.DataStream.Write(data, 0, data.Length);
         }
 
         public void Complete()
         {
-            CompletionSource.SetResult(DataStream.ToArray());
+            this.CompletionSource.SetResult(this.DataStream.ToArray());
         }
 
         public byte[] WaitForCompletion()
         {
-            return CompletionSource.Task.Result;
+            return this.CompletionSource.Task.Result;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
+    // TODO: Don't forget to add to metadata after writing file
     public class RuneTek5Cache : CacheBase
     {
         /// <summary>
@@ -19,14 +20,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="cacheDirectory"></param>
         public RuneTek5Cache(string cacheDirectory = null)
         {
-            CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
-            FileStore = new FileStore(CacheDirectory);
+            this.CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
+            this.FileStore = new FileStore(this.CacheDirectory);
         }
 
         public static string DefaultCacheDirectory
             => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
-        public override IEnumerable<Index> Indexes => Enumerable.Range(0, FileStore.IndexCount).Cast<Index>();
+        public override IEnumerable<Index> Indexes => Enumerable.Range(0, this.FileStore.IndexCount).Cast<Index>();
 
         /// <summary>
         ///     The directory where the cache is located.
@@ -43,7 +44,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public override CacheFile GetFile(Index index, int fileId)
         {
-            return GetRuneTek5File(index, fileId);
+            return this.GetRuneTek5File(index, fileId);
         }
 
         /// <summary>
@@ -54,21 +55,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public override IEnumerable<int> GetFileIds(Index index)
         {
-            var referenceTable = GetReferenceTable(index);
+            var referenceTable = this.GetReferenceTable(index);
             return referenceTable.Files.Keys;
         }
 
         public override CacheFileInfo GetFileInfo(Index index, int fileId)
         {
-            return GetReferenceTable(index).Files[fileId];
+            return this.GetReferenceTable(index).Files[fileId];
         }
 
         public ReferenceTable GetReferenceTable(Index index)
         {
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
-            return ReferenceTables.GetOrAdd(index, index2 =>
+            return this.ReferenceTables.GetOrAdd(index, index2 =>
             {
-                var cacheFile = new RuneTek5CacheFile(FileStore.GetFileData(Index.ReferenceTables, (int)index2), null);
+                var cacheFile = new RuneTek5CacheFile(this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2), null);
                 return new ReferenceTable(cacheFile, index);
             });
         }
@@ -76,7 +77,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public RuneTek5CacheFile GetRuneTek5File(Index index, int fileId)
         {
             // Obtain the reference table for the requested index
-            var referenceTable = GetReferenceTable(index);
+            var referenceTable = this.GetReferenceTable(index);
 
             // The file must at least be defined in the reference table (doesn't mean it is actually complete)
             if (!referenceTable.Files.ContainsKey(fileId))
@@ -88,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
             {
-                return new RuneTek5CacheFile(FileStore.GetFileData(index, fileId), referenceTableEntry);
+                return new RuneTek5CacheFile(this.FileStore.ReadFileData(index, fileId), referenceTableEntry);
             }
             catch (SectorException exception)
             {
@@ -101,7 +102,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             if (disposing)
             {
-                FileStore.Dispose();
+                this.FileStore.Dispose();
             }
         }
     }

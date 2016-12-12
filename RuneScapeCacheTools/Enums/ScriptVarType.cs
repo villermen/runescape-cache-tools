@@ -203,10 +203,10 @@ namespace Villermen.RuneScapeCacheTools.Enums
 
         protected ScriptVarType(byte? intId, char? charId, BaseVarType baseType, object defaultValue)
         {
-            IntId = intId;
-            CharId = charId;
-            BaseType = baseType;
-            DefaultValue = defaultValue;
+            this.IntId = intId;
+            this.CharId = charId;
+            this.BaseType = baseType;
+            this.DefaultValue = defaultValue;
         }
 
         public static ScriptVarType FromValue(int value)

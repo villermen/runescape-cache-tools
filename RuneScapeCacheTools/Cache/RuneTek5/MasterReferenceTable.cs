@@ -29,10 +29,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                ReferenceTableFiles.Add(index, table);
+                this.ReferenceTableFiles.Add(index, table);
             }
 
-            RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+            this.RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
         }
 
         public IDictionary<Index, MasterReferenceTableTable> ReferenceTableFiles { get; } = new Dictionary<Index, MasterReferenceTableTable>();

@@ -20,25 +20,25 @@ namespace Villermen.RuneScapeCacheTools.Enums
                 switch (opcode)
                 {
                     case EnumOpcode.CharKeyType:
-                        KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case EnumOpcode.CharValueType:
-                        ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case EnumOpcode.DefaultString:
-                        DefaultString = dataReader.ReadNullTerminatedString();
+                        this.DefaultString = dataReader.ReadNullTerminatedString();
                         break;
 
                     case EnumOpcode.DefaultInteger:
-                        DefaultInteger = dataReader.ReadInt32BigEndian();
+                        this.DefaultInteger = dataReader.ReadInt32BigEndian();
                         break;
 
                     case EnumOpcode.StringDataDictionary:
                     case EnumOpcode.IntegerDataDictionary:
                         var count = dataReader.ReadUInt16BigEndian();
-                        Values = new Dictionary<int, object>(count);
+                        this.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.Enums
                                 value = dataReader.ReadInt32BigEndian();
                             }
 
-                            Values[key] = value;
+                            this.Values[key] = value;
                         }
                         break;
 
@@ -62,28 +62,28 @@ namespace Villermen.RuneScapeCacheTools.Enums
                     case EnumOpcode.IntegerDataArray:
                         var max = dataReader.ReadUInt16BigEndian();
                         count = dataReader.ReadUInt16BigEndian();
-                        Values = new Dictionary<int, object>(count);
+                        this.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
                             var key = dataReader.ReadUInt16BigEndian();
                             if (opcode == EnumOpcode.StringDataArray)
                             {
-                                Values[key] = dataReader.ReadNullTerminatedString();
+                                this.Values[key] = dataReader.ReadNullTerminatedString();
                             }
                             else
                             {
-                                Values[key] = dataReader.ReadInt32BigEndian();
+                                this.Values[key] = dataReader.ReadInt32BigEndian();
                             }
                         }
                         break;
 
                     case EnumOpcode.ByteKeyType:
-                        KeyType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
+                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
                         break;
 
                     case EnumOpcode.ByteValueType:
-                        ValueType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
+                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
                         break;
 
                     case EnumOpcode.End:
@@ -95,17 +95,17 @@ namespace Villermen.RuneScapeCacheTools.Enums
                 }
             }
 
-            if (KeyType == null)
+            if (this.KeyType == null)
             {
                 throw new EnumParseException("Enum data does not contain a key type.");
             }
 
-            if (ValueType == null)
+            if (this.ValueType == null)
             {
                 throw new EnumParseException("Enum data does not contain a value type.");
             }
 
-            if (Values == null)
+            if (this.Values == null)
             {
                 throw new EnumParseException("Enum does not contain any values.");
             }
@@ -118,21 +118,21 @@ namespace Villermen.RuneScapeCacheTools.Enums
         public Dictionary<int, object> Values { get; }
         public ScriptVarType ValueType { get; }
 
-        public object this[int key] => Values[key];
+        public object this[int key] => this.Values[key];
 
         public bool ContainsKey(int key)
         {
-            return Values.ContainsKey(key);
+            return this.Values.ContainsKey(key);
         }
 
         public IEnumerator<KeyValuePair<int, object>> GetEnumerator()
         {
-            return Values.GetEnumerator();
+            return this.Values.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
     }
 }

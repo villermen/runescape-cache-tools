@@ -20,18 +20,32 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public IndexPointer(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
-            Size = reader.ReadUInt24BigEndian();
-            Sector = reader.ReadUInt24BigEndian();
+            this.Filesize = reader.ReadUInt24BigEndian();
+            this.FirstSectorPosition = reader.ReadUInt24BigEndian();
+        }
+
+        public IndexPointer(int firstSectorPosition, int filesize)
+        {
+            this.FirstSectorPosition = firstSectorPosition;
+            this.Filesize = filesize;
+        }
+
+        // TODO: Extension method to BinaryWriter?
+        public void Encode(Stream stream)
+        {
+            var writer = new BinaryWriter(stream);
+            writer.WriteUInt24BigEndian(this.Filesize);
+            writer.WriteUInt24BigEndian(this.FirstSectorPosition);
         }
 
         /// <summary>
         ///     The number of the first sector that contains the file.
         /// </summary>
-        public int Sector { get; private set; }
+        public int FirstSectorPosition { get; private set; }
 
         /// <summary>
         ///     The size of the file in bytes.
         /// </summary>
-        public int Size { get; private set; }
+        public int Filesize { get; private set; }
     }
 }

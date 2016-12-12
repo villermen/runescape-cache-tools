@@ -18,8 +18,8 @@ namespace RuneScapeCacheToolsTests
 
         public RuneTek5CacheTests(ITestOutputHelper output, CacheFixture fixture)
         {
-            Output = output;
-            Fixture = fixture;
+            this.Output = output;
+            this.Fixture = fixture;
         }
 
         [Theory]
@@ -28,7 +28,7 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.ClientScripts)]
         public void TestGetReferenceTable(Index index)
         {
-            var referenceTable = Fixture.RuneTek5Cache.GetReferenceTable(index);
+            var referenceTable = this.Fixture.RuneTek5Cache.GetReferenceTable(index);
         }
     }
 }

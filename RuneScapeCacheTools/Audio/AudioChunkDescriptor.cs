@@ -4,9 +4,9 @@
     {
         public AudioChunkDescriptor(int position, int length, int fileId)
         {
-            Position = position;
-            Length = length;
-            FileId = fileId;
+            this.Position = position;
+            this.Length = length;
+            this.FileId = fileId;
         }
 
         /// <summary>

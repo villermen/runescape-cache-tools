@@ -33,27 +33,27 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             if (info != null)
             {
-                Info = info;
+                this.Info = info;
             }
 
-            Key = key;
+            this.Key = key;
 
             var dataReader = new BinaryReader(new MemoryStream(data));
 
-            Info.CompressionType = (CompressionType)dataReader.ReadByte();
+            this.Info.CompressionType = (CompressionType)dataReader.ReadByte();
             var length = dataReader.ReadInt32BigEndian();
 
             // Decrypt the data if a key is given
-            if (Key != null)
+            if (this.Key != null)
             {
                 var byteKeyStream = new MemoryStream(16);
                 var byteKeyWriter = new BinaryWriter(byteKeyStream);
-                foreach (var keyValue in Key)
+                foreach (var keyValue in this.Key)
                 {
                     byteKeyWriter.WriteUInt32BigEndian(keyValue);
                 }
 
-                var totalLength = length + (Info.CompressionType == CompressionType.None ? 5 : 9);
+                var totalLength = length + (this.Info.CompressionType == CompressionType.None ? 5 : 9);
 
                 var xtea = new XteaEngine();
                 xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
@@ -66,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             byte[] continuousData;
 
             // Check if we should decompress the data or not
-            if (Info.CompressionType == CompressionType.None)
+            if (this.Info.CompressionType == CompressionType.None)
             {
                 continuousData = dataReader.ReadBytes(length);
             }
@@ -77,7 +77,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var compressedBytes = dataReader.ReadBytes(length);
                 var uncompressedBytes = new byte[uncompressedLength];
 
-                switch (Info.CompressionType)
+                switch (this.Info.CompressionType)
                 {
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
@@ -119,17 +119,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            Entries = Info.Entries.Count > 1 ? DecodeEntries(continuousData, Info.Entries.Count) : new[] { continuousData };
+            this.Entries = this.Info.Entries.Count > 1 ? this.DecodeEntries(continuousData, this.Info.Entries.Count) : new[] { continuousData };
 
             // Verify supplied info where possible
 
             // Read and verify the version of the file
-            if (Info.Version > -1)
+            if (this.Info.Version > -1)
             {
                 var obtainedVersion = dataReader.ReadUInt16BigEndian();
 
                 // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
-                var truncatedInfoVersion = (int)(ushort)Info.Version;
+                var truncatedInfoVersion = (int)(ushort)this.Info.Version;
                 if (obtainedVersion != truncatedInfoVersion)
                 {
                     throw new CacheException($"Obtained version part ({obtainedVersion}) did not match expected ({truncatedInfoVersion}).");
@@ -144,14 +144,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 var calculatedCRC = (int)crc.Value;
 
-                if (calculatedCRC != Info.CRC)
+                if (calculatedCRC != this.Info.CRC)
                 {
-                    throw new CacheException($"Calculated checksum (0x{calculatedCRC:X}) did not match expected (0x{Info.CRC:X}).");
+                    throw new CacheException($"Calculated checksum (0x{calculatedCRC:X}) did not match expected (0x{this.Info.CRC:X}).");
                 }
             }
 
             // Calculate and verify the whirlpool digest if set in the info
-            if (Info.WhirlpoolDigest != null)
+            if (this.Info.WhirlpoolDigest != null)
             {
                 var whirlpool = new WhirlpoolDigest();
                 whirlpool.BlockUpdate(data, 0, data.Length - 2);
@@ -159,7 +159,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var calculatedWhirlpool = new byte[whirlpool.GetDigestSize()];
                 whirlpool.DoFinal(calculatedWhirlpool, 0);
 
-                if (calculatedWhirlpool != Info.WhirlpoolDigest)
+                if (calculatedWhirlpool != this.Info.WhirlpoolDigest)
                 {
                     throw new CacheException("Calculated whirlpool digest did not match expected.");
                 }

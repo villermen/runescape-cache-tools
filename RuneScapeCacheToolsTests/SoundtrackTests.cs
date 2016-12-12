@@ -18,8 +18,8 @@ namespace RuneScapeCacheToolsTests
 
         public SoundtrackTests(ITestOutputHelper output, CacheFixture fixture)
         {
-            Output = output;
-            Fixture = fixture;
+            this.Output = output;
+            this.Fixture = fixture;
         }
 
         /// <summary>
@@ -30,9 +30,9 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetTrackNames()
         {
-            var trackNames = Fixture.Soundtrack.GetTrackNames();
+            var trackNames = this.Fixture.Soundtrack.GetTrackNames();
 
-            Output.WriteLine($"Amount of track names: {trackNames.Count}");
+            this.Output.WriteLine($"Amount of track names: {trackNames.Count}");
 
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
@@ -45,7 +45,7 @@ namespace RuneScapeCacheToolsTests
             var expectedFilename = $"{trackName}.{(lossless ? "flac" : "ogg")}";
 
             var startTime = DateTime.UtcNow;
-            Fixture.Soundtrack.Extract(true, lossless, trackName);
+            this.Fixture.Soundtrack.Extract(true, lossless, trackName);
 
             string expectedOutputPath = $"output/soundtrack/{expectedFilename}";
 
@@ -56,7 +56,7 @@ namespace RuneScapeCacheToolsTests
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
             Assert.True(modifiedTime >= startTime, $"{expectedFilename}'s modified time was not updated during extraction (so probably was not extracted).");
 
-            var version = Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{expectedFilename}");
+            var version = this.Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{expectedFilename}");
 
             Assert.True(version == expectedVersion, $"Version of {expectedFilename} was incorrect ({version} instead of {expectedVersion}).");
         }

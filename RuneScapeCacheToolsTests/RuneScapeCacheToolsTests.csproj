@@ -84,6 +84,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="FileStoreTests.cs" />
     <Compile Include="Fixtures\CacheCollection.cs" />
     <Compile Include="Fixtures\CacheFixture.cs" />
     <Compile Include="RuneTek5CacheTests.cs" />

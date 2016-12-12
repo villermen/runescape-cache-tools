@@ -23,8 +23,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         protected CacheBase()
         {
-            OutputDirectory = "output";
-            TemporaryDirectory = Path.GetTempPath() + "rsct";
+            this.OutputDirectory = "output";
+            this.TemporaryDirectory = Path.GetTempPath() + "rsct";
         }
 
         public abstract IEnumerable<Index> Indexes { get; }
@@ -39,8 +39,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         public string OutputDirectory
         {
-            get { return _outputDirectory; }
-            set { _outputDirectory = PathExtensions.FixDirectory(value); }
+            get { return this._outputDirectory; }
+            set { this._outputDirectory = PathExtensions.FixDirectory(value); }
         }
 
         /// <summary>
@@ -48,8 +48,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         public string TemporaryDirectory
         {
-            get { return _temporaryDirectory; }
-            set { _temporaryDirectory = PathExtensions.FixDirectory(value); }
+            get { return this._temporaryDirectory; }
+            set { this._temporaryDirectory = PathExtensions.FixDirectory(value); }
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -84,7 +84,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(bool overwrite = false, ExtendedProgress progress = null)
         {
-            Extract(Indexes, overwrite, progress);
+            this.Extract(this.Indexes, overwrite, progress);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             foreach (var index in indexes)
             {
-                Extract(index, overwrite, progress);
+                this.Extract(index, overwrite, progress);
             }
         }
 
@@ -111,9 +111,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(Index index, bool overwrite = false, ExtendedProgress progress = null)
         {
-            var fileIds = GetFileIds(index);
+            var fileIds = this.GetFileIds(index);
 
-            Extract(index, fileIds, overwrite, progress);
+            this.Extract(index, fileIds, overwrite, progress);
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             Parallel.ForEach(fileIdsArray, fileId =>
             {
-                var extractedPath = Extract(index, fileId, overwrite);
+                var extractedPath = this.Extract(index, fileId, overwrite);
 
                 progress?.Report($"extracted {extractedPath}");
             });
@@ -151,12 +151,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public List<string> Extract(Index index, int fileId, bool overwrite = false)
         {
             // Throw an exception if the output directory is not yet set or does not exist
-            if (string.IsNullOrWhiteSpace(OutputDirectory))
+            if (string.IsNullOrWhiteSpace(this.OutputDirectory))
             {
                 throw new CacheException("Output directory must be set before extraction.");
             }
 
-            var existingEntryPaths = GetExtractedEntryPaths(index, fileId);
+            var existingEntryPaths = this.GetExtractedEntryPaths(index, fileId);
 
             // Don't extract if the file already exists and we are not going to overwrite
             if (!overwrite && existingEntryPaths.Any())
@@ -165,7 +165,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = GetFile(index, fileId);
+            var file = this.GetFile(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)
@@ -174,7 +174,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Create index directory for when it did not exist yet
-            Directory.CreateDirectory($"{OutputDirectory}extracted/{index}");
+            Directory.CreateDirectory($"{this.OutputDirectory}extracted/{index}");
 
             // Extract all entries
             var extension = "";
@@ -190,11 +190,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     continue;
                 }
 
-                extension = ExtensionGuesser.GuessExtension(currentData);
+                extension = this.ExtensionGuesser.GuessExtension(currentData);
                 extension = extension != null ? $".{extension}" : "";
 
                 // Construct new path for entry
-                var entryPath = $"{OutputDirectory}extracted/{index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
+                var entryPath = $"{this.OutputDirectory}extracted/{index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
 
                 File.WriteAllBytes(entryPath, currentData);
 
@@ -224,7 +224,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             try
             {
                 // Get all files that start with the given fileId
-                return Directory.EnumerateFiles($"{OutputDirectory}extracted/{index}/", $"{fileId}*")
+                return Directory.EnumerateFiles($"{this.OutputDirectory}extracted/{index}/", $"{fileId}*")
                     // Filter out false-positivies like 2345.ext when looking for 234.
                     .Where(file => Regex.IsMatch(file, $@"[/\\]{fileId}(\-\d+)?(\..+)?$"))
                     .ToList();
@@ -241,7 +241,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
         public string GetExtractedIndexPath(int indexId)
         {
-            string indexPath = $"{OutputDirectory}extracted/{indexId}/";
+            string indexPath = $"{this.OutputDirectory}extracted/{indexId}/";
 
             return Directory.Exists(indexPath) ? indexPath : null;
         }

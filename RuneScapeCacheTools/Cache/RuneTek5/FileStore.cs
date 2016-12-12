@@ -5,6 +5,11 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using System.Linq;
+    using System.Reflection;
+    using NAudio.Wave;
+    using Org.BouncyCastle.Crypto.Tls;
+
     /// <summary>
     ///     A file store holds multiple files inside a "virtual" file system made up of several index files and a single data
     ///     file.
@@ -12,137 +17,233 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
+    // TODO: See if this class can be replaced by RuneTek5Cache and a Sector class replacement that can read full files from a stream.
     public class FileStore : IDisposable
     {
         /// <summary>
         ///     Lock that is used when reading data from the streams.
         /// </summary>
-        private readonly object _streamReadLock = new object();
+        private readonly object ioLock = new object();
+
+        private readonly Dictionary<Index, Stream> indexStreams = new Dictionary<Index, Stream>();
+
+        private readonly Stream dataStream;
 
         /// <summary>
         ///     Opens the file store in the specified directory.
         /// </summary>
         /// <param name="cacheDirectory">The directory containing the index and data files.</param>
+        /// <param name="readOnly">No empty cache will be initialized if only reading, and writing will be disallowed.</param>
         /// <exception cref="CacheException">If any of the main_file_cache.* files could not be found.</exception>
-        public FileStore(string cacheDirectory)
+        public FileStore(string cacheDirectory, bool readOnly = true)
         {
-            cacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
+            this.CacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
+            this.ReadOnly = readOnly;
 
-            var dataFile = Path.Combine(cacheDirectory, "main_file_cache.dat2");
+            if (!this.ReadOnly)
+            {
+                Directory.CreateDirectory(this.CacheDirectory);
+            }
 
-            if (!File.Exists(dataFile))
+            var fileAccess = this.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite;
+
+            var dataFilePath = Path.Combine(this.CacheDirectory, "main_file_cache.dat2");
+
+            if (this.ReadOnly && !File.Exists(dataFilePath))
             {
                 throw new CacheException("Cache data file does not exist.");
             }
 
-            DataStream = File.Open(dataFile, FileMode.Open);
+            this.dataStream = File.Open(dataFilePath, FileMode.OpenOrCreate, fileAccess);
 
-            for (var indexId = 0; indexId < 255; indexId++)
+            // Load in existing index files
+            for (var indexId = 0; indexId <= 255; indexId++)
             {
-                var indexFile = Path.Combine(cacheDirectory + "main_file_cache.idx" + indexId);
+                var indexFile = Path.Combine(this.CacheDirectory, "main_file_cache.idx" + indexId);
 
                 if (!File.Exists(indexFile))
                 {
                     continue;
                 }
 
-                IndexStreams.Add((Index)indexId, File.Open(indexFile, FileMode.Open));
+                this.indexStreams.Add((Index)indexId, File.Open(indexFile, FileMode.Open, fileAccess));
             }
-
-            if (IndexStreams.Count == 0)
-            {
-                throw new CacheException("No index files found.");
-            }
-
-            var metaFile = Path.Combine(cacheDirectory + $"main_file_cache.idx{(int)Index.ReferenceTables}");
-
-            if (!File.Exists(metaFile))
-            {
-                throw new CacheException("Meta index file does not exist.");
-            }
-
-            MetaStream = File.Open(metaFile, FileMode.Open);
         }
+
+        public bool ReadOnly { get; private set; }
+
+        public string CacheDirectory { get; private set; }
 
         /// <summary>
-        ///     The number of indexes, not including the meta index.
+        ///     The number of indexes.
         /// </summary>
-        public int IndexCount => IndexStreams.Count;
+        public int IndexCount => this.indexStreams.Count;
 
-        private Stream DataStream { get; }
-        private IDictionary<Index, Stream> IndexStreams { get; } = new Dictionary<Index, Stream>();
-        private Stream MetaStream { get; }
-
-        public void Dispose()
+        /// <summary>
+        /// Reads the sectors
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public byte[] ReadFileData(Index index, int fileId)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            int filesize;
+            return this.ReadSectors(index, fileId, out filesize).Aggregate(new List<byte>(), (bytes, sector) =>
+            {
+                bytes.AddRange(sector.Data);
+                return bytes;
+            }).Take(filesize).ToArray();
         }
 
-        public byte[] GetFileData(Index index, int fileId)
+        private IEnumerable<Sector> ReadSectors(Index index, int fileId)
         {
-            var meta = index == Index.ReferenceTables;
+            int filesize;
+            return this.ReadSectors(index, fileId, out filesize);
+        }
 
-            if (!meta && !IndexStreams.ContainsKey(index))
+        private IEnumerable<Sector> ReadSectors(Index index, int fileId, out int filesize)
+        {
+            if (!this.indexStreams.ContainsKey(index))
             {
                 throw new CacheException("Invalid index specified.");
             }
 
-            var indexReader = new BinaryReader(meta ? MetaStream : IndexStreams[index]);
+            var indexReader = new BinaryReader(this.indexStreams[index]);
 
             var indexPosition = (long)fileId * IndexPointer.Length;
 
-            if ((indexPosition < 0) || (indexPosition >= indexReader.BaseStream.Length))
+            if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
                 throw new CacheException("Given file does not exist.");
             }
 
-            // Lock reading from stream, to allow multiple threads from calling this method at the same time
-            lock (_streamReadLock)
+            var sectors = new List<Sector>();
+
+            // Lock stream, to allow multiple threads from calling this method at the same time
+            lock (this.ioLock)
             {
                 indexReader.BaseStream.Position = indexPosition;
+                var indexPointer = new IndexPointer(indexReader.ReadBytes(IndexPointer.Length));
 
-                var indexBytes = indexReader.ReadBytes(IndexPointer.Length);
+                filesize = indexPointer.Filesize;
 
-                var indexPointer = new IndexPointer(indexBytes);
+                if (indexPointer.Filesize <= 0)
+                {
+                    throw new CacheException("Given file has no size.");
+                }
 
                 var chunkId = 0;
-                var remaining = indexPointer.Size;
-                var dataReader = new BinaryReader(DataStream);
-                var dataPosition = (long)indexPointer.Sector * Sector.Length;
+                var remaining = indexPointer.Filesize;
+                var dataReader = new BinaryReader(this.dataStream);
+                var dataPosition = (long)indexPointer.FirstSectorPosition * Sector.Length;
 
-                var dataStream = new MemoryStream(indexPointer.Size);
                 do
                 {
                     dataReader.BaseStream.Position = dataPosition;
 
-                    var sector = new Sector(index, fileId, chunkId, dataReader.ReadBytes(Sector.Length));
+                    var sector = new Sector((int)(dataPosition / Sector.Length), index, fileId, chunkId++, dataReader.ReadBytes(Sector.Length));
 
                     var bytesRead = Math.Min(sector.Data.Length, remaining);
 
-                    dataStream.Write(sector.Data, 0, bytesRead);
                     remaining -= bytesRead;
 
-                    dataPosition = (long)sector.NextSectorId * Sector.Length;
-                    chunkId++;
+                    dataPosition = (long)sector.NextSectorPosition * Sector.Length;
+
+                    sectors.Add(sector);
                 }
                 while (remaining > 0);
+            }
 
-                return dataStream.ToArray();
+            return sectors;
+        }
+
+        /// <summary>
+        /// If available, overwrites the space allocated to the previous file first to save space.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <param name="data"></param>
+        public void WriteFileData(Index index, int fileId, byte[] data)
+        {
+            if (this.ReadOnly)
+            {
+                throw new InvalidOperationException("Can't write data in readonly mode.");
+            }
+
+            var sectors = Sector.FromData(data, index, fileId);
+
+            lock (this.ioLock)
+            {
+                // Obtain possibly existing sector positions to overwrite
+                int[] existingSectorPositions;
+                try
+                {
+                    existingSectorPositions = this.ReadSectors(index, fileId)
+                        .Select((sector) => sector.Position)
+                        .ToArray();
+                }
+                catch (Exception ex) when (ex is CacheException || ex is SectorException)
+                {
+                    // Assume there are no existing sectors when the method fails
+                    existingSectorPositions = new int[0];
+                }
+
+                var dataWriter = new BinaryWriter(this.dataStream);
+
+                foreach (var sector in sectors)
+                {
+                    // Overwrite existing sector data if available, otherwise append to file
+                    sector.Position = sector.ChunkId < existingSectorPositions.Length
+                        ? existingSectorPositions[sector.ChunkId]
+                        : (int)Math.Ceiling(dataWriter.BaseStream.Length / 520D);
+
+                    // Set position of next sector
+                    sector.NextSectorPosition = sector.ChunkId + 1 < existingSectorPositions.Length
+                        ? existingSectorPositions[sector.ChunkId + 1]
+                        : sector.Position + 1;
+
+                    // Add to index
+                    if (sector.ChunkId == 0)
+                    {
+                        var pointer = new IndexPointer(sector.Position, data.Length);
+
+                        // Create index file if it does not exist yet
+                        if (!this.indexStreams.ContainsKey(index))
+                        {
+                            this.indexStreams.Add(index, File.Open(
+                                Path.Combine(this.CacheDirectory, "main_file_cache.idx" + (int)index),
+                                FileMode.OpenOrCreate,
+                                FileAccess.ReadWrite));
+                        }
+
+                        var indexWriter = new BinaryWriter(this.indexStreams[index]);
+                        var pointerPosition = fileId * IndexPointer.Length;
+
+                        // Write zeroes up to the desired position of the index stream if it is larger than its size
+                        if (indexWriter.BaseStream.Length < pointerPosition)
+                        {
+                            indexWriter.BaseStream.Position = indexWriter.BaseStream.Length;
+                            indexWriter.Write(Enumerable.Repeat((byte)0, (int)(pointerPosition - indexWriter.BaseStream.Length)).ToArray());
+                        }
+
+                        indexWriter.BaseStream.Position = pointerPosition;
+                        pointer.Encode(indexWriter.BaseStream);
+                    }
+
+                    // Write the encoded sector
+                    dataWriter.BaseStream.Position = sector.Position * Sector.Length;
+                    dataWriter.Write(sector.Encode());
+                }
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        public void Dispose()
         {
-            if (disposing)
-            {
-                DataStream.Dispose();
-                MetaStream.Dispose();
+            this.dataStream.Dispose();
 
-                foreach (var indexStreamPair in IndexStreams)
-                {
-                    indexStreamPair.Value.Dispose();
-                }
+            foreach (var indexStream in this.indexStreams.Values)
+            {
+                indexStream.Dispose();
             }
         }
     }

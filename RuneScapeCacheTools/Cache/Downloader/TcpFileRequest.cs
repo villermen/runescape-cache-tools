@@ -8,20 +8,20 @@
 
         public int FileSize { get; set; }
 
-        public int RemainingLength => (int)(FileSize - DataStream.Length);
+        public int RemainingLength => (int)(this.FileSize - this.DataStream.Length);
 
         public override void Write(byte[] data)
         {
-            if (data.Length > RemainingLength)
+            if (data.Length > this.RemainingLength)
             {
                 throw new DownloaderException("Tried to write more bytes than were remaining in the file.");
             }
 
             base.Write(data);
 
-            if (RemainingLength == 0)
+            if (this.RemainingLength == 0)
             {
-                Complete();
+                this.Complete();
             }
         }
     }

@@ -4,6 +4,9 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     ///     Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
     /// </summary>
@@ -13,101 +16,114 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class Sector
     {
         /// <summary>
-        ///     The size of the data within a sector in bytes.
+        ///     The total size of a sector in bytes.
         /// </summary>
-        public const int DataLength = 512;
-
-        /// <summary>
-        ///     The extended data size
-        /// </summary>
-        public const int ExtendedDataLength = 510;
-
-        /// <summary>
-        ///     The extended header size
-        /// </summary>
-        public const int ExtendedHeaderLength = 10;
+        public const int Length = 520;
 
         /// <summary>
         ///     The size of the header within a sector in bytes.
         /// </summary>
-        public const int HeaderLength = 8;
+        private const int standardHeaderLength = 8;
 
         /// <summary>
-        ///     The total size of a sector in bytes.
+        ///     The size of the data within a sector in bytes.
         /// </summary>
-        public const int Length = HeaderLength + DataLength;
+        private const int standardDataLength = 512;
+
+        /// <summary>
+        ///     The extended data size
+        /// </summary>
+        private const int extendedDataLength = 510;
+
+        /// <summary>
+        ///     The extended header size
+        /// </summary>
+        private const int extendedHeaderLength = 10;
+
+        public Sector()
+        {
+        }
 
         /// <summary>
         ///     Decodes the given byte array into a <see cref="Sector" /> object.
         /// </summary>
+        /// <param name="position"></param>
         /// <param name="expectedIndex"></param>
         /// <param name="expectedFileId"></param>
         /// <param name="expectedChunkId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Sector(Index expectedIndex, int expectedFileId, int expectedChunkId, byte[] data)
+        public Sector(int position, Index expectedIndex, int expectedFileId, int expectedChunkId, byte[] data)
         {
+            this.Position = position;
+
             if (data.Length != Length)
             {
                 throw new ArgumentException(
                     $"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
             }
 
-            // Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data)
-            var extended = expectedFileId > 65535;
-
             var dataReader = new BinaryReader(new MemoryStream(data));
 
             // Obtain and verify if the chunk contains what we expect
-            FileId = extended ? dataReader.ReadInt32BigEndian() : dataReader.ReadUInt16BigEndian();
+            this.FileId = (Sector.GetExtended(expectedFileId) ? dataReader.ReadInt32BigEndian() : dataReader.ReadUInt16BigEndian());
 
-            if (FileId != expectedFileId)
+            if (this.FileId != expectedFileId)
             {
                 throw new SectorException("File id mismatch.");
             }
 
-            ChunkId = dataReader.ReadUInt16BigEndian();
+            this.ChunkId = dataReader.ReadUInt16BigEndian();
 
-            if (ChunkId != expectedChunkId)
+            if (this.ChunkId != expectedChunkId)
             {
                 throw new SectorException("Chunk id mismatch.");
             }
 
-            NextSectorId = dataReader.ReadUInt24BigEndian();
-            IndexId = dataReader.ReadByte();
+            this.NextSectorPosition = dataReader.ReadUInt24BigEndian();
+            this.Index = (Index)dataReader.ReadByte();
 
-            if (IndexId != (int)expectedIndex)
+            if (this.Index != expectedIndex)
             {
                 throw new SectorException("Index id mismatch.");
             }
 
-            Data = dataReader.ReadBytes(extended ? ExtendedDataLength : DataLength);
+            this.Data = dataReader.ReadBytes(this.IsExtended ? extendedDataLength : standardDataLength);
         }
+
+        public int Position { get; set; }
 
         /// <summary>
         ///     The chunk within the file that this sector contains.
         /// </summary>
-        public int ChunkId { get; }
+        public int ChunkId { get; set; }
 
         /// <summary>
         ///     The data in this sector.
         /// </summary>
-        public byte[] Data { get; }
+        public byte[] Data { get; private set; }
 
         /// <summary>
         ///     The id of the file this sector contains.
         /// </summary>
-        public int FileId { get; }
+        public int FileId { get; private set; }
 
         /// <summary>
         ///     The type of file this sector contains.
         /// </summary>
-        public int IndexId { get; }
+        public Index Index { get; set; }
 
         /// <summary>
         ///     The position of next sector.
         /// </summary>
-        public int NextSectorId { get; }
+        public int NextSectorPosition { get; set; }
+
+        /// <summary>
+        /// Gets whether the sector uses the extended format.
+        /// Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data).
+        /// Jagex did not expect file indexes to surpass the size of a short =)
+        /// </summary>
+        public bool IsExtended => GetExtended(this.FileId);
 
         /// <summary>
         ///     Encodes this <see cref="Sector" /> into a byte array.
@@ -118,23 +134,64 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var dataStream = new MemoryStream(new byte[Length]);
             var dataWriter = new BinaryWriter(dataStream);
 
-            var extended = FileId > 65535;
-
-            if (extended)
+            if (this.IsExtended)
             {
-                dataWriter.WriteInt32BigEndian(FileId);
+                dataWriter.WriteInt32BigEndian(this.FileId);
             }
             else
             {
-                dataWriter.WriteUInt16BigEndian((ushort)FileId);
+                dataWriter.WriteUInt16BigEndian((ushort)this.FileId);
             }
 
-            dataWriter.WriteUInt16BigEndian((ushort)ChunkId);
-            dataWriter.WriteUInt24BigEndian(NextSectorId);
-            dataWriter.Write((byte)IndexId);
-            dataWriter.Write(Data);
+            dataWriter.WriteUInt16BigEndian((ushort)this.ChunkId);
+            dataWriter.WriteUInt24BigEndian(this.NextSectorPosition);
+            dataWriter.Write((byte)this.Index);
+            dataWriter.Write(this.Data);
 
             return dataStream.ToArray();
+        }
+
+        /// <summary>
+        /// Returns the given data converted to sectors.
+        /// Sectors will not have NextSectorId set.
+        /// This is up to the <see cref="FileStore"/>.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<Sector> FromData(byte[] data, Index index, int fileId)
+        {
+            var isExtended = Sector.GetExtended(fileId);
+
+            var remaining = data.Length;
+            var chunkId = 0;
+            while (remaining > 0)
+            {
+                var sector = new Sector
+                {
+                    ChunkId = chunkId++,
+                    Index = index,
+                    FileId = fileId
+                };
+
+                var dataLength = Math.Min((isExtended ? Sector.extendedDataLength : Sector.standardDataLength), remaining);
+
+                sector.Data = data.Skip(data.Length - remaining)
+                    .Take(dataLength)
+                    .ToArray();
+
+                remaining -= dataLength;
+
+                yield return sector;
+            }
+        }
+
+        /// <summary>
+        /// Returns whether the extended format should be used for data with the given file id.
+        /// </summary>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        private static bool GetExtended(int fileId)
+        {
+            return fileId > 65535;
         }
     }
 }

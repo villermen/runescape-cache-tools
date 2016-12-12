@@ -8,18 +8,18 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 
         public int Current { get; private set; }
 
-        public float Percentage => 100 / Total * Current;
+        public float Percentage => 100 / this.Total * this.Current;
 
         public void Report(string value)
         {
-            if (Total == -1)
+            if (this.Total == -1)
             {
                 throw new InvalidOperationException("Total must be set before reporting progress.");
             }
 
-            Current++;
+            this.Current++;
 
-            OnReport(value);
+            this.OnReport(value);
         }
     }
 }

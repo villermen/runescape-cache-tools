@@ -8,42 +8,42 @@
 
         public Vector3()
         {
-            Level = -1;
+            this.Level = -1;
         }
 
         public Vector3(int level, int x, int y, int z)
         {
-            Level = level;
-            X = x;
-            Y = y;
-            Z = z;
+            this.Level = level;
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
         }
 
         private Vector3(Vector3 vector)
         {
-            Level = vector.Level;
-            X = vector.X;
-            Y = vector.Y;
-            Z = vector.Z;
+            this.Level = vector.Level;
+            this.X = vector.X;
+            this.Y = vector.Y;
+            this.Z = vector.Z;
         }
 
         private Vector3(int unknownInteger, bool unknownBoolean)
         {
             if (unknownInteger == -1)
             {
-                Level = -1;
+                this.Level = -1;
             }
             else
             {
-                Level = (unknownInteger >> 28) & 3;
-                X = ((unknownInteger >> 14) & 0x3fff) << 9;
-                Y = 0;
-                Z = (unknownInteger & 0x3fff) << 9;
+                this.Level = (unknownInteger >> 28) & 3;
+                this.X = ((unknownInteger >> 14) & 0x3fff) << 9;
+                this.Y = 0;
+                this.Z = (unknownInteger & 0x3fff) << 9;
 
                 if (unknownBoolean)
                 {
-                    X += 256;
-                    Z += 256;
+                    this.X += 256;
+                    this.Z += 256;
                 }
             }
         }

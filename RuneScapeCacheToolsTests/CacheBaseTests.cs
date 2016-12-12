@@ -16,8 +16,8 @@ namespace RuneScapeCacheToolsTests
 
         public CacheBaseTests(ITestOutputHelper output, CacheFixture fixture)
         {
-            Output = output;
-            Fixture = fixture;
+            this.Output = output;
+            this.Fixture = fixture;
         }
 
         [Theory]
@@ -28,7 +28,7 @@ namespace RuneScapeCacheToolsTests
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
-            Fixture.Cache.Extract(index, fileId, true);
+            this.Fixture.Cache.Extract(index, fileId, true);
 
             Assert.True(File.Exists(expectedFilePath), $"File was not extracted, or not extracted to {expectedFilePath}.");
 
@@ -44,7 +44,7 @@ namespace RuneScapeCacheToolsTests
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
-            Fixture.Cache.Extract(Index.Enums, 5, true);
+            this.Fixture.Cache.Extract(Index.Enums, 5, true);
 
             Assert.True(File.Exists(expectedFilePath), $"File entry was not extracted, or not extracted to {expectedFilePath}.");
 
@@ -57,7 +57,7 @@ namespace RuneScapeCacheToolsTests
         public void TestExtractExtension()
         {
             // TODO: Use pre-built cache for this
-            Fixture.Downloader.Extract(Index.LoadingSprites, 8501);
+            this.Fixture.Downloader.Extract(Index.LoadingSprites, 8501);
 
             // Verify that the .jpg extension was added
             Assert.True(File.Exists($"output/extracted/{Index.LoadingSprites}/8501.jpg"));
@@ -69,13 +69,13 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFile()
         {
-            var file = Fixture.Cache.GetFile(Index.ClientScripts, 3);
+            var file = this.Fixture.Cache.GetFile(Index.ClientScripts, 3);
 
             var fileData = file.Data;
 
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
-            var archiveFile = Fixture.Cache.GetFile(Index.Enums, 5);
+            var archiveFile = this.Fixture.Cache.GetFile(Index.Enums, 5);
 
             var archiveEntry = archiveFile.Entries[255];
 
@@ -83,7 +83,7 @@ namespace RuneScapeCacheToolsTests
 
             try
             {
-                Fixture.Cache.GetFile(Index.Music, 30);
+                this.Fixture.Cache.GetFile(Index.Music, 30);
 
                 Assert.True(false, "Cache returned a file that shouldn't exist.");
             }
