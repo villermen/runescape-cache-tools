@@ -4,7 +4,7 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 {
     public static class PathExtensions
     {
-        public static char[] InvalidCharacters = { '/', ':', '"', '*', '?', '>', '<', '|' };
+        public static char[] InvalidCharacters = { '/', ':', '"', '*', '?', '>', '<', '|', '\0' };
 
         /// <summary>
         ///     Parses the given directory and unifies its format, to be applied to unpredictable user input.
