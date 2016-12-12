@@ -89,7 +89,7 @@ namespace RuneScapeCacheToolsTests
             }
             catch (CacheException exception)
             {
-                Assert.True(exception.Message.Contains("incomplete"), "Non-existent file cache exception had the wrong message.");
+                Assert.True(exception.Message.Contains("no size"), "Non-existent file cache exception had the wrong message.");
             }
         }
     }
