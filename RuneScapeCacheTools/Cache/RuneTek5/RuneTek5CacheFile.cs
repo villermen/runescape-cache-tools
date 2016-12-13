@@ -119,7 +119,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            this.Entries = this.Info.Entries.Count > 1 ? this.DecodeEntries(continuousData, this.Info.Entries.Count) : new[] { continuousData };
+            this.Entries = this.Info.Entries.Count > 1 ? RuneTek5CacheFile.DecodeEntries(continuousData, this.Info.Entries.Count) : new[] { continuousData };
 
             // Verify supplied info where possible
 
@@ -171,8 +171,25 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public uint[] Key { get; set; }
 
-        private byte[][] DecodeEntries(byte[] data, int amountOfEntries)
+        /// <summary>
+        /// Decodes the entries contained in the given data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="amountOfEntries"></param>
+        /// <returns></returns>
+        private static byte[][] DecodeEntries(byte[] data, int amountOfEntries)
         {
+            /* 
+             * Format visualization:
+             *                                   [chunkamount (2)]
+             * chunk1 data:                      [entry1chunk1][entry2chunk1]
+             * chunk2 data:                      [entry1chunk2][entry2chunk2]
+             * delta-encoded chunk1 entry sizes: [entry1chunk1size][entry2chunk1size]
+             * delta-encoded chunk2 entry sizes: [entry1chunk2size][entry2chunk2size]
+             * 
+             * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
+             */
+
             var entries = new byte[amountOfEntries][];
 
             var reader = new BinaryReader(new MemoryStream(data));
@@ -180,14 +197,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             reader.BaseStream.Position = reader.BaseStream.Length - 1;
             var amountOfChunks = reader.ReadByte();
 
-            if (amountOfChunks > 1)
-            {
-                throw new Exception("I don't know how to deal with more than one chunk in an entry file...");
-            }
-
             // Read the sizes of the child entries and individual chunks
-            var chunkSizes = new int[amountOfChunks, amountOfEntries];
-            // var entrySizes = new int[amountOfEntries];
+            var chunkEntrySizes = new int[amountOfChunks, amountOfEntries];
 
             reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * amountOfEntries * 4;
 
@@ -200,11 +211,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     var delta = reader.ReadInt32BigEndian();
                     chunkSize += delta;
 
-                    // Store the size of this chunk
-                    chunkSizes[chunkId, entryId] = chunkSize;
-
-                    // Add it to the size of the whole file
-                    // entrySizes[entryId] += chunkSize;
+                    // Store the size of this entry in this chunk
+                    chunkEntrySizes[chunkId, entryId] = chunkSize;
                 }
             }
 
@@ -215,7 +223,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 for (var entryId = 0; entryId < amountOfEntries; entryId++)
                 {
                     // Read the bytes of the entry into the archive entries
-                    var entrySize = chunkSizes[chunkId, entryId];
+                    var entrySize = chunkEntrySizes[chunkId, entryId];
                     var entryData = reader.ReadBytes(entrySize);
 
                     if (entryData.Length != entrySize)
@@ -223,22 +231,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         throw new CacheException("End of file reached while reading the archive.");
                     }
 
-                    entries[entryId] = entryData.ToArray();
+                    // Put or append the entry data to the result
+                    entries[entryId] = chunkId == 0 ? entryData : entries[entryId].Concat(entryData).ToArray();
                 }
             }
 
             return entries;
         }
 
-        // TODO: For decoding and encoding of entries: Figure out what happens when amount of chunks > 1
-        // Is it a way to increase the amount of entries above 256?
-        // Right now I'm throwing exceptions on occurrences
         private byte[] EncodeEntries()
         {
-            if (this.Entries.Length > 256)
-            {
-                throw new Exception("I don't know how to deal with more than 256 entries in a file...");
-            }
+            // See format visualization in DecodeEntries method
 
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
@@ -249,6 +252,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 writer.Write(entry);
             }
 
+            // TODO: Split entries into multiple chunks (when?)
             byte amountOfChunks = 1;
 
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
