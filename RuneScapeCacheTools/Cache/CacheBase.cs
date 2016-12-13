@@ -131,19 +131,36 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public void Extract(Index index, IEnumerable<int> fileIds, bool overwrite = false, ExtendedProgress progress = null)
         {
-            var fileIdsArray = fileIds.ToArray();
-
-            if (progress != null)
+            try
             {
-                progress.Total += fileIdsArray.Length;
+                var fileIdsArray = fileIds.ToArray();
+
+                if (progress != null)
+                {
+                    progress.Total += fileIdsArray.Length;
+                }
+
+                Parallel.ForEach(fileIdsArray, fileId =>
+                {
+                    try
+                    {
+                        this.Extract(index, fileId, overwrite);
+
+                        progress?.Report($"Extracted {index}/{fileId}.");
+                    }
+                    catch (CacheFileNotFoundException)
+                    {
+                        // Skip failed extractions if more than one file is specified
+                        var logMessage = $"Skipped {index}/{fileId} because it was not found.";
+                        progress?.Report(logMessage);
+                        CacheBase.Logger.Info(logMessage);
+                    }
+                });
             }
-
-            Parallel.ForEach(fileIdsArray, fileId =>
+            catch (AggregateException ex)
             {
-                var extractedPath = this.Extract(index, fileId, overwrite);
-
-                progress?.Report($"extracted {extractedPath}");
-            });
+                throw ex.InnerException;
+            }
         }
 
         /// <summary>

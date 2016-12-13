@@ -113,6 +113,7 @@
     <Compile Include="Audio\SoundtrackException.cs" />
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
+    <Compile Include="Cache\CacheFileNotFoundException.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />

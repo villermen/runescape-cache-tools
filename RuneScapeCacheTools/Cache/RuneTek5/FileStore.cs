@@ -105,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             if (!this.indexStreams.ContainsKey(index))
             {
-                throw new CacheException("Invalid index specified.");
+                throw new CacheFileNotFoundException($"Index does not exist for {index}/{fileId}.");
             }
 
             var indexReader = new BinaryReader(this.indexStreams[index]);
@@ -114,7 +114,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
-                throw new CacheException("Given file does not exist.");
+                throw new CacheFileNotFoundException($"{index}/{fileId} is outside of the index file's bounds.");
             }
 
             var sectors = new List<Sector>();
@@ -129,7 +129,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 if (indexPointer.Filesize <= 0)
                 {
-                    throw new CacheException("Given file has no size.");
+                    throw new CacheFileNotFoundException($"{index}/{fileId} has no size, which means it is either empty or not present.");
                 }
 
                 var chunkId = 0;
