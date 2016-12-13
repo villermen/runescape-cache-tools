@@ -11,17 +11,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
-    // TODO: Don't forget to add to metadata after writing file
     public class RuneTek5Cache : CacheBase
     {
         /// <summary>
         ///     Creates an interface on the cache stored in the given directory.
         /// </summary>
         /// <param name="cacheDirectory"></param>
-        public RuneTek5Cache(string cacheDirectory = null)
+        public RuneTek5Cache(string cacheDirectory = null, bool readOnly = true)
         {
             this.CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
-            this.FileStore = new FileStore(this.CacheDirectory);
+            this.FileStore = new FileStore(this.CacheDirectory, readOnly);
         }
 
         public static string DefaultCacheDirectory
@@ -56,12 +55,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public override IEnumerable<int> GetFileIds(Index index)
         {
             var referenceTable = this.GetReferenceTable(index);
-            return referenceTable.Files.Keys;
+            return referenceTable.FileIds;
         }
 
         public override CacheFileInfo GetFileInfo(Index index, int fileId)
         {
-            return this.GetReferenceTable(index).Files[fileId];
+            return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
         public ReferenceTable GetReferenceTable(Index index)
@@ -80,12 +79,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var referenceTable = this.GetReferenceTable(index);
 
             // The file must at least be defined in the reference table (doesn't mean it is actually complete)
-            if (!referenceTable.Files.ContainsKey(fileId))
+            if (!referenceTable.FileIds.Contains(fileId))
             {
                 throw new CacheFileNotFoundException($"{index}/{fileId} does not exist.");
             }
 
-            var referenceTableEntry = referenceTable.Files[fileId];
+            var referenceTableEntry = referenceTable.GetFileInfo(fileId);
 
             try
             {
@@ -108,7 +107,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Write data to file store
             this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
 
-            // TODO: Write reference table entry
+            // TODO: Allow for creation of reference tables and entries
+            var referenceTable = this.ReferenceTables[file.Info.Index];
+            var fileInfo = referenceTable.GetFileInfo(file.Info.FileId);
+
+            var existingFileInfo = file.Info;
 
             throw new NotImplementedException("TODO: Write reference table entry");
         }

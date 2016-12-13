@@ -14,5 +14,18 @@
         ///     This entry's identifier.
         /// </summary>
         public int Identifier { get; set; } = -1;
+
+        /// <summary>
+        /// Returns a copy of this object with the same values.
+        /// </summary>
+        /// <returns></returns>
+        public CacheFileEntryInfo Clone()
+        {
+            return new CacheFileEntryInfo
+            {
+                EntryId = this.EntryId,
+                Identifier = this.Identifier
+            };
+        }
     }
 }

@@ -109,7 +109,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.LZMA:
-                        throw new NotImplementedException();
+                        throw new NotImplementedException("Decoding using LZMA decompression is not yet implemented.");
                         break;
 
                     default:
@@ -171,6 +171,96 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public uint[] Key { get; set; }
 
+        public override byte[] Encode()
+        {
+            var memoryStream = new MemoryStream();
+            var writer = new BinaryWriter(memoryStream);
+
+            writer.Write((byte)this.Info.CompressionType);
+
+            // TODO: Add support for encryption
+
+            // Encode data (file or entries)
+            var data = this.Info.Entries.Count > 1 ? this.EncodeEntries() : this.Data;
+
+            // Compression
+            var uncompressedSize = data.Length;
+            switch (this.Info.CompressionType)
+            {
+                case CompressionType.Bzip2:
+                    var bzip2CompressionStream = new MemoryStream();
+                    using (var bzip2Stream = new BZip2OutputStream(bzip2CompressionStream, 1))
+                    {
+                        bzip2Stream.Write(data, 0, data.Length);
+                    }
+
+                    // Remove BZh1
+                    data = bzip2CompressionStream.ToArray().Skip(4).ToArray();
+                    break;
+
+                case CompressionType.Gzip:
+                    //var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                    //var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                    //if (readGzipBytes != uncompressedLength)
+                    //{
+                    //    throw new CacheException(
+                    //        "Uncompressed container data length does not match obtained length.");
+                    //}
+
+                    var gzipCompressionStream = new MemoryStream();
+                    using (var gzipStream = new GZipStream(gzipCompressionStream, CompressionMode.Compress))
+                    {
+                        gzipStream.Write(data, 0, data.Length);
+                    }
+                    data = gzipCompressionStream.ToArray();
+                    break;
+
+                case CompressionType.LZMA:
+                    throw new NotImplementedException("Encoding using LZMA compression is not yet implemented.");
+                    break;
+
+                case CompressionType.None:
+                    break;
+
+                default:
+                    throw new CacheException("Invalid compression type given.");
+            }
+
+            // Compressed/total size
+            writer.WriteInt32BigEndian(data.Length);
+
+            // Add uncompressed size when compressing
+            if (this.Info.CompressionType != CompressionType.None)
+            {
+                writer.WriteInt32BigEndian(uncompressedSize);
+            }
+
+            writer.Write(data);
+
+            // Suffix with version truncated to two bytes
+            if (this.Info.Version > -1)
+            {
+                writer.WriteUInt16BigEndian((ushort)this.Info.Version);
+            }
+
+            var result = memoryStream.ToArray();
+
+            // Update file info with CRC
+            var crc = new Crc32();
+            crc.Update(result, 0, result.Length - 2);
+            this.Info.CRC = (int)crc.Value;
+
+            // Update file info with whirlpool digest
+            var whirlpool = new WhirlpoolDigest();
+            whirlpool.BlockUpdate(result, 0, result.Length - 2);
+
+            this.Info.WhirlpoolDigest = new byte[whirlpool.GetDigestSize()];
+            whirlpool.DoFinal(this.Info.WhirlpoolDigest, 0);
+
+            return result;
+        }
+
         /// <summary>
         /// Decodes the entries contained in the given data.
         /// </summary>
@@ -180,12 +270,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         private static byte[][] DecodeEntries(byte[] data, int amountOfEntries)
         {
             /* 
-             * Format visualization:
-             *                                   [chunkamount (2)]
+             * Format visualization:                                 
              * chunk1 data:                      [entry1chunk1][entry2chunk1]
              * chunk2 data:                      [entry1chunk2][entry2chunk2]
              * delta-encoded chunk1 entry sizes: [entry1chunk1size][entry2chunk1size]
              * delta-encoded chunk2 entry sizes: [entry1chunk2size][entry2chunk2size]
+             *                                   [chunkamount (2)]
              * 
              * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
              */
@@ -274,68 +364,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // Finish of with the amount of chunks
             writer.Write(amountOfChunks);
-
-            return memoryStream.ToArray();
-        }
-
-
-        public override byte[] Encode()
-        {
-            var memoryStream = new MemoryStream();
-            var writer = new BinaryWriter(memoryStream);
-
-            writer.Write((byte)this.Info.CompressionType);
-
-            // TODO: Add support for encryption
-
-            // Encode data (file or entries)
-            var data = this.Info.Entries.Count > 1 ? this.EncodeEntries() : this.Data;
-
-            // Compression
-            var uncompressedSize = data.Length;
-            switch (this.Info.CompressionType)
-            {
-                case CompressionType.Bzip2:
-                    var compressionStream = new MemoryStream();
-                    using (var bzip2Stream = new BZip2OutputStream(compressionStream))
-                    {
-                        bzip2Stream.Write(data, 0, data.Length);
-                    }
-
-                    // TODO: Check if BZh1 is added, and remove it if it is
-
-                    data = compressionStream.ToArray();
-                    break;
-
-                case CompressionType.Gzip:
-                    throw new NotImplementedException();
-                    break;
-
-                case CompressionType.LZMA:
-                    throw new NotImplementedException();
-                    break;
-
-                case CompressionType.None:
-                    break;
-
-                default:
-                    throw new CacheException("Invalid compression type given.");
-            }
-
-            // Compressed/total size
-            writer.WriteInt32BigEndian(data.Length);
-
-            // Add uncompressed size when compressing
-            if (this.Info.CompressionType != CompressionType.None)
-            {
-                writer.WriteInt32BigEndian(uncompressedSize);
-            }
-
-            writer.Write(data);
-
-            // TODO: What to do with crc and whirlpool that need to be stored in reference table but can only be calculated here?
-
-            throw new NotImplementedException();
 
             return memoryStream.ToArray();
         }

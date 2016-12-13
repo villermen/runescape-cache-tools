@@ -13,7 +13,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
     {
         public CacheFixture()
         {
-            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache");
+            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
             this.Downloader = new CacheDownloader();
             this.Soundtrack = new Soundtrack(this.Downloader);
 

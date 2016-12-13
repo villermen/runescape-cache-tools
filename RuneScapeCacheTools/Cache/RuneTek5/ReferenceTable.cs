@@ -4,6 +4,9 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using System.Collections.ObjectModel;
+    using System.Linq;
+
     /// <summary>
     ///     A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
     ///     and archive members.
@@ -15,6 +18,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>Villermen</author>
     public class ReferenceTable
     {
+        /// <summary>
+        ///     The entries in this table.
+        /// </summary>
+        private readonly Dictionary<int, CacheFileInfo> files = new Dictionary<int, CacheFileInfo>();
+
         /// <summary>
         ///     Decodes the reference table contained in the given data.
         /// </summary>
@@ -48,7 +56,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 fileId += this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                this.Files.Add(fileId, new CacheFileInfo
+                this.files.Add(fileId, new CacheFileInfo
                 {
                     Index = index,
                     FileId = fileId
@@ -58,14 +66,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the identifiers if present
             if ((this.Options & CacheFileOptions.Identifiers) != 0)
             {
-                foreach (var file in this.Files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the CRC32 checksums
-            foreach (var file in this.Files.Values)
+            foreach (var file in this.files.Values)
             {
                 file.CRC = reader.ReadInt32BigEndian();
             }
@@ -73,7 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read some type of hash
             if ((this.Options & CacheFileOptions.MysteryHashes) != 0)
             {
-                foreach (var file in this.Files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.MysteryHash = reader.ReadInt32BigEndian();
                 }
@@ -82,7 +90,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the whirlpool digests if present
             if ((this.Options & CacheFileOptions.WhirlpoolDigests) != 0)
             {
-                foreach (var file in this.Files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.WhirlpoolDigest = reader.ReadBytes(64);
                 }
@@ -91,7 +99,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the compressed and uncompressed sizes
             if ((this.Options & CacheFileOptions.Sizes) != 0)
             {
-                foreach (var file in this.Files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.CompressedSize = reader.ReadInt32BigEndian();
                     file.UncompressedSize = reader.ReadInt32BigEndian();
@@ -99,7 +107,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the version numbers
-            foreach (var file in this.Files.Values)
+            foreach (var file in this.files.Values)
             {
                 var version = reader.ReadInt32BigEndian();
                 file.Version = version;
@@ -107,7 +115,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // Read the entry counts
             var entryCounts = new Dictionary<int, int>();
-            foreach (var file in this.Files.Values)
+            foreach (var file in this.files.Values)
             {
                 entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
             }
@@ -123,7 +131,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 {
                     entryId += this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
 
-                    this.Files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
+                    this.files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
                     {
                         EntryId = entryId
                     });
@@ -133,7 +141,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the entry identifiers if present
             if ((this.Options & CacheFileOptions.Identifiers) != 0)
             {
-                foreach (var file in this.Files.Values)
+                foreach (var file in this.files.Values)
                 {
                     foreach (var entry in file.Entries.Values)
                     {
@@ -144,9 +152,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         }
 
         /// <summary>
-        ///     The entries in this table.
+        /// Gets the ids of the files listed in this <see cref="ReferenceTable"/>.
         /// </summary>
-        public IDictionary<int, CacheFileInfo> Files { get; } = new Dictionary<int, CacheFileInfo>();
+        /// <returns></returns>
+        public int[] FileIds => this.files.Keys.ToArray();
+
+        /// <summary>
+        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
+        /// </summary>
+        /// <returns></returns>
+        public CacheFileInfo GetFileInfo(int fileId)
+        {
+            return this.files[fileId].Clone();
+        }
 
         /// <summary>
         ///     The format of this table.

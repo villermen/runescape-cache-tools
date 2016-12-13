@@ -46,9 +46,9 @@ namespace RuneScapeCacheToolsTests
 
             var referenceTable17 = this.Fixture.Downloader.GetReferenceTable(Index.Enums);
 
-            this.Output.WriteLine($"Files in reference table for index 17: {referenceTable17.Files.Count}.");
+            this.Output.WriteLine($"Files in reference table for index 17: {referenceTable17.FileIds.Length}.");
 
-            Assert.True(referenceTable17.Files.Count == 47, $"Reference table for index 17 reported having {referenceTable17.Files.Count} files instead of the expected 46.");
+            Assert.True(referenceTable17.FileIds.Length == 47, $"Reference table for index 17 reported having {referenceTable17.FileIds.Length} files instead of the expected 46.");
         }
 
         [Theory]

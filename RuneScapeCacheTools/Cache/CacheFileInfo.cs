@@ -3,9 +3,11 @@ using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
+    using System.Linq;
+
     public class CacheFileInfo
     {
-        public CacheFileOptions Options;
+        public CacheFileOptions Options { get; }
 
         /// <summary>
         ///     The compressed size of this entry.
@@ -19,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         ///     The children in this entry.
         /// </summary>
-        public IDictionary<int, CacheFileEntryInfo> Entries { get; } = new Dictionary<int, CacheFileEntryInfo>();
+        public IDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new Dictionary<int, CacheFileEntryInfo>();
 
         public int FileId { get; set; } = -1;
 
@@ -41,5 +43,28 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public int Version { get; set; } = -1;
 
         public byte[] WhirlpoolDigest { get; set; }
+
+        /// <summary>
+        /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.
+        /// Entries will also be cloned to the new object.
+        /// </summary>
+        /// <returns></returns>
+        public CacheFileInfo Clone()
+        {
+            return new CacheFileInfo
+            {
+                CompressedSize = this.CompressedSize,
+                CompressionType = this.CompressionType,
+                CRC = this.CRC,
+                Entries = this.Entries.Select(entryPair => new KeyValuePair<int, CacheFileEntryInfo>(entryPair.Key, entryPair.Value.Clone())).ToDictionary(entryPair => entryPair.Key, entryPair => entryPair.Value),
+                FileId = this.FileId,
+                Identifier = this.Identifier,
+                Index = this.Index,
+                MysteryHash = this.MysteryHash,
+                UncompressedSize = this.UncompressedSize,
+                Version = this.Version,
+                WhirlpoolDigest = this.WhirlpoolDigest
+            };
+        }
     }
 }
