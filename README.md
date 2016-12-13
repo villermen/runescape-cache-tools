@@ -1,5 +1,7 @@
 # Viller's RuneScape Cache Tools
 
+[![Travis CI build status](https://api.travis-ci.org/villermen/runescape-cache-tools.svg)](https://travis-ci.org/villermen/runescape-cache-tools "Travis CI build status")
+
 ###### A .NET library and interface for extracting and manipulating RuneScape's cache files.
 A pre-compiled executable of the latest release is available from the [releases page on GitHub](https://github.com/villermen/runescape-cache-tools/releases). Extract the archive and run RuneScapeCacheToolsGUI.exe to open the user interface.
 
