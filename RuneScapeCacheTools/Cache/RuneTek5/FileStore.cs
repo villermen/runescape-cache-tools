@@ -141,7 +141,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 {
                     dataReader.BaseStream.Position = dataPosition;
 
-                    var sector = new Sector((int)(dataPosition / Sector.Length), index, fileId, chunkId++, dataReader.ReadBytes(Sector.Length));
+                    var sectorBytes = dataReader.ReadBytes(Sector.Length);
+
+                    if (sectorBytes.Length != Sector.Length)
+                    {
+                        throw new CacheFileNotFoundException($"One of {index}/{fileId}'s sectors could not be fully read.");
+                    }
+
+                    var sector = new Sector((int)(dataPosition / Sector.Length), index, fileId, chunkId++, sectorBytes);
 
                     var bytesRead = Math.Min(sector.Data.Length, remaining);
 

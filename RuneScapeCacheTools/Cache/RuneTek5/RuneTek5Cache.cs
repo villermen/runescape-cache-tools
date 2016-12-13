@@ -82,7 +82,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // The file must at least be defined in the reference table (doesn't mean it is actually complete)
             if (!referenceTable.Files.ContainsKey(fileId))
             {
-                throw new CacheException($"Given cache file {fileId} in index {index} does not exist.");
+                throw new CacheFileNotFoundException($"{index}/{fileId} does not exist.");
             }
 
             var referenceTableEntry = referenceTable.Files[fileId];
@@ -93,7 +93,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
             catch (SectorException exception)
             {
-                throw new CacheException($"Cache file {fileId} in index {index} is incomplete or corrupted.",
+                throw new CacheFileNotFoundException($"{index}/{fileId} is incomplete or corrupted.",
                     exception);
             }
         }

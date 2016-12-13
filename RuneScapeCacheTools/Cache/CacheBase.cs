@@ -103,7 +103,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             foreach (var index in indexes)
             {
-                this.Extract(index, overwrite, progress);
+                try
+                {
+                    this.Extract(index, overwrite, progress);
+                }
+                catch (CacheFileNotFoundException)
+                {
+                    // Skip failing of file id list retrieval (separate file failures are handled earlier on) if more than one index is requested
+                    CacheBase.Logger.Info($"Skipped extracting {index} because its file list could not be obtained.");
+                }
             }
         }
 

@@ -328,7 +328,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Add uncompressed size when compressing
             if (this.Info.CompressionType != CompressionType.None)
             {
-                writer.WriteInt32BigEndian(data.Length);
+                writer.WriteInt32BigEndian(uncompressedSize);
             }
 
             writer.Write(data);

@@ -70,14 +70,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (this.FileId != expectedFileId)
             {
-                throw new SectorException("File id mismatch.");
+                throw new SectorException($"File id mismatch. Expected {expectedFileId}, got {this.FileId}.");
             }
 
             this.ChunkId = dataReader.ReadUInt16BigEndian();
 
             if (this.ChunkId != expectedChunkId)
             {
-                throw new SectorException("Chunk id mismatch.");
+                throw new SectorException($"Chunk id mismatch. Expected {expectedChunkId}, got {this.ChunkId}.");
             }
 
             this.NextSectorPosition = dataReader.ReadUInt24BigEndian();
@@ -85,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (this.Index != expectedIndex)
             {
-                throw new SectorException("Index id mismatch.");
+                throw new SectorException($"Index id mismatch. Expected {expectedIndex}, got {this.Index}.");
             }
 
             this.Data = dataReader.ReadBytes(this.IsExtended ? extendedDataLength : standardDataLength);
