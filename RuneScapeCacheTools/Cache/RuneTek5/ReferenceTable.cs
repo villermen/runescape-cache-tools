@@ -6,6 +6,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     ///     A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
@@ -64,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the identifiers if present
-            if ((this.Options & CacheFileOptions.Identifiers) != 0)
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
                 foreach (var file in this.files.Values)
                 {
@@ -79,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read some type of hash
-            if ((this.Options & CacheFileOptions.MysteryHashes) != 0)
+            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
             {
                 foreach (var file in this.files.Values)
                 {
@@ -88,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the whirlpool digests if present
-            if ((this.Options & CacheFileOptions.WhirlpoolDigests) != 0)
+            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
             {
                 foreach (var file in this.files.Values)
                 {
@@ -97,7 +98,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the compressed and uncompressed sizes
-            if ((this.Options & CacheFileOptions.Sizes) != 0)
+            if (this.Options.HasFlag(CacheFileOptions.Sizes))
             {
                 foreach (var file in this.files.Values)
                 {
@@ -109,8 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the version numbers
             foreach (var file in this.files.Values)
             {
-                var version = reader.ReadInt32BigEndian();
-                file.Version = version;
+                file.Version = reader.ReadInt32BigEndian();
             }
 
             // Read the entry counts
@@ -120,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
             }
 
-            // Read the entry ids (delta encoded)
+            // Read the delta encoded entry ids
             foreach (var entryCountPair in entryCounts)
             {
                 var entryCountFileId = entryCountPair.Key;
@@ -139,7 +139,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the entry identifiers if present
-            if ((this.Options & CacheFileOptions.Identifiers) != 0)
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
                 foreach (var file in this.files.Values)
                 {
@@ -158,18 +158,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public int[] FileIds => this.files.Keys.ToArray();
 
         /// <summary>
-        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
-        /// </summary>
-        /// <returns></returns>
-        public CacheFileInfo GetFileInfo(int fileId)
-        {
-            return this.files[fileId].Clone();
-        }
-
-        /// <summary>
         ///     The format of this table.
         /// </summary>
-        public int Format { get; set; }
+        public byte Format { get; set; }
 
         /// <summary>
         ///     The flags of this table.
@@ -180,5 +171,173 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     The version of this table.
         /// </summary>
         public int Version { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
+        /// </summary>
+        /// <returns></returns>
+        public CacheFileInfo GetFileInfo(int fileId)
+        {
+            return this.files[fileId].Clone();
+        }
+
+        internal void SetFileInfo(int fileId, CacheFileInfo info)
+        {
+            if (this.files.ContainsKey(fileId))
+            {
+                this.files[fileId] = info;
+            }
+            else
+            {
+                this.files.Add(fileId, info);
+            }
+        }
+
+        public RuneTek5CacheFile Encode()
+        {
+            var memoryStream = new MemoryStream();
+            var writer = new BinaryWriter(memoryStream);
+
+            // Write format
+            writer.Write(this.Format);
+
+            // Write version
+            if (this.Format >= 6)
+            {
+                writer.WriteInt32BigEndian(this.Version);
+            }
+
+            // Write amount of files
+            writer.Write((byte)this.Options);
+            if (this.Format >= 7)
+            {
+                writer.WriteSmartInt(this.files.Count);
+            }
+            else
+            {
+                writer.WriteUInt16BigEndian((ushort)this.files.Count);
+            }
+
+            // Write delta encoded file ids
+            var previousFileId = 0;
+            foreach (var fileId in this.FileIds)
+            {
+                var delta = fileId - previousFileId;
+
+                if (this.Format >= 7)
+                {
+                    writer.WriteSmartInt(delta);
+                }
+                else
+                {
+                    writer.WriteUInt16BigEndian((ushort)delta);
+                }
+
+                previousFileId = fileId;
+            }
+
+            // Write identifiers if option is set
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
+            {
+                foreach (var file in this.files.Values)
+                {
+                    writer.WriteInt32BigEndian(file.Identifier);
+                }
+            }
+
+            // Write CRC checksums
+            foreach (var file in this.files.Values)
+            {
+                writer.WriteInt32BigEndian(file.CRC);
+            }
+
+            // Write some type of hash
+            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
+            {
+                foreach (var file in this.files.Values)
+                {
+                    writer.WriteInt32BigEndian(file.MysteryHash);
+                }
+            }
+
+            // Write the whirlpool digests if option is set
+            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
+            {
+                foreach (var file in this.files.Values)
+                {
+                    // Do a small check to verify the size before messing the whole file up
+                    if (file.WhirlpoolDigest.Length != 64)
+                    {
+                        throw new CacheException("File info's whirlpool digest is not 64 bytes in length.");
+                    }
+
+                    writer.Write(file.WhirlpoolDigest);
+                }
+            }
+
+            // Write the compressed and uncompressed sizes if option is specified
+            if (this.Options.HasFlag(CacheFileOptions.Sizes))
+            {
+                foreach (var file in this.files.Values)
+                {
+                    writer.WriteInt32BigEndian(file.CompressedSize);
+                    writer.WriteInt32BigEndian(file.UncompressedSize);
+                }
+            }
+
+            // Write the version numbers
+            foreach (var file in this.files.Values)
+            {
+                writer.WriteInt32BigEndian(file.Version);
+            }
+
+            // Write the entry counts
+            foreach (var file in this.files.Values)
+            {
+                if (this.Format >= 7)
+                {
+                    writer.WriteSmartInt(file.Entries.Count);
+                }
+                else
+                {
+                    writer.WriteUInt16BigEndian((ushort)file.Entries.Count);
+                }
+            }
+
+            // Write the delta encoded entry ids
+            foreach (var file in this.files.Values)
+            {
+                var previousEntryId = 0;
+                foreach (var entryId in file.Entries.Keys)
+                {
+                    var delta = entryId - previousEntryId;
+
+                    if (this.Format >= 7)
+                    {
+                        writer.WriteSmartInt(delta);
+                    }
+                    else
+                    {
+                        writer.WriteUInt16BigEndian((ushort)delta);
+                    }
+
+                    previousEntryId = entryId;
+                }
+            }
+
+            // Write the entry identifiers if option is specified
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
+            {
+                foreach (var file in this.files.Values)
+                {
+                    foreach (var entry in file.Entries.Values)
+                    {
+                        writer.WriteInt32BigEndian(entry.Identifier);
+                    }
+                }
+            }
+
+            return new RuneTek5CacheFile(memoryStream.ToArray(), new CacheFileInfo());
+        }
     }
 }

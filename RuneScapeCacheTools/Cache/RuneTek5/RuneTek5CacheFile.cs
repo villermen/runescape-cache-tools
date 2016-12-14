@@ -11,17 +11,24 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using System.Text;
+
     /// <summary>
-    ///     A <see cref="RuneTek5CacheFile" /> holds raw file data.
-    ///     This data can be decrypted and decompressed from the cache, and can be converted back into its encrypted and
-    ///     compressed form.
+    /// A <see cref="CacheFile"/> that allows for conversion to and from binary file data in the RuneTek5 cache format.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
     public class RuneTek5CacheFile : CacheFile
     {
+        public RuneTek5CacheFile() { }
+
+        public RuneTek5CacheFile(byte[] data, CacheFileInfo info) : base(data, info) { }
+
+        public RuneTek5CacheFile(byte[][] entries, CacheFileInfo info) : base(entries, info) { }
+
         /// <summary>
+        /// Decodes the given <see cref="data"/> to a <see cref="RuneTek5CacheFile"/>.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="info">
@@ -29,34 +36,26 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     much obtained information as possible, so verification is performed.
         /// </param>
         /// <param name="key"></param>
-        public RuneTek5CacheFile(byte[] data, CacheFileInfo info, uint[] key = null)
+        public static RuneTek5CacheFile Decode(byte[] data, CacheFileInfo info)
         {
-            if (info != null)
+            var file = new RuneTek5CacheFile
             {
-                this.Info = info;
-            }
-
-            this.Key = key;
+                Info = info
+            };
 
             var dataReader = new BinaryReader(new MemoryStream(data));
 
-            this.Info.CompressionType = (CompressionType)dataReader.ReadByte();
-            var length = dataReader.ReadInt32BigEndian();
+            file.Info.CompressionType = (CompressionType)dataReader.ReadByte();
+            var dataLength = dataReader.ReadInt32BigEndian();
+
+            // Total length includes already read bytes and the extra bytes read because of compression
+            var totalLength = (file.Info.CompressionType == CompressionType.None ? 5 : 9) + dataLength;
 
             // Decrypt the data if a key is given
-            if (this.Key != null)
+            if (file.Info.EncryptionKey != null)
             {
-                var byteKeyStream = new MemoryStream(16);
-                var byteKeyWriter = new BinaryWriter(byteKeyStream);
-                foreach (var keyValue in this.Key)
-                {
-                    byteKeyWriter.WriteUInt32BigEndian(keyValue);
-                }
-
-                var totalLength = length + (this.Info.CompressionType == CompressionType.None ? 5 : 9);
-
                 var xtea = new XteaEngine();
-                xtea.Init(false, new KeyParameter(byteKeyStream.ToArray()));
+                xtea.Init(false, new KeyParameter(file.Info.EncryptionKey));
                 var decrypted = new byte[totalLength];
                 xtea.ProcessBlock(dataReader.ReadBytes(totalLength), 5, decrypted, 0);
 
@@ -66,18 +65,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             byte[] continuousData;
 
             // Check if we should decompress the data or not
-            if (this.Info.CompressionType == CompressionType.None)
+            if (file.Info.CompressionType == CompressionType.None)
             {
-                continuousData = dataReader.ReadBytes(length);
+                continuousData = dataReader.ReadBytes(dataLength);
             }
             else
             {
                 // Decompress the data
                 var uncompressedLength = dataReader.ReadInt32BigEndian();
-                var compressedBytes = dataReader.ReadBytes(length);
+                var compressedBytes = dataReader.ReadBytes(dataLength);
                 var uncompressedBytes = new byte[uncompressedLength];
 
-                switch (this.Info.CompressionType)
+                switch (file.Info.CompressionType)
                 {
                     case CompressionType.Bzip2:
                         // Add the bzip2 header as it is missing from the cache for whatever reason
@@ -109,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.LZMA:
-                        throw new NotImplementedException("Decoding using LZMA decompression is not yet implemented.");
+                        throw new NotImplementedException("Decoding using LZMA decompression is not yet supported. Nag me about it if you encounter this error.");
                         break;
 
                     default:
@@ -119,17 +118,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 continuousData = uncompressedBytes;
             }
 
-            this.Entries = this.Info.Entries.Count > 1 ? RuneTek5CacheFile.DecodeEntries(continuousData, this.Info.Entries.Count) : new[] { continuousData };
+            file.Entries = file.Info.Entries.Count > 1 ? RuneTek5CacheFile.DecodeEntries(continuousData, file.Info.Entries.Count) : new[] { continuousData };
 
             // Verify supplied info where possible
-
             // Read and verify the version of the file
-            if (this.Info.Version > -1)
+            if (file.Info.Version > -1)
             {
                 var obtainedVersion = dataReader.ReadUInt16BigEndian();
 
                 // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
-                var truncatedInfoVersion = (int)(ushort)this.Info.Version;
+                var truncatedInfoVersion = (int)(ushort)file.Info.Version;
                 if (obtainedVersion != truncatedInfoVersion)
                 {
                     throw new CacheException($"Obtained version part ({obtainedVersion}) did not match expected ({truncatedInfoVersion}).");
@@ -138,20 +136,20 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 // Calculate and verify crc
                 // CRC excludes the version of the file added to the end
 
-                // There is no way to know if the CRC is zero or unset, so I've put it with the version check
+                // There is no way to know if the CRC is zero or unset, so I've put it with the version check (whether info was given)
                 var crc = new Crc32();
                 crc.Update(data, 0, data.Length - 2);
 
                 var calculatedCRC = (int)crc.Value;
 
-                if (calculatedCRC != this.Info.CRC)
+                if (calculatedCRC != file.Info.CRC)
                 {
-                    throw new CacheException($"Calculated checksum (0x{calculatedCRC:X}) did not match expected (0x{this.Info.CRC:X}).");
+                    throw new CacheException($"Calculated checksum (0x{calculatedCRC:X}) did not match expected (0x{file.Info.CRC:X}).");
                 }
             }
 
             // Calculate and verify the whirlpool digest if set in the info
-            if (this.Info.WhirlpoolDigest != null)
+            if (file.Info.WhirlpoolDigest != null)
             {
                 var whirlpool = new WhirlpoolDigest();
                 whirlpool.BlockUpdate(data, 0, data.Length - 2);
@@ -159,26 +157,32 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var calculatedWhirlpool = new byte[whirlpool.GetDigestSize()];
                 whirlpool.DoFinal(calculatedWhirlpool, 0);
 
-                if (calculatedWhirlpool != this.Info.WhirlpoolDigest)
+                if (calculatedWhirlpool != file.Info.WhirlpoolDigest)
                 {
                     throw new CacheException("Calculated whirlpool digest did not match expected.");
                 }
             }
+
+            return file;
         }
 
         /// <summary>
-        ///     The key used in decrypting and encrypting the data.
+        /// Converts this <see cref="RuneTek5CacheFile"/> into a byte array to be written to the cache.
+        /// Updates properties in <see cref="CacheFile.Info"/> to match the possibly changed data.
         /// </summary>
-        public uint[] Key { get; set; }
-
-        public override byte[] Encode()
+        /// <returns></returns>
+        public byte[] Encode()
         {
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
 
             writer.Write((byte)this.Info.CompressionType);
 
-            // TODO: Add support for encryption
+            // Encrypt data
+            if (this.Info.EncryptionKey != null)
+            {
+                throw new NotImplementedException("RuneTek5 file encryption is not yet supported. Nag me about it if you encounter this error.");
+            }
 
             // Encode data (file or entries)
             var data = this.Info.Entries.Count > 1 ? this.EncodeEntries() : this.Data;
@@ -199,15 +203,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     break;
 
                 case CompressionType.Gzip:
-                    //var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
-                    //var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
-
-                    //if (readGzipBytes != uncompressedLength)
-                    //{
-                    //    throw new CacheException(
-                    //        "Uncompressed container data length does not match obtained length.");
-                    //}
-
                     var gzipCompressionStream = new MemoryStream();
                     using (var gzipStream = new GZipStream(gzipCompressionStream, CompressionMode.Compress))
                     {
@@ -217,7 +212,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     break;
 
                 case CompressionType.LZMA:
-                    throw new NotImplementedException("Encoding using LZMA compression is not yet implemented.");
+                    throw new NotImplementedException("Encoding using LZMA compression is not yet supported. Nag me about it if you encounter this error.");
                     break;
 
                 case CompressionType.None:
@@ -238,13 +233,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             writer.Write(data);
 
-            // Suffix with version truncated to two bytes
+            // Suffix with version truncated to two bytes (not part of data for whatever reason)
             if (this.Info.Version > -1)
             {
                 writer.WriteUInt16BigEndian((ushort)this.Info.Version);
             }
 
             var result = memoryStream.ToArray();
+
+            // Update file info with sizes
+            this.Info.CompressedSize = data.Length;
+            this.Info.UncompressedSize = uncompressedSize;
 
             // Update file info with CRC
             var crc = new Crc32();

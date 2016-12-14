@@ -5,6 +5,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
 {
     using System.Linq;
 
+    /// <summary>
+    /// Contains detailed information on a file in the cache.
+    /// </summary>
     public class CacheFileInfo
     {
         public CacheFileOptions Options { get; }
@@ -43,6 +46,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public int Version { get; set; } = -1;
 
         public byte[] WhirlpoolDigest { get; set; }
+
+        /// <summary>
+        /// Key used for encrypting and decrypting the file to and from cache.
+        /// </summary>
+        public byte[] EncryptionKey { get; set; }
 
         /// <summary>
         /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.

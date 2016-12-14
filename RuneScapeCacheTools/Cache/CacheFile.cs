@@ -9,36 +9,32 @@
         {
         }
 
-        public CacheFile(byte[] data)
+        public CacheFile(byte[] data, CacheFileInfo info)
+            : this(new byte[][] { data }, info)
         {
-            this.Entries = new byte[][] { data };
         }
 
-        public CacheFile(byte[][] entries)
+        public CacheFile(byte[][] entries, CacheFileInfo info)
         {
             this.Entries = entries;
+            this.Info = info;
         }
 
         /// <summary>
         ///     Shorthand to get the first entry, which the full file in most cases.
         /// </summary>
-        public byte[] Data => this.Entries[0];
+        public byte[] Data
+        {
+            get { return this.Entries[0]; }
+            set { this.Entries = new byte[][] { value }; }
+        }
 
         /// <summary>
         ///     The individual data entries in this file.
         ///     Most files only contain one entry.
         /// </summary>
-        public byte[][] Entries { get; set; }
+        public byte[][] Entries { get; set; } = new byte[1][];
 
-        public CacheFileInfo Info { get; set; } = new CacheFileInfo();
-
-        /// <summary>
-        /// Can be overwritten in derived classes to encode the data and information contained in this class into a byte array.
-        /// </summary>
-        /// <returns></returns>
-        public virtual byte[] Encode()
-        {
-            throw new NotSupportedException("This cache file does not support encoding to binary data.");
-        }
+        public CacheFileInfo Info { get; set; }
     }
 }

@@ -31,12 +31,13 @@ namespace RuneScapeCacheToolsTests
             var referenceTable = this.Fixture.RuneTek5Cache.GetReferenceTable(index);
         }
 
-        [Theory(Skip = "Unfinished")]
+        [Theory(Skip = "Not yet finished")]
         [InlineData(Index.Models, 47000)] // Gzip
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)
         {
             var file = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
+
             this.Fixture.RuneTek5Cache.PutFile(file);
         }
     }

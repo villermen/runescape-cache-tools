@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 namespace RuneScapeCacheToolsTests
 {
     [Collection("TestCache")]
-    public class CacheDownloaderTests : IDisposable
+    public class CacheDownloaderTests
     {
         private ITestOutputHelper Output { get; }
         private CacheFixture Fixture { get; }
@@ -100,10 +100,6 @@ namespace RuneScapeCacheToolsTests
             var masterReferenceTable2 = this.Fixture.Downloader.GetMasterReferenceTable();
 
             Assert.Same(masterReferenceTable1, masterReferenceTable2);
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

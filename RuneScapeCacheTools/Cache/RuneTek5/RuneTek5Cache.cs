@@ -68,7 +68,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return this.ReferenceTables.GetOrAdd(index, index2 =>
             {
-                var cacheFile = new RuneTek5CacheFile(this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2), null);
+                var cacheFile = RuneTek5CacheFile.Decode(this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2), new CacheFileInfo());
                 return new ReferenceTable(cacheFile, index);
             });
         }
@@ -88,7 +88,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
             {
-                return new RuneTek5CacheFile(this.FileStore.ReadFileData(index, fileId), referenceTableEntry);
+                return RuneTek5CacheFile.Decode(this.FileStore.ReadFileData(index, fileId), referenceTableEntry);
             }
             catch (SectorException exception)
             {
@@ -99,21 +99,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public override void PutFile(CacheFile file)
         {
-            if (!(file is RuneTek5CacheFile))
+            var runeTek5File = file as RuneTek5CacheFile;
+            if (runeTek5File == null)
             {
                 throw new ArgumentException("Only RuneTek5CacheFiles can be put into a RuneTek5Cache.");
             }
 
             // Write data to file store
-            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
+            this.FileStore.WriteFileData(runeTek5File.Info.Index, runeTek5File.Info.FileId, runeTek5File.Encode());
 
-            // TODO: Allow for creation of reference tables and entries
-            var referenceTable = this.ReferenceTables[file.Info.Index];
-            var fileInfo = referenceTable.GetFileInfo(file.Info.FileId);
+            // TODO: Allow for creation of reference tables and entries out of thin air
 
-            var existingFileInfo = file.Info;
+            // Adjust and write reference table
+            var referenceTable = this.GetReferenceTable(runeTek5File.Info.Index);
+            referenceTable.SetFileInfo(runeTek5File.Info.FileId, runeTek5File.Info);
 
-            throw new NotImplementedException("TODO: Write reference table entry");
+            this.FileStore.WriteFileData(Index.ReferenceTables, (int)runeTek5File.Info.Index, referenceTable.Encode().Encode());
         }
 
         protected override void Dispose(bool disposing)

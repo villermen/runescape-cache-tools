@@ -117,7 +117,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             var fileData = fileRequest.WaitForCompletion();
 
-            return new RuneTek5CacheFile(fileData, fileInfo);
+            return RuneTek5CacheFile.Decode(fileData, fileInfo);
         }
 
         public override IEnumerable<int> GetFileIds(Index index)
