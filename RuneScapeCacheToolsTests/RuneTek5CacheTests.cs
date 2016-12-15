@@ -47,7 +47,7 @@ namespace RuneScapeCacheToolsTests
             var file2 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
 
             // Compare the info objects
-            Assert.Equal(file1.Info, file2.Info);
+            Assert.Equal(file1.Info, file2.Info); // TODO: Override equals to value-compare
 
             // Byte-compare all entries in both files
             for (var entryIndex = 0; entryIndex < file1.Entries.Length; entryIndex++)
