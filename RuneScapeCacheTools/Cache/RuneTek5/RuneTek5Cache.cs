@@ -17,10 +17,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     Creates an interface on the cache stored in the given directory.
         /// </summary>
         /// <param name="cacheDirectory"></param>
+        /// <param name="readOnly"></param>
         public RuneTek5Cache(string cacheDirectory = null, bool readOnly = true)
         {
             this.CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
-            this.FileStore = new FileStore(this.CacheDirectory, readOnly);
+            this.ReadOnly = readOnly;
+
+            this.Refresh();
         }
 
         public static string DefaultCacheDirectory
@@ -33,13 +36,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public string CacheDirectory { get; }
 
+        public bool ReadOnly { get; }
+
         /// <summary>
         ///     The <see cref="RuneTek5.FileStore" /> that backs this cache.
         /// </summary>
-        public FileStore FileStore { get; }
+        public FileStore FileStore { get; private set; }
 
-        private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; } =
-            new ConcurrentDictionary<Index, ReferenceTable>();
+        private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
 
         public override CacheFile GetFile(Index index, int fileId)
         {
@@ -115,6 +119,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             referenceTable.SetFileInfo(runeTek5File.Info.FileId, runeTek5File.Info);
 
             this.FileStore.WriteFileData(Index.ReferenceTables, (int)runeTek5File.Info.Index, referenceTable.Encode().Encode());
+        }
+
+        /// <summary>
+        /// Recreates the backing file store and drops all cached reference tables.
+        /// </summary>
+        public void Refresh()
+        {
+            this.FileStore?.Dispose();
+
+            this.FileStore = new FileStore(this.CacheDirectory, this.ReadOnly);
+
+            this.ReferenceTables = new ConcurrentDictionary<Index, ReferenceTable>();
         }
 
         protected override void Dispose(bool disposing)

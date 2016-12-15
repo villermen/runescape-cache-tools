@@ -355,7 +355,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                     var delta = entrySize - previousEntrySize;
 
-                    writer.Write(delta);
+                    writer.WriteInt32BigEndian(delta);
 
                     previousEntrySize = entrySize;
                 }

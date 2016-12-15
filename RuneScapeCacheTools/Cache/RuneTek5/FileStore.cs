@@ -186,7 +186,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 try
                 {
                     existingSectorPositions = this.ReadSectors(index, fileId)
-                        .Select((sector) => sector.Position)
+                        .Select(sector => sector.Position)
                         .ToArray();
                 }
                 catch (Exception ex) when (ex is CacheException || ex is SectorException)

@@ -13,16 +13,15 @@ namespace RuneScapeCacheToolsTests.Fixtures
     {
         public CacheFixture()
         {
-            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
             this.Downloader = new CacheDownloader();
             this.Soundtrack = new Soundtrack(this.Downloader);
 
             this.CreateTestCache();
         }
 
-        public CacheBase Cache => this.RuneTek5Cache;
+        public RuneTek5Cache RuneTek5Cache { get; private set; }
 
-        public RuneTek5Cache RuneTek5Cache { get; }
+        public CacheBase Cache => this.RuneTek5Cache;
 
         public Soundtrack Soundtrack { get; }
 
@@ -34,6 +33,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
         private void CreateTestCache()
         {
             // TODO: Actually download test files into cache in here
+            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
         }
 
         public void Dispose()
