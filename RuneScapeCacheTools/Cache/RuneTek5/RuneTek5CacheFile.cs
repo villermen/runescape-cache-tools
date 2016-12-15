@@ -157,7 +157,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var calculatedWhirlpool = new byte[whirlpool.GetDigestSize()];
                 whirlpool.DoFinal(calculatedWhirlpool, 0);
 
-                if (calculatedWhirlpool != file.Info.WhirlpoolDigest)
+                if (!calculatedWhirlpool.SequenceEqual(file.Info.WhirlpoolDigest))
                 {
                     throw new CacheException("Calculated whirlpool digest did not match expected.");
                 }
