@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache
+﻿namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
 {
     using System;
 

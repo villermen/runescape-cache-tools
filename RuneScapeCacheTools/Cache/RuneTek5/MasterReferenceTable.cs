@@ -4,15 +4,17 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     /// <summary>
     ///     A master reference table holds information on the other reference tables.
     ///     This is stored in a separate class, as the
     /// </summary>
     public class MasterReferenceTable
     {
-        public MasterReferenceTable(CacheFile cacheFile)
+        public MasterReferenceTable(DataCacheFile file)
         {
-            var reader = new BinaryReader(new MemoryStream(cacheFile.Data));
+            var reader = new BinaryReader(new MemoryStream(file.Data));
 
             var tableCount = reader.ReadByte();
 

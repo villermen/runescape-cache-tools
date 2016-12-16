@@ -9,6 +9,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     using System.Reflection;
     using NAudio.Wave;
     using Org.BouncyCastle.Crypto.Tls;
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
     /// <summary>
     ///     A file store holds multiple files inside a "virtual" file system made up of several index files and a single data

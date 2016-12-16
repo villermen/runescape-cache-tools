@@ -13,6 +13,8 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     /// <summary>
     ///     The <see cref="CacheDownloader" /> provides the means to download current cache files from the runescape servers.
     ///     Downloading uses 2 different interfaces depending on the <see cref="Index" /> of the requested file: The original
@@ -90,7 +92,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private object TcpConnectLock { get; } = new object();
 
-        public override CacheFile GetFile(Index index, int fileId)
+        public override T GetFile<T>(Index index, int fileId)
         {
             var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo();
 
@@ -117,7 +119,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             var fileData = fileRequest.WaitForCompletion();
 
-            return RuneTek5CacheFile.Decode(fileData, fileInfo);
+            return (T)RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
         }
 
         public override IEnumerable<int> GetFileIds(Index index)
@@ -137,14 +139,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 return this.CachedMasterReferenceTable;
             }
 
-            this.CachedMasterReferenceTable = new MasterReferenceTable(this.GetFile(Index.ReferenceTables, (int)Index.ReferenceTables));
+            this.CachedMasterReferenceTable = new MasterReferenceTable(this.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.ReferenceTables));
 
             return this.CachedMasterReferenceTable;
         }
 
         public ReferenceTable GetReferenceTable(Index index)
         {
-            return this.CachedReferenceTables.GetOrAdd(index, index2 => new ReferenceTable(this.GetFile(Index.ReferenceTables, (int)index), index));
+            return this.CachedReferenceTables.GetOrAdd(index, index2 => ReferenceTable.Decode(this.GetFile<DataCacheFile>(Index.ReferenceTables, (int)index)));
         }
 
         public void TcpConnect()

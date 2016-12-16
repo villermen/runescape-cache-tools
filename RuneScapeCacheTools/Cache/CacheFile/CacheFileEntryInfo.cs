@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache
+﻿namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
 {
     /// <summary>
     ///     Represents metadata of an entry within a <see cref="CacheFileInfo" />.

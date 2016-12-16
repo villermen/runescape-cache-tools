@@ -9,6 +9,8 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     /// <summary>
     ///     Base class for current cache systems.
     ///     For cache structures expressing the notion of indexes and archives.
@@ -58,11 +60,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        public abstract CacheFile GetFile(Index index, int fileId);
+        public abstract T GetFile<T>(Index index, int fileId) where T : CacheFile.BaseCacheFile;
 
         public abstract IEnumerable<int> GetFileIds(Index index);
 
-        public virtual void PutFile(CacheFile file)
+        public virtual void PutFile(CacheFile.BaseCacheFile file)
         {
             throw new NotSupportedException("Writing of files is not supported for this type of cache");
         }
@@ -195,7 +197,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = this.GetFile(index, fileId);
+            var file = this.GetFile<BaseCacheFile>(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)
@@ -206,13 +208,16 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Create index directory for when it did not exist yet
             Directory.CreateDirectory($"{this.OutputDirectory}extracted/{index}");
 
+            // TODO: Create a better solution for this (GetEntries, or revert back to one class for entries and data?)
+            var entries = file is DataCacheFile ? new byte[][] { ((DataCacheFile)file).Data } : ((EntryCacheFile)file).Entries;
+
             // Extract all entries
             var extension = "";
             var extractedEntries = 0;
             var extractedEntryPaths = new List<string>();
-            for (var entryId = 0; entryId < file.Entries.Length; entryId++)
+            for (var entryId = 0; entryId < entries.Length; entryId++)
             {
-                var currentData = file.Entries[entryId];
+                var currentData = entries[entryId];
 
                 // Skip empty entries
                 if (currentData.Length == 0)

@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     /// <summary>
     ///     The <see cref="RuneTek5Cache" /> class provides a unified, high-level API for modifying the cache of a Jagex game.
     /// </summary>
@@ -45,9 +47,37 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
 
-        public override CacheFile GetFile(Index index, int fileId)
+        public override T GetFile<T>(Index index, int fileId)
         {
-            return this.GetRuneTek5File(index, fileId);
+            CacheFileInfo info;
+
+            if (index != Index.ReferenceTables)
+            {
+                // Obtain the reference table for the requested index
+                var referenceTable = this.GetReferenceTable(index);
+
+                // The file must at least be defined in the reference table (doesn't mean it is actually complete)
+                if (!referenceTable.FileIds.Contains(fileId))
+                {
+                    throw new CacheFileNotFoundException($"{index}/{fileId} does not exist.");
+                }
+
+                info = referenceTable.GetFileInfo(fileId);
+            }
+            else
+            {
+                info = new CacheFileInfo();
+            }
+
+            try
+            {
+                return (T)RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
+            }
+            catch (SectorException exception)
+            {
+                throw new CacheFileNotFoundException($"{index}/{fileId} is incomplete or corrupted.",
+                    exception);
+            }
         }
 
         /// <summary>
@@ -72,53 +102,41 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return this.ReferenceTables.GetOrAdd(index, index2 =>
             {
-                var cacheFile = RuneTek5CacheFile.Decode(this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2), new CacheFileInfo());
-                return new ReferenceTable(cacheFile, index);
+                var data = this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2);
+                var cacheFile = (DataCacheFile)RuneTek5FileDecoder.DecodeFile(data, new CacheFileInfo // TODO: We can do better than casting
+                {
+                    // TODO: Insert magical goop
+                });
+                return ReferenceTable.Decode(cacheFile);
             });
         }
 
-        public RuneTek5CacheFile GetRuneTek5File(Index index, int fileId)
+        public override void PutFile(BaseCacheFile file)
         {
-            // Obtain the reference table for the requested index
-            var referenceTable = this.GetReferenceTable(index);
+            byte[] data;
 
-            // The file must at least be defined in the reference table (doesn't mean it is actually complete)
-            if (!referenceTable.FileIds.Contains(fileId))
+            if (file is DataCacheFile)
             {
-                throw new CacheFileNotFoundException($"{index}/{fileId} does not exist.");
+                data = RuneTek5FileDecoder.EncodeFile((DataCacheFile)file);
             }
-
-            var referenceTableEntry = referenceTable.GetFileInfo(fileId);
-
-            try
+            else if (file is EntryCacheFile)
             {
-                return RuneTek5CacheFile.Decode(this.FileStore.ReadFileData(index, fileId), referenceTableEntry);
+                data = RuneTek5FileDecoder.EncodeFile((EntryCacheFile)file);
             }
-            catch (SectorException exception)
+            else
             {
-                throw new CacheFileNotFoundException($"{index}/{fileId} is incomplete or corrupted.",
-                    exception);
-            }
-        }
-
-        public override void PutFile(CacheFile file)
-        {
-            var runeTek5File = file as RuneTek5CacheFile;
-            if (runeTek5File == null)
-            {
-                throw new ArgumentException("Only RuneTek5CacheFiles can be put into a RuneTek5Cache.");
+                throw new InvalidOperationException($"Only cache files of type {nameof(DataCacheFile)} and {nameof(EntryCacheFile)} can be written to a RuneTek5 cache.");
             }
 
             // Write data to file store
-            this.FileStore.WriteFileData(runeTek5File.Info.Index, runeTek5File.Info.FileId, runeTek5File.Encode());
+            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, data);
 
             // TODO: Allow for creation of reference tables and entries out of thin air
-
             // Adjust and write reference table
-            var referenceTable = this.GetReferenceTable(runeTek5File.Info.Index);
-            referenceTable.SetFileInfo(runeTek5File.Info.FileId, runeTek5File.Info);
+            var referenceTable = this.GetReferenceTable(file.Info.Index);
+            referenceTable.SetFileInfo(file.Info.FileId, file.Info);
 
-            this.FileStore.WriteFileData(Index.ReferenceTables, (int)runeTek5File.Info.Index, referenceTable.Encode().Encode());
+            this.FileStore.WriteFileData(Index.ReferenceTables, (int)file.Info.Index, RuneTek5FileDecoder.EncodeFile(referenceTable.Encode()));
         }
 
         /// <summary>

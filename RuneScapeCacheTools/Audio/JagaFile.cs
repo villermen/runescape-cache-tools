@@ -5,7 +5,7 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
-    public class JagaFile
+    public class JagaFile // TODO: : CacheFile
     {
         public static byte[] MagicNumber = Encoding.ASCII.GetBytes("JAGA");
 

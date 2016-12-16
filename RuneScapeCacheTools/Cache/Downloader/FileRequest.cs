@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     public abstract class FileRequest
     {
         protected FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)

@@ -6,6 +6,8 @@
     /// <author>Pea2nuts</author>
     public enum Index
     {
+        Undefined = -1,
+
         AnimationFrames = 0,
         AnimationFrameBases = 1,
         Miscellaneous = 2,

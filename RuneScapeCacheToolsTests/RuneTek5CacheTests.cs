@@ -10,6 +10,8 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     [Collection("TestCache")]
     public class RuneTek5CacheTests
     {
@@ -32,7 +34,7 @@ namespace RuneScapeCacheToolsTests
             var referenceTable = this.Fixture.RuneTek5Cache.GetReferenceTable(index);
         }
 
-        [Theory]
+        [Theory(Skip = "Not implemented yet")]
         [InlineData(Index.Models, 47000)] // Gzip TODO: Takes 20 seconds during reference table writing, what is going on?
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)
@@ -47,7 +49,8 @@ namespace RuneScapeCacheToolsTests
             var file2 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
 
             // Compare the info objects
-            Assert.Equal(file1.Info, file2.Info); // TODO: Override equals to value-compare
+            Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
+            Assert.Equal(file1.Info.CRC, file2.Info.CRC);
 
             // Byte-compare all entries in both files
             for (var entryIndex = 0; entryIndex < file1.Entries.Length; entryIndex++)

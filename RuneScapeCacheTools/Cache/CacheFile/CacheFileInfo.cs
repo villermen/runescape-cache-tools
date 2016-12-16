@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-
-namespace Villermen.RuneScapeCacheTools.Cache
+﻿namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
 {
+    using System.Collections.Generic;
     using System.Linq;
+    using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
     /// <summary>
     /// Contains detailed information on a file in the cache.
@@ -19,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public CompressionType CompressionType { get; set; }
 
-        public int CRC { get; set; }
+        public int? CRC { get; set; }
 
         /// <summary>
         ///     The children in this entry.
@@ -30,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public int Identifier { get; set; }
 
-        public Index Index { get; set; }
+        public Index Index { get; set; } = Index.Undefined;
 
         /// <summary>
         ///     Some unknown hash added on build 816.
