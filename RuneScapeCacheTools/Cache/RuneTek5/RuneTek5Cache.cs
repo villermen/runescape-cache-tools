@@ -73,7 +73,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 var file = RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
 
-                // TODO: Move this check up in inheritance?
+                // TODO: Move this check up to CacheBase? Even better: Try to convert it to the requested class there?
                 if (!(file is T))
                 {
                     throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");

@@ -11,8 +11,6 @@
         [Fact]
         public void TestRead()
         {
-            var d = 0xe20e5d01 & 0x7fffffff;
-
             var stream = new MemoryStream();
 
             // Write some known data

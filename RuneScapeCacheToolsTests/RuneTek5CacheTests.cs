@@ -39,14 +39,14 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)
         {
-            var file1 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
+            var file1 = this.Fixture.RuneTek5Cache.GetFile<DataCacheFile>(index, fileId);
 
             this.Fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
             this.Fixture.RuneTek5Cache.Refresh();
 
-            var file2 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
+            var file2 = this.Fixture.RuneTek5Cache.GetFile<DataCacheFile>(index, fileId);
 
             // Compare the info objects
             Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);

@@ -7,6 +7,8 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     [Collection("TestCache")]
     public class CacheDownloaderTests
     {
@@ -22,8 +24,8 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileVersusDownloadFileAsync()
         {
-            var file1 = this.Fixture.Downloader.GetFile(Index.ClientScripts, 3);
-            var file2 = this.Fixture.Downloader.GetFile(Index.ClientScripts, 3);
+            var file1 = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ClientScripts, 3);
+            var file2 = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ClientScripts, 3);
 
             Assert.True(file1.Data.Length == file2.Data.Length, "Two of the downloaded files with the same id did not have the same size.");
         }
@@ -31,7 +33,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileWithEntries()
         {
-            var archiveFile = this.Fixture.Downloader.GetFile(Index.Enums, 5);
+            var archiveFile = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.Enums, 5);
 
             Assert.True(archiveFile.Entries.Length == 256, $"File 5 in archive 17 has {archiveFile.Entries.Length} entries instead of the expected 256.");
         }
@@ -42,7 +44,7 @@ namespace RuneScapeCacheToolsTests
             var referenceTable12 = this.Fixture.Downloader.GetReferenceTable(Index.ClientScripts);
             var referenceTable40 = this.Fixture.Downloader.GetReferenceTable(Index.Music);
 
-            var rawReferenceTable = this.Fixture.Downloader.GetFile(Index.ReferenceTables, (int)Index.Enums);
+            var rawReferenceTable = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.Enums);
 
             var referenceTable17 = this.Fixture.Downloader.GetReferenceTable(Index.Enums);
 
@@ -81,7 +83,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestHttpInterface()
         {
-            var httpFile = this.Fixture.Downloader.GetFile(Index.Music, 30498);
+            var httpFile = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.Music, 30498);
         }
 
         [Fact]

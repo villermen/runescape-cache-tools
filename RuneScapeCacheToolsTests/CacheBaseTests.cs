@@ -7,6 +7,8 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+
     [Collection("TestCache")]
     public class CacheBaseTests
     {
@@ -69,13 +71,13 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFile()
         {
-            var file = this.Fixture.Cache.GetFile(Index.ClientScripts, 3);
+            var file = this.Fixture.Cache.GetFile<DataCacheFile>(Index.ClientScripts, 3);
 
             var fileData = file.Data;
 
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
-            var archiveFile = this.Fixture.Cache.GetFile(Index.Enums, 5);
+            var archiveFile = this.Fixture.Cache.GetFile<DataCacheFile>(Index.Enums, 5);
 
             var archiveEntry = archiveFile.Entries[255];
 
@@ -83,7 +85,7 @@ namespace RuneScapeCacheToolsTests
 
             try
             {
-                this.Fixture.Cache.GetFile(Index.Music, 30);
+                this.Fixture.Cache.GetFile<DataCacheFile>(Index.Music, 30);
 
                 Assert.True(false, "Cache returned a file that shouldn't exist.");
             }
