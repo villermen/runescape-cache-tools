@@ -121,7 +121,6 @@
     <Compile Include="Cache\Downloader\HttpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
-    <Compile Include="Cache\CacheFile\EntryCacheFile.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\CacheFile\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />

@@ -23,7 +23,7 @@
         ///     much obtained information as possible, so verification is performed.
         /// </param>
         /// <param name="key"></param>
-        public static BaseCacheFile DecodeFile(byte[] data, CacheFileInfo info)
+        public static DataCacheFile DecodeFile(byte[] data, CacheFileInfo info)
         {
             var dataReader = new BinaryReader(new MemoryStream(data));
 
@@ -152,26 +152,11 @@
             info.WhirlpoolDigest = whirlpoolDigest;
 
             // Construct the result object
-            BaseCacheFile file;
-            if (info.Entries.Count <= 1) // TODO: Is entries present in info when there are no entries? If so this check can be made easier.
+            return new DataCacheFile
             {
-                file = new DataCacheFile
-                {
-                    Data = continuousData
-                };
-            }
-            else
-            {
-                // Decode entries if there are multiple
-                file = new EntryCacheFile
-                {
-                    Entries = RuneTek5FileDecoder.DecodeEntries(continuousData, info.Entries.Count)
-                };
-            }
-
-            file.Info = info;
-
-            return file;
+                Entries = info.Entries.Count <= 1 ? new byte[][] { continuousData } : RuneTek5FileDecoder.DecodeEntries(continuousData, info.Entries.Count),
+                Info = info
+            };
         }
 
         /// <summary>
@@ -242,15 +227,10 @@
             return entries;
         }
 
-        public static byte[] EncodeFile(EntryCacheFile file)
-        {
-            var data = RuneTek5FileDecoder.EncodeEntries(file.Entries);
-            return RuneTek5FileDecoder.EncodeData(data, file.Info);
-        }
-
         public static byte[] EncodeFile(DataCacheFile file)
         {
-            return RuneTek5FileDecoder.EncodeData(file.Data, file.Info);
+            var data = file.UsesEntries ? RuneTek5FileDecoder.EncodeEntries(file.Entries) : file.Data;
+            return RuneTek5FileDecoder.EncodeData(data, file.Info);
         }
 
         private static byte[] EncodeData(byte[] data, CacheFileInfo info)

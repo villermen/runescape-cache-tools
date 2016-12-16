@@ -71,7 +71,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             try
             {
-                return (T)RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
+                var file = RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
+
+                // TODO: Move this check up in inheritance?
+                if (!(file is T))
+                {
+                    throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
+                }
+
+                return file as T;
+
             }
             catch (SectorException exception)
             {
@@ -113,23 +122,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public override void PutFile(BaseCacheFile file)
         {
-            byte[] data;
-
-            if (file is DataCacheFile)
+            if (!(file is DataCacheFile))
             {
-                data = RuneTek5FileDecoder.EncodeFile((DataCacheFile)file);
-            }
-            else if (file is EntryCacheFile)
-            {
-                data = RuneTek5FileDecoder.EncodeFile((EntryCacheFile)file);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Only cache files of type {nameof(DataCacheFile)} and {nameof(EntryCacheFile)} can be written to a RuneTek5 cache.");
+                throw new InvalidOperationException($"Only cache files of type {nameof(DataCacheFile)} can be written to a RuneTek5 cache.");
             }
 
+            this.PutFile((DataCacheFile)file);
+        }
+
+        public void PutFile(DataCacheFile file)
+        {
             // Write data to file store
-            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, data);
+            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, RuneTek5FileDecoder.EncodeFile(file));
 
             // TODO: Allow for creation of reference tables and entries out of thin air
             // Adjust and write reference table

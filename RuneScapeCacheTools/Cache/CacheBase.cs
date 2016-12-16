@@ -208,16 +208,20 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Create index directory for when it did not exist yet
             Directory.CreateDirectory($"{this.OutputDirectory}extracted/{index}");
 
-            // TODO: Create a better solution for this (GetEntries, or revert back to one class for entries and data?)
-            var entries = file is DataCacheFile ? new byte[][] { ((DataCacheFile)file).Data } : ((EntryCacheFile)file).Entries;
+            var dataCacheFile = file as DataCacheFile;
+
+            if (dataCacheFile == null)
+            {
+                throw new InvalidOperationException($"Only {nameof(DataCacheFile)}s can be extracted.");
+            }
 
             // Extract all entries
             var extension = "";
             var extractedEntries = 0;
             var extractedEntryPaths = new List<string>();
-            for (var entryId = 0; entryId < entries.Length; entryId++)
+            for (var entryId = 0; entryId < dataCacheFile.Entries.Length; entryId++)
             {
-                var currentData = entries[entryId];
+                var currentData = dataCacheFile.Entries[entryId];
 
                 // Skip empty entries
                 if (currentData.Length == 0)

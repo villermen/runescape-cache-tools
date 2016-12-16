@@ -119,7 +119,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             var fileData = fileRequest.WaitForCompletion();
 
-            return (T)RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
+            var file = RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
+
+            if (!(file is T))
+            {
+                throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
+            }
+
+            return file as T;
         }
 
         public override IEnumerable<int> GetFileIds(Index index)

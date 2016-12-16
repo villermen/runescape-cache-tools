@@ -188,8 +188,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public IDictionary<int, string> GetTrackNames()
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
-            var trackNames = new EnumFile(this.Cache.GetFile<EntryCacheFile>(Index.Enums, 5).Entries[65]);
-            var jagaFileIds = new EnumFile(this.Cache.GetFile<EntryCacheFile>(Index.Enums, 5).Entries[71]);
+            var trackNames = new EnumFile(this.Cache.GetFile<DataCacheFile>(Index.Enums, 5).Entries[65]);
+            var jagaFileIds = new EnumFile(this.Cache.GetFile<DataCacheFile>(Index.Enums, 5).Entries[71]);
 
             // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
             var result = new SortedDictionary<int, string>();
