@@ -129,7 +129,6 @@
     <Compile Include="Cache\CacheFileEntryInfo.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\RuneTek5\SectorException.cs" />
-    <Compile Include="Cache\RuneScapeBinaryStreamExtensions.cs" />
     <Compile Include="Cache\CacheException.cs" />
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />

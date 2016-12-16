@@ -79,11 +79,11 @@ namespace Villermen.RuneScapeCacheTools.Enums
                         break;
 
                     case EnumOpcode.ByteKeyType:
-                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
+                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case EnumOpcode.ByteValueType:
-                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadSmartShort());
+                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case EnumOpcode.End:

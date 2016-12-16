@@ -32,7 +32,7 @@ namespace RuneScapeCacheToolsTests
             var referenceTable = this.Fixture.RuneTek5Cache.GetReferenceTable(index);
         }
 
-        [Theory(Skip = "Not fully implemented yet")]
+        [Theory]
         [InlineData(Index.Models, 47000)] // Gzip TODO: Takes 20 seconds during reference table writing, what is going on?
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)

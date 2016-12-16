@@ -50,12 +50,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             this.Options = (CacheFileOptions)reader.ReadByte();
 
             // Read the ids of the files (delta encoded)
-            var fileCount = this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+            var fileCount = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
 
             var fileId = 0;
             for (var fileNumber = 0; fileNumber < fileCount; fileNumber++)
             {
-                fileId += this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                fileId += this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
 
                 this.files.Add(fileId, new CacheFileInfo
                 {
@@ -117,7 +117,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var entryCounts = new Dictionary<int, int>();
             foreach (var file in this.files.Values)
             {
-                entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian());
+                entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
             }
 
             // Read the delta encoded entry ids
@@ -129,7 +129,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var entryId = 0;
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {
-                    entryId += this.Format >= 7 ? reader.ReadSmartInt() : reader.ReadUInt16BigEndian();
+                    entryId += this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
 
                     this.files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
                     {
@@ -211,7 +211,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             writer.Write((byte)this.Options);
             if (this.Format >= 7)
             {
-                writer.WriteSmartInt(this.files.Count);
+                writer.WriteAwkwardInt(this.files.Count);
             }
             else
             {
@@ -226,7 +226,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 if (this.Format >= 7)
                 {
-                    writer.WriteSmartInt(delta);
+                    writer.WriteAwkwardInt(delta);
                 }
                 else
                 {
@@ -296,7 +296,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 if (this.Format >= 7)
                 {
-                    writer.WriteSmartInt(file.Entries.Count);
+                    writer.WriteAwkwardInt(file.Entries.Count);
                 }
                 else
                 {
@@ -314,7 +314,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                     if (this.Format >= 7)
                     {
-                        writer.WriteSmartInt(delta);
+                        writer.WriteAwkwardInt(delta);
                     }
                     else
                     {
