@@ -37,6 +37,14 @@
             Assert.Equal(248551317813105, reader.ReadUInt48BigEndian());
 
             stream.Position = 0L;
+            Assert.Equal(25102, reader.ReadAwkwardShort());
+            Assert.Equal(2, stream.Position);
+
+            stream.Position = 1L;
+            Assert.Equal(14, reader.ReadAwkwardShort());
+            Assert.Equal(2, stream.Position);
+
+            stream.Position = 0L;
             Assert.Equal(1645108481, reader.ReadAwkwardInt());
             Assert.Equal(4, stream.Position);
 

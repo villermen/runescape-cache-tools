@@ -198,14 +198,13 @@ namespace Villermen.RuneScapeCacheTools.Extensions
         /// <returns></returns>
         public static short ReadAwkwardShort(this BinaryReader reader)
         {
-            var firstByte = reader.ReadSByte();
+            var firstByte = reader.ReadByte();
 
-            if (firstByte < 0)
+            if (firstByte < 128)
             {
                 return firstByte;
             }
 
-            // TODO: This doesn't seem right, write tests for it once this is certain
             return (short)((firstByte << 8) + reader.ReadByte() - short.MinValue);
         }
 
