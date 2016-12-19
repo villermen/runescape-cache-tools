@@ -9,7 +9,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
     /// </summary>
     public class CacheFileInfo
     {
-        public CacheFileOptions Options { get; }
+        public CacheFileOptions Options { get; set; }
 
         /// <summary>
         ///     The compressed size of this entry.
@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
 
         public CompressionType CompressionType { get; set; }
 
-        public int? CRC { get; set; }
+        public int? Crc { get; set; }
 
         /// <summary>
         ///     The children in this entry.
@@ -60,9 +60,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
         {
             return new CacheFileInfo
             {
+                Options = this.Options,
                 CompressedSize = this.CompressedSize,
                 CompressionType = this.CompressionType,
-                CRC = this.CRC,
+                Crc = this.Crc,
                 Entries = this.Entries.Select(entryPair => new KeyValuePair<int, CacheFileEntryInfo>(entryPair.Key, entryPair.Value.Clone())).ToDictionary(entryPair => entryPair.Key, entryPair => entryPair.Value),
                 FileId = this.FileId,
                 Identifier = this.Identifier,
@@ -70,7 +71,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
                 MysteryHash = this.MysteryHash,
                 UncompressedSize = this.UncompressedSize,
                 Version = this.Version,
-                WhirlpoolDigest = this.WhirlpoolDigest
+                WhirlpoolDigest = this.WhirlpoolDigest,
+                EncryptionKey = this.EncryptionKey
             };
         }
     }

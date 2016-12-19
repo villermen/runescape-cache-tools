@@ -2,9 +2,11 @@
 {
     public enum CompressionType
     {
+        Undefined = -1,
+
         None = 0,
         Bzip2 = 1,
         Gzip = 2,
-        LZMA = 3
+        Lzma = 3
     }
 }

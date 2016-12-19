@@ -9,22 +9,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
         /// <summary>
         ///     A flag which indicates this <see cref="ReferenceTable" /> contains Djb2 hashed identifiers.
         /// </summary>
-        Identifiers = 0x01,
+        Identifiers = 1,
 
         /// <summary>
         ///     A flag which indicates this <see cref="ReferenceTable" />} contains whirlpool digests for its entries.
         /// </summary>
-        WhirlpoolDigests = 0x02,
+        WhirlpoolDigests = 2,
 
         /// <summary>
         ///     A flag which indicates this <see cref="ReferenceTable" /> contains sizes for its entries.
         /// </summary>
-        Sizes = 0x04,
+        Sizes = 4,
 
         /// <summary>
         ///     A flag which indicates this <see cref="ReferenceTable" /> contains some kind of hash which is currently unused by
         ///     the RuneScape client.
         /// </summary>
-        MysteryHashes = 0x08
+        MysteryHashes = 8
     }
 }

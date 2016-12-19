@@ -87,7 +87,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         }
                         break;
 
-                    case CompressionType.LZMA:
+                    case CompressionType.Lzma:
                         var lzmaStream = new LzmaInputStream(new MemoryStream(compressedBytes));
                         var readLzmaBytes = lzmaStream.Read(uncompressedBytes, 0, uncompressedLength);
 
@@ -269,7 +269,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     data = gzipCompressionStream.ToArray();
                     break;
 
-                case CompressionType.LZMA:
+                case CompressionType.Lzma:
                     var lzmaCompressionStream = new MemoryStream();
                     using (var lzmaStream = new LzmaOutputStream(lzmaCompressionStream, 9))
                     {
