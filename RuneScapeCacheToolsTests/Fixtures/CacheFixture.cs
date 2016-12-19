@@ -13,32 +13,21 @@ namespace RuneScapeCacheToolsTests.Fixtures
     {
         public CacheFixture()
         {
-            this.Downloader = new CacheDownloader();
-            this.Soundtrack = new Soundtrack(this.Downloader);
+            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
+            this.Soundtrack = new Soundtrack(this.RuneTek5Cache);
 
-            this.CreateTestCache();
+            this.Downloader = new CacheDownloader();
         }
 
-        public RuneTek5Cache RuneTek5Cache { get; private set; }
-
-        public CacheBase Cache => this.RuneTek5Cache;
+        public RuneTek5Cache RuneTek5Cache { get; }
 
         public Soundtrack Soundtrack { get; }
 
         public CacheDownloader Downloader { get; }
 
-        /// <summary>
-        /// Generates a test cache by downloading just enough files to perform the basic testing.
-        /// </summary>
-        private void CreateTestCache()
-        {
-            // TODO: Actually download test files into cache in here
-            this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
-        }
-
         public void Dispose()
         {
-            this.Cache.Dispose();
+            this.RuneTek5Cache.Dispose();
         }
     }
 }

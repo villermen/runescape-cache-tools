@@ -73,7 +73,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Read the CRC32 checksums
             foreach (var file in referenceTable.files.Values)
             {
-                file.CRC = reader.ReadInt32BigEndian();
+                file.Crc = reader.ReadInt32BigEndian();
             }
 
             // Read some type of hash
@@ -247,7 +247,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Write CRC checksums
             foreach (var file in this.files.Values)
             {
-                writer.WriteInt32BigEndian(file.CRC.Value);
+                writer.WriteInt32BigEndian(file.Crc.Value);
             }
 
             // Write some type of hash

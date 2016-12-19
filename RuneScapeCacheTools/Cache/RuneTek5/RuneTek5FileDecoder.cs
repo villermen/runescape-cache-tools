@@ -134,12 +134,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             crcHasher.Update(data, 0, data.Length - (versionRead ? 2 : 0));
             var crc = (int)crcHasher.Value;
 
-            if (info.CRC != null && crc != info.CRC)
+            if (info.Crc != null && crc != info.Crc)
             {
-                throw new CacheException($"Calculated checksum (0x{crc:X}) did not match expected (0x{info.CRC:X}).");
+                throw new CacheException($"Calculated checksum (0x{crc:X}) did not match expected (0x{info.Crc:X}).");
             }
 
-            info.CRC = crc;
+            info.Crc = crc;
 
             // Calculate and verify the whirlpool digest
             var whirlpoolHasher = new WhirlpoolDigest();
@@ -316,7 +316,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Update file info with CRC
             var crc = new Crc32();
             crc.Update(result, 0, result.Length - 2);
-            info.CRC = (int)crc.Value;
+            info.Crc = (int)crc.Value;
 
             // Update file info with whirlpool digest
             var whirlpool = new WhirlpoolDigest();

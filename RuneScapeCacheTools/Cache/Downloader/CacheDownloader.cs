@@ -287,7 +287,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             {
                 CacheDownloader.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
 
-                var webRequest = WebRequest.CreateHttp($"http://{this.ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.CRC}&v={fileRequest.CacheFileInfo.Version}");
+                var webRequest = WebRequest.CreateHttp($"http://{this.ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.Crc}&v={fileRequest.CacheFileInfo.Version}");
                 using (var response = (HttpWebResponse)webRequest.GetResponse())
                 {
                     if (response.StatusCode != HttpStatusCode.OK)
