@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    ///     An <see cref="IndexPointer" /> points to a file inside a <see cref="FileStore" />.
+    /// An <see cref="IndexPointer" /> points to a file inside a <see cref="FileStore" />.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
@@ -17,35 +16,41 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public const int Length = 6;
 
-        public IndexPointer(byte[] data)
+        /// <summary>
+        ///     The number of the first sector that contains the file.
+        /// </summary>
+        public int FirstSectorPosition { get; set; }
+
+        /// <summary>
+        ///     The size of the file in bytes.
+        /// </summary>
+        public int Filesize { get; set; }
+
+        /// <summary>
+        /// Decodes an <see cref="IndexPointer"/> object from the given stream and advances the stream's position by 6 bytes.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static IndexPointer Decode(Stream stream)
         {
-            var reader = new BinaryReader(new MemoryStream(data));
-            this.Filesize = reader.ReadUInt24BigEndian();
-            this.FirstSectorPosition = reader.ReadUInt24BigEndian();
+            var reader = new BinaryReader(stream);
+
+            return new IndexPointer
+            {
+                Filesize = reader.ReadUInt24BigEndian(),
+                FirstSectorPosition = reader.ReadUInt24BigEndian()
+            };
         }
 
-        public IndexPointer(int firstSectorPosition, int filesize)
-        {
-            this.FirstSectorPosition = firstSectorPosition;
-            this.Filesize = filesize;
-        }
-
-        // TODO: Extension method to BinaryWriter?
+        /// <summary>
+        /// Encodes the <see cref="IndexPointer"/> to the given stream, advancing its position by 6 bytes.
+        /// </summary>
+        /// <param name="stream"></param>
         public void Encode(Stream stream)
         {
             var writer = new BinaryWriter(stream);
             writer.WriteUInt24BigEndian(this.Filesize);
             writer.WriteUInt24BigEndian(this.FirstSectorPosition);
         }
-
-        /// <summary>
-        ///     The number of the first sector that contains the file.
-        /// </summary>
-        public int FirstSectorPosition { get; private set; }
-
-        /// <summary>
-        ///     The size of the file in bytes.
-        /// </summary>
-        public int Filesize { get; private set; }
     }
 }

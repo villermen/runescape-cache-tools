@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     Base class for current cache systems.
     ///     For cache structures expressing the notion of indexes and archives.
@@ -193,7 +192,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Don't extract if the file already exists and we are not going to overwrite
             if (!overwrite && existingEntryPaths.Any())
             {
-                Logger.Info($"Skipped extracting {index}/{fileId} because it is already extracted.");
+                CacheBase.Logger.Info($"Skipped extracting {index}/{fileId} because it is already extracted.");
                 return null;
             }
 
@@ -242,11 +241,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             if (extractedEntries > 0)
             {
-                Logger.Info($"Extracted {index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
+                CacheBase.Logger.Info($"Extracted {index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
             }
             else
             {
-                Logger.Info($"Did not extract {index}/{fileId} because it was empty.");
+                CacheBase.Logger.Info($"Did not extract {index}/{fileId} because it was empty.");
             }
 
             return extractedEntryPaths;

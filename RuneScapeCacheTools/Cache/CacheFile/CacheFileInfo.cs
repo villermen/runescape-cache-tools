@@ -1,9 +1,9 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
+namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
+{
     /// <summary>
     /// Contains detailed information on a file in the cache.
     /// </summary>

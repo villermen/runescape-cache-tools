@@ -1,7 +1,7 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
-{
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+﻿using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
+{
     public class HttpFileRequest : FileRequest
     {
         public HttpFileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo) : base(index, fileId, cacheFileInfo)

@@ -1,7 +1,7 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
-{
-    using System;
+﻿using System;
 
+namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
+{
     /// <summary>
     /// An exception indicating that a file can not be retrieved from the cache.
     /// </summary>

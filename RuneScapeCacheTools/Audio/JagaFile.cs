@@ -14,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
             var reader = new BinaryReader(new MemoryStream(data));
 
             // Verify magic number
-            if (!reader.ReadBytes(4).SequenceEqual(MagicNumber))
+            if (!reader.ReadBytes(4).SequenceEqual(JagaFile.MagicNumber))
             {
                 throw new JagaParseException("Magic number incorrect");
             }

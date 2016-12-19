@@ -8,15 +8,12 @@ using FlacLibSharp;
 using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Enums;
 using Villermen.RuneScapeCacheTools.Extensions;
-using File = System.IO.File;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
-    using System.Text;
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     Contains tools for obtaining and combining soundtracks from the cache.
     /// </summary>
@@ -59,7 +56,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
             Directory.CreateDirectory(outputDirectory);
             Directory.CreateDirectory(this.Cache.TemporaryDirectory);
 
-            Logger.Info("Done obtaining soundtrack names and file ids.");
+            Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
 
             if (nameFilters.Length > 0)
             {
@@ -92,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                             if (existingVersion == jagaFileInfo.Version)
                             {
-                                var logMethod = nameFilters.Length > 0 ? (Action<string>)Logger.Info : Logger.Debug;
+                                var logMethod = nameFilters.Length > 0 ? (Action<string>)Soundtrack.Logger.Info : Soundtrack.Logger.Debug;
 
                                 logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
                                 return;
@@ -141,7 +138,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             }
                         };
 
-                        Logger.Debug("sox " + soxArguments);
+                        Soundtrack.Logger.Debug("sox " + soxArguments);
 
                         combineProcess.Start();
 
@@ -150,7 +147,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                         {
                             if (!string.IsNullOrEmpty(args.Data))
                             {
-                                Logger.Debug($"[SoX] {args.Data}");
+                                Soundtrack.Logger.Debug($"[SoX] {args.Data}");
                             }
                         };
                         combineProcess.BeginErrorReadLine();
@@ -169,15 +166,15 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                         }
 
-                        Logger.Info($"Combined {outputFilename}.");
+                        Soundtrack.Logger.Info($"Combined {outputFilename}.");
                     }
                     catch (CacheException)
                     {
-                        Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                        Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
                     }
                 });
 
-            Logger.Info("Done combining soundtracks.");
+            Soundtrack.Logger.Info("Done combining soundtracks.");
         }
 
         /// <summary>

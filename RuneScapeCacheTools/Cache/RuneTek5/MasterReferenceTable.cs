@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     A master reference table holds information on the other reference tables.
     ///     This is stored in a separate class, as the

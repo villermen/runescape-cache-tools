@@ -1,18 +1,18 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
-{
-    using System;
-    using System.IO;
-    using System.Linq;
-    using ICSharpCode.SharpZipLib.Checksums;
-    using Noemax.BZip2;
-    using Noemax.GZip;
-    using Noemax.Lzma;
-    using Org.BouncyCastle.Crypto.Digests;
-    using Org.BouncyCastle.Crypto.Engines;
-    using Org.BouncyCastle.Crypto.Parameters;
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-    using Villermen.RuneScapeCacheTools.Extensions;
+﻿using System;
+using System.IO;
+using System.Linq;
+using ICSharpCode.SharpZipLib.Checksums;
+using Noemax.BZip2;
+using Noemax.GZip;
+using Noemax.Lzma;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+using Villermen.RuneScapeCacheTools.Extensions;
 
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+{
     public class RuneTek5FileDecoder
     {
         /// <summary>

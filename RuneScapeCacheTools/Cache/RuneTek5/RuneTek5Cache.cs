@@ -2,11 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     The <see cref="RuneTek5Cache" /> class provides a unified, high-level API for modifying the cache of a Jagex game.
     /// </summary>
@@ -22,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <param name="readOnly"></param>
         public RuneTek5Cache(string cacheDirectory = null, bool readOnly = true)
         {
-            this.CacheDirectory = cacheDirectory ?? DefaultCacheDirectory;
+            this.CacheDirectory = cacheDirectory ?? RuneTek5Cache.DefaultCacheDirectory;
             this.ReadOnly = readOnly;
 
             this.Refresh();

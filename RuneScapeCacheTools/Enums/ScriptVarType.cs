@@ -211,12 +211,12 @@ namespace Villermen.RuneScapeCacheTools.Enums
 
         public static ScriptVarType FromValue(int value)
         {
-            return GetTypes().FirstOrDefault(type => type.IntId == value) ?? Unlisted;
+            return ScriptVarType.GetTypes().FirstOrDefault(type => type.IntId == value) ?? ScriptVarType.Unlisted;
         }
 
         public static ScriptVarType FromValue(char value)
         {
-            return GetTypes().FirstOrDefault(type => type.CharId == value) ?? Unlisted;
+            return ScriptVarType.GetTypes().FirstOrDefault(type => type.CharId == value) ?? ScriptVarType.Unlisted;
         }
 
         public static IEnumerable<ScriptVarType> GetTypes()

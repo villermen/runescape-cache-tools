@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Villermen.RuneScapeCacheTools.Extensions;
-
-namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
-    using System.Reflection;
-    using NAudio.Wave;
-    using Org.BouncyCastle.Crypto.Tls;
     using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+    using Villermen.RuneScapeCacheTools.Extensions;
 
     /// <summary>
     ///     A file store holds multiple files inside a "virtual" file system made up of several index files and a single data
@@ -124,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             lock (this.ioLock)
             {
                 indexReader.BaseStream.Position = indexPosition;
-                var indexPointer = new IndexPointer(indexReader.ReadBytes(IndexPointer.Length));
+                var indexPointer = IndexPointer.Decode(indexReader.BaseStream);
 
                 filesize = indexPointer.Filesize;
 
@@ -213,7 +209,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     // Add to index
                     if (sector.ChunkId == 0)
                     {
-                        var pointer = new IndexPointer(sector.Position, data.Length);
+                        var pointer = new IndexPointer
+                        {
+                            FirstSectorPosition = sector.Position,
+                            Filesize = data.Length
+                        };
 
                         // Create index file if it does not exist yet
                         if (!this.indexStreams.ContainsKey(index))

@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     /// <summary>
     ///     Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
     /// </summary>
@@ -57,10 +56,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             this.Position = position;
 
-            if (data.Length != Length)
+            if (data.Length != Sector.Length)
             {
                 throw new ArgumentException(
-                    $"Sector data must be exactly {Length} bytes in length, {data.Length} given.");
+                    $"Sector data must be exactly {Sector.Length} bytes in length, {data.Length} given.");
             }
 
             var dataReader = new BinaryReader(new MemoryStream(data));
@@ -88,7 +87,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new SectorException($"Index id mismatch. Expected {expectedIndex}, got {this.Index}.");
             }
 
-            this.Data = dataReader.ReadBytes(this.IsExtended ? extendedDataLength : standardDataLength);
+            this.Data = dataReader.ReadBytes(this.IsExtended ? Sector.extendedDataLength : Sector.standardDataLength);
         }
 
         public int Position { get; set; }
@@ -123,7 +122,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// Extended sectors use 4 bytes instead of 2 for the file id (and have 2 bytes less to use for the data).
         /// Jagex did not expect file indexes to surpass the size of a short =)
         /// </summary>
-        public bool IsExtended => GetExtended(this.FileId);
+        public bool IsExtended => Sector.GetExtended(this.FileId);
 
         /// <summary>
         ///     Encodes this <see cref="Sector" /> into a byte array.
@@ -131,7 +130,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public byte[] Encode()
         {
-            var dataStream = new MemoryStream(new byte[Length]);
+            var dataStream = new MemoryStream(new byte[Sector.Length]);
             var dataWriter = new BinaryWriter(dataStream);
 
             if (this.IsExtended)

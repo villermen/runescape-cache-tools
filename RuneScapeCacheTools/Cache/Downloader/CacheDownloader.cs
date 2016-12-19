@@ -7,14 +7,12 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5.Enums;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     The <see cref="CacheDownloader" /> provides the means to download current cache files from the runescape servers.
     ///     Downloading uses 2 different interfaces depending on the <see cref="Index" /> of the requested file: The original
@@ -166,7 +164,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     return;
                 }
 
-                Logger.Debug("Connecting to content server with TCP.");
+                CacheDownloader.Logger.Debug("Connecting to content server with TCP.");
 
                 var key = this.GetTcpKeyFromPage();
 
@@ -195,13 +193,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     {
                         case TcpHandshakeResponse.Success:
                             connected = true;
-                            Logger.Info($"Successfully connected to content server with major version {this.TcpMajorVersion}.");
+                            CacheDownloader.Logger.Info($"Successfully connected to content server with major version {this.TcpMajorVersion}.");
                             break;
 
                         case TcpHandshakeResponse.Outdated:
                             this.TcpContentClient.Dispose();
                             this.TcpContentClient = null;
-                            Logger.Info($"Requested connection used outdated version {this.TcpMajorVersion}. Retrying with higher major version.");
+                            CacheDownloader.Logger.Info($"Requested connection used outdated version {this.TcpMajorVersion}. Retrying with higher major version.");
                             this.TcpMajorVersion++;
                             break;
 
@@ -267,7 +265,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private void SendTcpConnectionInfo()
         {
-            Logger.Debug("Sending initial connection status and login packets.");
+            CacheDownloader.Logger.Debug("Sending initial connection status and login packets.");
 
             var writer = new BinaryWriter(this.TcpContentClient.GetStream());
 
@@ -287,7 +285,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             Task.Run(() =>
             {
-                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
+                CacheDownloader.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
 
                 var webRequest = WebRequest.CreateHttp($"http://{this.ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.CRC}&v={fileRequest.CacheFileInfo.Version}");
                 using (var response = (HttpWebResponse)webRequest.GetResponse())
@@ -319,7 +317,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     this.TcpConnect();
                 }
 
-                Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using TCP.");
+                CacheDownloader.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using TCP.");
 
                 // Send the request
                 var writer = new BinaryWriter(this.TcpContentClient.GetStream());
@@ -333,7 +331,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 // Only one processor may be running at any given moment
                 lock (this.TcpResponseProcessorLock)
                 {
-                    Logger.Debug("Starting TCP request processor.");
+                    CacheDownloader.Logger.Debug("Starting TCP request processor.");
 
                     while (this.PendingFileRequests.ContainsKey(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId)))
                     {
@@ -403,7 +401,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
                     }
 
-                    Logger.Debug("TCP request processor finished.");
+                    CacheDownloader.Logger.Debug("TCP request processor finished.");
                 }
             });
         }

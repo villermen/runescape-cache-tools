@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using System.Runtime.CompilerServices;
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
     /// <summary>
     ///     A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
     ///     and archive members.
