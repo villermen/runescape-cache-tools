@@ -171,11 +171,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     FileId = fileId
                 };
 
-                var dataLength = Math.Min((isExtended ? Sector.extendedDataLength : Sector.standardDataLength), remaining);
+                var sectorDataLength = isExtended ? Sector.extendedDataLength : Sector.standardDataLength;
+                var dataLength = Math.Min(sectorDataLength, remaining);
 
-                sector.Data = data.Skip(data.Length - remaining)
-                    .Take(dataLength)
-                    .ToArray();
+                var sectorData = data.Skip(data.Length - remaining)
+                    .Take(dataLength);
+                    
+                // Fill sector
+                if (dataLength < sectorDataLength)
+                {
+                    sectorData = sectorData.Concat(Enumerable.Repeat((byte)0, sectorDataLength - dataLength));
+                }
+
+                sector.Data = sectorData.ToArray();
 
                 remaining -= dataLength;
 

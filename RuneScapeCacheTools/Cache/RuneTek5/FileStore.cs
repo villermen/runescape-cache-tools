@@ -199,7 +199,7 @@
                     // Overwrite existing sector data if available, otherwise append to file
                     sector.Position = sector.ChunkId < existingSectorPositions.Length
                         ? existingSectorPositions[sector.ChunkId]
-                        : (int)Math.Ceiling(dataWriter.BaseStream.Length / 520D);
+                        : (int)(dataWriter.BaseStream.Length / Sector.Length);
 
                     // Set position of next sector
                     sector.NextSectorPosition = sector.ChunkId + 1 < existingSectorPositions.Length
@@ -233,8 +233,11 @@
                             indexWriter.BaseStream.Position = indexWriter.BaseStream.Length;
                             indexWriter.Write(Enumerable.Repeat((byte)0, (int)(pointerPosition - indexWriter.BaseStream.Length)).ToArray());
                         }
+                        else
+                        {
+                            indexWriter.BaseStream.Position = pointerPosition;
+                        }
 
-                        indexWriter.BaseStream.Position = pointerPosition;
                         pointer.Encode(indexWriter.BaseStream);
                     }
 
