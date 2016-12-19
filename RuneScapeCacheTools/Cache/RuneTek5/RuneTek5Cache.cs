@@ -109,13 +109,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public ReferenceTable GetReferenceTable(Index index)
         {
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
-            return this.ReferenceTables.GetOrAdd(index, index2 =>
+            return this.ReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
             {
-                var data = this.FileStore.ReadFileData(Index.ReferenceTables, (int)index2);
-                var cacheFile = (DataCacheFile)RuneTek5FileDecoder.DecodeFile(data, new CacheFileInfo // TODO: We can do better than casting
+                var data = this.FileStore.ReadFileData(Index.ReferenceTables, (int)index);
+                var cacheFile = RuneTek5FileDecoder.DecodeFile(data, new CacheFileInfo
                 {
-                    // TODO: Insert magical goop
+                    Index = Index.ReferenceTables,
+                    FileId = (int)index
                 });
+
                 return ReferenceTable.Decode(cacheFile);
             });
         }
@@ -137,10 +139,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             // TODO: Allow for creation of reference tables and entries out of thin air
             // Adjust and write reference table
-            var referenceTable = this.GetReferenceTable(file.Info.Index);
-            referenceTable.SetFileInfo(file.Info.FileId, file.Info);
+            if (file.Info.Index != Index.ReferenceTables)
+            {
+                var referenceTable = this.GetReferenceTable(file.Info.Index);
+                referenceTable.SetFileInfo(file.Info.FileId, file.Info);
 
-            this.FileStore.WriteFileData(Index.ReferenceTables, (int)file.Info.Index, RuneTek5FileDecoder.EncodeFile(referenceTable.Encode()));
+                this.FileStore.WriteFileData(Index.ReferenceTables, (int)file.Info.Index, RuneTek5FileDecoder.EncodeFile(referenceTable.Encode()));
+            }
         }
 
         /// <summary>
