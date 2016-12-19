@@ -5,8 +5,6 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 {
     public static class BinaryStreamExtensions
     {
-        // TODO: Change methods to WriteBigEndian(type)? 24 still has to be explicitly specified no matter what
-
         /// <summary>
         ///     Reads a 2-byte signed big endian integer and advances the current position of the stream by 2 bytes.
         /// </summary>

@@ -68,7 +68,7 @@
             stream.Position = 0L;
             writer.WriteUInt16BigEndian(23498);
             stream.Position = 0L;
-            Assert.Equal(23498, reader.ReadInt16BigEndian());
+            Assert.Equal(23498, reader.ReadUInt16BigEndian());
 
             stream.Position = 0L;
             writer.WriteUInt24BigEndian(23498);

@@ -2,10 +2,11 @@
 {
     using System;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
-    using ICSharpCode.SharpZipLib.BZip2;
     using ICSharpCode.SharpZipLib.Checksums;
+    using Noemax.BZip2;
+    using Noemax.GZip;
+    using Noemax.Lzma;
     using Org.BouncyCastle.Crypto.Digests;
     using Org.BouncyCastle.Crypto.Engines;
     using Org.BouncyCastle.Crypto.Parameters;
@@ -22,7 +23,6 @@
         ///     The specification of this file according to the reference table describing it. Supply this with as
         ///     much obtained information as possible, so verification is performed.
         /// </param>
-        /// <param name="key"></param>
         public static DataCacheFile DecodeFile(byte[] data, CacheFileInfo info)
         {
             var dataReader = new BinaryReader(new MemoryStream(data));
@@ -73,8 +73,7 @@
 
                         if (readBzipBytes != uncompressedLength)
                         {
-                            throw new CacheException(
-                                "Uncompressed container data length does not match obtained length.");
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
@@ -84,14 +83,19 @@
 
                         if (readGzipBytes != uncompressedLength)
                         {
-                            throw new CacheException(
-                                "Uncompressed container data length does not match obtained length.");
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
                     case CompressionType.LZMA:
-                        throw new NotImplementedException("Decoding using LZMA decompression is not yet supported. Nag me about it if you encounter this error.");
-                        // break;
+                        var lzmaStream = new LzmaInputStream(new MemoryStream(compressedBytes));
+                        var readLzmaBytes = lzmaStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                        if (readLzmaBytes != uncompressedLength)
+                        {
+                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                        }
+                        break;
 
                     default:
                         throw new CacheException("Invalid compression type given.");
@@ -266,8 +270,13 @@
                     break;
 
                 case CompressionType.LZMA:
-                    throw new NotImplementedException("Encoding using LZMA compression is not yet supported. Nag me about it if you encounter this error.");
-                    // break;
+                    var lzmaCompressionStream = new MemoryStream();
+                    using (var lzmaStream = new LzmaOutputStream(lzmaCompressionStream, 9))
+                    {
+                        lzmaStream.Write(data, 0, data.Length);
+                    }
+                    data = lzmaCompressionStream.ToArray();
+                    break;
 
                 case CompressionType.None:
                     break;
