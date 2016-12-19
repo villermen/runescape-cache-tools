@@ -168,9 +168,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         Soundtrack.Logger.Info($"Combined {outputFilename}.");
                     }
-                    catch (CacheException)
+                    catch (FileNotFoundException)
                     {
-                        Soundtrack.Logger.Info($"Skipped {outputFilename} because of corrupted or incomplete data.");
+                        Soundtrack.Logger.Info($"Skipped {outputFilename} because of incomplete data.");
                     }
                 });
 

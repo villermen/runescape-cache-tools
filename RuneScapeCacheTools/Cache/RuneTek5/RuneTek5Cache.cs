@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
@@ -58,34 +59,30 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 // The file must at least be defined in the reference table (doesn't mean it is actually complete)
                 if (!referenceTable.FileIds.Contains(fileId))
                 {
-                    throw new CacheFileNotFoundException($"{index}/{fileId} does not exist.");
+                    throw new FileNotFoundException($"{index}/{fileId} does not exist.");
                 }
 
                 info = referenceTable.GetFileInfo(fileId);
             }
             else
             {
-                info = new CacheFileInfo();
-            }
-
-            try
-            {
-                var file = RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
-
-                // TODO: Move this check up to CacheBase? Even better: Try to convert it to the requested class there?
-                if (!(file is T))
+                info = new CacheFileInfo
                 {
-                    throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
-                }
-
-                return file as T;
-
+                    Index = index,
+                    FileId = fileId
+                };
             }
-            catch (SectorException exception)
+
+            var file = RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
+
+            // TODO: Move this check up to CacheBase? Even better: Try to convert it to the requested class there?
+            if (!(file is T))
             {
-                throw new CacheFileNotFoundException($"{index}/{fileId} is incomplete or corrupted.",
-                    exception);
+                throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
             }
+
+            return file as T;
+
         }
 
         /// <summary>
@@ -136,14 +133,35 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Write data to file store
             this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, RuneTek5FileDecoder.EncodeFile(file));
 
-            // TODO: Allow for creation of reference tables and entries out of thin air
             // Adjust and write reference table
             if (file.Info.Index != Index.ReferenceTables)
             {
-                var referenceTable = this.GetReferenceTable(file.Info.Index);
+                ReferenceTable referenceTable;
+
+                try
+                {
+                    referenceTable = this.GetReferenceTable(file.Info.Index);
+                }
+                catch (FileNotFoundException)
+                {
+                    referenceTable = new ReferenceTable
+                    {
+                        Format = 7,
+                        Options = CacheFileOptions.Sizes | CacheFileOptions.MysteryHashes,
+                        Info = new CacheFileInfo
+                        {
+                            CompressionType = CompressionType.Gzip,
+                            Index = Index.ReferenceTables,
+                            FileId = (int)file.Info.Index
+                        },
+                        Version = 0
+                    };
+                }
+
+                // Update stored file in reference table and store reference table
                 referenceTable.SetFileInfo(file.Info.FileId, file.Info);
 
-                this.FileStore.WriteFileData(Index.ReferenceTables, (int)file.Info.Index, RuneTek5FileDecoder.EncodeFile(referenceTable.Encode()));
+                this.PutFile(referenceTable.Encode());
             }
         }
 

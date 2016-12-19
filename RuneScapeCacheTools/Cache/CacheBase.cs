@@ -108,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     this.Extract(index, overwrite, progress);
                 }
-                catch (CacheFileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     // Skip failing of file id list retrieval (separate file failures are handled earlier on) if more than one index is requested
                     CacheBase.Logger.Info($"Skipped extracting {index} because its file list could not be obtained.");
@@ -157,7 +157,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
                         progress?.Report($"Extracted {index}/{fileId}.");
                     }
-                    catch (CacheFileNotFoundException)
+                    catch (FileNotFoundException)
                     {
                         // Skip failed extractions if more than one file is specified
                         var logMessage = $"Skipped {index}/{fileId} because it was not found.";
@@ -184,7 +184,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(this.OutputDirectory))
             {
-                throw new CacheException("Output directory must be set before extraction.");
+                throw new InvalidOperationException("Output directory must be set before extraction.");
             }
 
             var existingEntryPaths = this.GetExtractedEntryPaths(index, fileId);

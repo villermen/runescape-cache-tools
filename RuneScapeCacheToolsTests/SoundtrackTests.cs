@@ -7,8 +7,6 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
-    using Villermen.RuneScapeCacheTools.Audio;
-
     [Collection("TestCache")]
     public class SoundtrackTests
     {

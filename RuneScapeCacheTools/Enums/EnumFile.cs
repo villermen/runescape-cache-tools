@@ -91,23 +91,23 @@ namespace Villermen.RuneScapeCacheTools.Enums
                         break;
 
                     default:
-                        throw new CacheException($"Invalid enum opcode \"{opcode}\".");
+                        throw new DecodeException($"Invalid enum opcode \"{opcode}\".");
                 }
             }
 
             if (this.KeyType == null)
             {
-                throw new EnumParseException("Enum data does not contain a key type.");
+                throw new DecodeException("Enum data does not contain a key type.");
             }
 
             if (this.ValueType == null)
             {
-                throw new EnumParseException("Enum data does not contain a value type.");
+                throw new DecodeException("Enum data does not contain a value type.");
             }
 
             if (this.Values == null)
             {
-                throw new EnumParseException("Enum does not contain any values.");
+                throw new DecodeException("Enum does not contain any values.");
             }
         }
 

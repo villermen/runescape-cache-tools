@@ -48,7 +48,7 @@
 
             if (this.ReadOnly && !File.Exists(dataFilePath))
             {
-                throw new CacheException("Cache data file does not exist.");
+                throw new FileNotFoundException("Cache data file does not exist.");
             }
 
             this.dataStream = File.Open(dataFilePath, FileMode.OpenOrCreate, fileAccess);
@@ -102,7 +102,7 @@
         {
             if (!this.indexStreams.ContainsKey(index))
             {
-                throw new CacheFileNotFoundException($"Index does not exist for {index}/{fileId}.");
+                throw new FileNotFoundException($"Index does not exist for {index}/{fileId}.");
             }
 
             var indexReader = new BinaryReader(this.indexStreams[index]);
@@ -111,7 +111,7 @@
 
             if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
-                throw new CacheFileNotFoundException($"{index}/{fileId} is outside of the index file's bounds.");
+                throw new FileNotFoundException($"{index}/{fileId} is outside of the index file's bounds.");
             }
 
             var sectors = new List<Sector>();
@@ -126,7 +126,7 @@
 
                 if (indexPointer.Filesize <= 0)
                 {
-                    throw new CacheFileNotFoundException($"{index}/{fileId} has no size, which means it is either empty or not present.");
+                    throw new FileNotFoundException($"{index}/{fileId} has no size, which means it is not stored in the cache.");
                 }
 
                 var chunkId = 0;
@@ -142,7 +142,7 @@
 
                     if (sectorBytes.Length != Sector.Length)
                     {
-                        throw new CacheFileNotFoundException($"One of {index}/{fileId}'s sectors could not be fully read.");
+                        throw new EndOfStreamException($"One of {index}/{fileId}'s sectors could not be fully read.");
                     }
 
                     var sector = new Sector((int)(dataPosition / Sector.Length), index, fileId, chunkId++, sectorBytes);
@@ -174,8 +174,6 @@
                 throw new InvalidOperationException("Can't write data in readonly mode.");
             }
 
-            var sectors = Sector.FromData(data, index, fileId);
-
             lock (this.ioLock)
             {
                 // Obtain possibly existing sector positions to overwrite
@@ -186,11 +184,13 @@
                         .Select(sector => sector.Position)
                         .ToArray();
                 }
-                catch (Exception ex) when (ex is CacheException || ex is SectorException)
+                catch (Exception ex) when (ex is FileNotFoundException)
                 {
                     // Assume there are no existing sectors when the method fails
                     existingSectorPositions = new int[0];
                 }
+
+                var sectors = Sector.FromData(data, index, fileId);
 
                 var dataWriter = new BinaryWriter(this.dataStream);
 

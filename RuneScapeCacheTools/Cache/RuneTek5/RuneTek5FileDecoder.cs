@@ -73,7 +73,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                         if (readBzipBytes != uncompressedLength)
                         {
-                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
@@ -83,7 +83,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                         if (readGzipBytes != uncompressedLength)
                         {
-                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
@@ -93,12 +93,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                         if (readLzmaBytes != uncompressedLength)
                         {
-                            throw new CacheException("Uncompressed container data length does not match obtained length.");
+                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
                         }
                         break;
 
                     default:
-                        throw new CacheException("Invalid compression type given.");
+                        throw new DecodeException("Invalid compression type given.");
                 }
 
                 continuousData = uncompressedBytes;
@@ -111,14 +111,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 var version = dataReader.ReadUInt16BigEndian();
 
-
                 if (info.Version != -1)
                 {
                     // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
                     var truncatedInfoVersion = (int)(ushort)info.Version;
                     if (version != truncatedInfoVersion)
                     {
-                        throw new CacheException($"Obtained version part ({version}) did not match expected ({truncatedInfoVersion}).");
+                        throw new DecodeException($"Obtained version part ({version}) did not match expected ({truncatedInfoVersion}).");
                     }
 
                     info.Version = version;
@@ -136,7 +135,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (info.Crc != null && crc != info.Crc)
             {
-                throw new CacheException($"Calculated checksum (0x{crc:X}) did not match expected (0x{info.Crc:X}).");
+                throw new DecodeException($"Calculated checksum (0x{crc:X}) did not match expected (0x{info.Crc:X}).");
             }
 
             info.Crc = crc;
@@ -150,7 +149,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (info.WhirlpoolDigest != null && !whirlpoolDigest.SequenceEqual(info.WhirlpoolDigest))
             {
-                throw new CacheException("Calculated whirlpool digest did not match expected.");
+                throw new DecodeException("Calculated whirlpool digest did not match expected.");
             }
 
             info.WhirlpoolDigest = whirlpoolDigest;
@@ -220,7 +219,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                     if (entryData.Length != entrySize)
                     {
-                        throw new CacheException("End of file reached while reading the archive.");
+                        throw new EndOfStreamException("End of file reached while reading the archive.");
                     }
 
                     // Put or append the entry data to the result
@@ -282,7 +281,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     break;
 
                 default:
-                    throw new CacheException("Invalid compression type given.");
+                    throw new ArgumentException("Invalid compression type.");
             }
 
             var memoryStream = new MemoryStream();

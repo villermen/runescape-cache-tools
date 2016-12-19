@@ -61,8 +61,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestExtractExtension()
         {
-            // TODO: Use pre-built cache for this
-            this.Fixture.Downloader.Extract(Index.LoadingSprites, 8501);
+            this.Fixture.RuneTek5Cache.Extract(Index.LoadingSprites, 8501);
 
             // Verify that the .jpg extension was added
             Assert.True(File.Exists($"output/extracted/{Index.LoadingSprites}/8501.jpg"));
@@ -92,7 +91,7 @@ namespace RuneScapeCacheToolsTests
 
                 Assert.True(false, "Cache returned a file that shouldn't exist.");
             }
-            catch (CacheException exception)
+            catch (FileNotFoundException exception)
             {
                 Assert.True(exception.Message.Contains("no size"), "Non-existent file cache exception had the wrong message.");
             }
@@ -131,6 +130,18 @@ namespace RuneScapeCacheToolsTests
                     file1.Entries[entryIndex].SequenceEqual(file2.Entries[entryIndex]),
                     $"Entry {entryIndex} from initial file did not match the one from the file after being written and read back.");
             }
+        }
+
+        [Theory]
+        [InlineData(Index.Music)]
+        public void TestEncodeReferenceTable(Index index)
+        {
+            var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile<DataCacheFile>(Index.ReferenceTables, (int)index);
+
+            var referenceTable = ReferenceTable.Decode(referenceTableFile);
+            var encodedFile = referenceTable.Encode();
+
+            Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
         }
     }
 }

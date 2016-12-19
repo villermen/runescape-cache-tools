@@ -225,7 +225,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     returnCode = 1;
                 }
 			}
-			catch (Exception exception) when (exception is OptionException || exception is CacheException || exception is CLIException)
+			catch (Exception exception) when (exception is OptionException || exception is CLIException)
 			{
 			    Console.WriteLine(exception);
 

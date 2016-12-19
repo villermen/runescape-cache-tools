@@ -34,9 +34,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             referenceTable.Format = reader.ReadByte();
 
             // Read header
-            if ((referenceTable.Format < 5) || (referenceTable.Format > 7))
+            if (referenceTable.Format < 5 || referenceTable.Format > 7)
             {
-                throw new CacheException($"Incorrect reference table protocol number: {referenceTable.Format}.");
+                throw new DecodeException($"Incorrect reference table format version {referenceTable.Format}.");
             }
 
             if (referenceTable.Format >= 6)
@@ -56,7 +56,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 referenceTable.files.Add(fileId, new CacheFileInfo
                 {
-                    Index = referenceTable.Info.Index,
+                    Index = (Index)referenceTable.Info.FileId,
                     FileId = fileId
                 });
             }
@@ -267,7 +267,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     // Do a small check to verify the size before messing the whole file up
                     if (file.WhirlpoolDigest.Length != 64)
                     {
-                        throw new CacheException("File info's whirlpool digest is not 64 bytes in length.");
+                        throw new DecodeException("File info's whirlpool digest is not 64 bytes in length.");
                     }
 
                     writer.Write(file.WhirlpoolDigest);

@@ -92,7 +92,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public override T GetFile<T>(Index index, int fileId)
         {
-            var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo();
+            var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
+            {
+                Index = index,
+                FileId = fileId
+            };
 
             var newFileRequest = this.IndexesUsingHttpInterface.Contains(index) ? (FileRequest)new HttpFileRequest(index, fileId, fileInfo) : new TcpFileRequest(index, fileId, fileInfo);
 
