@@ -68,32 +68,39 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         bzipCompressedBytes[2] = (byte)'h';
                         bzipCompressedBytes[3] = (byte)'1';
                         Array.Copy(compressedBytes, 0, bzipCompressedBytes, 4, compressedBytes.Length);
-                        var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes));
-                        var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
 
-                        if (readBzipBytes != uncompressedLength)
+                        using (var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes)))
                         {
-                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                            if (readBzipBytes != uncompressedLength)
+                            {
+                                throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            }
                         }
                         break;
 
                     case CompressionType.Gzip:
-                        var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
-                        var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
-
-                        if (readGzipBytes != uncompressedLength)
+                        using (var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress))
                         {
-                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                            if (readGzipBytes != uncompressedLength)
+                            {
+                                throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            }
                         }
                         break;
 
                     case CompressionType.Lzma:
-                        var lzmaStream = new LzmaInputStream(new MemoryStream(compressedBytes));
-                        var readLzmaBytes = lzmaStream.Read(uncompressedBytes, 0, uncompressedLength);
-
-                        if (readLzmaBytes != uncompressedLength)
+                        using (var lzmaStream = new LzmaInputStream(new MemoryStream(compressedBytes)))
                         {
-                            throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            var readLzmaBytes = lzmaStream.Read(uncompressedBytes, 0, uncompressedLength);
+
+                            if (readLzmaBytes != uncompressedLength)
+                            {
+                                throw new DecodeException("Uncompressed container data length does not match obtained length.");
+                            }
                         }
                         break;
 
