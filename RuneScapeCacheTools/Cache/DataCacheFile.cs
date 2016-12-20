@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
+namespace Villermen.RuneScapeCacheTools.Cache
 {
-    public class DataCacheFile : BaseCacheFile
+    public class DataCacheFile : CacheFile
     {
         public bool UsesEntries => this.Entries.Length > 1;
 

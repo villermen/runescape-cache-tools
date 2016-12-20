@@ -68,10 +68,6 @@
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NAudio, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NAudio.1.7.3\lib\net35\NAudio.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Noemax.Compression.Net4.Trial, Version=16.345.0.0, Culture=neutral, PublicKeyToken=4c0defa954f97f18, processorArchitecture=MSIL">
       <HintPath>..\packages\Noemax.Compression.16.345.0\lib\net40\Noemax.Compression.Net4.Trial.dll</HintPath>
       <Private>True</Private>
@@ -81,23 +77,16 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioChunkDescriptor.cs" />
     <Compile Include="Audio\JagaFile.cs" />
-    <Compile Include="Audio\JagaParseException.cs" />
     <Compile Include="Audio\Soundtrack.cs" />
     <Compile Include="Audio\SoundtrackException.cs" />
-    <Compile Include="Cache\CacheFile\BaseCacheFile.cs" />
-    <Compile Include="Cache\CacheFile\CacheFileInfo.cs" />
-    <Compile Include="Cache\CacheFile\DataCacheFile.cs" />
+    <Compile Include="Cache\CacheFile.cs" />
+    <Compile Include="Cache\CacheFileInfo.cs" />
+    <Compile Include="Cache\DataCacheFile.cs" />
     <Compile Include="Cache\Downloader\CacheDownloader.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />
@@ -105,14 +94,14 @@
     <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
     <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
     <Compile Include="Cache\Index.cs" />
-    <Compile Include="Cache\CacheFile\CacheFileOptions.cs" />
+    <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\DecodeException.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5FileDecoder.cs" />
     <Compile Include="Cache\RuneTek5\Language.cs" />
     <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
-    <Compile Include="Cache\RuneTek5\MasterReferenceTableTable.cs" />
-    <Compile Include="Cache\CacheFile\CacheFileEntryInfo.cs" />
+    <Compile Include="Cache\RuneTek5\MasterReferenceTableEntry.cs" />
+    <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />

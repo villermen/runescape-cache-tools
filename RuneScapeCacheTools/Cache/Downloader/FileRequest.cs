@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {

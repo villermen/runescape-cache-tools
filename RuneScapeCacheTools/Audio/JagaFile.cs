@@ -1,61 +1,69 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Audio
 {
-    public class JagaFile // TODO: : CacheFile
+    public class JagaFile : CacheFile
     {
         public static byte[] MagicNumber = Encoding.ASCII.GetBytes("JAGA");
 
-        public JagaFile(byte[] data)
-        {
-            var reader = new BinaryReader(new MemoryStream(data));
+        public int ChunkCount { get; set; }
 
-            // Verify magic number
-            if (!reader.ReadBytes(4).SequenceEqual(JagaFile.MagicNumber))
-            {
-                throw new JagaParseException("Magic number incorrect");
-            }
+        public AudioChunkDescriptor[] ChunkDescriptors { get; set; }
 
-            this.UnknownInteger1 = reader.ReadInt32BigEndian();
-            this.UnknownInteger2 = reader.ReadInt32BigEndian();
-            this.SampleFrequency = reader.ReadInt32BigEndian();
-            this.UnknownInteger3 = reader.ReadInt32BigEndian();
-            this.ChunkCount = reader.ReadInt32BigEndian();
+        public byte[] ContainedChunkData { get; set; }
 
-            this.ChunkDescriptors = new AudioChunkDescriptor[this.ChunkCount];
+        public int SampleFrequency { get; set; }
 
-            var position = (int)reader.BaseStream.Position + this.ChunkCount * 8;
-            for (var chunkIndex = 0; chunkIndex < this.ChunkCount; chunkIndex++)
-            {
-                this.ChunkDescriptors[chunkIndex] = new AudioChunkDescriptor(position, reader.ReadInt32BigEndian(),
-                    reader.ReadInt32BigEndian());
-
-                position += this.ChunkDescriptors[chunkIndex].Length;
-            }
-
-            // The rest of the file is the first chunk
-            var containedChunkStartPosition = reader.BaseStream.Position;
-            this.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
-        }
-
-        public int ChunkCount { get; }
-
-        public AudioChunkDescriptor[] ChunkDescriptors { get; }
-
-        public byte[] ContainedChunkData { get; }
-
-        public int SampleFrequency { get; }
-
-        public int UnknownInteger1 { get; }
+        public int UnknownInteger1 { get; set; }
 
         /// <summary>
         ///     Something to do with length?
         /// </summary>
-        public int UnknownInteger2 { get; }
+        public int UnknownInteger2 { get; set; }
 
-        public int UnknownInteger3 { get; }
+        public int UnknownInteger3 { get; set; }
+
+        public static explicit operator JagaFile(DataCacheFile dataFile)
+        {
+            var jagaFile = new JagaFile
+            {
+                Info = dataFile.Info
+            };
+
+            var reader = new BinaryReader(new MemoryStream(dataFile.Data));
+
+            // Verify magic number
+            if (!reader.ReadBytes(4).SequenceEqual(JagaFile.MagicNumber))
+            {
+                throw new DecodeException("JAGA magic number incorrect");
+            }
+
+            jagaFile.UnknownInteger1 = reader.ReadInt32BigEndian();
+            jagaFile.UnknownInteger2 = reader.ReadInt32BigEndian();
+            jagaFile.SampleFrequency = reader.ReadInt32BigEndian();
+            jagaFile.UnknownInteger3 = reader.ReadInt32BigEndian();
+            jagaFile.ChunkCount = reader.ReadInt32BigEndian();
+
+            jagaFile.ChunkDescriptors = new AudioChunkDescriptor[jagaFile.ChunkCount];
+
+            var position = (int)reader.BaseStream.Position + jagaFile.ChunkCount * 8;
+            for (var chunkIndex = 0; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+            {
+                jagaFile.ChunkDescriptors[chunkIndex] = new AudioChunkDescriptor(position, reader.ReadInt32BigEndian(),
+                    reader.ReadInt32BigEndian());
+
+                position += jagaFile.ChunkDescriptors[chunkIndex].Length;
+            }
+
+            // The rest of the file is the first chunk
+            var containedChunkStartPosition = reader.BaseStream.Position;
+            jagaFile.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
+
+            return jagaFile;
+        }
     }
 }

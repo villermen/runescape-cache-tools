@@ -8,7 +8,6 @@ using FlacLibSharp;
 using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Enums;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -96,7 +95,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             }
                         }
 
-                        var jagaFile = new JagaFile(this.Cache.GetFile<DataCacheFile>(Index.Music, trackNamePair.Key).Data);
+                        var jagaFile = this.Cache.GetFile<JagaFile>(Index.Music, trackNamePair.Key);
 
                         // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
                         var randomTemporaryFilenames = this.GetRandomTemporaryFilenames(jagaFile.ChunkCount);
@@ -106,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                         {
-                            File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile<DataCacheFile>(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
+                            File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                         }
 
                         // Delete existing file in case combiner application doesn't do overwriting properly
@@ -185,8 +184,8 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public IDictionary<int, string> GetTrackNames()
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
-            var trackNames = new EnumFile(this.Cache.GetFile<DataCacheFile>(Index.Enums, 5).Entries[65]);
-            var jagaFileIds = new EnumFile(this.Cache.GetFile<DataCacheFile>(Index.Enums, 5).Entries[71]);
+            var trackNames = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 65);
+            var jagaFileIds = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 71);
 
             // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
             var result = new SortedDictionary<int, string>();

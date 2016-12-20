@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
+    
 
     [Collection("TestCache")]
     public class CacheDownloaderTests
@@ -22,7 +22,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileWithEntries()
         {
-            var archiveFile = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.Enums, 5);
+            var archiveFile = this.Fixture.Downloader.GetFile(Index.Enums, 5);
 
             Assert.True(archiveFile.Entries.Length == 256, $"File 5 in archive 17 has {archiveFile.Entries.Length} entries instead of the expected 256.");
         }
@@ -32,7 +32,7 @@ namespace RuneScapeCacheToolsTests
         {
             this.Fixture.Downloader.GetReferenceTable(Index.ClientScripts);
             this.Fixture.Downloader.GetReferenceTable(Index.Music);
-            this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.Enums);
+            this.Fixture.Downloader.GetFile(Index.ReferenceTables, (int)Index.Enums);
 
             var referenceTable17 = this.Fixture.Downloader.GetReferenceTable(Index.Enums);
 
@@ -69,7 +69,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestHttpInterface()
         {
-            var httpFile = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.Music, 30498);
+            var httpFile = this.Fixture.Downloader.GetFile(Index.Music, 30498);
 
             Assert.True(httpFile.Data.Length > 0);
         }

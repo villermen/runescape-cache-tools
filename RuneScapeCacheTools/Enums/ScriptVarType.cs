@@ -26,7 +26,7 @@ namespace Villermen.RuneScapeCacheTools.Enums
         public static readonly ScriptVarType Location = new ScriptVarType(30, 'l', BaseVarType.Integer, -1);
         public static readonly ScriptVarType Model = new ScriptVarType(31, 'm', BaseVarType.Integer, -1);
         public static readonly ScriptVarType Music = new ScriptVarType(11, 'M', BaseVarType.Integer, -1);
-        public static readonly ScriptVarType NPC = new ScriptVarType(32, 'n', BaseVarType.Integer, -1);
+        public static readonly ScriptVarType Npc = new ScriptVarType(32, 'n', BaseVarType.Integer, -1);
         public static readonly ScriptVarType Object = new ScriptVarType(33, 'o', BaseVarType.Integer, -1);
         public static readonly ScriptVarType Player = new ScriptVarType(34, 'p', BaseVarType.Integer, -1);
         public static readonly ScriptVarType Render = new ScriptVarType(44, '\u20ac', BaseVarType.Integer, -1);

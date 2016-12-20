@@ -1,11 +1,11 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using Villermen.RuneScapeCacheTools.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Villermen.RuneScapeCacheTools.Extensions;
 
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+{
     /// <summary>
     ///     A file store holds multiple files inside a "virtual" file system made up of several index files and a single data
     ///     file.

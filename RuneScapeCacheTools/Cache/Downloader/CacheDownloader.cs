@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -90,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private object TcpConnectLock { get; } = new object();
 
-        public override T GetFile<T>(Index index, int fileId)
+        public override DataCacheFile GetFile(Index index, int fileId)
         {
             var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
             {
@@ -121,14 +120,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             var fileData = fileRequest.WaitForCompletion();
 
-            var file = RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
+            return RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
+        }
 
-            if (!(file is T))
-            {
-                throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
-            }
-
-            return file as T;
+        public override void PutFile(DataCacheFile file)
+        {
+            throw new NotSupportedException("I am a downloader, not an uploader...");
         }
 
         public override IEnumerable<int> GetFileIds(Index index)
@@ -148,14 +145,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 return this.CachedMasterReferenceTable;
             }
 
-            this.CachedMasterReferenceTable = new MasterReferenceTable(this.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.ReferenceTables));
+            this.CachedMasterReferenceTable = this.GetFile<MasterReferenceTable>(Index.ReferenceTables, (int)Index.ReferenceTables);
 
             return this.CachedMasterReferenceTable;
         }
 
         public ReferenceTable GetReferenceTable(Index index)
         {
-            return this.CachedReferenceTables.GetOrAdd(index, index2 => ReferenceTable.Decode(this.GetFile<DataCacheFile>(Index.ReferenceTables, (int)index)));
+            return this.CachedReferenceTables.GetOrAdd(index, index2 => this.GetFile<ReferenceTable>(Index.ReferenceTables, (int)index));
         }
 
         public void TcpConnect()

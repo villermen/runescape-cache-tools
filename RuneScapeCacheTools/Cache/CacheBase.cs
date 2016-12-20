@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
@@ -54,19 +53,40 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        ///     Returns the requested file.
+        ///     Returns the requested file and tries to convert it to the requested type if possible.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
+        /// <param name="entryId"></param>
         /// <returns></returns>
-        public abstract T GetFile<T>(Index index, int fileId) where T : CacheFile.BaseCacheFile;
+        public T GetFile<T>(Index index, int fileId, int entryId = -1) where T : CacheFile
+        {
+            var file = this.GetFile(index, fileId);
+
+            if (entryId != -1)
+            {
+                file = new DataCacheFile
+                {
+                    Data = file.Entries[entryId],
+                    Info = file.Info
+                };
+            }
+
+            var decodedFile = Activator.CreateInstance<T>();
+            decodedFile.FromDataFile(file);
+            return decodedFile;
+        }
+
+        public abstract DataCacheFile GetFile(Index index, int fileId);
 
         public abstract IEnumerable<int> GetFileIds(Index index);
 
-        public virtual void PutFile(CacheFile.BaseCacheFile file)
+        public void PutFile(CacheFile file)
         {
-            throw new NotSupportedException("Writing of files is not supported for this type of cache");
+            this.PutFile(file.ToDataFile());
         }
+
+        public abstract void PutFile(DataCacheFile file);
 
         /// <summary>
         ///     Returns info on the file without actually obtaining the file.
@@ -196,7 +216,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = this.GetFile<BaseCacheFile>(index, fileId);
+            var file = this.GetFile(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)
@@ -207,20 +227,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Create index directory for when it did not exist yet
             Directory.CreateDirectory($"{this.OutputDirectory}extracted/{index}");
 
-            var dataCacheFile = file as DataCacheFile;
-
-            if (dataCacheFile == null)
-            {
-                throw new InvalidOperationException($"Only {nameof(DataCacheFile)}s can be extracted.");
-            }
-
             // Extract all entries
             var extension = "";
             var extractedEntries = 0;
             var extractedEntryPaths = new List<string>();
-            for (var entryId = 0; entryId < dataCacheFile.Entries.Length; entryId++)
+            for (var entryId = 0; entryId < file.Entries.Length; entryId++)
             {
-                var currentData = dataCacheFile.Entries[entryId];
+                var currentData = file.Entries[entryId];
 
                 // Skip empty entries
                 if (currentData.Length == 0)

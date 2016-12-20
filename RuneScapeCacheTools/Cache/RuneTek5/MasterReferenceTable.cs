@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -9,11 +8,20 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     ///     A master reference table holds information on the other reference tables.
     ///     This is stored in a separate class, as the
     /// </summary>
-    public class MasterReferenceTable
+    public class MasterReferenceTable : CacheFile
     {
-        public MasterReferenceTable(DataCacheFile file)
+        public IDictionary<Index, MasterReferenceTableEntry> ReferenceTableFiles { get; } = new Dictionary<Index, MasterReferenceTableEntry>();
+
+        public byte[] RSAEncryptedWhirlpoolDigest { get; set; }
+
+        public static explicit operator MasterReferenceTable(DataCacheFile dataFile)
         {
-            var reader = new BinaryReader(new MemoryStream(file.Data));
+            var masterFile = new MasterReferenceTable
+            {
+                Info = dataFile.Info
+            };
+
+            var reader = new BinaryReader(new MemoryStream(dataFile.Data));
 
             var tableCount = reader.ReadByte();
 
@@ -21,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 var index = (Index)tableId;
 
-                var table = new MasterReferenceTableTable(index)
+                var table = new MasterReferenceTableEntry(index)
                 {
                     CRC = reader.ReadInt32BigEndian(),
                     Version = reader.ReadInt32BigEndian(),
@@ -30,14 +38,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                this.ReferenceTableFiles.Add(index, table);
+                masterFile.ReferenceTableFiles.Add(index, table);
             }
 
-            this.RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+            masterFile.RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+
+            return masterFile;
         }
-
-        public IDictionary<Index, MasterReferenceTableTable> ReferenceTableFiles { get; } = new Dictionary<Index, MasterReferenceTableTable>();
-
-        public byte[] RSAEncryptedWhirlpoolDigest { get; set; }
     }
 }

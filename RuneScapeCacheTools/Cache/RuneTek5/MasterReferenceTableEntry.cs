@@ -1,8 +1,8 @@
 ﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
-    public class MasterReferenceTableTable
+    public class MasterReferenceTableEntry
     {
-        public MasterReferenceTableTable(Index index)
+        public MasterReferenceTableEntry(Index index)
         {
             this.Index = index;
         }

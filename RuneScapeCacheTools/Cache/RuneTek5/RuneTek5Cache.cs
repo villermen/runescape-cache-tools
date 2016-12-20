@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.CacheFile;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -47,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
 
-        public override T GetFile<T>(Index index, int fileId)
+        public override DataCacheFile GetFile(Index index, int fileId)
         {
             CacheFileInfo info;
 
@@ -73,16 +72,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 };
             }
 
-            var file = RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
-
-            // TODO: Move this check up to CacheBase? Even better: Try to convert it to the requested class there?
-            if (!(file is T))
-            {
-                throw new ArgumentException($"Obtained file is of type  of given type {file.GetType().Name} instead of requested {nameof(T)}.");
-            }
-
-            return file as T;
-
+            return RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
         }
 
         /// <summary>
@@ -114,21 +104,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     FileId = (int)index
                 });
 
-                return ReferenceTable.Decode(cacheFile);
+                return (ReferenceTable)cacheFile;
             });
         }
 
-        public override void PutFile(BaseCacheFile file)
-        {
-            if (!(file is DataCacheFile))
-            {
-                throw new InvalidOperationException($"Only cache files of type {nameof(DataCacheFile)} can be written to a RuneTek5 cache.");
-            }
-
-            this.PutFile((DataCacheFile)file);
-        }
-
-        public void PutFile(DataCacheFile file)
+        public override void PutFile(DataCacheFile file)
         {
             // Write data to file store
             this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, RuneTek5FileDecoder.EncodeFile(file));
@@ -161,7 +141,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 // Update stored file in reference table and store reference table
                 referenceTable.SetFileInfo(file.Info.FileId, file.Info);
 
-                this.PutFile(referenceTable.Encode());
+                this.PutFile(referenceTable);
             }
         }
 

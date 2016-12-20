@@ -1,7 +1,6 @@
-﻿using System;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache.CacheFile
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     [Flags]
     public enum CacheFileOptions

@@ -1,6 +1,4 @@
-﻿using Villermen.RuneScapeCacheTools.Cache.CacheFile;
-
-namespace Villermen.RuneScapeCacheTools.Cache.Downloader
+﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class TcpFileRequest : FileRequest
     {
