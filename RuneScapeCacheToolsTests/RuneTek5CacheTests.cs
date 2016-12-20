@@ -85,16 +85,10 @@ namespace RuneScapeCacheToolsTests
 
             Assert.True(archiveEntry.Length > 0, "Archive entry's data is empty.");
 
-            try
+            Assert.Throws<FileNotFoundException>(() =>
             {
                 this.Fixture.RuneTek5Cache.GetFile<DataCacheFile>(Index.Music, 30);
-
-                Assert.True(false, "Cache returned a file that shouldn't exist.");
-            }
-            catch (FileNotFoundException exception)
-            {
-                Assert.True(exception.Message.Contains("no size"), "Non-existent file cache exception had the wrong message.");
-            }
+            });
         }
 
         [Theory]
