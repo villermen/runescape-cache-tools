@@ -24,7 +24,6 @@ namespace RuneScapeCacheToolsTests
                 new Tuple<Index, int>(Index.Enums, 5),
                 new Tuple<Index, int>(Index.ClientScripts, 3),
                 new Tuple<Index, int>(Index.LoadingSprites, 8501),
-                new Tuple<Index, int>(Index.Music, 30),
                 new Tuple<Index, int>(Index.Models, 47000),
                 new Tuple<Index, int>(Index.Enums, 23),
 

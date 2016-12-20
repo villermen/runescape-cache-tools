@@ -106,157 +106,22 @@
     <None Include="testdata\cache\main_file_cache.dat2">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="testdata\cache\main_file_cache.idx0">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx10">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx11">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="testdata\cache\main_file_cache.idx12">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx13">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx14">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx15">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx16">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="testdata\cache\main_file_cache.idx17">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="testdata\cache\main_file_cache.idx18">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx19">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx20">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx21">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx22">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx23">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx24">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx25">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="testdata\cache\main_file_cache.idx255">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx26">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx27">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx28">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx29">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx30">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx31">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="testdata\cache\main_file_cache.idx32">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="testdata\cache\main_file_cache.idx33">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx34">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx35">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx36">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx37">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx38">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx39">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx4">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="testdata\cache\main_file_cache.idx40">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="testdata\cache\main_file_cache.idx41">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx42">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx43">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx44">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx45">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx46">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx47">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx48">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx49">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx5">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx6">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="testdata\cache\main_file_cache.idx7">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx8">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="testdata\cache\main_file_cache.idx9">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
