@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Villermen.RuneScapeCacheTools.Extensions
@@ -181,8 +182,7 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             var firstByte = reader.ReadSByte();
             if (firstByte < 0)
             {
-                return ((firstByte << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte()) &
-                       0x7fffffff;
+                return ((firstByte << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte()) & 0x7fffffff;
             }
 
             var f = (firstByte << 8) + reader.ReadByte();
@@ -208,6 +208,11 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 
         public static void WriteAwkwardInt(this BinaryWriter writer, int value)
         {
+            if (value < -1)
+            {
+                throw new ArgumentException("Awkward int can not be less than -1.");
+            }
+
             if (value == -1)
             {
                 writer.WriteInt16BigEndian(short.MaxValue);

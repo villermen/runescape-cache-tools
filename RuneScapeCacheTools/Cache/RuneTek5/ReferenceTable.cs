@@ -20,7 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The entries in this table.
         /// </summary>
-        private readonly Dictionary<int, CacheFileInfo> files = new Dictionary<int, CacheFileInfo>();
+        private readonly SortedDictionary<int, CacheFileInfo> files = new SortedDictionary<int, CacheFileInfo>();
 
         public static ReferenceTable Decode(DataCacheFile cacheFile)
         {
@@ -52,7 +52,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var fileId = 0;
             for (var fileNumber = 0; fileNumber < fileCount; fileNumber++)
             {
-                fileId += referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                var delta = referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                fileId += delta;
 
                 referenceTable.files.Add(fileId, new CacheFileInfo
                 {
@@ -126,7 +127,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var entryId = 0;
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {
-                    entryId += referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                    var delta = referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                    entryId += delta;
 
                     referenceTable.files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
                     {
