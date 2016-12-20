@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
@@ -15,13 +13,10 @@ namespace RuneScapeCacheToolsTests
     [Collection("TestCache")]
     public class RuneTek5CacheTests
     {
-        private ITestOutputHelper Output { get; }
-
         private CacheFixture Fixture { get; }
 
-        public RuneTek5CacheTests(ITestOutputHelper output, CacheFixture fixture)
+        public RuneTek5CacheTests(CacheFixture fixture)
         {
-            this.Output = output;
             this.Fixture = fixture;
         }
 

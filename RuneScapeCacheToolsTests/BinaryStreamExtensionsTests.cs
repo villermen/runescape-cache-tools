@@ -1,8 +1,6 @@
 ﻿namespace RuneScapeCacheToolsTests
 {
     using System.IO;
-    using System.Runtime.InteropServices;
-    using Villermen.RuneScapeCacheTools.Cache;
     using Villermen.RuneScapeCacheTools.Extensions;
     using Xunit;
 

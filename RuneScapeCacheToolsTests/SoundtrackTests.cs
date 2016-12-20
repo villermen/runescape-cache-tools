@@ -30,7 +30,7 @@ namespace RuneScapeCacheToolsTests
         {
             var trackNames = this.Fixture.Soundtrack.GetTrackNames();
 
-            this.Output.WriteLine($"Amount of track names: {trackNames.Count}");
+            Assert.Equal(1161, trackNames.Count);
 
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }

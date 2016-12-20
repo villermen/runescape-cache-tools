@@ -12,12 +12,10 @@ namespace RuneScapeCacheToolsTests
     [Collection("TestCache")]
     public class CacheDownloaderTests
     {
-        private ITestOutputHelper Output { get; }
         private CacheFixture Fixture { get; }
 
-        public CacheDownloaderTests(ITestOutputHelper output, CacheFixture fixture)
+        public CacheDownloaderTests(CacheFixture fixture)
         {
-            this.Output = output;
             this.Fixture = fixture;
         }
 
@@ -32,16 +30,13 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestDownloadReferenceTable()
         {
-            var referenceTable12 = this.Fixture.Downloader.GetReferenceTable(Index.ClientScripts);
-            var referenceTable40 = this.Fixture.Downloader.GetReferenceTable(Index.Music);
-
-            var rawReferenceTable = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.Enums);
+            this.Fixture.Downloader.GetReferenceTable(Index.ClientScripts);
+            this.Fixture.Downloader.GetReferenceTable(Index.Music);
+            this.Fixture.Downloader.GetFile<DataCacheFile>(Index.ReferenceTables, (int)Index.Enums);
 
             var referenceTable17 = this.Fixture.Downloader.GetReferenceTable(Index.Enums);
 
-            this.Output.WriteLine($"Files in reference table for index 17: {referenceTable17.FileIds.Length}.");
-
-            Assert.True(referenceTable17.FileIds.Length == 47, $"Reference table for index 17 reported having {referenceTable17.FileIds.Length} files instead of the expected 46.");
+            Assert.InRange(referenceTable17.FileIds.Length, 48, 1000);
         }
 
         [Theory]
@@ -50,7 +45,7 @@ namespace RuneScapeCacheToolsTests
         {
             var masterReferenceTable = this.Fixture.Downloader.GetMasterReferenceTable();
 
-            Assert.True(masterReferenceTable.ReferenceTableFiles.Count == expectedTableCount, $"Master reference table reported having {masterReferenceTable.ReferenceTableFiles.Count} files instead of the expected {expectedTableCount}.");
+            Assert.InRange(masterReferenceTable.ReferenceTableFiles.Count, expectedTableCount, 253);
         }
 
         [Theory]
@@ -59,7 +54,7 @@ namespace RuneScapeCacheToolsTests
         {
             var reportedFileCount = this.Fixture.Downloader.GetFileIds(index).Count();
 
-            Assert.True(reportedFileCount == expectedFileCount, $"Downloader reported {reportedFileCount} files in index {index}, {expectedFileCount} expected.");
+            Assert.InRange(reportedFileCount, expectedFileCount, 1000);
         }
 
         [Theory]
@@ -68,13 +63,15 @@ namespace RuneScapeCacheToolsTests
         {
             var reportedIndexCount = this.Fixture.Downloader.Indexes.Count();
 
-            Assert.True(reportedIndexCount == expectedIndexCount, $"Downloader reported {reportedIndexCount} indexes, {expectedIndexCount} expected.");
+            Assert.InRange(reportedIndexCount, expectedIndexCount, 253);
         }
 
         [Fact]
         public void TestHttpInterface()
         {
             var httpFile = this.Fixture.Downloader.GetFile<DataCacheFile>(Index.Music, 30498);
+
+            Assert.True(httpFile.Data.Length > 0);
         }
 
         [Fact]
