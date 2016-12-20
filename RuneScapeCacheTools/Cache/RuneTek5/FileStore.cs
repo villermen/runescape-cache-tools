@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Villermen.RuneScapeCacheTools.Cache.CacheFile;
     using Villermen.RuneScapeCacheTools.Extensions;
 
     /// <summary>
@@ -204,7 +203,13 @@
                     // Set position of next sector
                     sector.NextSectorPosition = sector.ChunkId + 1 < existingSectorPositions.Length
                         ? existingSectorPositions[sector.ChunkId + 1]
-                        : sector.Position + 1;
+                        : (int)(dataWriter.BaseStream.Length / Sector.Length);
+
+                    // Happens if both positions were based on the stream length
+                    if (sector.NextSectorPosition == sector.Position)
+                    {
+                        sector.NextSectorPosition++;
+                    }
 
                     // Add to index
                     if (sector.ChunkId == 0)
