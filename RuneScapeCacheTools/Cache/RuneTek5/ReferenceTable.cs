@@ -48,6 +48,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <returns></returns>
         public CacheFileInfo GetFileInfo(int fileId)
         {
+            if (!this.files.ContainsKey(fileId))
+            {
+                throw new FileNotFoundException($"File {fileId} does not exist in this reference table.");
+            }
+
             return this.files[fileId].Clone();
         }
 

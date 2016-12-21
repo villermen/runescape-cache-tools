@@ -81,6 +81,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                         try
                         {
+                            // Get file info first, for a less IO intensive availability check
                             var jagaFileInfo = this.Cache.GetFileInfo(Index.Music, trackNamePair.Key);
 
                             // Skip file if not overwriting existing and the file exists
