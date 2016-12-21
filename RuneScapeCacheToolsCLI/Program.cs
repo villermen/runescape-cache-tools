@@ -46,6 +46,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         private static bool Download { get; set; }
 
+        private static bool DoHelp { get; set; }
+
 		private static readonly OptionSet ArgumentParser = new OptionSet
 		{
 			{
@@ -140,8 +142,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"help|h|?",
                 "Show this message.",
                 value =>
-				{
-					Program.ShowHelp();
+                {
+                    Program.DoHelp = true;
 
 					Program.TriggeredActions++;
 				}
@@ -190,7 +192,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			    }
 
                 // Perform the action if everything is ok
-                if (run)
+                if (run && !Program.DoHelp)
 			    {
 			        // Initialize the cache
 			        Program.Cache = Program.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(Program.CacheDirectory);
