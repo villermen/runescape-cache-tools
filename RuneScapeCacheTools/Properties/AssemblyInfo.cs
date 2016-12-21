@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("RuneScapeCacheTools")]
-[assembly: AssemblyDescription("Tools for extracting and manipulating RuneScape's cache files")]
+[assembly: AssemblyDescription("Library for interacting with RuneScape's cache")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Villermen")]
 [assembly: AssemblyProduct("RuneScapeCacheTools")]
@@ -35,5 +35,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("3.0")]
+[assembly: AssemblyFileVersion("3.0")]
