@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Cache;
-
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;

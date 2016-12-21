@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {

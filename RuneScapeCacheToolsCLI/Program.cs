@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using log4net;
+using log4net.Core;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -12,8 +12,6 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
-    using log4net.Core;
-
     internal static class Program
 	{
 		/// <summary>
@@ -54,7 +52,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which RuneScape's cache files are located. If unspecified, the default directory will be attempted.",
 				value =>
 				{
-					CacheDirectory = value;
+					Program.CacheDirectory = value;
 				}
 			},
 		    {
@@ -62,7 +60,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Download all requested files straight from Jagex's servers instead of using a local cache.",
 		        value =>
 		        {
-		            Download = value != null;
+		            Program.Download = value != null;
 		        }
 		    },
 			{
@@ -70,7 +68,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which output files (mainly extracted files) will be stored.",
 				value =>
 				{
-					OutputDirectory = value;
+					Program.OutputDirectory = value;
 				}
 			},
 			{
@@ -78,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"The directory in which temporary files will be stored. If unspecified, the system's default directory + \"rsct\" will be used.",
 				value =>
 				{
-					TemporaryDirectory = value;
+					Program.TemporaryDirectory = value;
 				}
 			},
 			{
@@ -86,8 +84,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"Extract all files from the cache. You can specify which files to extract by using the index and file arguments.",
 				value =>
 				{
-					DoExtract = (value != null);
-					TriggeredActions++;
+					Program.DoExtract = (value != null);
+					Program.TriggeredActions++;
 				}
 			},
 			{
@@ -95,7 +93,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
 				value =>
 				{
-					Indexes = ExpandIntegerRangeString(value).Cast<Index>();
+					Program.Indexes = Program.ExpandIntegerRangeString(value).Cast<Index>();
 				}
 			},
 			{
@@ -103,7 +101,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "A file id or range of file ids to extract. E.g. \"1-2,4,6-7\".",
 				value =>
 				{
-					FileIds = ExpandIntegerRangeString(value);
+					Program.FileIds = Program.ExpandIntegerRangeString(value);
 				}
 			},
 			{
@@ -111,7 +109,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Overwrite extracted files if they already exist.",
 				value =>
 				{
-					Overwrite = (value != null);
+					Program.Overwrite = (value != null);
 				}
 			},
 			{
@@ -119,14 +117,14 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Extract and name the soundtrack, optionally filtered by the given comma-separated name filters.",
 				value =>
 				{
-				    DoSoundtrackCombine = true;
+				    Program.DoSoundtrackCombine = true;
 
                     if (!string.IsNullOrWhiteSpace(value))
 				    {
-				        SoundtrackNameFilter = ExpandListString(value);
+				        Program.SoundtrackNameFilter = Program.ExpandListString(value);
 				    }
 
-				    TriggeredActions++;
+				    Program.TriggeredActions++;
 				}
 			},
 		    {
@@ -134,7 +132,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Use FLAC instead of OGG as audio format when combining, preventing quality loss.",
 		        value =>
 		        {
-		            Lossless = (value != null);
+		            Program.Lossless = (value != null);
 		        }
 		    },
 			{
@@ -142,9 +140,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Show this message.",
                 value =>
 				{
-					ShowHelp();
+					Program.ShowHelp();
 
-					TriggeredActions++;
+					Program.TriggeredActions++;
 				}
 			}
 		};
@@ -163,7 +161,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 			try
 			{
-				var unknownArguments = ArgumentParser.Parse(args);
+				var unknownArguments = Program.ArgumentParser.Parse(args);
 			    var run = true;
 
                 // Show supplied argument that could not be parsed
@@ -179,7 +177,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				}
 
 				// Show help when no action arguments are specified. This is considered an error as it is unexpected.
-			    if (TriggeredActions == 0)
+			    if (Program.TriggeredActions == 0)
 			    {
                     run = false;
 
@@ -194,27 +192,27 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 if (run)
 			    {
 			        // Initialize the cache
-			        Cache = Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(CacheDirectory);
+			        Program.Cache = Program.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(Program.CacheDirectory);
 
-			        if (OutputDirectory != null)
+			        if (Program.OutputDirectory != null)
 			        {
-			            Cache.OutputDirectory = OutputDirectory;
+			            Program.Cache.OutputDirectory = Program.OutputDirectory;
 			        }
 
-			        if (TemporaryDirectory != null)
+			        if (Program.TemporaryDirectory != null)
 			        {
-			            Cache.TemporaryDirectory = TemporaryDirectory;
+			            Program.Cache.TemporaryDirectory = Program.TemporaryDirectory;
 			        }
 
 			        // Perform the specified actions
-			        if (DoExtract)
+			        if (Program.DoExtract)
 			        {
-			            Extract();
+			            Program.Extract();
 			        }
 
-			        if (DoSoundtrackCombine)
+			        if (Program.DoSoundtrackCombine)
 			        {
-			            CombineSoundtrack();
+			            Program.CombineSoundtrack();
 			        }
 
 			        returnCode = 0;
@@ -222,7 +220,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 else
                 {
                     // Show help if something went wrong during argument parsing
-                    ShowHelp();
+                    Program.ShowHelp();
 
                     returnCode = 1;
                 }
@@ -254,7 +252,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
         /// <returns></returns>
         private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
 		{
-		    var rangeStringParts = ExpandListString(integerRangeString);
+		    var rangeStringParts = Program.ExpandListString(integerRangeString);
 			var result = new List<int>();
 
 			foreach (var rangeStringPart in rangeStringParts)
@@ -289,7 +287,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			Console.WriteLine($"Usage: {typeof(Program).Assembly.GetName().Name} [OPTION]...");
 			Console.WriteLine("Tools for performing actions on RuneScape's cache.");
 			Console.WriteLine();
-			ArgumentParser.WriteOptionDescriptions(Console.Out);
+			Program.ArgumentParser.WriteOptionDescriptions(Console.Out);
 		}
 
 		private static void Extract()
@@ -301,20 +299,20 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
             };
 
-            if (Indexes == null && FileIds == null)
+            if (Program.Indexes == null && Program.FileIds == null)
 			{
 				// Extract everything
-				Cache.Extract(Overwrite, progress);
+				Program.Cache.Extract(Program.Overwrite, progress);
 			}
-			else if (FileIds == null)
+			else if (Program.FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Cache.Extract(Indexes, Overwrite, progress);
+				Program.Cache.Extract(Program.Indexes, Program.Overwrite, progress);
 			}
-			else if (Indexes.Count() == 1)
+			else if (Program.Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-                Cache.Extract(Indexes.First(), FileIds, Overwrite, progress);
+                Program.Cache.Extract(Program.Indexes.First(), Program.FileIds, Program.Overwrite, progress);
 			}
 			else
 			{
@@ -326,9 +324,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void CombineSoundtrack()
 		{
-			var soundtrack = new Soundtrack(Cache);
+			var soundtrack = new Soundtrack(Program.Cache);
 
-			soundtrack.Extract(Program.Overwrite, Program.Lossless, SoundtrackNameFilter?.ToArray() ?? new string[0]);
+			soundtrack.Extract(Program.Overwrite, Program.Lossless, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
         }
 	}
 }

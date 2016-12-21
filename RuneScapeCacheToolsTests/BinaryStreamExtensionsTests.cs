@@ -1,9 +1,9 @@
-﻿namespace RuneScapeCacheToolsTests
-{
-    using System.IO;
-    using Villermen.RuneScapeCacheTools.Extensions;
-    using Xunit;
+﻿using System.IO;
+using Villermen.RuneScapeCacheTools.Extensions;
+using Xunit;
 
+namespace RuneScapeCacheToolsTests
+{
     public class BinaryStreamExtensionsTests
     {
         [Fact]

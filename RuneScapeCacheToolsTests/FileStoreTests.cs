@@ -1,11 +1,11 @@
-﻿namespace RuneScapeCacheToolsTests
-{
-    using System;
-    using System.Linq;
-    using Villermen.RuneScapeCacheTools.Cache;
-    using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-    using Xunit;
+﻿using System;
+using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Xunit;
 
+namespace RuneScapeCacheToolsTests
+{
     public class FileStoreTests : IDisposable
     {
         private readonly FileStore store;
