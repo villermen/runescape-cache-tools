@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Villermen.RuneScapeCacheTools.Extensions;
@@ -204,8 +205,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     {
                         // Skip failed extractions if more than one file is specified
                         var logMessage = $"Skipped {index}/{fileId} because it was not found.";
-                        progress?.Report(logMessage);
                         CacheBase.Logger.Info(logMessage);
+                        progress?.Report(logMessage);
                     }
                 });
             }
@@ -224,6 +225,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns>Paths of the newly extracted file entries, or null when the file was already extracted and <see cref="overwrite"/> was false.</returns>
         public List<string> Extract(Index index, int fileId, bool overwrite = false)
         {
+            Thread.Sleep(2000);
+
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(this.OutputDirectory))
             {
@@ -239,7 +242,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = this.FetchFile(index, fileId);
+            var file = this.GetFile(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)

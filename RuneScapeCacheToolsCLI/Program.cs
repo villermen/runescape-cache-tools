@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using log4net;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
@@ -292,25 +294,34 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void Extract()
 		{
-			if (Indexes == null && FileIds == null)
+            // Display progress at bottom of console without creating a new row
+            var progress = new ExtendedProgress();
+            progress.ProgressChanged += (p, message) =>
+            {
+                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
+            };
+
+            if (Indexes == null && FileIds == null)
 			{
 				// Extract everything
-				Cache.Extract(Overwrite);
+				Cache.Extract(Overwrite, progress);
 			}
 			else if (FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Cache.Extract(Indexes, Overwrite);
+				Cache.Extract(Indexes, Overwrite, progress);
 			}
 			else if (Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-				Cache.Extract(Indexes.First(), FileIds, Overwrite);
+                Cache.Extract(Indexes.First(), FileIds, Overwrite, progress);
 			}
 			else
 			{
 				throw new CLIException("You can only specify multiple files if you specify exactly one index to extract from.");
 			}
+
+            Console.WriteLine();
 		}
 
 		private static void CombineSoundtrack()

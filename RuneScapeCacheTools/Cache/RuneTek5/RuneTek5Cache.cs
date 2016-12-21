@@ -30,7 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public static string DefaultCacheDirectory
             => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
-        public override IEnumerable<Index> Indexes => Enumerable.Range(0, this.FileStore.IndexCount).Cast<Index>();
+        public override IEnumerable<Index> Indexes => this.FileStore.Indexes;
 
         /// <summary>
         ///     The directory where the cache is located.

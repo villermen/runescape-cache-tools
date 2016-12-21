@@ -71,9 +71,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public string CacheDirectory { get; private set; }
 
         /// <summary>
-        ///     The number of indexes.
+        ///     The loaded/existing indexes.
         /// </summary>
-        public int IndexCount => this.indexStreams.Count;
+        public IEnumerable<Index> Indexes => this.indexStreams.Keys.Where(index => index != Index.ReferenceTables);
 
         /// <summary>
         /// Reads the sectors
