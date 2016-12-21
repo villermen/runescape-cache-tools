@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -65,113 +66,125 @@ namespace Villermen.RuneScapeCacheTools.Audio
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
-            Parallel.ForEach(
-                trackNames,
-                new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = 5,
-                },
-                trackNamePair =>
-                {
-                    var outputFilename = $"{trackNamePair.Value}.{outputExtension}";
-                    var outputPath = Path.Combine(outputDirectory, outputFilename);
-
-                    try
+            try
+            {
+                Parallel.ForEach(
+                    trackNames,
+                    new ParallelOptions
                     {
-                        var jagaFileInfo = this.Cache.GetFileInfo(Index.Music, trackNamePair.Key);
-
-                        // Skip file if not overwriting existing and the file exists
-                        if (!overwriteExisting && File.Exists(outputPath))
-                        {
-                            // But only if the version of the file is unchanged
-                            var existingVersion = this.GetVersionFromExportedTrackFile(outputPath);
-
-                            if (existingVersion == jagaFileInfo.Version)
-                            {
-                                var logMethod = nameFilters.Length > 0 ? (Action<string>)Soundtrack.Logger.Info : Soundtrack.Logger.Debug;
-
-                                logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
-                                return;
-                            }
-                        }
-
-                        var jagaFile = this.Cache.GetFile<JagaFile>(Index.Music, trackNamePair.Key);
-
-                        // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
-                        var randomTemporaryFilenames = this.GetRandomTemporaryFilenames(jagaFile.ChunkCount);
-
-                        // Write out the files
-                        File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
-
-                        for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
-                        {
-                            File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
-                        }
-
-                        // Delete existing file in case combiner application doesn't do overwriting properly
-                        File.Delete(outputPath);
-
-                        // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
-                        var soxArguments = $"\"{string.Join("\" \"", randomTemporaryFilenames)}\" " +
-                            $"--add-comment \"TITLE={trackNamePair.Value}\" " +
-                            $"--add-comment \"VERSION={jagaFileInfo.Version}\" " +
-                            "--add-comment \"ALBUM=RuneScape Original Soundtrack\" " +
-                            "--add-comment \"GENRE=Game\" " +
-                            "--add-comment \"COMMENT=Extracted by Viller's RuneScape Cache Tools\" " +
-                            "--add-comment \"COPYRIGHT=Jagex Games Studio\" " +
-                            $"-C {compressionQuality} " +
-                            $" \"{outputPath}\"";
-
-                        // Combine the files
-                        var combineProcess = new Process
-                        {
-                            StartInfo =
-                            {
-                                FileName = "sox",
-                                UseShellExecute = false,
-                                CreateNoWindow = true,
-#if DEBUG
-                                RedirectStandardError = true,
-#endif
-                                Arguments = soxArguments
-                            }
-                        };
-
-                        Soundtrack.Logger.Debug("sox " + soxArguments);
-
-                        combineProcess.Start();
-
-#if DEBUG
-                        combineProcess.ErrorDataReceived += (sender, args) =>
-                        {
-                            if (!string.IsNullOrEmpty(args.Data))
-                            {
-                                Soundtrack.Logger.Debug($"[SoX] {args.Data}");
-                            }
-                        };
-                        combineProcess.BeginErrorReadLine();
-#endif
-
-                        combineProcess.WaitForExit();
-
-                        // Remove temporary files
-                        foreach (var randomTemporaryFilename in randomTemporaryFilenames)
-                        {
-                            File.Delete(randomTemporaryFilename);
-                        }
-
-                        if (combineProcess.ExitCode != 0)
-                        {
-                            throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
-                        }
-
-                        Soundtrack.Logger.Info($"Combined {outputFilename}.");
-                    }
-                    catch (FileNotFoundException)
+                        MaxDegreeOfParallelism = 5,
+                    },
+                    trackNamePair =>
                     {
-                        Soundtrack.Logger.Info($"Skipped {outputFilename} because of incomplete data.");
-                    }
-                });
+                        var outputFilename = $"{trackNamePair.Value}.{outputExtension}";
+                        var outputPath = Path.Combine(outputDirectory, outputFilename);
+
+                        try
+                        {
+                            var jagaFileInfo = this.Cache.GetFileInfo(Index.Music, trackNamePair.Key);
+
+                            // Skip file if not overwriting existing and the file exists
+                            if (!overwriteExisting && File.Exists(outputPath))
+                            {
+                                // But only if the version of the file is unchanged
+                                var existingVersion = this.GetVersionFromExportedTrackFile(outputPath);
+
+                                if (existingVersion == jagaFileInfo.Version)
+                                {
+                                    var logMethod = nameFilters.Length > 0 ? (Action<string>)Soundtrack.Logger.Info : Soundtrack.Logger.Debug;
+
+                                    logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
+                                    return;
+                                }
+                            }
+
+                            var jagaFile = this.Cache.GetFile<JagaFile>(Index.Music, trackNamePair.Key);
+
+                            // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
+                            var randomTemporaryFilenames = this.GetRandomTemporaryFilenames(jagaFile.ChunkCount);
+
+                            // Write out the files
+                            File.WriteAllBytes(randomTemporaryFilenames[0], jagaFile.ContainedChunkData);
+
+                            for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
+                            {
+                                File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
+                            }
+
+                            // Delete existing file in case combiner application doesn't do overwriting properly
+                            File.Delete(outputPath);
+
+                            // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
+                            var soxArguments = $"\"{string.Join("\" \"", randomTemporaryFilenames)}\" " +
+                                               $"--add-comment \"TITLE={trackNamePair.Value}\" " +
+                                               $"--add-comment \"VERSION={jagaFileInfo.Version}\" " +
+                                               "--add-comment \"ALBUM=RuneScape Original Soundtrack\" " +
+                                               "--add-comment \"GENRE=Game\" " +
+                                               "--add-comment \"COMMENT=Extracted by Viller's RuneScape Cache Tools\" " +
+                                               "--add-comment \"COPYRIGHT=Jagex Games Studio\" " +
+                                               $"-C {compressionQuality} " +
+                                               $" \"{outputPath}\"";
+
+                            // Combine the files
+                            var combineProcess = new Process
+                            {
+                                StartInfo =
+                                {
+                                    FileName = "sox",
+                                    UseShellExecute = false,
+                                    CreateNoWindow = true,
+#if DEBUG
+                                    RedirectStandardError = true,
+#endif
+                                    Arguments = soxArguments
+                                }
+                            };
+
+                            Soundtrack.Logger.Debug("sox " + soxArguments);
+
+                            combineProcess.Start();
+
+#if DEBUG
+                            combineProcess.ErrorDataReceived += (sender, args) =>
+                            {
+                                if (!string.IsNullOrEmpty(args.Data))
+                                {
+                                    Soundtrack.Logger.Debug($"[SoX] {args.Data}");
+                                }
+                            };
+                            combineProcess.BeginErrorReadLine();
+#endif
+
+                            combineProcess.WaitForExit();
+
+                            // Remove temporary files
+                            foreach (var randomTemporaryFilename in randomTemporaryFilenames)
+                            {
+                                File.Delete(randomTemporaryFilename);
+                            }
+
+                            if (combineProcess.ExitCode != 0)
+                            {
+                                throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
+                            }
+
+                            Soundtrack.Logger.Info($"Combined {outputFilename}.");
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            Soundtrack.Logger.Info($"Skipped {outputFilename} because of incomplete data.");
+                        }
+                    });
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is Win32Exception)
+                {
+                    throw new FileNotFoundException("Could not find or run SoX. Is it installed or added to the PATH?", ex.InnerException);
+                }
+
+                throw ex.InnerException;
+            }
 
             Soundtrack.Logger.Info("Done combining soundtracks.");
         }
