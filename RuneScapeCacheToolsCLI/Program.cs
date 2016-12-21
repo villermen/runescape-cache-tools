@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using log4net;
 using log4net.Core;
@@ -241,6 +242,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
 #if DEBUG
             Console.ReadLine();
 #endif
+
+            // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
+            // Delete log file if it is still empty upon exit
+            LogManager.GetRepository().ResetConfiguration();
+		    var logFile = new FileInfo("rsct.log");
+            if (logFile.Exists && logFile.Length == 0)
+		    {
+                logFile.Delete();
+		    }
 
             return returnCode;
         }
