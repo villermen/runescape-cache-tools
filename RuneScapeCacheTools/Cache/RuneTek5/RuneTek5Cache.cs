@@ -46,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
 
-        public override DataCacheFile GetFile(Index index, int fileId)
+        protected override DataCacheFile FetchFile(Index index, int fileId)
         {
             CacheFileInfo info;
 
@@ -65,11 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
             else
             {
-                info = new CacheFileInfo
-                {
-                    Index = index,
-                    FileId = fileId
-                };
+                info = new CacheFileInfo();
             }
 
             return RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
@@ -96,16 +92,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return this.ReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
-            {
-                var data = this.FileStore.ReadFileData(Index.ReferenceTables, (int)index);
-                var cacheFile = RuneTek5FileDecoder.DecodeFile(data, new CacheFileInfo
-                {
-                    Index = Index.ReferenceTables,
-                    FileId = (int)index
-                });
-
-                return (ReferenceTable)cacheFile;
-            });
+                this.GetFile<ReferenceTable>(Index.ReferenceTables, (int)index));
         }
 
         public override void PutFile(DataCacheFile file)

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -32,14 +33,9 @@ namespace Villermen.RuneScapeCacheTools.Enums
             return this.GetEnumerator();
         }
 
-        public static explicit operator EnumFile(DataCacheFile dataFile)
+        protected override void Decode(byte[] data)
         {
-            var enumFile = new EnumFile
-            {
-                Info = dataFile.Info
-            };
-
-            var dataReader = new BinaryReader(new MemoryStream(dataFile.Data));
+            var dataReader = new BinaryReader(new MemoryStream(data));
             var ended = false;
 
             while ((dataReader.BaseStream.Position < dataReader.BaseStream.Length) && !ended)
@@ -49,25 +45,25 @@ namespace Villermen.RuneScapeCacheTools.Enums
                 switch (opcode)
                 {
                     case EnumOpcode.CharKeyType:
-                        enumFile.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case EnumOpcode.CharValueType:
-                        enumFile.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case EnumOpcode.DefaultString:
-                        enumFile.DefaultString = dataReader.ReadNullTerminatedString();
+                        this.DefaultString = dataReader.ReadNullTerminatedString();
                         break;
 
                     case EnumOpcode.DefaultInteger:
-                        enumFile.DefaultInteger = dataReader.ReadInt32BigEndian();
+                        this.DefaultInteger = dataReader.ReadInt32BigEndian();
                         break;
 
                     case EnumOpcode.StringDataDictionary:
                     case EnumOpcode.IntegerDataDictionary:
                         var count = dataReader.ReadUInt16BigEndian();
-                        enumFile.Values = new Dictionary<int, object>(count);
+                        this.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
@@ -83,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.Enums
                                 value = dataReader.ReadInt32BigEndian();
                             }
 
-                            enumFile.Values[key] = value;
+                            this.Values[key] = value;
                         }
                         break;
 
@@ -91,28 +87,28 @@ namespace Villermen.RuneScapeCacheTools.Enums
                     case EnumOpcode.IntegerDataArray:
                         var max = dataReader.ReadUInt16BigEndian();
                         count = dataReader.ReadUInt16BigEndian();
-                        enumFile.Values = new Dictionary<int, object>(count);
+                        this.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
                             var key = dataReader.ReadUInt16BigEndian();
                             if (opcode == EnumOpcode.StringDataArray)
                             {
-                                enumFile.Values[key] = dataReader.ReadNullTerminatedString();
+                                this.Values[key] = dataReader.ReadNullTerminatedString();
                             }
                             else
                             {
-                                enumFile.Values[key] = dataReader.ReadInt32BigEndian();
+                                this.Values[key] = dataReader.ReadInt32BigEndian();
                             }
                         }
                         break;
 
                     case EnumOpcode.ByteKeyType:
-                        enumFile.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
+                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case EnumOpcode.ByteValueType:
-                        enumFile.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
+                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case EnumOpcode.End:
@@ -124,22 +120,25 @@ namespace Villermen.RuneScapeCacheTools.Enums
                 }
             }
 
-            if (enumFile.KeyType == null)
+            if (this.KeyType == null)
             {
                 throw new DecodeException("Enum data does not contain a key type.");
             }
 
-            if (enumFile.ValueType == null)
+            if (this.ValueType == null)
             {
                 throw new DecodeException("Enum data does not contain a value type.");
             }
 
-            if (enumFile.Values == null)
+            if (this.Values == null)
             {
                 throw new DecodeException("Enum does not contain any values.");
             }
+        }
 
-            return enumFile;
+        protected override byte[] Encode()
+        {
+            throw new NotImplementedException("Encoding of enum files is not yet implemented.");
         }
     }
 }

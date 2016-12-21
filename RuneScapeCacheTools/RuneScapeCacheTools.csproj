@@ -87,7 +87,7 @@
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
     <Compile Include="Cache\DataCacheFile.cs" />
-    <Compile Include="Cache\Downloader\CacheDownloader.cs" />
+    <Compile Include="Cache\Downloader\DownloaderCache.cs" />
     <Compile Include="Cache\Downloader\DownloaderException.cs" />
     <Compile Include="Cache\Downloader\FileRequest.cs" />
     <Compile Include="Cache\Downloader\HttpFileRequest.cs" />

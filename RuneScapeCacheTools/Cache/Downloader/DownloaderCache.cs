@@ -13,18 +13,18 @@ using Villermen.RuneScapeCacheTools.Extensions;
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
-    ///     The <see cref="CacheDownloader" /> provides the means to download current cache files from the runescape servers.
+    ///     The <see cref="DownloaderCache" /> provides the means to download current cache files from the runescape servers.
     ///     Downloading uses 2 different interfaces depending on the <see cref="Index" /> of the requested file: The original
     ///     TCP based interface, and a much simpler HTTP interface.
     ///     Properties prefixed with Tcp or Http will only be used by the specified downloading method.
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Method</author>
-    public class CacheDownloader : CacheBase
+    public class DownloaderCache : CacheBase
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(CacheDownloader));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(DownloaderCache));
 
-        static CacheDownloader()
+        static DownloaderCache()
         {
             // Set the (static) security protocol used for web requests
             // Mono does not seem to be capable of this yet: http://www.c-sharpcorner.com/news/mono-now-comes-with-support-for-tls-12
@@ -89,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private object TcpConnectLock { get; } = new object();
 
-        public override DataCacheFile GetFile(Index index, int fileId)
+        protected override DataCacheFile FetchFile(Index index, int fileId)
         {
             var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
             {
@@ -165,7 +165,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     return;
                 }
 
-                CacheDownloader.Logger.Debug("Connecting to content server with TCP.");
+                DownloaderCache.Logger.Debug("Connecting to content server with TCP.");
 
                 var key = this.GetTcpKeyFromPage();
 
@@ -194,13 +194,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     {
                         case TcpHandshakeResponse.Success:
                             connected = true;
-                            CacheDownloader.Logger.Info($"Successfully connected to content server with major version {this.TcpMajorVersion}.");
+                            DownloaderCache.Logger.Info($"Successfully connected to content server with major version {this.TcpMajorVersion}.");
                             break;
 
                         case TcpHandshakeResponse.Outdated:
                             this.TcpContentClient.Dispose();
                             this.TcpContentClient = null;
-                            CacheDownloader.Logger.Info($"Requested connection used outdated version {this.TcpMajorVersion}. Retrying with higher major version.");
+                            DownloaderCache.Logger.Info($"Requested connection used outdated version {this.TcpMajorVersion}. Retrying with higher major version.");
                             this.TcpMajorVersion++;
                             break;
 
@@ -266,7 +266,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private void SendTcpConnectionInfo()
         {
-            CacheDownloader.Logger.Debug("Sending initial connection status and login packets.");
+            DownloaderCache.Logger.Debug("Sending initial connection status and login packets.");
 
             var writer = new BinaryWriter(this.TcpContentClient.GetStream());
 
@@ -286,7 +286,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             Task.Run(() =>
             {
-                CacheDownloader.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
+                DownloaderCache.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using HTTP.");
 
                 var webRequest = WebRequest.CreateHttp($"http://{this.ContentHost}/ms?m=0&a={(int)fileRequest.Index}&g={fileRequest.FileId}&c={fileRequest.CacheFileInfo.Crc}&v={fileRequest.CacheFileInfo.Version}");
                 using (var response = (HttpWebResponse)webRequest.GetResponse())
@@ -318,7 +318,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     this.TcpConnect();
                 }
 
-                CacheDownloader.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using TCP.");
+                DownloaderCache.Logger.Debug($"Requesting {fileRequest.Index}/{fileRequest.FileId} using TCP.");
 
                 // Send the request
                 var writer = new BinaryWriter(this.TcpContentClient.GetStream());
@@ -332,7 +332,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 // Only one processor may be running at any given moment
                 lock (this.TcpResponseProcessorLock)
                 {
-                    CacheDownloader.Logger.Debug("Starting TCP request processor.");
+                    DownloaderCache.Logger.Debug("Starting TCP request processor.");
 
                     while (this.PendingFileRequests.ContainsKey(new Tuple<Index, int>(fileRequest.Index, fileRequest.FileId)))
                     {
@@ -402,7 +402,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         // var leftoverBytes = new BinaryReader(TcpContentClient.GetStream()).ReadBytes(TcpContentClient.Available);
                     }
 
-                    CacheDownloader.Logger.Debug("TCP request processor finished.");
+                    DownloaderCache.Logger.Debug("TCP request processor finished.");
                 }
             });
         }

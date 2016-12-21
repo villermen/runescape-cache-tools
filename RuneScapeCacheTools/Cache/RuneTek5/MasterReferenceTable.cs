@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -12,16 +13,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     {
         public IDictionary<Index, MasterReferenceTableEntry> ReferenceTableFiles { get; } = new Dictionary<Index, MasterReferenceTableEntry>();
 
-        public byte[] RSAEncryptedWhirlpoolDigest { get; set; }
+        public byte[] RsaEncryptedWhirlpoolDigest { get; set; }
 
-        public static explicit operator MasterReferenceTable(DataCacheFile dataFile)
+        protected override void Decode(byte[] data)
         {
-            var masterFile = new MasterReferenceTable
-            {
-                Info = dataFile.Info
-            };
-
-            var reader = new BinaryReader(new MemoryStream(dataFile.Data));
+            var reader = new BinaryReader(new MemoryStream(data));
 
             var tableCount = reader.ReadByte();
 
@@ -38,12 +34,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                masterFile.ReferenceTableFiles.Add(index, table);
+                this.ReferenceTableFiles.Add(index, table);
             }
 
-            masterFile.RSAEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+            this.RsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+        }
 
-            return masterFile;
+        protected override byte[] Encode()
+        {
+            throw new NotImplementedException("Encoding of master reference table is not implemented. AFAIK it's a downloader only thing.");
         }
     }
 }

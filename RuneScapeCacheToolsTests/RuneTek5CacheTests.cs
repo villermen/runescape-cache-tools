@@ -126,11 +126,12 @@ namespace RuneScapeCacheToolsTests
         public void TestEncodeReferenceTable(Index index)
         {
             var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile(Index.ReferenceTables, (int)index);
+            var referenceTable =  new ReferenceTable();
+            referenceTable.FromDataFile(referenceTableFile);
 
-            //var referenceTable = referenceTableFile as ReferenceTable;
-            //var encodedFile = referenceTable as DataCacheFile;
+            var encodedFile = referenceTable.ToDataFile();
 
-            //Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
+            Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
         }
     }
 }

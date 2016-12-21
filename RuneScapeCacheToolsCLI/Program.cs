@@ -192,7 +192,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 if (run)
 			    {
 			        // Initialize the cache
-			        Cache = Download ? (CacheBase)new CacheDownloader() : new RuneTek5Cache(CacheDirectory);
+			        Cache = Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(CacheDirectory);
 
 			        if (OutputDirectory != null)
 			        {

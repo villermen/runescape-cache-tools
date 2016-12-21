@@ -63,83 +63,78 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
-        public static explicit operator ReferenceTable(DataCacheFile cacheFile)
+        protected override void Decode(byte[] data)
         {
-            var referenceTable = new ReferenceTable
-            {
-                Info = cacheFile.Info
-            };
+            var reader = new BinaryReader(new MemoryStream(data));
 
-            var reader = new BinaryReader(new MemoryStream(cacheFile.Data));
-
-            referenceTable.Format = reader.ReadByte();
+            this.Format = reader.ReadByte();
 
             // Read header
-            if (referenceTable.Format < 5 || referenceTable.Format > 7)
+            if (this.Format < 5 || this.Format > 7)
             {
-                throw new DecodeException($"Incorrect reference table format version {referenceTable.Format}.");
+                throw new DecodeException($"Incorrect reference table format version {this.Format}.");
             }
 
-            if (referenceTable.Format >= 6)
+            if (this.Format >= 6)
             {
-                referenceTable.Version = reader.ReadInt32BigEndian();
+                this.Version = reader.ReadInt32BigEndian();
             }
 
-            referenceTable.Options = (CacheFileOptions)reader.ReadByte();
+            this.Options = (CacheFileOptions)reader.ReadByte();
 
             // Read the ids of the files (delta encoded)
-            var fileCount = referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+            var fileCount = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
 
             var fileId = 0;
             for (var fileNumber = 0; fileNumber < fileCount; fileNumber++)
             {
-                var delta = referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                var delta = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
                 fileId += delta;
 
-                referenceTable.files.Add(fileId, new CacheFileInfo
+                this.files.Add(fileId, new CacheFileInfo
                 {
-                    Index = (Index)referenceTable.Info.FileId,
+                    Index = (Index)this.Info.FileId,
                     FileId = fileId
                 });
             }
 
             // Read the identifiers if present
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the CRC32 checksums
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
                 file.Crc = reader.ReadInt32BigEndian();
             }
 
             // Read some type of hash
-            if (referenceTable.Options.HasFlag(CacheFileOptions.MysteryHashes))
+            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.MysteryHash = reader.ReadInt32BigEndian();
                 }
             }
 
             // Read the whirlpool digests if present
-            if (referenceTable.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
+            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.WhirlpoolDigest = reader.ReadBytes(64);
                 }
             }
 
             // Read the compressed and uncompressed sizes
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Sizes))
+            if (this.Options.HasFlag(CacheFileOptions.Sizes))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     file.CompressedSize = reader.ReadInt32BigEndian();
                     file.UncompressedSize = reader.ReadInt32BigEndian();
@@ -147,16 +142,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the version numbers
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
                 file.Version = reader.ReadInt32BigEndian();
             }
 
             // Read the entry counts
             var entryCounts = new Dictionary<int, int>();
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
-                entryCounts.Add(file.FileId, referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
+                entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
             }
 
             // Read the delta encoded entry ids
@@ -168,10 +163,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var entryId = 0;
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {
-                    var delta = referenceTable.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                    var delta = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
                     entryId += delta;
 
-                    referenceTable.files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
+                    this.files[entryCountFileId].Entries.Add(entryId, new CacheFileEntryInfo
                     {
                         EntryId = entryId
                     });
@@ -179,9 +174,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Read the entry identifiers if present
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     foreach (var entry in file.Entries.Values)
                     {
@@ -189,42 +184,40 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     }
                 }
             }
-
-            return referenceTable;
         }
 
-        public static explicit operator DataCacheFile(ReferenceTable referenceTable)
+        protected override byte[] Encode()
         {
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
 
             // Write format
-            writer.Write(referenceTable.Format);
+            writer.Write(this.Format);
 
             // Write version
-            if (referenceTable.Format >= 6)
+            if (this.Format >= 6)
             {
-                writer.WriteInt32BigEndian(referenceTable.Version);
+                writer.WriteInt32BigEndian(this.Version);
             }
 
             // Write amount of files
-            writer.Write((byte)referenceTable.Options);
-            if (referenceTable.Format >= 7)
+            writer.Write((byte)this.Options);
+            if (this.Format >= 7)
             {
-                writer.WriteAwkwardInt(referenceTable.files.Count);
+                writer.WriteAwkwardInt(this.files.Count);
             }
             else
             {
-                writer.WriteUInt16BigEndian((ushort)referenceTable.files.Count);
+                writer.WriteUInt16BigEndian((ushort)this.files.Count);
             }
 
             // Write delta encoded file ids
             var previousFileId = 0;
-            foreach (var fileId in referenceTable.FileIds)
+            foreach (var fileId in this.FileIds)
             {
                 var delta = fileId - previousFileId;
 
-                if (referenceTable.Format >= 7)
+                if (this.Format >= 7)
                 {
                     writer.WriteAwkwardInt(delta);
                 }
@@ -237,33 +230,33 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write identifiers if option is set
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     writer.WriteInt32BigEndian(file.Identifier);
                 }
             }
 
             // Write CRC checksums
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
                 writer.WriteInt32BigEndian(file.Crc.Value);
             }
 
             // Write some type of hash
-            if (referenceTable.Options.HasFlag(CacheFileOptions.MysteryHashes))
+            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     writer.WriteInt32BigEndian(file.MysteryHash);
                 }
             }
 
             // Write the whirlpool digests if option is set
-            if (referenceTable.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
+            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     // Do a small check to verify the size before messing the whole file up
                     if (file.WhirlpoolDigest.Length != 64)
@@ -276,9 +269,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write the compressed and uncompressed sizes if option is specified
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Sizes))
+            if (this.Options.HasFlag(CacheFileOptions.Sizes))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     writer.WriteInt32BigEndian(file.CompressedSize);
                     writer.WriteInt32BigEndian(file.UncompressedSize);
@@ -286,15 +279,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write the version numbers
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
                 writer.WriteInt32BigEndian(file.Version);
             }
 
             // Write the entry counts
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
-                if (referenceTable.Format >= 7)
+                if (this.Format >= 7)
                 {
                     writer.WriteAwkwardInt(file.Entries.Count);
                 }
@@ -305,14 +298,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write the delta encoded entry ids
-            foreach (var file in referenceTable.files.Values)
+            foreach (var file in this.files.Values)
             {
                 var previousEntryId = 0;
                 foreach (var entryId in file.Entries.Keys)
                 {
                     var delta = entryId - previousEntryId;
 
-                    if (referenceTable.Format >= 7)
+                    if (this.Format >= 7)
                     {
                         writer.WriteAwkwardInt(delta);
                     }
@@ -326,9 +319,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write the entry identifiers if option is specified
-            if (referenceTable.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
             {
-                foreach (var file in referenceTable.files.Values)
+                foreach (var file in this.files.Values)
                 {
                     foreach (var entry in file.Entries.Values)
                     {
@@ -337,11 +330,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
             }
 
-            return new DataCacheFile
-            {
-                Data = memoryStream.ToArray(),
-                Info = referenceTable.Info
-            };
+            return memoryStream.ToArray();
         }
     }
 }

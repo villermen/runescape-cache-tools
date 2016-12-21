@@ -61,7 +61,23 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public T GetFile<T>(Index index, int fileId, int entryId = -1) where T : CacheFile
         {
-            var file = this.GetFile(index, fileId);
+            var file = this.GetFile(index, fileId, entryId);
+
+            // Return the file as is when a data file is requested
+            if (typeof(T) == typeof(DataCacheFile))
+            {
+                return file as T;
+            }
+
+            // Convert the file to a data file
+            var decodedFile = Activator.CreateInstance<T>();
+            decodedFile.FromDataFile(file);
+            return decodedFile;
+        }
+
+        public DataCacheFile GetFile(Index index, int fileId, int entryId = -1)
+        {
+            var file = this.FetchFile(index, fileId);
 
             if (entryId != -1)
             {
@@ -72,12 +88,19 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 };
             }
 
-            var decodedFile = Activator.CreateInstance<T>();
-            decodedFile.FromDataFile(file);
-            return decodedFile;
+            file.Info.Index = index;
+            file.Info.FileId = fileId;
+
+            return file;
         }
 
-        public abstract DataCacheFile GetFile(Index index, int fileId);
+        /// <summary>
+        /// Implements the logic for actually retrieving a file from the cache.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        protected abstract DataCacheFile FetchFile(Index index, int fileId);
 
         public abstract IEnumerable<int> GetFileIds(Index index);
 
@@ -216,7 +239,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = this.GetFile(index, fileId);
+            var file = this.FetchFile(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)

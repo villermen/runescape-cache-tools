@@ -7,8 +7,6 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
-    
-
     [Collection("TestCache")]
     public class CacheDownloaderTests
     {

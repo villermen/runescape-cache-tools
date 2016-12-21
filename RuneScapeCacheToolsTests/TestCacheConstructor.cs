@@ -133,7 +133,7 @@ namespace RuneScapeCacheToolsTests
             }
 
             using (var cache = new RuneTek5Cache("NewCache", false))
-            using (var downloader = new CacheDownloader())
+            using (var downloader = new DownloaderCache())
             {
                 foreach (var fileTuple in files)
                 {
