@@ -225,8 +225,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns>Paths of the newly extracted file entries, or null when the file was already extracted and <see cref="overwrite"/> was false.</returns>
         public List<string> Extract(Index index, int fileId, bool overwrite = false)
         {
-            Thread.Sleep(2000);
-
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(this.OutputDirectory))
             {
