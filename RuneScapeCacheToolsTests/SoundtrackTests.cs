@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Enums;
@@ -44,7 +45,7 @@ namespace RuneScapeCacheToolsTests
         {
             var trackNames = this.Fixture.Soundtrack.GetTrackNames(true);
 
-            Assert.Equal(1341, trackNames.Count);
+            Assert.Equal(1340, trackNames.Count);
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "20386"), "\"20386\" did not occur in the list of track names.");
         }
 

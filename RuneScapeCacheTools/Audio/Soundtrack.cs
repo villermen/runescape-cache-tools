@@ -199,7 +199,10 @@ namespace Villermen.RuneScapeCacheTools.Audio
         public IDictionary<int, string> GetTrackNames(bool includeUnnamed = false)
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
+
+            // int track id : string track name
             var trackNames = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 65);
+            // int track id : int jaga file id
             var jagaFileIds = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 71);
 
             // Result is sorted on key to let duplicate renaming be as consistent as possible
@@ -212,6 +215,13 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 var trackId = jagaFileIdPair.Key;
                 var validName = false;
                 var trackName = "";
+
+                // Disregard the default value
+                // TODO: With more experience with enums, try to determine if a check can be made in the EnumFile type instead of here
+                if (jagaFileId == jagaFileIds.DefaultInteger)
+                {
+                    continue;
+                }
 
                 if (trackNames.ContainsKey(trackId))
                 {
@@ -242,10 +252,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 }
 
                 // Log a message if valid and another valid name already maps to this JAGA file, and overwrite the name
-                if (result.ContainsKey(jagaFileId) && validName)
+                if (result.ContainsKey(jagaFileId))
                 {
-                    Soundtrack.Logger.Warn($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}");
-                    result[jagaFileId] = trackName;
+                    if (validName)
+                    {
+                        Soundtrack.Logger.Warn($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}");
+                        result[jagaFileId] = trackName;
+                    }
+
                     continue;
                 }
 
