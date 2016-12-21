@@ -254,7 +254,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 // Log a message if valid and another valid name already maps to this JAGA file, and overwrite the name
                 if (result.ContainsKey(jagaFileId))
                 {
-                    if (validName)
+                    if (validName && trackName != result[jagaFileId])
                     {
                         Soundtrack.Logger.Warn($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}");
                         result[jagaFileId] = trackName;
