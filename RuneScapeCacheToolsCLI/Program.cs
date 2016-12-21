@@ -48,7 +48,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         private static bool DoHelp { get; set; }
 
-		private static readonly OptionSet ArgumentParser = new OptionSet
+        private static bool IncludeUnnamedSoundtracks { get; set; }
+
+        private static readonly OptionSet ArgumentParser = new OptionSet
 		{
 			{
 				"cache-directory=|c",
@@ -87,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				"Extract all files from the cache. You can specify which files to extract by using the index and file arguments.",
 				value =>
 				{
-					Program.DoExtract = (value != null);
+					Program.DoExtract = value != null;
 					Program.TriggeredActions++;
 				}
 			},
@@ -112,7 +114,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 "Overwrite extracted files if they already exist.",
 				value =>
 				{
-					Program.Overwrite = (value != null);
+					Program.Overwrite = value != null;
 				}
 			},
 			{
@@ -131,11 +133,19 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				}
 			},
 		    {
+		        "unnamed-tracks",
+                "Also include soundtracks with an invalid or non-existent name." ,
+		        value =>
+		        {
+		            Program.IncludeUnnamedSoundtracks = value != null;
+		        }
+		    },
+		    {
 		        "lossless",
                 "Use FLAC instead of OGG as audio format when combining, preventing quality loss.",
 		        value =>
 		        {
-		            Program.Lossless = (value != null);
+		            Program.Lossless = value != null;
 		        }
 		    },
 			{
@@ -150,7 +160,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			}
 		};
 
-		private static int Main(string[] args)
+	    private static int Main(string[] args)
 		{
 #if DEBUG
 		    Console.WriteLine("RSCT DEBUG BUILD");
@@ -338,7 +348,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			var soundtrack = new Soundtrack(Program.Cache);
 
-			soundtrack.Extract(Program.Overwrite, Program.Lossless, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
+			soundtrack.Extract(Program.Overwrite, Program.Lossless, false, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
         }
 	}
 }

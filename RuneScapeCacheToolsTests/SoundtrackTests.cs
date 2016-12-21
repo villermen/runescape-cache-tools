@@ -2,8 +2,12 @@
 using System.IO;
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
+using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Enums;
+using Villermen.RuneScapeCacheTools.Extensions;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace RuneScapeCacheToolsTests
 {
@@ -35,6 +39,15 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"), "\"Soundscape\" did not occur in the list of track names.");
         }
 
+        [Fact]
+        public void TestGetAllTrackNames()
+        {
+            var trackNames = this.Fixture.Soundtrack.GetTrackNames(true);
+
+            Assert.Equal(1341, trackNames.Count);
+            Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "20386"), "\"20386\" did not occur in the list of track names.");
+        }
+
         [Theory]
         [InlineData("Soundscape", "Soundscape.ogg", 15, false)] // OGG
         [InlineData("undsca", "Soundscape.flac", 15, true)] // FLAC and partial case insensitive filter matching
@@ -42,7 +55,7 @@ namespace RuneScapeCacheToolsTests
         public void TestExtract(string trackName, string expectedFilename, int expectedVersion, bool lossless)
         {
             var startTime = DateTime.UtcNow;
-            this.Fixture.Soundtrack.Extract(true, lossless, trackName);
+            this.Fixture.Soundtrack.Extract(true, lossless, false, trackName);
 
             string expectedOutputPath = $"output/soundtrack/{expectedFilename}";
 

@@ -41,14 +41,15 @@ namespace Villermen.RuneScapeCacheTools.Audio
         ///     that have a changed version.
         /// </param>
         /// <param name="lossless"></param>
+        /// <param name="includeUnnamed">If this is set to true, files that are not named or have an empty name are named after their file id.</param>
         /// <param name="nameFilters">
-        ///     If non-null, only soundtrack names that contain one the case-insensitive strings will be
+        ///     If non-null, only soundtrack names that contain one of the given case-insensitive strings will be
         ///     extracted.
         /// </param>
         /// <returns></returns>
-        public void Extract(bool overwriteExisting = false, bool lossless = false, params string[] nameFilters)
+        public void Extract(bool overwriteExisting = false, bool lossless = false, bool includeUnnamed = false, params string[] nameFilters)
         {
-            var trackNames = this.GetTrackNames();
+            var trackNames = this.GetTrackNames(includeUnnamed);
             var outputDirectory = this.Cache.OutputDirectory + "soundtrack/";
             var outputExtension = lossless ? "flac" : "ogg";
             var compressionQuality = lossless ? 8 : 6;
@@ -195,53 +196,68 @@ namespace Villermen.RuneScapeCacheTools.Audio
         ///     Track names are made filename-safe, and empty ones are filtered out.
         /// </summary>
         /// <returns></returns>
-        public IDictionary<int, string> GetTrackNames()
+        public IDictionary<int, string> GetTrackNames(bool includeUnnamed = false)
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
             var trackNames = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 65);
             var jagaFileIds = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 71);
 
-            // Sorted on key, because then duplicate renaming will be as consistent as possible when names are added
+            // Result is sorted on key to let duplicate renaming be as consistent as possible
             var result = new SortedDictionary<int, string>();
-            foreach (var trackNamePair in trackNames)
+
+            // Loop through jaga file ids as opposed to tracknames for when unnamed files are also included
+            foreach (var jagaFileIdPair in jagaFileIds)
             {
-                var trackName = (string)trackNamePair.Value;
+                var jagaFileId = (int)jagaFileIdPair.Value;
+                var trackId = jagaFileIdPair.Key;
+                var validName = false;
+                var trackName = "";
 
-                if (!jagaFileIds.ContainsKey(trackNamePair.Key))
+                if (trackNames.ContainsKey(trackId))
                 {
+                    trackName = (string)trackNames[trackId];
+
+                    // Make obtained name filename-safe
+                    foreach (var invalidChar in PathExtensions.InvalidCharacters)
+                    {
+                        trackName = trackName.Replace(invalidChar.ToString(), "");
+                    }
+
+                    // Set to add name if its still valid after cleanup
+                    if (!string.IsNullOrWhiteSpace(trackName))
+                    {
+                        validName = true;
+                    }
+                }
+
+                // Set name of the track to the JAGA file id if allowed, or skip adding it
+                if (!validName)
+                {
+                    if (!includeUnnamed)
+                    {
+                        continue;
+                    }
+
+                    trackName = jagaFileId.ToString();
+                }
+
+                // Log a message if another name already maps to this JAGA file, and overwrite the name
+                if (result.ContainsKey(jagaFileId))
+                {
+                    Soundtrack.Logger.Warn($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}");
+                    result[jagaFileId] = trackName;
                     continue;
                 }
 
-                var trackFileId = (int)jagaFileIds[trackNamePair.Key];
-
-                // Make trackName filename-safe
-                foreach (var invalidChar in PathExtensions.InvalidCharacters)
-                {
-                    trackName = trackName.Replace(invalidChar.ToString(), "");
-                }
-
-                // Don't add empty filenames to the array
-                if (string.IsNullOrWhiteSpace(trackName))
-                {
-                    continue;
-                }
-
-                if (!result.ContainsKey(trackFileId))
-                {
-                    result.Add(trackFileId, trackName);
-                }
-                else
-                {
-                    result[trackFileId] = trackName;
-                }
+                result.Add(jagaFileId, trackName);
             }
 
             // Rename duplicate names, as those are a thing apparently...
             var duplicateNameGroups = result
                 .GroupBy(pair => pair.Value)
                 .Where(group => group.Count() > 1)
+                // Select only the second and up, because the first one doesn't have to be renamed
                 .Select(group => group.Skip(1));
-            // Select only the second and up, because the first one doesn't have to be renamed
 
             foreach (var duplicateNameGroup in duplicateNameGroups)
             {
