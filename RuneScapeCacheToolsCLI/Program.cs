@@ -348,7 +348,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		{
 			var soundtrack = new Soundtrack(Program.Cache);
 
-			soundtrack.Extract(Program.Overwrite, Program.Lossless, false, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
+			soundtrack.Extract(Program.Overwrite, Program.Lossless, Program.IncludeUnnamedSoundtracks, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
         }
 	}
 }
