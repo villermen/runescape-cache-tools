@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksums;
-using Noemax.BZip2;
-using Noemax.GZip;
-using Noemax.Lzma;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Villermen.RuneScapeCacheTools.Extensions;
+using ICSharpCode.SharpZipLib.GZip;
+using LZMA = SevenZip.Compression.LZMA;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -80,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.Gzip:
-                        using (var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress))
+                        using (var gzipStream = new GZipInputStream(new MemoryStream(compressedBytes)))
                         {
                             var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
 
@@ -92,14 +92,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.Lzma:
-                        using (var lzmaStream = new LzmaInputStream(new MemoryStream(compressedBytes)))
+                        var lzmaDecoder = new LZMA.Decoder();
+                        using (var compressedStream = new MemoryStream(compressedBytes))
+                        using (var uncompressedStream = new MemoryStream(uncompressedBytes))
                         {
-                            var readLzmaBytes = lzmaStream.Read(uncompressedBytes, 0, uncompressedLength);
 
-                            if (readLzmaBytes != uncompressedLength)
+                            lzmaDecoder.Code(compressedStream, uncompressedStream, compressedStream.Length, -1, null);
+
+                            if (uncompressedStream.Length != uncompressedLength)
                             {
                                 throw new DecodeException("Uncompressed container data length does not match obtained length.");
                             }
+
+                            uncompressedBytes = uncompressedStream.ToArray();
                         }
                         break;
 
@@ -255,32 +260,37 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             switch (info.CompressionType)
             {
                 case CompressionType.Bzip2:
-                    var bzip2CompressionStream = new MemoryStream();
+                    using (var bzip2CompressionStream = new MemoryStream())
                     using (var bzip2Stream = new BZip2OutputStream(bzip2CompressionStream, 1))
                     {
                         bzip2Stream.Write(data, 0, data.Length);
-                    }
 
-                    // Remove BZh1
-                    data = bzip2CompressionStream.ToArray().Skip(4).ToArray();
+                        // Remove BZh1
+                        data = bzip2CompressionStream.ToArray().Skip(4).ToArray();
+                    }
                     break;
 
                 case CompressionType.Gzip:
-                    var gzipCompressionStream = new MemoryStream();
-                    using (var gzipStream = new GZipStream(gzipCompressionStream, CompressionMode.Compress))
+                    using (var gzipCompressionStream = new MemoryStream())
+                    using (var gzipStream = new GZipOutputStream(gzipCompressionStream))
                     {
                         gzipStream.Write(data, 0, data.Length);
+
+                        data = gzipCompressionStream.ToArray();
                     }
-                    data = gzipCompressionStream.ToArray();
                     break;
 
                 case CompressionType.Lzma:
-                    var lzmaCompressionStream = new MemoryStream();
-                    using (var lzmaStream = new LzmaOutputStream(lzmaCompressionStream, 9))
+                    using (var lzmaCompressionStream = new MemoryStream())
+                    using (var dataStream = new MemoryStream(data))
                     {
-                        lzmaStream.Write(data, 0, data.Length);
+                        var lzmaEncoder = new LZMA.Encoder();
+
+                        // lzmaEncoder.WriteCoderProperties(lzmaCompressionStream);
+                        lzmaEncoder.Code(dataStream, lzmaCompressionStream, data.Length, -1, null);
+
+                        data = lzmaCompressionStream.ToArray();
                     }
-                    data = lzmaCompressionStream.ToArray();
                     break;
 
                 case CompressionType.None:
