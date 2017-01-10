@@ -261,9 +261,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 case CompressionType.Bzip2:
                     using (var bzip2CompressionStream = new MemoryStream())
-                    using (var bzip2Stream = new BZip2OutputStream(bzip2CompressionStream, 1))
                     {
-                        bzip2Stream.Write(data, 0, data.Length);
+                        using (var bzip2Stream = new BZip2OutputStream(bzip2CompressionStream, 1))
+                        {
+                            bzip2Stream.Write(data, 0, data.Length);
+                        }
 
                         // Remove BZh1
                         data = bzip2CompressionStream.ToArray().Skip(4).ToArray();
@@ -272,9 +274,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 case CompressionType.Gzip:
                     using (var gzipCompressionStream = new MemoryStream())
-                    using (var gzipStream = new GZipOutputStream(gzipCompressionStream))
                     {
-                        gzipStream.Write(data, 0, data.Length);
+                        using (var gzipStream = new GZipOutputStream(gzipCompressionStream))
+                        {
+                            gzipStream.Write(data, 0, data.Length);
+                        }
 
                         data = gzipCompressionStream.ToArray();
                     }
