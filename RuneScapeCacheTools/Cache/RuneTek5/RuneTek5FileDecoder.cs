@@ -3,12 +3,11 @@ using System.IO;
 using System.Linq;
 using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksums;
+using ICSharpCode.SharpZipLib.GZip;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Villermen.RuneScapeCacheTools.Extensions;
-using ICSharpCode.SharpZipLib.GZip;
-using LZMA = SevenZip.Compression.LZMA;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -92,11 +91,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         break;
 
                     case CompressionType.Lzma:
-                        var lzmaDecoder = new LZMA.Decoder();
                         using (var compressedStream = new MemoryStream(compressedBytes))
                         using (var uncompressedStream = new MemoryStream(uncompressedBytes))
                         {
-
+                            var lzmaDecoder = new SevenZip.Compression.LZMA.Decoder();
                             lzmaDecoder.Code(compressedStream, uncompressedStream, compressedStream.Length, -1, null);
 
                             if (uncompressedStream.Length != uncompressedLength)
@@ -288,9 +286,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     using (var lzmaCompressionStream = new MemoryStream())
                     using (var dataStream = new MemoryStream(data))
                     {
-                        var lzmaEncoder = new LZMA.Encoder();
-
-                        // lzmaEncoder.WriteCoderProperties(lzmaCompressionStream);
+                        var lzmaEncoder = new SevenZip.Compression.LZMA.Encoder();
                         lzmaEncoder.Code(dataStream, lzmaCompressionStream, data.Length, -1, null);
 
                         data = lzmaCompressionStream.ToArray();

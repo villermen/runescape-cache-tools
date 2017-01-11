@@ -1,14 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using RuneScapeCacheToolsTests.Fixtures;
-using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Enums;
-using Villermen.RuneScapeCacheTools.Extensions;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace RuneScapeCacheToolsTests
 {
