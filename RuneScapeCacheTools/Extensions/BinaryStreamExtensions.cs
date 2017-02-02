@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Villermen.RuneScapeCacheTools.Extensions
 {
@@ -20,34 +21,6 @@ namespace Villermen.RuneScapeCacheTools.Extensions
         public static int ReadInt32BigEndian(this BinaryReader reader)
         {
             return (reader.ReadByte() << 24) + (reader.ReadByte() << 16) + (reader.ReadByte() << 8) + reader.ReadByte();
-        }
-
-        /// <summary>
-        ///     Reads characters based on the current stream text encoding into a string until \0 or EOF occurs.
-        /// </summary>
-        public static string ReadNullTerminatedString(this BinaryReader reader)
-        {
-            var chars = new List<char>();
-
-            try
-            {
-                while (true)
-                {
-                    var readChar = reader.ReadChar();
-
-                    if (readChar == 0)
-                    {
-                        break;
-                    }
-
-                    chars.Add(readChar);
-                }
-            }
-            catch (EndOfStreamException)
-            {
-            }
-
-            return new string(chars.ToArray());
         }
 
         /// <summary>
@@ -98,17 +71,6 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             writer.Write((byte)value);
         }
 
-        /// <summary>
-        ///     Writes characters into a string and suffixes it with \0.
-        /// </summary>
-        public static void WriteNullTerminatedString(this BinaryWriter writer, string str)
-        {
-            var chars = str.ToCharArray();
-
-            writer.Write(chars);
-            writer.Write((byte)0);
-        }
-
         public static void WriteUInt16BigEndian(this BinaryWriter writer, ushort value)
         {
             writer.Write((byte)(value >> 8));
@@ -132,7 +94,9 @@ namespace Villermen.RuneScapeCacheTools.Extensions
 
         #region Jagex specific (and specific they are)
 
-        private static readonly char[] awkwardCharacters =
+        private static readonly Encoding Charset = Encoding.GetEncoding("iso-8859-1");
+
+        private static readonly char[] AwkwardCharacters =
         {
             '\u20AC', '\0', '\u201A', '\u0192', '\u201E', '\u2026', '\u2020',
             '\u2021', '\u02C6', '\u2030', '\u0160', '\u2039', '\u0152', '\0',
@@ -140,6 +104,34 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             '\u2022', '\u2013', '\u2014', '\u02DC', '\u2122', '\u0161',
             '\u203A', '\u0153', '\0', '\u017E', '\u0178'
         };
+
+        /// <summary>
+        ///     Reads characters based on the current stream text encoding into a string until \0 or EOF occurs.
+        /// </summary>
+        public static string ReadNullTerminatedString(this BinaryReader reader)
+        {
+            var bytes = new List<byte>();
+
+            try
+            {
+                while (true)
+                {
+                    var readByte = reader.ReadByte();
+
+                    if (readByte == 0)
+                    {
+                        break;
+                    }
+
+                    bytes.Add(readByte);
+                }
+            }
+            catch (EndOfStreamException)
+            {
+            }
+
+            return BinaryStreamExtensions.Charset.GetString(bytes.ToArray());
+        }
 
         /// <summary>
         ///     Reads a byte, and turns it into a char using some awkward ruleset Jagex came up with.
@@ -161,7 +153,7 @@ namespace Villermen.RuneScapeCacheTools.Extensions
                 return (char)value;
             }
 
-            value = (byte)BinaryStreamExtensions.awkwardCharacters[value - 128];
+            value = (byte)BinaryStreamExtensions.AwkwardCharacters[value - 128];
 
             if (value == 0)
             {
@@ -204,6 +196,15 @@ namespace Villermen.RuneScapeCacheTools.Extensions
             }
 
             return (short)((firstByte << 8) + reader.ReadByte() - short.MinValue);
+        }
+
+        /// <summary>
+        ///     Writes characters into a string and suffixes it with \0.
+        /// </summary>
+        public static void WriteNullTerminatedString(this BinaryWriter writer, string str)
+        {
+            writer.Write(BinaryStreamExtensions.Charset.GetBytes(str));
+            writer.Write((byte)0);
         }
 
         public static void WriteAwkwardInt(this BinaryWriter writer, int value)
