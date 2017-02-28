@@ -76,14 +76,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private byte TcpHandshakeType { get; } = 15;
 
-        private int TcpLoadingRequirementsLength { get; } = 26 * 4;
+        private int TcpLoadingRequirements { get; } = 27;
 
         /// <summary>
         ///     The major version is needed to correctly connect to the content server.
         ///     If connection states the version is outdated, the <see cref="TcpMajorVersion" /> will be increased until it is
         ///     accepted.
         /// </summary>
-        private int TcpMajorVersion { get; set; } = 877;
+        private int TcpMajorVersion { get; set; } = 878;
 
         private object TcpResponseProcessorLock { get; } = new object();
 
@@ -213,7 +213,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                 // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
                 var contentReader = new BinaryReader(this.TcpContentClient.GetStream());
-                contentReader.ReadBytes(this.TcpLoadingRequirementsLength);
+                contentReader.ReadBytes(this.TcpLoadingRequirements * 4);
 
                 this.SendTcpConnectionInfo();
 
