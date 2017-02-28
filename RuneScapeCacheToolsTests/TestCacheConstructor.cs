@@ -132,7 +132,7 @@ namespace RuneScapeCacheToolsTests
             }
 
             using (var cache = new RuneTek5Cache("NewCache", false))
-            using (var downloader = new DownloaderCache())
+            using (var downloader = new Villermen.RuneScapeCacheTools.Cache.Downloader.DownloaderCache())
             {
                 foreach (var fileTuple in files)
                 {

@@ -15,14 +15,14 @@ namespace RuneScapeCacheToolsTests.Fixtures
             this.RuneTek5Cache = new RuneTek5Cache("testdata/cache", false);
             this.Soundtrack = new Soundtrack(this.RuneTek5Cache);
 
-            this.Downloader = new DownloaderCache();
+            this.Downloader = new Villermen.RuneScapeCacheTools.Cache.Downloader.DownloaderCache();
         }
 
         public RuneTek5Cache RuneTek5Cache { get; }
 
         public Soundtrack Soundtrack { get; }
 
-        public DownloaderCache Downloader { get; }
+        public Villermen.RuneScapeCacheTools.Cache.Downloader.DownloaderCache Downloader { get; }
 
         public void Dispose()
         {

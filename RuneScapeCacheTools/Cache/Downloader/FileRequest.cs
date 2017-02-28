@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
@@ -34,7 +35,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public byte[] WaitForCompletion()
         {
-            return this.CompletionSource.Task.Result;
+            // Wait for CompletionSource with a timeout
+            if (Task.WhenAny(this.CompletionSource.Task, Task.Delay(TimeSpan.FromSeconds(10))).Result == this.CompletionSource.Task)
+            {
+                return this.CompletionSource.Task.Result;
+            }
+
+            throw new TimeoutException("The file request was not fulfilled within 10 seconds.");
         }
     }
 }

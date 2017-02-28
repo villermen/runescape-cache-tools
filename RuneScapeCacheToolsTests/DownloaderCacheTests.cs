@@ -6,11 +6,11 @@ using Xunit;
 namespace RuneScapeCacheToolsTests
 {
     [Collection("TestCache")]
-    public class CacheDownloaderTests
+    public class DownloaderCacheTests
     {
         private CacheFixture Fixture { get; }
 
-        public CacheDownloaderTests(CacheFixture fixture)
+        public DownloaderCacheTests(CacheFixture fixture)
         {
             this.Fixture = fixture;
         }
