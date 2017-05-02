@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+﻿namespace Villermen.RuneScapeCacheTools.Cache
 {
     public enum Language
     {

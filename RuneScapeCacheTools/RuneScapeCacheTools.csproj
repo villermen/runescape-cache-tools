@@ -86,21 +86,20 @@
   <ItemGroup>
     <Compile Include="Cache\BaseVarType.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
+    <Compile Include="Cache\Downloader\HttpFileDownloader.cs" />
+    <Compile Include="Cache\Downloader\IFileDownloader.cs" />
+    <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
     <Compile Include="Cache\Files\CacheFile.cs" />
     <Compile Include="Cache\Files\BinaryFile.cs" />
     <Compile Include="Cache\Files\EnumFile.cs" />
     <Compile Include="Cache\Files\ItemDefinitionFile.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
-    <Compile Include="Cache\Downloader\FileRequest.cs" />
-    <Compile Include="Cache\Downloader\HttpFileRequest.cs" />
-    <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
-    <Compile Include="Cache\Downloader\TcpHandshakeResponse.cs" />
     <Compile Include="Cache\Files\JagaFile.cs" />
     <Compile Include="Cache\Index.cs" />
+    <Compile Include="Cache\Language.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5FileDecoder.cs" />
-    <Compile Include="Cache\RuneTek5\Language.cs" />
     <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
     <Compile Include="Cache\RuneTek5\MasterReferenceTableEntry.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
