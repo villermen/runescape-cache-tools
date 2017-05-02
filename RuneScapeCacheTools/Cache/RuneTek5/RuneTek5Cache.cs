@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache.Files;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -46,7 +47,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
 
-        protected override DataCacheFile FetchFile(Index index, int fileId)
+        protected override BinaryFile FetchFile(Index index, int fileId)
         {
             CacheFileInfo info;
 
@@ -95,7 +96,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 this.GetFile<ReferenceTable>(Index.ReferenceTables, (int)index));
         }
 
-        public override void PutFile(DataCacheFile file)
+        public override void PutFile(BinaryFile file)
         {
             // Write data to file store
             this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, RuneTek5FileDecoder.EncodeFile(file));

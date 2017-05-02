@@ -5,7 +5,6 @@ using System.Linq;
 using log4net;
 using log4net.Core;
 using NDesk.Options;
-using Villermen.RuneScapeCacheTools.Audio;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;

@@ -1,11 +1,15 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.CacheFileTypes
+namespace Villermen.RuneScapeCacheTools.Cache.Files
 {
+    /// <summary>
+    /// Contains the properties of an item.
+    /// TODO: object instead of item?
+    /// </summary>
     [Obsolete("Unfinished")]
-    public class ItemDefinition
+    public class ItemDefinitionFile
     {
-        private enum Opcode
+        public enum Opcode
         {
             End = 0,
             ModelId = 1,
@@ -44,7 +48,7 @@ namespace Villermen.RuneScapeCacheTools.CacheFileTypes
             DiagonalRotation = 95,
             NoteIndex = 97,
             NoteTemplateIndex = 98,
-            StackableAmount1 = 100, // TODO: StackableLimit?
+            StackableAmount1 = 100, // TODO: Rename to StackableLimit?
             StackableAmount2 = 101,
             StackableAmount3 = 102,
             StackableAmount4 = 103,

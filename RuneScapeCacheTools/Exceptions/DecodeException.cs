@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools.Exceptions
 {
     [Serializable]
     internal class DecodeException : Exception

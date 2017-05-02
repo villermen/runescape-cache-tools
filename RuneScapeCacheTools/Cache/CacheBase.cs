@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache.Files;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
@@ -64,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             var file = this.GetFile(index, fileId, entryId);
 
             // Return the file as is when a data file is requested
-            if (typeof(T) == typeof(DataCacheFile))
+            if (typeof(T) == typeof(BinaryFile))
             {
                 return file as T;
             }
@@ -75,13 +76,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return decodedFile;
         }
 
-        public DataCacheFile GetFile(Index index, int fileId, int entryId = -1)
+        public BinaryFile GetFile(Index index, int fileId, int entryId = -1)
         {
             var file = this.FetchFile(index, fileId);
 
             if (entryId != -1)
             {
-                file = new DataCacheFile
+                file = new BinaryFile
                 {
                     Data = file.Entries[entryId],
                     Info = file.Info
@@ -100,7 +101,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        protected abstract DataCacheFile FetchFile(Index index, int fileId);
+        protected abstract BinaryFile FetchFile(Index index, int fileId);
 
         public abstract IEnumerable<int> GetFileIds(Index index);
 
@@ -109,7 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.PutFile(file.ToDataFile());
         }
 
-        public abstract void PutFile(DataCacheFile file);
+        public abstract void PutFile(BinaryFile file);
 
         /// <summary>
         ///     Returns info on the file without actually obtaining the file.

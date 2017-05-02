@@ -2,11 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Enums
+namespace Villermen.RuneScapeCacheTools.Cache.Files
 {
+    /// <summary>
+    /// Represents a list of values or references to values located elsewhere in the cache.
+    /// </summary>
     public class EnumFile : CacheFile, IEnumerable<KeyValuePair<int, object>>
     {
         public int DefaultInteger { get; set; }
@@ -40,28 +43,28 @@ namespace Villermen.RuneScapeCacheTools.Enums
 
             while ((dataReader.BaseStream.Position < dataReader.BaseStream.Length) && !ended)
             {
-                var opcode = (EnumOpcode)dataReader.ReadByte();
+                var opcode = (Opcode)dataReader.ReadByte();
 
                 switch (opcode)
                 {
-                    case EnumOpcode.CharKeyType:
+                    case Opcode.CharKeyType:
                         this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
-                    case EnumOpcode.CharValueType:
+                    case Opcode.CharValueType:
                         this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
-                    case EnumOpcode.DefaultString:
+                    case Opcode.DefaultString:
                         this.DefaultString = dataReader.ReadNullTerminatedString();
                         break;
 
-                    case EnumOpcode.DefaultInteger:
+                    case Opcode.DefaultInteger:
                         this.DefaultInteger = dataReader.ReadInt32BigEndian();
                         break;
 
-                    case EnumOpcode.StringDataDictionary:
-                    case EnumOpcode.IntegerDataDictionary:
+                    case Opcode.StringDataDictionary:
+                    case Opcode.IntegerDataDictionary:
                         var count = dataReader.ReadUInt16BigEndian();
                         this.Values = new Dictionary<int, object>(count);
 
@@ -70,7 +73,7 @@ namespace Villermen.RuneScapeCacheTools.Enums
                             var key = dataReader.ReadInt32BigEndian();
                             object value;
 
-                            if (opcode == EnumOpcode.StringDataDictionary)
+                            if (opcode == Opcode.StringDataDictionary)
                             {
                                 value = dataReader.ReadNullTerminatedString();
                             }
@@ -83,8 +86,8 @@ namespace Villermen.RuneScapeCacheTools.Enums
                         }
                         break;
 
-                    case EnumOpcode.StringDataArray:
-                    case EnumOpcode.IntegerDataArray:
+                    case Opcode.StringDataArray:
+                    case Opcode.IntegerDataArray:
                         var max = dataReader.ReadUInt16BigEndian();
                         count = dataReader.ReadUInt16BigEndian();
                         this.Values = new Dictionary<int, object>(count);
@@ -92,7 +95,7 @@ namespace Villermen.RuneScapeCacheTools.Enums
                         for (var i = 0; i < count; i++)
                         {
                             var key = dataReader.ReadUInt16BigEndian();
-                            if (opcode == EnumOpcode.StringDataArray)
+                            if (opcode == Opcode.StringDataArray)
                             {
                                 this.Values[key] = dataReader.ReadNullTerminatedString();
                             }
@@ -103,15 +106,15 @@ namespace Villermen.RuneScapeCacheTools.Enums
                         }
                         break;
 
-                    case EnumOpcode.ByteKeyType:
+                    case Opcode.ByteKeyType:
                         this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
-                    case EnumOpcode.ByteValueType:
+                    case Opcode.ByteValueType:
                         this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
-                    case EnumOpcode.End:
+                    case Opcode.End:
                         ended = true;
                         break;
 
@@ -139,6 +142,21 @@ namespace Villermen.RuneScapeCacheTools.Enums
         protected override byte[] Encode()
         {
             throw new NotImplementedException("Encoding of enum files is not yet implemented.");
+        }
+
+        public enum Opcode
+        {
+            End = 0,
+            CharKeyType = 1,
+            CharValueType = 2,
+            DefaultString = 3,
+            DefaultInteger = 4,
+            StringDataDictionary = 5,
+            IntegerDataDictionary = 6,
+            StringDataArray = 7,
+            IntegerDataArray = 8,
+            ByteKeyType = 101,
+            ByteValueType = 102
         }
     }
 }

@@ -7,6 +7,8 @@ using ICSharpCode.SharpZipLib.GZip;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
+using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -21,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         ///     The specification of this file according to the reference table describing it. Supply this with as
         ///     much obtained information as possible, so verification is performed.
         /// </param>
-        public static DataCacheFile DecodeFile(byte[] data, CacheFileInfo info)
+        public static BinaryFile DecodeFile(byte[] data, CacheFileInfo info)
         {
             var dataReader = new BinaryReader(new MemoryStream(data));
 
@@ -164,7 +166,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             info.WhirlpoolDigest = whirlpoolDigest;
 
             // Construct the result object
-            return new DataCacheFile
+            return new BinaryFile
             {
                 Entries = info.Entries.Count <= 1 ? new byte[][] { continuousData } : RuneTek5FileDecoder.DecodeEntries(continuousData, info.Entries.Count),
                 Info = info
@@ -239,7 +241,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return entries;
         }
 
-        public static byte[] EncodeFile(DataCacheFile file)
+        public static byte[] EncodeFile(BinaryFile file)
         {
             var data = file.UsesEntries ? RuneTek5FileDecoder.EncodeEntries(file.Entries) : file.Data;
             return RuneTek5FileDecoder.EncodeData(data, file.Info);

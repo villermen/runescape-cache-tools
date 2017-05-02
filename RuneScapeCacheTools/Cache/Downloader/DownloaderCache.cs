@@ -7,7 +7,9 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
+using Villermen.RuneScapeCacheTools.Cache.Files;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
@@ -89,7 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private object TcpConnectLock { get; } = new object();
 
-        protected override DataCacheFile FetchFile(Index index, int fileId)
+        protected override BinaryFile FetchFile(Index index, int fileId)
         {
             var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
             {
@@ -123,7 +125,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return RuneTek5FileDecoder.DecodeFile(fileData, fileInfo);
         }
 
-        public override void PutFile(DataCacheFile file)
+        public override void PutFile(BinaryFile file)
         {
             throw new NotSupportedException("I am a downloader, not an uploader...");
         }

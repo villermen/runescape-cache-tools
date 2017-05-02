@@ -1,6 +1,4 @@
-﻿
-
-namespace Villermen.RuneScapeCacheTools.Cache.Downloader
+﻿namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class HttpFileRequest : FileRequest
     {

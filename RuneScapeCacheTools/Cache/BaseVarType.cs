@@ -1,4 +1,4 @@
-﻿namespace Villermen.RuneScapeCacheTools.Enums
+﻿namespace Villermen.RuneScapeCacheTools.Cache
 {
     public enum BaseVarType
     {

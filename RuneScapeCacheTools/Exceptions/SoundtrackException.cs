@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.Audio
+namespace Villermen.RuneScapeCacheTools.Exceptions
 {
     public class SoundtrackException : Exception
     {

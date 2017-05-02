@@ -1,11 +1,14 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Audio
+namespace Villermen.RuneScapeCacheTools.Cache.Files
 {
+    /// <summary>
+    /// A file that serves as a map to stitch audio chunks together in the right order while also containing the first chunk.
+    /// </summary>
     public class JagaFile : CacheFile
     {
         public static byte[] MagicNumber = Encoding.ASCII.GetBytes("JAGA");
@@ -62,6 +65,32 @@ namespace Villermen.RuneScapeCacheTools.Audio
         protected override byte[] Encode()
         {
             throw new System.NotImplementedException("Encoding of JAGA files is not yet implemented.");
+        }
+
+        public class AudioChunkDescriptor
+        {
+            public AudioChunkDescriptor(int position, int length, int fileId)
+            {
+                this.Position = position;
+                this.Length = length;
+                this.FileId = fileId;
+            }
+
+            /// <summary>
+            ///     The file id within the same index that contains the next chunk.
+            ///     If 0, this is the file contained within the jaga file.
+            /// </summary>
+            public int FileId { get; }
+
+            /// <summary>
+            ///     The length in bytes of this chunk.
+            /// </summary>
+            public int Length { get; }
+
+            /// <summary>
+            ///     Position in bytes of the combined audio data.
+            /// </summary>
+            public int Position { get; }
         }
     }
 }

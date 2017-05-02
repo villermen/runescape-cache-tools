@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache;
 
-namespace Villermen.RuneScapeCacheTools.Enums
+namespace Villermen.RuneScapeCacheTools.Cache
 {
     public class ScriptVarType
     {

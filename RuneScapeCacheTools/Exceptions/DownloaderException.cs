@@ -1,6 +1,6 @@
 using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache.Downloader
+namespace Villermen.RuneScapeCacheTools.Exceptions
 {
     public class DownloaderException : Exception
     {

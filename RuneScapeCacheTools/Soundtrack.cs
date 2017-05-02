@@ -9,10 +9,11 @@ using FlacLibSharp;
 using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Enums;
+using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Audio
+namespace Villermen.RuneScapeCacheTools
 {
     /// <summary>
     ///     Contains tools for obtaining and combining soundtracks from the cache.
