@@ -24,7 +24,7 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.ClientScripts, 3)]
         public void TestExtract(Index index, int fileId)
         {
-            var expectedFilePath = $"output/extracted/{index}/{fileId}";
+            var expectedFilePath = $"output/extracted/{(int)index}/{fileId}";
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
@@ -40,7 +40,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestExtractWithEntries()
         {
-            var expectedFilePath = $"output/extracted/{Index.Enums}/5-65";
+            var expectedFilePath = $"output/extracted/{(int)Index.Enums}/5-65";
 
             var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
 
@@ -59,7 +59,7 @@ namespace RuneScapeCacheToolsTests
             this.Fixture.RuneTek5Cache.Extract(Index.LoadingSprites, 8501);
 
             // Verify that the .jpg extension was added
-            Assert.True(File.Exists($"output/extracted/{Index.LoadingSprites}/8501.jpg"));
+            Assert.True(File.Exists($"output/extracted/{(int)Index.LoadingSprites}/8501.jpg"));
         }
 
         /// <summary>

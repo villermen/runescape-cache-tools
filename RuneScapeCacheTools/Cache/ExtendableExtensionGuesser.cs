@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
     ///     Extendable implementation of IExtensionGuesser.
     ///     Allows dynamic addition and removal of actions.
     /// 
-    ///     TODO: Nah, stick to own library.
+    ///     TODO: Parse based on CacheFile, so that info can be used.
     /// </summary>
     public class ExtendableExtensionGuesser : IExtensionGuesser
     {

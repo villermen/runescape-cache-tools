@@ -155,7 +155,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 catch (FileNotFoundException)
                 {
                     // Skip failing of file id list retrieval (separate file failures are handled earlier on) if more than one index is requested
-                    CacheBase.Logger.Info($"Skipped extracting {index} because its file list could not be obtained.");
+                    CacheBase.Logger.Info($"Skipped extracting index {(int)index} because its file list could not be obtained.");
                 }
             }
         }
@@ -199,12 +199,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     {
                         this.Extract(index, fileId, overwrite);
 
-                        progress?.Report($"Extracted {index}/{fileId}.");
+                        progress?.Report($"Extracted {(int)index}/{fileId}.");
                     }
                     catch (FileNotFoundException)
                     {
                         // Skip failed extractions if more than one file is specified
-                        var logMessage = $"Skipped {index}/{fileId} because it was not found.";
+                        var logMessage = $"Skipped {(int)index}/{fileId} because it was not found.";
                         CacheBase.Logger.Info(logMessage);
                         progress?.Report(logMessage);
                     }
@@ -236,7 +236,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Don't extract if the file already exists and we are not going to overwrite
             if (!overwrite && existingEntryPaths.Any())
             {
-                CacheBase.Logger.Info($"Skipped extracting {index}/{fileId} because it is already extracted.");
+                CacheBase.Logger.Info($"Skipped extracting {(int)index}/{fileId} because it is already extracted.");
                 return null;
             }
 
@@ -249,7 +249,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
 
             // Create index directory for when it did not exist yet
-            Directory.CreateDirectory($"{this.OutputDirectory}extracted/{index}");
+            Directory.CreateDirectory($"{this.OutputDirectory}extracted/{(int)index}");
 
             // Extract all entries
             var extension = "";
@@ -269,7 +269,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 extension = extension != null ? $".{extension}" : "";
 
                 // Construct new path for entry
-                var entryPath = $"{this.OutputDirectory}extracted/{index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
+                var entryPath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
 
                 File.WriteAllBytes(entryPath, currentData);
 
@@ -278,11 +278,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             if (extractedEntries > 0)
             {
-                CacheBase.Logger.Info($"Extracted {index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
+                CacheBase.Logger.Info($"Extracted {(int)index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
             }
             else
             {
-                CacheBase.Logger.Info($"Did not extract {index}/{fileId} because it was empty.");
+                CacheBase.Logger.Info($"Did not extract {(int)index}/{fileId} because it was empty.");
             }
 
             return extractedEntryPaths;
@@ -299,7 +299,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             try
             {
                 // Get all files that start with the given fileId
-                return Directory.EnumerateFiles($"{this.OutputDirectory}extracted/{index}/", $"{fileId}*")
+                return Directory.EnumerateFiles($"{this.OutputDirectory}extracted/{(int)index}/", $"{fileId}*")
                     // Filter out false-positivies like 2345.ext when looking for 234.
                     .Where(file => Regex.IsMatch(file, $@"[/\\]{fileId}(\-\d+)?(\..+)?$"))
                     .ToList();
@@ -312,11 +312,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         /// <summary>
         /// </summary>
-        /// <param name="indexId"></param>
-        /// <returns>The path to the directory of the given index, or null if it does not exist.</returns>
-        public string GetExtractedIndexPath(int indexId)
+        /// <param name="index"></param>
+        /// <returns>The path to the directory of the given index, or null if it has not been created yet.</returns>
+        public string GetExtractedIndexPath(Index index)
         {
-            string indexPath = $"{this.OutputDirectory}extracted/{indexId}/";
+            string indexPath = $"{this.OutputDirectory}extracted/{(int)index}/";
 
             return Directory.Exists(indexPath) ? indexPath : null;
         }

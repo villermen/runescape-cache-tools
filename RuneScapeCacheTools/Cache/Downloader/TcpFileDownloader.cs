@@ -273,12 +273,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 throw new DownloaderException("File to be requested is already requested.");
             }
 
-            TcpFileDownloader.Logger.Debug($"Requesting {request.Index}/{request.FileId} using TCP.");
+            TcpFileDownloader.Logger.Debug($"Requesting {(int)request.Index}/{request.FileId} using TCP.");
 
             var writer = new BinaryWriter(this._contentClient.GetStream());
 
-            writer.Write((byte) (request.Index == Index.ReferenceTables ? 1 : 0));
-            writer.Write((byte) request.Index);
+            writer.Write((byte)(request.Index == Index.ReferenceTables ? 1 : 0));
+            writer.Write((byte)request.Index);
             writer.WriteInt32BigEndian(request.FileId);
 
             request.Requested = true;
