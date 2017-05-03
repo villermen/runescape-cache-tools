@@ -28,9 +28,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
                 }
 
-                if (response.ContentLength != fileInfo.CompressedSize - 2)
+                if (response.ContentLength != fileInfo.CompressedSize)
                 {
-                    throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize - 2}.");
+                    throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize}.");
                 }
 
                 var dataStream = new MemoryStream();
