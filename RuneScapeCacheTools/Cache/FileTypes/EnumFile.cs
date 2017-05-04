@@ -5,7 +5,7 @@ using System.IO;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Cache.Files
+namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 {
     /// <summary>
     /// Represents a list of values or references to values located elsewhere in the cache.

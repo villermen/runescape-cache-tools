@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
@@ -72,7 +72,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             // Convert the file to a data file
             var decodedFile = Activator.CreateInstance<T>();
-            decodedFile.FromDataFile(file);
+            decodedFile.FromBinaryFile(file);
             return decodedFile;
         }
 
@@ -107,7 +107,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public void PutFile(CacheFile file)
         {
-            this.PutFile(file.ToDataFile());
+            this.PutFile(file.ToBinaryFile());
         }
 
         public abstract void PutFile(BinaryFile file);

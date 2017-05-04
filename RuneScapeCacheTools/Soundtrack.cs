@@ -9,7 +9,7 @@ using FlacLibSharp;
 using log4net;
 using NVorbis;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 

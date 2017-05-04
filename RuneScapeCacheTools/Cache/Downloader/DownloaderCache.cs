@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Villermen.RuneScapeCacheTools.Cache.Files
+namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 {
     /// <summary>
     /// A cache file that just represents the raw bytes of a file, optionally representing multiple separate files "entries".

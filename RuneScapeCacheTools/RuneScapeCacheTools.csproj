@@ -89,12 +89,12 @@
     <Compile Include="Cache\Downloader\HttpFileDownloader.cs" />
     <Compile Include="Cache\Downloader\IFileDownloader.cs" />
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
-    <Compile Include="Cache\Files\CacheFile.cs" />
-    <Compile Include="Cache\Files\BinaryFile.cs" />
-    <Compile Include="Cache\Files\EnumFile.cs" />
-    <Compile Include="Cache\Files\ItemDefinition.cs" />
+    <Compile Include="Cache\FileTypes\CacheFile.cs" />
+    <Compile Include="Cache\FileTypes\BinaryFile.cs" />
+    <Compile Include="Cache\FileTypes\EnumFile.cs" />
+    <Compile Include="Cache\FileTypes\ItemDefinitionFile.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
-    <Compile Include="Cache\Files\JagaFile.cs" />
+    <Compile Include="Cache\FileTypes\JagaFile.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\Language.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />

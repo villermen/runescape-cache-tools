@@ -4,7 +4,7 @@ using System.Text;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Cache.Files
+namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 {
     /// <summary>
     /// A file that serves as a map to stitch audio chunks together in the right order while also containing the first chunk.

@@ -125,9 +125,9 @@ namespace RuneScapeCacheToolsTests
         {
             var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile(Index.ReferenceTables, (int)index);
             var referenceTable =  new ReferenceTable();
-            referenceTable.FromDataFile(referenceTableFile);
+            referenceTable.FromBinaryFile(referenceTableFile);
 
-            var encodedFile = referenceTable.ToDataFile();
+            var encodedFile = referenceTable.ToBinaryFile();
 
             Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
         }

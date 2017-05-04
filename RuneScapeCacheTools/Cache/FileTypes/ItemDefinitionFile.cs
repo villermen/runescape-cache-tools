@@ -4,12 +4,12 @@ using System.IO;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Cache.Files
+namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 {
     /// <summary>
     /// Contains the properties of an item.
     /// </summary>
-    public class ItemDefinition : CacheFile
+    public class ItemDefinitionFile : CacheFile
     {
         public int ModelId { get; set; }
 
@@ -633,7 +633,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Files
             EquipId = 14,
 
             MembersOnly = 16,
-            // UnknownSwitch1 = 17, // Not in build 803
             UnknownShort1 = 18,
 
             MaleEquip1 = 23,

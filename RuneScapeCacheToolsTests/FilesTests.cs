@@ -1,6 +1,6 @@
 ﻿using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.Files;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
 using Xunit.Sdk;
 
@@ -31,7 +31,7 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.ItemDefinitions, 155, 104, "Attuned crystal teleport seed", 14)]
         public void TestItemDefinition(Index index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
-            var itemDefinition = this.Fixture.RuneTek5Cache.GetFile<ItemDefinition>(index, fileId, entryId);
+            var itemDefinition = this.Fixture.RuneTek5Cache.GetFile<ItemDefinitionFile>(index, fileId, entryId);
 
             Assert.Equal(expectedName, itemDefinition.Name);
             Assert.Equal(expectedPropertyCount, itemDefinition.Properties.Count);
@@ -43,7 +43,7 @@ namespace RuneScapeCacheToolsTests
             foreach (var fileId in this.Fixture.Downloader.GetFileIds(Index.ItemDefinitions))
             {
                 // TODO: Needs a method of getting all entries as BinaryFiles (store them as such?)
-                this.Fixture.Downloader.GetFile<ItemDefinition>(Index.ItemDefinitions, fileId);
+                this.Fixture.Downloader.GetFile<ItemDefinitionFile>(Index.ItemDefinitions, fileId);
             }
         }
     }
