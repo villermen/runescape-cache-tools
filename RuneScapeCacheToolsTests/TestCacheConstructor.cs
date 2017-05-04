@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Remoting.Channels;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -25,6 +26,8 @@ namespace RuneScapeCacheToolsTests
                 new Tuple<Index, int>(Index.LoadingSprites, 8501),
                 new Tuple<Index, int>(Index.Models, 47000),
                 new Tuple<Index, int>(Index.Enums, 23),
+                new Tuple<Index, int>(Index.Objects, 155),
+                new Tuple<Index, int>(Index.Objects, 5),
 
                 // Soundscape
                 new Tuple<Index, int>(Index.Music, 38900),
@@ -132,7 +135,7 @@ namespace RuneScapeCacheToolsTests
             }
 
             using (var cache = new RuneTek5Cache("NewCache", false))
-            using (var downloader = new Villermen.RuneScapeCacheTools.Cache.Downloader.DownloaderCache())
+            using (var downloader = new DownloaderCache())
             {
                 foreach (var fileTuple in files)
                 {

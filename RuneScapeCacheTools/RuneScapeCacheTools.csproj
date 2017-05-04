@@ -92,7 +92,7 @@
     <Compile Include="Cache\Files\CacheFile.cs" />
     <Compile Include="Cache\Files\BinaryFile.cs" />
     <Compile Include="Cache\Files\EnumFile.cs" />
-    <Compile Include="Cache\Files\ItemDefinitionFile.cs" />
+    <Compile Include="Cache\Files\ItemDefinition.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
     <Compile Include="Cache\Files\JagaFile.cs" />
     <Compile Include="Cache\Index.cs" />

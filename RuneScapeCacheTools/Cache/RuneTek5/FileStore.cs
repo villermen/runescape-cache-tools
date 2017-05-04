@@ -101,7 +101,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             if (!this.indexStreams.ContainsKey(index))
             {
-                throw new FileNotFoundException($"Index does not exist for {index}/{fileId}.");
+                throw new FileNotFoundException($"Index does not exist for {(int)index}/{fileId}.");
             }
 
             var indexReader = new BinaryReader(this.indexStreams[index]);
@@ -110,7 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
-                throw new FileNotFoundException($"{index}/{fileId} is outside of the index file's bounds.");
+                throw new FileNotFoundException($"{(int)index}/{fileId} is outside of the index file's bounds.");
             }
 
             var sectors = new List<Sector>();

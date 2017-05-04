@@ -8,14 +8,12 @@ using Xunit;
 
 namespace RuneScapeCacheToolsTests
 {
-    
-
-    [Collection("TestCache")]
+    [Collection(TestCacheCollection.Name)]
     public class RuneTek5CacheTests
     {
-        private CacheFixture Fixture { get; }
+        private TestCacheFixture Fixture { get; }
 
-        public RuneTek5CacheTests(CacheFixture fixture)
+        public RuneTek5CacheTests(TestCacheFixture fixture)
         {
             this.Fixture = fixture;
         }

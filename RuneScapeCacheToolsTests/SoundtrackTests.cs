@@ -7,14 +7,14 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
-    [Collection("TestCache")]
+    [Collection(TestCacheCollection.Name)]
     public class SoundtrackTests
     {
         private ITestOutputHelper Output { get; }
 
-        private CacheFixture Fixture { get; }
+        private TestCacheFixture Fixture { get; }
 
-        public SoundtrackTests(ITestOutputHelper output, CacheFixture fixture)
+        public SoundtrackTests(ITestOutputHelper output, TestCacheFixture fixture)
         {
             this.Output = output;
             this.Fixture = fixture;

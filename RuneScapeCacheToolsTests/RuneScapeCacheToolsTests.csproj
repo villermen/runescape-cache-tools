@@ -85,9 +85,10 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BinaryStreamExtensionsTests.cs" />
+    <Compile Include="FilesTests.cs" />
     <Compile Include="FileStoreTests.cs" />
-    <Compile Include="Fixtures\CacheCollection.cs" />
-    <Compile Include="Fixtures\CacheFixture.cs" />
+    <Compile Include="Fixtures\TestCacheCollection.cs" />
+    <Compile Include="Fixtures\TestCacheFixture.cs" />
     <Compile Include="RuneTek5CacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DownloaderCacheTests.cs" />
@@ -122,6 +123,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="testdata\cache\main_file_cache.idx7">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="testdata\cache\main_file_cache.idx19">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
