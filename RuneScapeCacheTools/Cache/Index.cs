@@ -27,7 +27,7 @@
         Locations = 16,
         Enums = 17,
         Npcs = 18,
-        Objects = 19,
+        ItemDefinitions = 19,
         Sequences = 20,
         SpotAnimations = 21,
         Structs = 22,

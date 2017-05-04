@@ -2,6 +2,7 @@
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Files;
 using Xunit;
+using Xunit.Sdk;
 
 namespace RuneScapeCacheToolsTests
 {
@@ -25,15 +26,25 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Theory]
-        // [InlineData(Index.Objects, 155, 134, "Hazelmere's signet ring", 1337)]
-        [InlineData(Index.Objects, 5, 241, "Oak logs", 12)]
-        // [InlineData(Index.Objects, 155, 104, "Attuned crystal teleport seed", 1337)]
-        public void TestItemDefinitionFile(Index index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
+        [InlineData(Index.ItemDefinitions, 155, 134, "Hazelmere's signet ring", 4)]
+        [InlineData(Index.ItemDefinitions, 5, 241, "Oak logs", 12)]
+        [InlineData(Index.ItemDefinitions, 155, 104, "Attuned crystal teleport seed", 14)]
+        public void TestItemDefinition(Index index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
             var itemDefinition = this.Fixture.RuneTek5Cache.GetFile<ItemDefinition>(index, fileId, entryId);
 
             Assert.Equal(expectedName, itemDefinition.Name);
             Assert.Equal(expectedPropertyCount, itemDefinition.Properties.Count);
+        }
+
+        [Fact(Skip = "Takes too long and is unfinished")]
+        public void TestAllItemDefinitions()
+        {
+            foreach (var fileId in this.Fixture.Downloader.GetFileIds(Index.ItemDefinitions))
+            {
+                // TODO: Needs a method of getting all entries as BinaryFiles (store them as such?)
+                this.Fixture.Downloader.GetFile<ItemDefinition>(Index.ItemDefinitions, fileId);
+            }
         }
     }
 }
