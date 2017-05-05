@@ -42,7 +42,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 // Append version
                 dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
 
-                return RuneTek5FileDecoder.DecodeFile(dataStream.ToArray(), fileInfo);
+                var file = new BinaryFile
+                {
+                    Info = fileInfo
+                };
+
+                file.Decode(dataStream.ToArray());
+
+                return file;
             }
         }
     }

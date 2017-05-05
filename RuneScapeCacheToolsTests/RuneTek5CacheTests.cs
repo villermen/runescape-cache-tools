@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
@@ -66,21 +67,21 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFile()
         {
-            var file = this.Fixture.RuneTek5Cache.GetFile(Index.ClientScripts, 3);
+            var file = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ClientScripts, 3);
 
             var fileData = file.Data;
 
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
-            var archiveFile = this.Fixture.RuneTek5Cache.GetFile(Index.Enums, 5);
+            var archiveFile = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(Index.Enums, 5);
 
             var archiveEntry = archiveFile.Entries[255];
 
-            Assert.True(archiveEntry.Length > 0, "Archive entry's data is empty.");
+            Assert.True(archiveEntry.Data.Length > 0, "Archive entry's data is empty.");
 
             Assert.Throws<FileNotFoundException>(() =>
             {
-                this.Fixture.RuneTek5Cache.GetFile(Index.Music, 30);
+                this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.Music, 30);
             });
         }
 
@@ -98,23 +99,23 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)
         {
-            var file1 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
+            var file1 = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(index, fileId);
 
             this.Fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
             this.Fixture.RuneTek5Cache.Refresh();
 
-            var file2 = this.Fixture.RuneTek5Cache.GetFile(index, fileId);
+            var file2 = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(index, fileId);
 
             // Compare the info objects
             Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
 
             // Byte-compare all entries in both files
-            for (var entryIndex = 0; entryIndex < file1.Entries.Length; entryIndex++)
+            for (var entryIndex = 0; entryIndex < file1.Entries.Count; entryIndex++)
             {
                 Assert.True(
-                    file1.Entries[entryIndex].SequenceEqual(file2.Entries[entryIndex]),
+                    file1.Entries[entryIndex].Data.SequenceEqual(file2.Entries[entryIndex].Data),
                     $"Entry {entryIndex} from initial file did not match the one from the file after being written and read back.");
             }
         }
@@ -123,9 +124,9 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.Music)]
         public void TestEncodeReferenceTable(Index index)
         {
-            var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile(Index.ReferenceTables, (int)index);
-            var referenceTable =  new ReferenceTable();
-            referenceTable.FromBinaryFile(referenceTableFile);
+            var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
+            var referenceTable =  new ReferenceTableFile();
+            referenceTable.FromFile(referenceTableFile);
 
             var encodedFile = referenceTable.ToBinaryFile();
 

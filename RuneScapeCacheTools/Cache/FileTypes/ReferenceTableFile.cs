@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
-namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 {
     /// <summary>
-    ///     A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
+    ///     A <see cref="ReferenceTableFile" /> holds metadata for all registered files in an index, such as checksums, versions
     ///     and archive members.
     ///     Note that the data of registered files does not have to be present in the index for them to be listed.
     /// </summary>
@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <author>`Discardedx2</author>
     /// <author>Sean</author>
     /// <author>Villermen</author>
-    public class ReferenceTable : CacheFile
+    public class ReferenceTableFile : CacheFile
     {
         /// <summary>
         ///     The entries in this table.
@@ -24,7 +24,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         private readonly SortedDictionary<int, CacheFileInfo> files = new SortedDictionary<int, CacheFileInfo>();
 
         /// <summary>
-        /// Gets the ids of the files listed in this <see cref="ReferenceTable"/>.
+        /// Gets the ids of the files listed in this <see cref="ReferenceTableFile"/>.
         /// </summary>
         /// <returns></returns>
         public int[] FileIds => this.files.Keys.ToArray();
@@ -45,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public int Version { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
+        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTableFile"/>.
         /// </summary>
         /// <returns></returns>
         public CacheFileInfo GetFileInfo(int fileId)
@@ -70,7 +70,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
-        protected override void Decode(byte[] data)
+        public override void Decode(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
 
@@ -193,7 +193,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
         }
 
-        protected override byte[] Encode()
+        public override byte[] Encode()
         {
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);

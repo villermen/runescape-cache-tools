@@ -91,17 +91,17 @@
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
     <Compile Include="Cache\FileTypes\CacheFile.cs" />
     <Compile Include="Cache\FileTypes\BinaryFile.cs" />
+    <Compile Include="Cache\FileTypes\EntryFile.cs" />
     <Compile Include="Cache\FileTypes\EnumFile.cs" />
     <Compile Include="Cache\FileTypes\ItemDefinitionFile.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
     <Compile Include="Cache\FileTypes\JagaFile.cs" />
+    <Compile Include="Cache\FileTypes\MasterReferenceTableFile.cs" />
+    <Compile Include="Cache\FileTypes\ReferenceTableFile.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\Language.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
-    <Compile Include="Cache\RuneTek5\RuneTek5FileDecoder.cs" />
-    <Compile Include="Cache\RuneTek5\MasterReferenceTable.cs" />
-    <Compile Include="Cache\RuneTek5\MasterReferenceTableEntry.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
     <Compile Include="Cache\RuneTek5\Sector.cs" />
     <Compile Include="Cache\CacheBase.cs" />
@@ -109,8 +109,7 @@
     <Compile Include="Cache\ScriptVarType.cs" />
     <Compile Include="Cache\RuneTek5\FileStore.cs" />
     <Compile Include="Cache\RuneTek5\IndexPointer.cs" />
-    <Compile Include="Cache\ExtendableExtensionGuesser.cs" />
-    <Compile Include="Cache\IExtensionGuesser.cs" />
+    <Compile Include="Cache\ExtensionGuesser.cs" />
     <Compile Include="Cache\Vector3.cs" />
     <Compile Include="Exceptions\DecodeException.cs" />
     <Compile Include="Exceptions\DownloaderException.cs" />
@@ -119,7 +118,6 @@
     <Compile Include="Extensions\PathExtensions.cs" />
     <Compile Include="Extensions\ExtendedProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />
     <Compile Include="Soundtrack.cs" />
   </ItemGroup>
   <ItemGroup>

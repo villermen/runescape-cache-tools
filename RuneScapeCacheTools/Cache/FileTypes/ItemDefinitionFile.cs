@@ -163,7 +163,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
         public Dictionary<int, object> Properties { get; set; } = new Dictionary<int, object>();
 
-        protected override void Decode(byte[] data)
+        public override void Decode(byte[] data)
         {
             using (var reader = new BinaryReader(new MemoryStream(data)))
             {
@@ -610,7 +610,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
         }
 
-        protected override byte[] Encode()
+        public override byte[] Encode()
         {
             throw new NotImplementedException();
         }

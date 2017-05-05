@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Remoting.Channels;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
@@ -139,7 +140,7 @@ namespace RuneScapeCacheToolsTests
             {
                 foreach (var fileTuple in files)
                 {
-                    var file = downloader.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    var file = downloader.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
                     cache.PutFile(file);
                 }
 
@@ -147,7 +148,7 @@ namespace RuneScapeCacheToolsTests
                 cache.Refresh();
                 foreach (var fileTuple in files)
                 {
-                    cache.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    cache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
                 }
             }
         }

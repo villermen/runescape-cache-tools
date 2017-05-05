@@ -30,7 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
         public int UnknownInteger3 { get; set; }
 
-        protected override void Decode(byte[] data)
+        public override void Decode(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
 
@@ -62,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             this.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
         }
 
-        protected override byte[] Encode()
+        public override byte[] Encode()
         {
             throw new System.NotImplementedException("Encoding of JAGA files is not yet implemented.");
         }

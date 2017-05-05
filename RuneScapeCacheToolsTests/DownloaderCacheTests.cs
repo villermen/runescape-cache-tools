@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
 
 namespace RuneScapeCacheToolsTests
@@ -18,9 +19,9 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestGetFileWithEntries()
         {
-            var archiveFile = this.Fixture.Downloader.GetFile(Index.Enums, 5);
+            var archiveFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.Enums, 5);
 
-            Assert.True(archiveFile.Entries.Length == 256, $"File 5 in archive 17 has {archiveFile.Entries.Length} entries instead of the expected 256.");
+            Assert.Equal(256, archiveFile.Entries.Count);
         }
 
         [Fact]
@@ -28,7 +29,7 @@ namespace RuneScapeCacheToolsTests
         {
             this.Fixture.Downloader.GetReferenceTable(Index.ClientScripts);
             this.Fixture.Downloader.GetReferenceTable(Index.Music);
-            this.Fixture.Downloader.GetFile(Index.ReferenceTables, (int)Index.Enums);
+            this.Fixture.Downloader.GetFile<BinaryFile>(Index.ReferenceTables, (int)Index.Enums);
 
             var referenceTable17 = this.Fixture.Downloader.GetReferenceTable(Index.Enums);
 
@@ -65,7 +66,7 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestHttpInterface()
         {
-            var httpFile = this.Fixture.Downloader.GetFile(Index.Music, 30498);
+            var httpFile = this.Fixture.Downloader.GetFile<BinaryFile>(Index.Music, 30498);
 
             Assert.True(httpFile.Data.Length > 0);
         }

@@ -359,7 +359,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     }
 
                     this.Completed = true;
-                    this._completionSource.SetResult(RuneTek5FileDecoder.DecodeFile(this._dataStream.ToArray(), this._cacheFileInfo));
+
+                    var file = new BinaryFile
+                    {
+                        Info = this._cacheFileInfo,
+                    };
+
+                    file.Decode(this._dataStream.ToArray());
+
+                    this._completionSource.SetResult(file);
                 }
             }
 

@@ -111,7 +111,7 @@ namespace Villermen.RuneScapeCacheTools
 
                             for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                             {
-                                File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
+                                File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile<BinaryFile>(Index.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                             }
 
                             // Delete existing file in case combiner application doesn't do overwriting properly
@@ -201,10 +201,12 @@ namespace Villermen.RuneScapeCacheTools
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
 
+            var enumEntries = this.Cache.GetFile<EntryFile>(Index.Enums, 5);
+
             // int track id : string track name
-            var trackNames = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 65);
+            var trackNames = enumEntries.GetEntry<EnumFile>(65);
             // int track id : int jaga file id
-            var jagaFileIds = this.Cache.GetFile<EnumFile>(Index.Enums, 5, 71);
+            var jagaFileIds = enumEntries.GetEntry<EnumFile>(71);
 
             // Result is sorted on key to let duplicate renaming be as consistent as possible
             var result = new SortedDictionary<int, string>();

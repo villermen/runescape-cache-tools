@@ -31,7 +31,9 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.ItemDefinitions, 155, 104, "Attuned crystal teleport seed", 14)]
         public void TestItemDefinition(Index index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
-            var itemDefinition = this.Fixture.RuneTek5Cache.GetFile<ItemDefinitionFile>(index, fileId, entryId);
+            var itemDefinition = this.Fixture.RuneTek5Cache
+                .GetFile<EntryFile>(index, fileId)
+                .GetEntry<ItemDefinitionFile>(entryId);
 
             Assert.Equal(expectedName, itemDefinition.Name);
             Assert.Equal(expectedPropertyCount, itemDefinition.Properties.Count);

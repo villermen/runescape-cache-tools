@@ -31,11 +31,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public abstract IEnumerable<Index> Indexes { get; }
 
         /// <summary>
-        ///     Processor used on obtained data.
-        /// </summary>
-        public IExtensionGuesser ExtensionGuesser { get; set; } = new ExtendableExtensionGuesser();
-
-        /// <summary>
         ///     The directory where the extracted cache files will be stored.
         /// </summary>
         public string OutputDirectory
@@ -58,41 +53,26 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
-        /// <param name="entryId"></param>
         /// <returns></returns>
-        public T GetFile<T>(Index index, int fileId, int entryId = -1) where T : CacheFile
+        public T GetFile<T>(Index index, int fileId) where T : CacheFile
         {
-            var file = this.GetFile(index, fileId, entryId);
+            // Obtain the file /entry
+            var file = this.FetchFile(index, fileId);
 
-            // Return the file as is when a data file is requested
+            // These we know
+            file.Info.Index = index;
+            file.Info.FileId = fileId;
+
+            // Return the file as is when a binary file is requested
             if (typeof(T) == typeof(BinaryFile))
             {
                 return file as T;
             }
 
-            // Convert the file to a data file
+            // Decode the file to the requested type
             var decodedFile = Activator.CreateInstance<T>();
-            decodedFile.FromBinaryFile(file);
+            decodedFile.FromFile(file);
             return decodedFile;
-        }
-
-        public BinaryFile GetFile(Index index, int fileId, int entryId = -1)
-        {
-            var file = this.FetchFile(index, fileId);
-
-            if (entryId != -1)
-            {
-                file = new BinaryFile
-                {
-                    Data = file.Entries[entryId],
-                    Info = file.Info
-                };
-            }
-
-            file.Info.Index = index;
-            file.Info.FileId = fileId;
-
-            return file;
         }
 
         /// <summary>
@@ -240,7 +220,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return null;
             }
 
-            var file = this.GetFile(index, fileId);
+            var binaryFile = this.GetFile<BinaryFile>(index, fileId);
 
             // Delete existing entries. Done after obtaining of new file to prevent existing files from being deleted when GetFile failes
             foreach (var existingEntryPath in existingEntryPaths)
@@ -248,44 +228,60 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 File.Delete(existingEntryPath);
             }
 
-            // Create index directory for when it did not exist yet
+            // Create index directory for when it does not exist yet
             Directory.CreateDirectory($"{this.OutputDirectory}extracted/{(int)index}");
 
-            // Extract all entries
-            var extension = "";
-            var extractedEntries = 0;
-            var extractedEntryPaths = new List<string>();
-            for (var entryId = 0; entryId < file.Entries.Length; entryId++)
-            {
-                var currentData = file.Entries[entryId];
+            var extractedFilePaths = new List<string>();
 
-                // Skip empty entries
-                if (currentData.Length == 0)
+            if (!binaryFile.Info.HasEntries)
+            {
+                // Extract file
+                if (binaryFile.Data.Length > 0)
                 {
-                    continue;
+                    var extension = ExtensionGuesser.GuessExtension(binaryFile.Data);
+                    extension = extension != null ? $".{extension}" : "";
+
+                    var filePath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}{extension}";
+                    File.WriteAllBytes(filePath, binaryFile.Data);
+
+                    extractedFilePaths.Add(filePath);
+
+                    CacheBase.Logger.Info($"Extracted {(int)index}/{fileId}.");
                 }
-
-                extension = this.ExtensionGuesser.GuessExtension(currentData);
-                extension = extension != null ? $".{extension}" : "";
-
-                // Construct new path for entry
-                var entryPath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}{(entryId > 0 ? $"-{entryId}" : "")}{extension}";
-
-                File.WriteAllBytes(entryPath, currentData);
-
-                extractedEntries++;
-            }
-
-            if (extractedEntries > 0)
-            {
-                CacheBase.Logger.Info($"Extracted {(int)index}/{fileId}{extension}{(extractedEntries > 1 ? $"({extractedEntries} entries)" : "")}.");
+                else
+                {
+                    CacheBase.Logger.Info($"Did not extract {(int)index}/{fileId} because it is empty.");
+                }
             }
             else
             {
-                CacheBase.Logger.Info($"Did not extract {(int)index}/{fileId} because it was empty.");
+                // Extract entries
+                var entryFile = new EntryFile();
+                entryFile.FromFile(binaryFile);
+
+                if (entryFile.Entries.Count > 0)
+                {
+                    var entryBinaryFiles = entryFile.GetEntries<BinaryFile>();
+                    foreach (var entryBinaryFilePair in entryBinaryFiles)
+                    {
+                        var extension = ExtensionGuesser.GuessExtension(entryBinaryFilePair.Value.Data);
+                        extension = extension != null ? $".{extension}" : "";
+
+                        var filePath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}-{entryBinaryFilePair.Key}{extension}";
+                        File.WriteAllBytes(filePath, entryBinaryFilePair.Value.Data);
+
+                        extractedFilePaths.Add(filePath);
+                    }
+
+                    CacheBase.Logger.Info($"Extracted {(int)index}/{fileId} ({entryBinaryFiles.Count} entries).");
+                }
+                else
+                {
+                    CacheBase.Logger.Info($"Did not extract {(int)index}/{fileId} because it has no entries.");
+                }
             }
 
-            return extractedEntryPaths;
+            return extractedFilePaths;
         }
 
         /// <summary>

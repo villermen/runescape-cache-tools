@@ -25,6 +25,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         public IDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new Dictionary<int, CacheFileEntryInfo>();
 
+        public bool HasEntries => this.Entries.Count > 1;
+
         public int FileId { get; set; } = -1;
 
         public int Identifier { get; set; }

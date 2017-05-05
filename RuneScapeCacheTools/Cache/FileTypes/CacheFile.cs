@@ -8,24 +8,26 @@
     {
         public CacheFileInfo Info { get; set; }
 
-        public void FromBinaryFile(BinaryFile binaryFile)
+        public void FromFile(CacheFile file)
         {
-            this.Info = binaryFile.Info;
+            this.Info = file.Info;
 
-            this.Decode(binaryFile.Data);
+            this.Decode(file.ToBinaryFile().Data);
         }
 
-        protected abstract void Decode(byte[] data);
+        public abstract void Decode(byte[] data);
 
         public BinaryFile ToBinaryFile()
         {
-            return new BinaryFile
+            var file = this as BinaryFile;
+
+            return file ?? new BinaryFile
             {
                 Info = this.Info,
                 Data = this.Encode()
             };
         }
 
-        protected abstract byte[] Encode();
+        public abstract byte[] Encode();
     }
 }

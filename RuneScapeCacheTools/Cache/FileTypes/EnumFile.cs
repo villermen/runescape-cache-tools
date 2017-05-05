@@ -36,7 +36,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             return this.GetEnumerator();
         }
 
-        protected override void Decode(byte[] data)
+        public override void Decode(byte[] data)
         {
             var dataReader = new BinaryReader(new MemoryStream(data));
             var ended = false;
@@ -139,7 +139,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
         }
 
-        protected override byte[] Encode()
+        public override byte[] Encode()
         {
             throw new NotImplementedException("Encoding of enum files is not yet implemented.");
         }

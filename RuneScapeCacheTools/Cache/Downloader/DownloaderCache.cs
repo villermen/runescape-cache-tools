@@ -21,9 +21,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private static readonly Index[] IndexesUsingHttpInterface = { Index.Music };
 
-        private MasterReferenceTable _cachedMasterReferenceTable;
+        private MasterReferenceTableFile _cachedMasterReferenceTableFile;
 
-        private readonly ConcurrentDictionary<Index, ReferenceTable> _cachedReferenceTables = new ConcurrentDictionary<Index, ReferenceTable>();
+        private readonly ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables = new ConcurrentDictionary<Index, ReferenceTableFile>();
 
         private readonly HttpFileDownloader _httpFileDownloader = new HttpFileDownloader();
 
@@ -57,21 +57,21 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
-        public MasterReferenceTable GetMasterReferenceTable()
+        public MasterReferenceTableFile GetMasterReferenceTable()
         {
-            if (this._cachedMasterReferenceTable != null)
+            if (this._cachedMasterReferenceTableFile != null)
             {
-                return this._cachedMasterReferenceTable;
+                return this._cachedMasterReferenceTableFile;
             }
 
-            this._cachedMasterReferenceTable = this.GetFile<MasterReferenceTable>(Index.ReferenceTables, (int)Index.ReferenceTables);
+            this._cachedMasterReferenceTableFile = this.GetFile<MasterReferenceTableFile>(Index.ReferenceTables, (int)Index.ReferenceTables);
 
-            return this._cachedMasterReferenceTable;
+            return this._cachedMasterReferenceTableFile;
         }
 
-        public ReferenceTable GetReferenceTable(Index index)
+        public ReferenceTableFile GetReferenceTable(Index index)
         {
-            return this._cachedReferenceTables.GetOrAdd(index, index2 => this.GetFile<ReferenceTable>(Index.ReferenceTables, (int)index));
+            return this._cachedReferenceTables.GetOrAdd(index, index2 => this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
         }
 
         protected override void Dispose(bool disposing)

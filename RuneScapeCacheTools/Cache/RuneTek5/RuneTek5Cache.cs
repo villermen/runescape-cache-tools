@@ -45,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public FileStore FileStore { get; private set; }
 
-        private ConcurrentDictionary<Index, ReferenceTable> ReferenceTables { get; set; }
+        private ConcurrentDictionary<Index, ReferenceTableFile> ReferenceTables { get; set; }
 
         protected override BinaryFile FetchFile(Index index, int fileId)
         {
@@ -69,7 +69,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 info = new CacheFileInfo();
             }
 
-            return RuneTek5FileDecoder.DecodeFile(this.FileStore.ReadFileData(index, fileId), info);
+            var file = new BinaryFile
+            {
+                Info = info
+            };
+
+            file.Decode(this.FileStore.ReadFileData(index, fileId));
+
+            return file;
         }
 
         /// <summary>
@@ -89,30 +96,30 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
-        public ReferenceTable GetReferenceTable(Index index)
+        public ReferenceTableFile GetReferenceTable(Index index)
         {
             // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
             return this.ReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
-                this.GetFile<ReferenceTable>(Index.ReferenceTables, (int)index));
+                this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
         }
 
         public override void PutFile(BinaryFile file)
         {
             // Write data to file store
-            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, RuneTek5FileDecoder.EncodeFile(file));
+            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
 
             // Adjust and write reference table
             if (file.Info.Index != Index.ReferenceTables)
             {
-                ReferenceTable referenceTable;
+                ReferenceTableFile referenceTableFile;
 
                 try
                 {
-                    referenceTable = this.GetReferenceTable(file.Info.Index);
+                    referenceTableFile = this.GetReferenceTable(file.Info.Index);
                 }
                 catch (FileNotFoundException)
                 {
-                    referenceTable = new ReferenceTable
+                    referenceTableFile = new ReferenceTableFile
                     {
                         Format = 7,
                         Options = CacheFileOptions.Sizes | CacheFileOptions.MysteryHashes,
@@ -127,9 +134,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
 
                 // Update stored file in reference table and store reference table
-                referenceTable.SetFileInfo(file.Info.FileId, file.Info);
+                referenceTableFile.SetFileInfo(file.Info.FileId, file.Info);
 
-                this.PutFile(referenceTable);
+                this.PutFile(referenceTableFile);
             }
         }
 
@@ -142,7 +149,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             this.FileStore = new FileStore(this.CacheDirectory, this.ReadOnly);
 
-            this.ReferenceTables = new ConcurrentDictionary<Index, ReferenceTable>();
+            this.ReferenceTables = new ConcurrentDictionary<Index, ReferenceTableFile>();
         }
 
         protected override void Dispose(bool disposing)
