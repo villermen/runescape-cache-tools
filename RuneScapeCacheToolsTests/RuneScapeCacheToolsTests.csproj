@@ -85,7 +85,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BinaryStreamExtensionsTests.cs" />
-    <Compile Include="FilesTests.cs" />
+    <Compile Include="FileTypesTests.cs" />
     <Compile Include="FileStoreTests.cs" />
     <Compile Include="Fixtures\TestCacheCollection.cs" />
     <Compile Include="Fixtures\TestCacheFixture.cs" />

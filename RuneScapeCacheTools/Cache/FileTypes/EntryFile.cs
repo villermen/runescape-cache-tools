@@ -11,11 +11,20 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     /// </summary>
     public class EntryFile : CacheFile
     {
+        // TODO: Return entries as new objects
         public IDictionary<int, BinaryFile> Entries = new SortedDictionary<int, BinaryFile>();
 
         public T GetEntry<T>(int entryId) where T : CacheFile
         {
-            throw new NotImplementedException();
+            if (typeof(T) == typeof(BinaryFile))
+            {
+                return this.Entries[entryId] as T;
+            }
+
+            var file = Activator.CreateInstance<T>();
+            file.FromFile(this.Entries[entryId]);
+
+            return file;
         }
 
         public Dictionary<int, T> GetEntries<T>() where T : CacheFile
@@ -102,16 +111,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             // Convert raw data to binary files
             this.Entries = entryDataCollection
                 .Where(entryData => entryData.Length > 0)
-                .Select((entryData, index) =>
+                .Select((entryData, index) => new
                 {
-                    var file = new BinaryFile();
-                    file.Decode(entryData);
-
-                    return new
+                    Index = index,
+                    File = new BinaryFile
                     {
-                        Index = index,
-                        File = file
-                    };
+                        Data = entryData
+                        // TODO: Add entry info
+                    }
                 })
                 .ToDictionary(pair => pair.Index, pair => pair.File);
         }

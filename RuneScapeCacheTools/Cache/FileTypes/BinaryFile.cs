@@ -22,6 +22,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
         public override void Decode(byte[] data)
         {
+            if (this.Info == null)
+            {
+                throw new DecodeException("File info must be set before decoding binary file.");
+            }
+
             var dataReader = new BinaryReader(new MemoryStream(data));
 
             this.Info.CompressionType = (CompressionType)dataReader.ReadByte();
@@ -125,7 +130,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     {
                         throw new DecodeException($"Obtained version part ({version}) did not match expected ({truncatedInfoVersion}).");
                     }
-
+                }
+                else
+                {
+                    // Set obtained version if previously unset
                     this.Info.Version = version;
                 }
 
@@ -136,7 +144,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             // CRC excludes the version of the file added to the end
             // There is no way to know if the CRC is zero or unset
             var crcHasher = new Crc32();
-            crcHasher.Update(this.Data, 0, this.Data.Length - (versionRead ? 2 : 0));
+            crcHasher.Update(data, 0, data.Length - (versionRead ? 2 : 0));
             var crc = (int)crcHasher.Value;
 
             if (this.Info.Crc != null && crc != this.Info.Crc)
@@ -148,7 +156,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
             // Calculate and verify the whirlpool digest
             var whirlpoolHasher = new WhirlpoolDigest();
-            whirlpoolHasher.BlockUpdate(this.Data, 0, this.Data.Length - 2);
+            whirlpoolHasher.BlockUpdate(data, 0, data.Length - (versionRead ? 2 : 0));
 
             var whirlpoolDigest = new byte[whirlpoolHasher.GetDigestSize()];
             whirlpoolHasher.DoFinal(whirlpoolDigest, 0);
@@ -163,6 +171,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
         public override byte[] Encode()
         {
+            if (this.Info == null)
+            {
+                throw new DecodeException("File info must be set before encoding binary file.");
+            }
+
             // Encrypt data
             if (this.Info.EncryptionKey != null)
             {

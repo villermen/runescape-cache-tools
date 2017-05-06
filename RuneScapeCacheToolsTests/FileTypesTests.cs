@@ -7,13 +7,29 @@ using Xunit.Sdk;
 namespace RuneScapeCacheToolsTests
 {
     [Collection(TestCacheCollection.Name)]
-    public class FilesTests
+    public class FileTypesTests
     {
         private TestCacheFixture Fixture { get; }
 
-        public FilesTests(TestCacheFixture fixture)
+        public FileTypesTests(TestCacheFixture fixture)
         {
             this.Fixture = fixture;
+        }
+
+        [Fact]
+        public void TestEntryFile()
+        {
+            var entryFile = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(Index.ItemDefinitions, 155);
+
+            var binaryFile1 = entryFile.Entries[0];
+            Assert.Equal(242, binaryFile1.Data.Length);
+
+            var itemDefinitionFile = entryFile.GetEntry<ItemDefinitionFile>(0);
+            Assert.Equal(2609, itemDefinitionFile.UnknownShort4);
+
+            var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
+            Assert.Equal(256, itemDefinitionFiles.Count);
+            Assert.Equal(2609, itemDefinitionFiles[0].UnknownShort4);
         }
 
         [Theory]

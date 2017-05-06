@@ -6,6 +6,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
     /// Contains detailed information on a file in the cache.
+    ///
+    /// TODO: Also use for entries? (Add EntryId, uses identifier anyway)
     /// </summary>
     public class CacheFileInfo
     {

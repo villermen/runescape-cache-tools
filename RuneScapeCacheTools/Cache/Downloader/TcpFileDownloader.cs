@@ -14,7 +14,6 @@ using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    [Obsolete("Unfinished")]
     public class TcpFileDownloader : IFileDownloader, IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(TcpFileDownloader));
