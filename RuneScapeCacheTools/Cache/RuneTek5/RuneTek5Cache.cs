@@ -103,7 +103,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
         }
 
-        public override void PutFile(BinaryFile file)
+        protected override void PutFile(BinaryFile file)
         {
             // Write data to file store
             this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());

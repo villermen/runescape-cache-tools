@@ -71,7 +71,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             // Decode the file to the requested type
             var decodedFile = Activator.CreateInstance<T>();
-            decodedFile.FromFile(file);
+            decodedFile.FromBinaryFile(file);
             return decodedFile;
         }
 
@@ -90,7 +90,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.PutFile(file.ToBinaryFile());
         }
 
-        public abstract void PutFile(BinaryFile file);
+        protected abstract void PutFile(BinaryFile file);
 
         /// <summary>
         ///     Returns info on the file without actually obtaining the file.
@@ -257,7 +257,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 // Extract entries
                 var entryFile = new EntryFile();
-                entryFile.FromFile(binaryFile);
+                entryFile.FromBinaryFile(binaryFile);
 
                 if (entryFile.Entries.Count > 0)
                 {

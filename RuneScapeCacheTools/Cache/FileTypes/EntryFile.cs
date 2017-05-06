@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
@@ -22,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
 
             var file = Activator.CreateInstance<T>();
-            file.FromFile(this.Entries[entryId]);
+            file.FromBinaryFile(this.Entries[entryId]);
 
             return file;
         }
@@ -38,7 +39,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 .Select(pair =>
                 {
                     var file = Activator.CreateInstance<T>();
-                    file.FromFile(pair.Value);
+                    file.FromBinaryFile(pair.Value);
 
                     return new
                     {
@@ -68,6 +69,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
             reader.BaseStream.Position = reader.BaseStream.Length - 1;
             var amountOfChunks = reader.ReadByte();
+
+            if (amountOfChunks == 0)
+            {
+                throw new DecodeException("Entry file contains no chunks.");
+            }
 
             // Read the sizes of the child entries and individual chunks
             var chunkEntrySizes = new int[amountOfChunks, this.Info.Entries.Count];
@@ -133,7 +139,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
             for (var entryId = 0; entryId < entryData.Length; entryId++)
             {
-                entryData[entryId] = this.Entries.ContainsKey(entryId) ? this.Entries[entryId].Encode() : new byte[0];
+                entryData[entryId] = this.Entries.ContainsKey(entryId) ? this.Entries[entryId].Data : new byte[0];
 
                 writer.Write(entryData[entryId]);
             }

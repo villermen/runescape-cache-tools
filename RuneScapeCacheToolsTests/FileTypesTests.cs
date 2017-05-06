@@ -1,4 +1,5 @@
-﻿using RuneScapeCacheToolsTests.Fixtures;
+﻿using System.Linq;
+using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
@@ -19,7 +20,9 @@ namespace RuneScapeCacheToolsTests
         [Fact]
         public void TestEntryFile()
         {
-            var entryFile = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(Index.ItemDefinitions, 155);
+            var binaryFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ItemDefinitions, 155);
+            var entryFile = new EntryFile();
+            entryFile.FromBinaryFile(binaryFile);
 
             var binaryFile1 = entryFile.Entries[0];
             Assert.Equal(242, binaryFile1.Data.Length);
@@ -30,6 +33,8 @@ namespace RuneScapeCacheToolsTests
             var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
             Assert.Equal(256, itemDefinitionFiles.Count);
             Assert.Equal(2609, itemDefinitionFiles[0].UnknownShort4);
+
+            Assert.True(entryFile.Encode().SequenceEqual(binaryFile.Data));
         }
 
         [Theory]

@@ -18,7 +18,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         public int CompressedSize { get; set; }
 
-        public CompressionType CompressionType { get; set; }
+        public CompressionType CompressionType { get; set; } = CompressionType.None;
 
         public int? Crc { get; set; }
 

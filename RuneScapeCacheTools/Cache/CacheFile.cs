@@ -1,4 +1,6 @@
-﻿namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
+﻿using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+
+namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
     /// Base type for all cache files.
@@ -8,11 +10,11 @@
     {
         public CacheFileInfo Info { get; set; }
 
-        public void FromFile(CacheFile file)
+        public void FromBinaryFile(BinaryFile file)
         {
             this.Info = file.Info;
 
-            this.Decode(file.ToBinaryFile().Data);
+            this.Decode(file.Data);
         }
 
         public abstract void Decode(byte[] data);

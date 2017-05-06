@@ -85,11 +85,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache\BaseVarType.cs" />
+    <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\CacheFileInfo.cs" />
     <Compile Include="Cache\Downloader\HttpFileDownloader.cs" />
     <Compile Include="Cache\Downloader\IFileDownloader.cs" />
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
-    <Compile Include="Cache\FileTypes\CacheFile.cs" />
     <Compile Include="Cache\FileTypes\BinaryFile.cs" />
     <Compile Include="Cache\FileTypes\EntryFile.cs" />
     <Compile Include="Cache\FileTypes\EnumFile.cs" />

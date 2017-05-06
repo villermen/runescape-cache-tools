@@ -42,7 +42,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return downloader.DownloadFileAsync(index, fileId, fileInfo).Result;
         }
 
-        public override void PutFile(BinaryFile file)
+        protected override void PutFile(BinaryFile file)
         {
             throw new NotSupportedException("I am a downloader, not an uploader...");
         }

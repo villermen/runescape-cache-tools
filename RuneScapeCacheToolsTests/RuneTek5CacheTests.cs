@@ -99,25 +99,20 @@ namespace RuneScapeCacheToolsTests
         [InlineData(Index.Enums, 23)] // Bzip2, entries
         public void TestWriteCacheFile(Index index, int fileId)
         {
-            var file1 = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(index, fileId);
+            var file1 = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
             this.Fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
             this.Fixture.RuneTek5Cache.Refresh();
 
-            var file2 = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(index, fileId);
+            var file2 = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
             // Compare the info objects
             Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
 
-            // Byte-compare all entries in both files
-            for (var entryIndex = 0; entryIndex < file1.Entries.Count; entryIndex++)
-            {
-                Assert.True(
-                    file1.Entries[entryIndex].Data.SequenceEqual(file2.Entries[entryIndex].Data),
-                    $"Entry {entryIndex} from initial file did not match the one from the file after being written and read back.");
-            }
+            // Byte-compare both files
+            Assert.True(file1.Data.SequenceEqual(file2.Data));
         }
 
         [Theory]
@@ -126,7 +121,7 @@ namespace RuneScapeCacheToolsTests
         {
             var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
             var referenceTable =  new ReferenceTableFile();
-            referenceTable.FromFile(referenceTableFile);
+            referenceTable.FromBinaryFile(referenceTableFile);
 
             var encodedFile = referenceTable.ToBinaryFile();
 
