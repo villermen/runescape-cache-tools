@@ -87,6 +87,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public void PutFile(CacheFile file)
         {
+            if (file.Info.EntryId != -1)
+            {
+                throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
+            }
+
             this.PutFile(file.ToBinaryFile());
         }
 
@@ -259,21 +264,21 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 var entryFile = new EntryFile();
                 entryFile.FromBinaryFile(binaryFile);
 
-                if (entryFile.Entries.Count > 0)
+                if (entryFile.EntryCount > 0)
                 {
                     var entryBinaryFiles = entryFile.GetEntries<BinaryFile>();
-                    foreach (var entryBinaryFilePair in entryBinaryFiles)
+                    foreach (var entryBinaryFile in entryBinaryFiles)
                     {
-                        var extension = ExtensionGuesser.GuessExtension(entryBinaryFilePair.Value.Data);
+                        var extension = ExtensionGuesser.GuessExtension(entryBinaryFile.Data);
                         extension = extension != null ? $".{extension}" : "";
 
-                        var filePath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}-{entryBinaryFilePair.Key}{extension}";
-                        File.WriteAllBytes(filePath, entryBinaryFilePair.Value.Data);
+                        var filePath = $"{this.OutputDirectory}extracted/{(int)index}/{fileId}-{entryBinaryFile.Info.EntryId}{extension}";
+                        File.WriteAllBytes(filePath, entryBinaryFile.Data);
 
                         extractedFilePaths.Add(filePath);
                     }
 
-                    CacheBase.Logger.Info($"Extracted {(int)index}/{fileId} ({entryBinaryFiles.Count} entries).");
+                    CacheBase.Logger.Info($"Extracted {(int)index}/{fileId} ({entryBinaryFiles.Length} entries).");
                 }
                 else
                 {

@@ -75,7 +75,7 @@ namespace RuneScapeCacheToolsTests
 
             var archiveFile = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(Index.Enums, 5);
 
-            var archiveEntry = archiveFile.Entries[255];
+            var archiveEntry = archiveFile.GetEntry<BinaryFile>(255);
 
             Assert.True(archiveEntry.Data.Length > 0, "Archive entry's data is empty.");
 

@@ -31,6 +31,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public int FileId { get; set; } = -1;
 
+        /// <summary>
+        /// If this file is an entry, this will be set to its index.
+        /// </summary>
+        public int EntryId { get; set; } = -1;
+
         public int Identifier { get; set; }
 
         public Index Index { get; set; } = Index.Undefined;

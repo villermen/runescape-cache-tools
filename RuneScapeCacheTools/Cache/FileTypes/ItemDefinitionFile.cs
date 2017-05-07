@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -589,11 +590,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                                 var valueIsString = reader.ReadByte() != 0;
                                 var key = reader.ReadUInt24BigEndian();
 
-                                this.Properties.Add(
-                                    key,
-                                    valueIsString 
-                                        ? (object)reader.ReadNullTerminatedString()
-                                        : reader.ReadInt32BigEndian());
+                                var value = valueIsString
+                                    ? (object)reader.ReadNullTerminatedString()
+                                    : reader.ReadInt32BigEndian();
+
+                                if (!this.Properties.ContainsKey(key))
+                                {
+                                    this.Properties.Add(key, value);
+                                }
+                                else
+                                {
+                                    // Duplicate properties are probably caused by improper tooling at Jagex HQ
+                                    this.Properties[key] = value;
+                                }
                             }
                             break;
 

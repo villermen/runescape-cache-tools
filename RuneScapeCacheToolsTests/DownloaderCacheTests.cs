@@ -21,7 +21,7 @@ namespace RuneScapeCacheToolsTests
         {
             var archiveFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.Enums, 5);
 
-            Assert.Equal(256, archiveFile.Entries.Count);
+            Assert.Equal(256, archiveFile.EntryCount);
         }
 
         [Fact]
