@@ -13,155 +13,80 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     public class ItemDefinitionFile : CacheFile
     {
         public int ModelId { get; set; }
-
         public string Name { get; set; } = "null";
-
         public ushort ModelZoom { get; set; }
-
         public ushort ModelRotation1 { get; set; }
-
         public ushort ModelRotation2 { get; set; }
-
         public short ModelOffset1 { get; set; }
-
         public short ModelOffset2 { get; set; }
-
         public bool Stackable { get; set; }
-
         public int Value { get; set; }
-
         public byte EquipSlotId { get; set; }
-
         public byte EquipId { get; set; }
-
         public bool MembersOnly { get; set; }
-
         public ushort UnknownShort1 { get; set; }
-
         public int MaleEquip1 { get; set; }
-
         public int MaleEquip2 { get; set; }
-
         public int FemaleEquip1 { get; set; }
-
         public int FemaleEquip2 { get; set; }
-
         public byte UnknownByte1 { get; set; }
-
         public string[] GroundOptions { get; set; } = new string[5];
-
         public string[] InventoryOptions { get; set; } = new string[5];
-
         public ushort[] OriginalModelColors { get; set; }
-
         public ushort[] ModifiedModelColors { get; set; }
-
         public ushort[] OriginalTextureColors { get; set; }
-
         public ushort[] ModifiedTextureColors { get; set; }
-
         public byte[] UnknownByteArray1 { get; set; }
-
         public uint UnknownInt1 { get; set; }
-
         public ushort UnknownShort2 { get; set; }
-
         public ushort UnknownShort3 { get; set; }
-
         public bool Unnoted { get; set; }
-
         public int ColorEquip1 { get; set; }
-
         public int ColorEquip2 { get; set; }
-
         public int UnknownAwkwardInt1 { get; set; }
-
         public int UnknownAwkwardInt2 { get; set; }
-
         public int UnknownAwkwardInt3 { get; set; }
-
         public int UnknownAwkwardInt4 { get; set; }
-
         public ushort UnknownShort4 { get; set; }
-
         public ushort UnknownShort5 { get; set; }
-
         public byte UnknownByte2 { get; set; }
-
         public ushort NoteId { get; set; }
-
         public ushort NoteTemplateId { get; set; }
-
         public Tuple<ushort, ushort>[] Stacks { get; set; } = new Tuple<ushort, ushort>[10];
-
         public ushort UnknownShort6 { get; set; }
-
         public ushort UnknownShort7 { get; set; }
-
         public ushort UnknownShort8 { get; set; }
-
         public byte UnknownByte3 { get; set; }
-
         public byte UnknownByte4 { get; set; }
-
         public byte TeamId { get; set; }
-
         public ushort LendId { get; set; }
-
         public ushort LendTemplateId { get; set; }
-
         public int UnknownTribyte1 { get; set; }
-
         public int UnknownTribyte2 { get; set; }
-
         public int UnknownTribyte3 { get; set; }
-
         public int UnknownTribyte4 { get; set; }
-
         public int UnknownTribyte5 { get; set; }
-
         public int UnknownTribyte6 { get; set; }
-
         public ushort[] UnknownShortArray1 { get; set; }
-
         public byte UnknownByte5 { get; set; }
-
         public ushort BindId { get; set; }
-
         public ushort BindTemplateId { get; set; }
-
         public ushort UnknownShort9 { get; set; }
-
         public ushort UnknownShort10 { get; set; }
-
         public ushort UnknownShort11 { get; set; }
-
         public ushort UnknownShort12 { get; set; }
-
         public ushort UnknownShort13 { get; set; }
-
         public ushort UnknownShort14 { get; set; }
-
         public ushort UnknownShort15 { get; set; }
-
         public ushort UnknownShort16 { get; set; }
-
         public ushort UnknownShort17 { get; set; }
-
         public ushort UnknownShort18 { get; set; }
-
         public bool UnknownSwitch1 { get; set; }
-
         public ushort UnknownShort19 { get; set; }
-
         public ushort UnknownShort20 { get; set; }
-
         public ushort UnknownShort21 { get; set; }
-
         public string UnknownString1 { get; set; }
-
         public bool UnknownSwitch2 { get; set; }
-
         public Dictionary<int, object> Properties { get; set; } = new Dictionary<int, object>();
 
         public override void Decode(byte[] data)
@@ -626,162 +551,108 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
         public Dictionary<string, object> GetFields()
         {
-            var result = new Dictionary<string, string>
+            var result = new Dictionary<string, object>
             {
-                {"ModelId", this.ModelId}
+                {"ModelId", this.ModelId},
+                {"Name", this.Name},
+                {"ModelZoom", this.ModelZoom},
+                {"ModelRotation1", this.ModelRotation1},
+                {"ModelRotation2", this.ModelRotation2},
+                {"ModelOffset1", this.ModelOffset1},
+                {"ModelOffset2", this.ModelOffset2},
+                {"Stackable", this.Stackable},
+                {"Value", this.Value},
+                {"EquipSlotId", this.EquipSlotId},
+                {"EquipId", this.EquipId},
+                {"MembersOnly", this.MembersOnly},
+                {"UnknownShort1", this.UnknownShort1},
+                {"MaleEquip1", this.MaleEquip1},
+                {"MaleEquip2", this.MaleEquip2},
+                {"FemaleEquip1", this.FemaleEquip1},
+                {"FemaleEquip2", this.FemaleEquip2},
+                {"UnknownByte1", this.UnknownByte1},
+                {"GroundOption1", this.GroundOptions[0]},
+                {"GroundOption2", this.GroundOptions[1]},
+                {"GroundOption3", this.GroundOptions[2]},
+                {"GroundOption4", this.GroundOptions[3]},
+                {"GroundOption5", this.GroundOptions[4]},
+                {"InventoryOption1", this.InventoryOptions[0]},
+                {"InventoryOption2", this.InventoryOptions[1]},
+                {"InventoryOption3", this.InventoryOptions[2]},
+                {"InventoryOption4", this.InventoryOptions[3]},
+                {"InventoryOption5", this.InventoryOptions[4]},
+                {"OriginalModelColors", this.OriginalModelColors},
+                {"ModifiedModelColors", this.ModifiedModelColors},
+                {"OriginalTextureColors", this.OriginalTextureColors},
+                {"ModifiedTextureColors", this.ModifiedTextureColors},
+                {"UnknownByteArray1", this.UnknownByteArray1},
+                {"UnknownInt1", this.UnknownInt1},
+                {"UnknownShort2", this.UnknownShort2},
+                {"UnknownShort3", this.UnknownShort3},
+                {"Unnoted", this.Unnoted},
+                {"ColorEquip1", this.ColorEquip1},
+                {"ColorEquip2", this.ColorEquip2},
+                {"UnknownAwkwardInt1", this.UnknownAwkwardInt1},
+                {"UnknownAwkwardInt2", this.UnknownAwkwardInt2},
+                {"UnknownAwkwardInt3", this.UnknownAwkwardInt3},
+                {"UnknownAwkwardInt4", this.UnknownAwkwardInt4},
+                {"UnknownShort4", this.UnknownShort4},
+                {"UnknownShort5", this.UnknownShort5},
+                {"UnknownByte2", this.UnknownByte2},
+                {"NoteId", this.NoteId},
+                {"NoteTemplateId", this.NoteTemplateId},
+                {"Stack1", this.Stacks[0]},
+                {"Stack2", this.Stacks[1]},
+                {"Stack3", this.Stacks[2]},
+                {"Stack4", this.Stacks[3]},
+                {"Stack5", this.Stacks[4]},
+                {"Stack6", this.Stacks[5]},
+                {"Stack7", this.Stacks[6]},
+                {"Stack8", this.Stacks[7]},
+                {"Stack9", this.Stacks[8]},
+                {"Stack10", this.Stacks[9]},
+                {"UnknownShort6", this.UnknownShort6},
+                {"UnknownShort7", this.UnknownShort7},
+                {"UnknownShort8", this.UnknownShort8},
+                {"UnknownByte3", this.UnknownByte3},
+                {"UnknownByte4", this.UnknownByte4},
+                {"TeamId", this.TeamId},
+                {"LendId", this.LendId},
+                {"LendTemplateId", this.LendTemplateId},
+                {"UnknownTribyte1", this.UnknownTribyte1},
+                {"UnknownTribyte2", this.UnknownTribyte2},
+                {"UnknownTribyte3", this.UnknownTribyte3},
+                {"UnknownTribyte4", this.UnknownTribyte4},
+                {"UnknownTribyte5", this.UnknownTribyte5},
+                {"UnknownTribyte6", this.UnknownTribyte6},
+                {"UnknownShortArray1", this.UnknownShortArray1},
+                {"UnknownByte5", this.UnknownByte5},
+                {"BindId", this.BindId},
+                {"BindTemplateId", this.BindTemplateId},
+                {"UnknownShort9", this.UnknownShort9},
+                {"UnknownShort10", this.UnknownShort10},
+                {"UnknownShort11", this.UnknownShort11},
+                {"UnknownShort12", this.UnknownShort12},
+                {"UnknownShort13", this.UnknownShort13},
+                {"UnknownShort14", this.UnknownShort14},
+                {"UnknownShort15", this.UnknownShort15},
+                {"UnknownShort16", this.UnknownShort16},
+                {"UnknownShort17", this.UnknownShort17},
+                {"UnknownShort18", this.UnknownShort18},
+                {"UnknownSwitch1", this.UnknownSwitch1},
+                {"UnknownShort19", this.UnknownShort19},
+                {"UnknownShort20", this.UnknownShort20},
+                {"UnknownShort21", this.UnknownShort21},
+                {"UnknownString1", this.UnknownString1},
+                {"UnknownSwitch2", this.UnknownSwitch2}
             };
 
-
-
-        public string Name { get; set; } = "null";
-
-        public ushort ModelZoom { get; set; }
-
-        public ushort ModelRotation1 { get; set; }
-
-        public ushort ModelRotation2 { get; set; }
-
-        public short ModelOffset1 { get; set; }
-
-        public short ModelOffset2 { get; set; }
-
-        public bool Stackable { get; set; }
-
-        public int Value { get; set; }
-
-        public byte EquipSlotId { get; set; }
-
-        public byte EquipId { get; set; }
-
-        public bool MembersOnly { get; set; }
-
-        public ushort UnknownShort1 { get; set; }
-
-        public int MaleEquip1 { get; set; }
-
-        public int MaleEquip2 { get; set; }
-
-        public int FemaleEquip1 { get; set; }
-
-        public int FemaleEquip2 { get; set; }
-
-        public byte UnknownByte1 { get; set; }
-
-        public string[] GroundOptions { get; set; } = new string[5];
-
-        public string[] InventoryOptions { get; set; } = new string[5];
-
-        public ushort[] OriginalModelColors { get; set; }
-
-        public ushort[] ModifiedModelColors { get; set; }
-
-        public ushort[] OriginalTextureColors { get; set; }
-
-        public ushort[] ModifiedTextureColors { get; set; }
-
-        public byte[] UnknownByteArray1 { get; set; }
-
-        public uint UnknownInt1 { get; set; }
-
-        public ushort UnknownShort2 { get; set; }
-
-        public ushort UnknownShort3 { get; set; }
-
-        public bool Unnoted { get; set; }
-
-        public int ColorEquip1 { get; set; }
-
-        public int ColorEquip2 { get; set; }
-
-        public int UnknownAwkwardInt1 { get; set; }
-
-        public int UnknownAwkwardInt2 { get; set; }
-
-        public int UnknownAwkwardInt3 { get; set; }
-
-        public int UnknownAwkwardInt4 { get; set; }
-
-        public ushort UnknownShort4 { get; set; }
-
-        public ushort UnknownShort5 { get; set; }
-
-        public byte UnknownByte2 { get; set; }
-
-        public ushort NoteId { get; set; }
-
-        public ushort NoteTemplateId { get; set; }
-
-        public Tuple<ushort, ushort>[] Stacks { get; set; } = new Tuple<ushort, ushort>[10];
-
-        public ushort UnknownShort6 { get; set; }
-
-        public ushort UnknownShort7 { get; set; }
-
-        public ushort UnknownShort8 { get; set; }
-
-        public byte UnknownByte3 { get; set; }
-
-        public byte UnknownByte4 { get; set; }
-
-        public byte TeamId { get; set; }
-
-        public ushort LendId { get; set; }
-
-        public ushort LendTemplateId { get; set; }
-
-        public int UnknownTribyte1 { get; set; }
-
-        public int UnknownTribyte2 { get; set; }
-
-        public int UnknownTribyte3 { get; set; }
-
-        public int UnknownTribyte4 { get; set; }
-
-        public int UnknownTribyte5 { get; set; }
-
-        public int UnknownTribyte6 { get; set; }
-
-        public ushort[] UnknownShortArray1 { get; set; }
-
-        public byte UnknownByte5 { get; set; }
-
-        public ushort BindId { get; set; }
-
-        public ushort BindTemplateId { get; set; }
-
-        public ushort UnknownShort9 { get; set; }
-
-        public ushort UnknownShort10 { get; set; }
-
-        public ushort UnknownShort11 { get; set; }
-
-        public ushort UnknownShort12 { get; set; }
-
-        public ushort UnknownShort13 { get; set; }
-
-        public ushort UnknownShort14 { get; set; }
-
-        public ushort UnknownShort15 { get; set; }
-
-        public ushort UnknownShort16 { get; set; }
-
-        public ushort UnknownShort17 { get; set; }
-
-        public ushort UnknownShort18 { get; set; }
-
-        public bool UnknownSwitch1 { get; set; }
-
-        public ushort UnknownShort19 { get; set; }
-
-        public ushort UnknownShort20 { get; set; }
-
-        public ushort UnknownShort21 { get; set; }
-
-        public string UnknownString1 { get; set; }
-
-        public bool UnknownSwitch2 { get; set; }
-
-        public Dictionary<int, object> Properties { get; set; } = new Dictionary<int, object>();
+            foreach (var property in this.Properties)
+            {
+                result.Add($"Property{property.Key}", property.Value);
+            }
+
+            return result;
         }
 
         private enum Opcode

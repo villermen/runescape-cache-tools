@@ -2,6 +2,7 @@
 
 namespace Villermen.RuneScapeCacheTools.Exceptions
 {
+    [Serializable]
     public class SoundtrackException : Exception
     {
         public SoundtrackException()

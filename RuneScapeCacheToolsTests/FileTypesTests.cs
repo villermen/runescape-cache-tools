@@ -1,7 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -65,18 +70,77 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact(
-            // Skip = "Takes too long and is unfinished"
+            Skip = "Needs to be integrated in library"
         )]
-        public void TestAllItemDefinitions()
+        public void TestCreateItemCsv()
         {
-            foreach (var fileId in this.Fixture.Downloader.GetFileIds(Index.ItemDefinitions))
-            {
-                var entryFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.ItemDefinitions, fileId);
+            var headers = new List<string>();
 
-                var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
-                foreach (var itemDefinitionFile in itemDefinitionFiles)
+            using (var tempWriter = new StreamWriter(File.Open("items.csv.tmp", FileMode.Create)))
+            {
+                foreach (var fileId in this.Fixture.Downloader.GetFileIds(Index.ItemDefinitions))
                 {
-                    this.Output.WriteLine(itemDefinitionFile.Name);
+                    try
+                    {
+                        var entryFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.ItemDefinitions, fileId);
+
+                        var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
+                        foreach (var itemDefinitionFile in itemDefinitionFiles)
+                        {
+                            var row = new Dictionary<int, string>();
+
+                            foreach (var field in itemDefinitionFile.GetFields())
+                            {
+                                if (!headers.Contains(field.Key))
+                                {
+                                    headers.Add(field.Key);
+                                }
+
+                                row.Add(headers.IndexOf(field.Key), field.Value?.ToString());
+                            }
+
+                            var lastIndex = row.Keys.Max();
+                            for (var rowIndex = 0; rowIndex < lastIndex; rowIndex++)
+                            {
+                                if (rowIndex > 0)
+                                {
+                                    tempWriter.Write(",");
+                                }
+
+                                if (row.ContainsKey(rowIndex))
+                                {
+                                    tempWriter.Write($"\"{row[rowIndex]?.Replace("\"", "\"\"")}\"");
+                                }
+                            }
+
+                            tempWriter.WriteLine();
+                        }
+                    }
+                    catch (DecodeException exception)
+                    {
+                    }
+                }
+            }
+
+            // Prepend headers
+            using (var csvWriter = new StreamWriter(File.OpenWrite("items.csv")))
+            {
+                var headerCount = headers.Count;
+                for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
+                {
+                    if (headerIndex > 0)
+                    {
+                        csvWriter.Write(",");
+                    }
+
+                    csvWriter.Write($"\"{headers[headerIndex]}\"");
+                }
+
+                csvWriter.WriteLine();
+
+                foreach (var line in File.ReadLines("items.csv.tmp"))
+                {
+                    csvWriter.WriteLine(line);
                 }
             }
         }

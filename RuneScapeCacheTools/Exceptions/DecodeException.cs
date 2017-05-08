@@ -3,7 +3,7 @@
 namespace Villermen.RuneScapeCacheTools.Exceptions
 {
     [Serializable]
-    internal class DecodeException : Exception
+    public class DecodeException : Exception
     {
         public DecodeException()
         {
