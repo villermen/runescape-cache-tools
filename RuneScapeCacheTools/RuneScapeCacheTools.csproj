@@ -98,6 +98,7 @@
     <Compile Include="Cache\FileTypes\JagaFile.cs" />
     <Compile Include="Cache\FileTypes\MasterReferenceTableFile.cs" />
     <Compile Include="Cache\FileTypes\ReferenceTableFile.cs" />
+    <Compile Include="Cache\FlatFile\FlatFileCache.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\Language.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
