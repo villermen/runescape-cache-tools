@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 
 namespace RuneScapeCacheToolsTests
 {
+    [Collection(TestCacheCollection.Name)]
     public class FlatFileCacheTests
     {
         private TestCacheFixture Fixture { get; }
@@ -19,7 +20,7 @@ namespace RuneScapeCacheToolsTests
             this.Output = output;
         }
 
-        [Theory]
+        [Theory(Skip = "Unfinished")]
         [InlineData(Index.ClientScripts, 3)]
         public void TestExtract(Index index, int fileId)
         {
@@ -36,7 +37,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
         }
 
-        [Fact]
+        [Fact(Skip = "Unfinished")]
         public void TestExtractWithEntries()
         {
             var expectedFilePath = $"output/extracted/{(int)Index.Enums}/5-65";
@@ -52,7 +53,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
         }
 
-        [Fact]
+        [Fact(Skip = "Unfinished")]
         public void TestExtractExtension()
         {
             // TODO: his.Fixture.RuneTek5Cache.Extract(Index.LoadingSprites, 8501);

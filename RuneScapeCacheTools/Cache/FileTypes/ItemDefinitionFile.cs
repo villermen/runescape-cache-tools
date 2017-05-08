@@ -81,13 +81,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         public ushort UnknownShort16 { get; set; }
         public ushort UnknownShort17 { get; set; }
         public ushort UnknownShort18 { get; set; }
-        public bool UnknownSwitch1 { get; set; }
+        public bool Is25gp { get; set; }
         public ushort UnknownShort19 { get; set; }
         public ushort UnknownShort20 { get; set; }
-        public ushort UnknownShort21 { get; set; }
-        public string UnknownString1 { get; set; }
+        public ushort ShardAmount { get; set; }
+        public string ShardName { get; set; }
         public bool UnknownSwitch2 { get; set; }
-        public Dictionary<int, object> Properties { get; set; } = new Dictionary<int, object>();
+        public Dictionary<PropertyKey, object> Properties { get; set; } = new Dictionary<PropertyKey, object>();
 
         public override void Decode(byte[] data)
         {
@@ -483,8 +483,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                             this.UnknownShort18 = reader.ReadUInt16BigEndian();
                             break;
 
-                        case Opcode.UnknownSwitch1:
-                            this.UnknownSwitch1 = true;
+                        case Opcode.Is25gp:
+                            this.Is25gp = true;
                             break;
 
                         case Opcode.UnknownShort19:
@@ -495,12 +495,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                             this.UnknownShort20 = reader.ReadUInt16BigEndian();
                             break;
 
-                        case Opcode.UnknownShort21:
-                            this.UnknownShort21 = reader.ReadUInt16BigEndian();
+                        case Opcode.ShardAmount:
+                            this.ShardAmount = reader.ReadUInt16BigEndian();
                             break;
 
-                        case Opcode.UnknownString1:
-                            this.UnknownString1 = reader.ReadNullTerminatedString();
+                        case Opcode.ShardName:
+                            this.ShardName = reader.ReadNullTerminatedString();
                             break;
 
                         case Opcode.UnknownSwitch2:
@@ -519,14 +519,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                                     ? (object)reader.ReadNullTerminatedString()
                                     : reader.ReadInt32BigEndian();
 
-                                if (!this.Properties.ContainsKey(key))
+                                if (!this.Properties.ContainsKey((PropertyKey)key))
                                 {
-                                    this.Properties.Add(key, value);
+                                    this.Properties.Add((PropertyKey)key, value);
                                 }
                                 else
                                 {
                                     // Duplicate properties are probably caused by improper tooling at Jagex HQ
-                                    this.Properties[key] = value;
+                                    this.Properties[(PropertyKey)key] = value;
                                 }
                             }
                             break;
@@ -639,17 +639,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 {"UnknownShort16", this.UnknownShort16},
                 {"UnknownShort17", this.UnknownShort17},
                 {"UnknownShort18", this.UnknownShort18},
-                {"UnknownSwitch1", this.UnknownSwitch1},
+                {"Is25gp", this.Is25gp},
                 {"UnknownShort19", this.UnknownShort19},
                 {"UnknownShort20", this.UnknownShort20},
-                {"UnknownShort21", this.UnknownShort21},
-                {"UnknownString1", this.UnknownString1},
+                {"ShardAmount", this.ShardAmount},
+                {"ShardName", this.ShardName},
                 {"UnknownSwitch2", this.UnknownSwitch2}
             };
 
             foreach (var property in this.Properties)
             {
-                result.Add($"Property{property.Key}", property.Value);
+                result.Add(
+                    Enum.IsDefined(typeof(PropertyKey), property.Key)
+                        ? $"Property{property.Key}"
+                        : $"PropertyUnknown{property.Key}",
+                    property.Value
+                );
             }
 
             return result;
@@ -660,27 +665,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             End = 0,
             ModelId = 1,
             Name = 2,
-
             ModelZoom = 4,
             ModelRotation1 = 5,
             ModelRotation2 = 6,
             ModelOffset1 = 7,
             ModelOffset2 = 8,
-
             Stackable = 11,
             Value = 12,
             EquipSlotId = 13,
             EquipId = 14,
-
             MembersOnly = 16,
             UnknownShort1 = 18,
-
             MaleEquip1 = 23,
             MaleEquip2 = 24,
             FemaleEquip1 = 25,
             FemaleEquip2 = 26,
             UnknownByte1 = 27,
-
             GroundOption1 = 30,
             GroundOption2 = 31,
             GroundOption3 = 32,
@@ -693,16 +693,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             InventoryOption5 = 39,
             ModelColors = 40,
             TextureColors = 41,
-            UnknownByteArray1 = 42, // Possibly the meaning of life?
+            UnknownByteArray1 = 42,
             UnknownInt1 = 43,
             UnknownShort2 = 44,
             UnknownShort3 = 45,
-
             Unnoted = 65,
-
             ColorEquip1 = 78,
             ColorEquip2 = 79,
-
             UnknownAwkwardInt1 = 90,
             UnknownAwkwardInt2 = 91,
             UnknownAwkwardInt3 = 92,
@@ -712,7 +709,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             UnknownByte2 = 96,
             NoteId = 97,
             NoteTemplateId = 98,
-
             Stack1 = 100,
             Stack2 = 101,
             Stack3 = 102,
@@ -729,45 +725,61 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             UnknownByte3 = 113,
             UnknownByte4 = 114,
             TeamId = 115,
-
             LendId = 121,
             LendTemplateId = 122,
-
             UnknownTribyte1 = 125,
             UnknownTribyte2 = 126,
             UnknownTribyte3 = 127,
             UnknownTribyte4 = 128,
             UnknownTribyte5 = 129,
             UnknownTribyte6 = 130,
-
             UnknownShortArray1 = 132,
-
             UnknownByte5 = 134,
-
             BindId = 139,
             BindTemplateId = 140,
-
             UnknownShort9 = 142,
             UnknownShort10 = 143,
             UnknownShort11 = 144,
             UnknownShort12 = 145,
             UnknownShort13 = 146,
-
             UnknownShort14 = 150,
             UnknownShort15 = 151,
             UnknownShort16 = 152,
             UnknownShort17 = 153,
             UnknownShort18 = 154,
-
-            UnknownSwitch1 = 157,
-
+            Is25gp = 157,
             UnknownShort19 = 161,
             UnknownShort20 = 162,
-            UnknownShort21 = 163,
-            UnknownString1 = 164,
+            ShardAmount = 163,
+            ShardName = 164,
             UnknownSwitch2 = 165,
-
             Properties = 249
+        }
+
+        public enum PropertyKey
+        {
+            EquipOption1 = 528,
+            EquipOption2 = 529,
+            EquipOption3 = 530,
+            EquipOption4 = 531,
+            EquipSkillRequired = 749,
+            EquipLevelRequired = 750,
+            LifePointBonus = 1326,
+            MeleeAffinity = 2866,
+            RangedAffinity = 2867,
+            MagicAffinity = 2868,
+            ArmourBonus = 2870,
+            Broken = 3793,
+            UnknownMtxDescription = 4085,
+            SpecialAttackCost = 4332,
+            SpecialAttackName = 4333,
+            SpecialAttackDescription = 4334,
+            DestroyText = 5417,
+            ZarosItem = 5440,
+            UnknownFayreTokenRelated = 6405,
+            SigilCooldownDefault = 6520,
+            SigilCooldown = 6521,
+            SigilMaxCharges = 6522
         }
     }
 }
