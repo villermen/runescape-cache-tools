@@ -22,14 +22,38 @@ namespace Villermen.RuneScapeCacheTools
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Soundtrack));
 
+        private string _temporaryDirectory;
+
+        /// <summary>
+        ///     Temporary files used while processing will be stored here.
+        /// </summary>
+        public string TemporaryDirectory
+        {
+            get { return this._temporaryDirectory; }
+            set { this._temporaryDirectory = PathExtensions.FixDirectory(value); }
+        }
+
+        /// <summary>
+        ///     Temporary files used while processing will be stored here.
+        /// </summary>
+        public string OutputDirectory
+        {
+            get { return this._outputDirectory; }
+            set { this._outputDirectory = PathExtensions.FixDirectory(value); }
+        }
+
         /// <summary>
         ///     Used in the generation of temporary filenames.
         /// </summary>
         private readonly Random _random = new Random();
 
-        public Soundtrack(CacheBase cache)
+        private string _outputDirectory;
+
+        public Soundtrack(CacheBase cache, string outputDirectory)
         {
             this.Cache = cache;
+            this.TemporaryDirectory = Path.GetTempPath() + "rsct";
+            this.OutputDirectory = outputDirectory;
         }
 
         public CacheBase Cache { get; set; }
@@ -51,12 +75,11 @@ namespace Villermen.RuneScapeCacheTools
         public void Extract(bool overwriteExisting = false, bool lossless = false, bool includeUnnamed = false, params string[] nameFilters)
         {
             var trackNames = this.GetTrackNames(includeUnnamed);
-            var outputDirectory = this.Cache.OutputDirectory + "soundtrack/";
             var outputExtension = lossless ? "flac" : "ogg";
             var compressionQuality = lossless ? 8 : 6;
 
-            Directory.CreateDirectory(outputDirectory);
-            Directory.CreateDirectory(this.Cache.TemporaryDirectory);
+            Directory.CreateDirectory(this.OutputDirectory);
+            Directory.CreateDirectory(this.TemporaryDirectory);
 
             Soundtrack.Logger.Info("Done obtaining soundtrack names and file ids.");
 
@@ -79,7 +102,7 @@ namespace Villermen.RuneScapeCacheTools
                     trackNamePair =>
                     {
                         var outputFilename = $"{trackNamePair.Value}.{outputExtension}";
-                        var outputPath = Path.Combine(outputDirectory, outputFilename);
+                        var outputPath = this.OutputDirectory + outputFilename;
 
                         try
                         {
@@ -336,7 +359,7 @@ namespace Villermen.RuneScapeCacheTools
                     newPath =
                         new string(
                             Enumerable.Repeat(validChars, nameLength).Select(s => s[this._random.Next(s.Length)]).ToArray());
-                    newPath = $"{this.Cache.TemporaryDirectory}{newPath}.ogg";
+                    newPath = $"{this.TemporaryDirectory}{newPath}.ogg";
                 }
                 while (File.Exists(newPath) || result.Contains(newPath));
 

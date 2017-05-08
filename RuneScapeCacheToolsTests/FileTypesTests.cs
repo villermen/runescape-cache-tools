@@ -3,6 +3,7 @@ using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace RuneScapeCacheToolsTests
@@ -12,9 +13,12 @@ namespace RuneScapeCacheToolsTests
     {
         private TestCacheFixture Fixture { get; }
 
-        public FileTypesTests(TestCacheFixture fixture)
+        private ITestOutputHelper Output { get; }
+
+        public FileTypesTests(TestCacheFixture fixture, ITestOutputHelper output)
         {
             this.Fixture = fixture;
+            this.Output = output;
         }
 
         [Fact]
@@ -61,7 +65,7 @@ namespace RuneScapeCacheToolsTests
         }
 
         [Fact(
-            Skip = "Takes too long and is unfinished"
+            // Skip = "Takes too long and is unfinished"
         )]
         public void TestAllItemDefinitions()
         {
@@ -69,7 +73,11 @@ namespace RuneScapeCacheToolsTests
             {
                 var entryFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.ItemDefinitions, fileId);
 
-                entryFile.GetEntries<ItemDefinitionFile>();
+                var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
+                foreach (var itemDefinitionFile in itemDefinitionFiles)
+                {
+                    this.Output.WriteLine(itemDefinitionFile.Name);
+                }
             }
         }
     }

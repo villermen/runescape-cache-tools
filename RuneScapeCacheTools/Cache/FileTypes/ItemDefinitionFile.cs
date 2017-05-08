@@ -624,6 +624,166 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             throw new NotImplementedException();
         }
 
+        public Dictionary<string, object> GetFields()
+        {
+            var result = new Dictionary<string, string>
+            {
+                {"ModelId", this.ModelId}
+            };
+
+
+
+        public string Name { get; set; } = "null";
+
+        public ushort ModelZoom { get; set; }
+
+        public ushort ModelRotation1 { get; set; }
+
+        public ushort ModelRotation2 { get; set; }
+
+        public short ModelOffset1 { get; set; }
+
+        public short ModelOffset2 { get; set; }
+
+        public bool Stackable { get; set; }
+
+        public int Value { get; set; }
+
+        public byte EquipSlotId { get; set; }
+
+        public byte EquipId { get; set; }
+
+        public bool MembersOnly { get; set; }
+
+        public ushort UnknownShort1 { get; set; }
+
+        public int MaleEquip1 { get; set; }
+
+        public int MaleEquip2 { get; set; }
+
+        public int FemaleEquip1 { get; set; }
+
+        public int FemaleEquip2 { get; set; }
+
+        public byte UnknownByte1 { get; set; }
+
+        public string[] GroundOptions { get; set; } = new string[5];
+
+        public string[] InventoryOptions { get; set; } = new string[5];
+
+        public ushort[] OriginalModelColors { get; set; }
+
+        public ushort[] ModifiedModelColors { get; set; }
+
+        public ushort[] OriginalTextureColors { get; set; }
+
+        public ushort[] ModifiedTextureColors { get; set; }
+
+        public byte[] UnknownByteArray1 { get; set; }
+
+        public uint UnknownInt1 { get; set; }
+
+        public ushort UnknownShort2 { get; set; }
+
+        public ushort UnknownShort3 { get; set; }
+
+        public bool Unnoted { get; set; }
+
+        public int ColorEquip1 { get; set; }
+
+        public int ColorEquip2 { get; set; }
+
+        public int UnknownAwkwardInt1 { get; set; }
+
+        public int UnknownAwkwardInt2 { get; set; }
+
+        public int UnknownAwkwardInt3 { get; set; }
+
+        public int UnknownAwkwardInt4 { get; set; }
+
+        public ushort UnknownShort4 { get; set; }
+
+        public ushort UnknownShort5 { get; set; }
+
+        public byte UnknownByte2 { get; set; }
+
+        public ushort NoteId { get; set; }
+
+        public ushort NoteTemplateId { get; set; }
+
+        public Tuple<ushort, ushort>[] Stacks { get; set; } = new Tuple<ushort, ushort>[10];
+
+        public ushort UnknownShort6 { get; set; }
+
+        public ushort UnknownShort7 { get; set; }
+
+        public ushort UnknownShort8 { get; set; }
+
+        public byte UnknownByte3 { get; set; }
+
+        public byte UnknownByte4 { get; set; }
+
+        public byte TeamId { get; set; }
+
+        public ushort LendId { get; set; }
+
+        public ushort LendTemplateId { get; set; }
+
+        public int UnknownTribyte1 { get; set; }
+
+        public int UnknownTribyte2 { get; set; }
+
+        public int UnknownTribyte3 { get; set; }
+
+        public int UnknownTribyte4 { get; set; }
+
+        public int UnknownTribyte5 { get; set; }
+
+        public int UnknownTribyte6 { get; set; }
+
+        public ushort[] UnknownShortArray1 { get; set; }
+
+        public byte UnknownByte5 { get; set; }
+
+        public ushort BindId { get; set; }
+
+        public ushort BindTemplateId { get; set; }
+
+        public ushort UnknownShort9 { get; set; }
+
+        public ushort UnknownShort10 { get; set; }
+
+        public ushort UnknownShort11 { get; set; }
+
+        public ushort UnknownShort12 { get; set; }
+
+        public ushort UnknownShort13 { get; set; }
+
+        public ushort UnknownShort14 { get; set; }
+
+        public ushort UnknownShort15 { get; set; }
+
+        public ushort UnknownShort16 { get; set; }
+
+        public ushort UnknownShort17 { get; set; }
+
+        public ushort UnknownShort18 { get; set; }
+
+        public bool UnknownSwitch1 { get; set; }
+
+        public ushort UnknownShort19 { get; set; }
+
+        public ushort UnknownShort20 { get; set; }
+
+        public ushort UnknownShort21 { get; set; }
+
+        public string UnknownString1 { get; set; }
+
+        public bool UnknownSwitch2 { get; set; }
+
+        public Dictionary<int, object> Properties { get; set; } = new Dictionary<int, object>();
+        }
+
         private enum Opcode
         {
             End = 0,
