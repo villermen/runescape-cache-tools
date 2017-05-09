@@ -90,6 +90,7 @@
     <Compile Include="Fixtures\TestCacheCollection.cs" />
     <Compile Include="Fixtures\TestCacheFixture.cs" />
     <Compile Include="FlatFileCacheTests.cs" />
+    <Compile Include="FormatterTests.cs" />
     <Compile Include="RuneTek5CacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DownloaderCacheTests.cs" />

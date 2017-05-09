@@ -208,12 +208,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 			        if (Program.OutputDirectory != null)
 			        {
-			            Program.Cache.OutputDirectory = Program.OutputDirectory;
+				        // TODO: Program.Cache.OutputDirectory = Program.OutputDirectory;
 			        }
 
 			        if (Program.TemporaryDirectory != null)
 			        {
-			            Program.Cache.TemporaryDirectory = Program.TemporaryDirectory;
+				        // TODO: Program.Cache.TemporaryDirectory = Program.TemporaryDirectory;
 			        }
 
 			        // Perform the specified actions
@@ -323,17 +323,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
             if (Program.Indexes == null && Program.FileIds == null)
 			{
 				// Extract everything
-				Program.Cache.Extract(Program.Overwrite, progress);
+				// TODO: Program.Cache.Extract(Program.Overwrite, progress);
 			}
 			else if (Program.FileIds == null)
 			{
 				// Extract the given index(es) fully
-				Program.Cache.Extract(Program.Indexes, Program.Overwrite, progress);
+				// TODO: Program.Cache.Extract(Program.Indexes, Program.Overwrite, progress);
 			}
 			else if (Program.Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-                Program.Cache.Extract(Program.Indexes.First(), Program.FileIds, Program.Overwrite, progress);
+				// TODO: Program.Cache.Extract(Program.Indexes.First(), Program.FileIds, Program.Overwrite, progress);
 			}
 			else
 			{
@@ -345,9 +345,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private static void CombineSoundtrack()
 		{
-			var soundtrack = new Soundtrack(Program.Cache);
+			// TODO: var soundtrack = new Soundtrack(Program.Cache);
 
-			soundtrack.Extract(Program.Overwrite, Program.Lossless, Program.IncludeUnnamedSoundtracks, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
+			// TODO: soundtrack.Extract(Program.Overwrite, Program.Lossless, Program.IncludeUnnamedSoundtracks, Program.SoundtrackNameFilter?.ToArray() ?? new string[0]);
         }
 	}
 }

@@ -1,6 +1,10 @@
 ﻿using System;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
@@ -13,7 +17,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     public class ItemDefinitionFile : CacheFile
     {
         public int ModelId { get; set; }
-        public string Name { get; set; } = "null";
+        public string Name { get; set; }
         public ushort ModelZoom { get; set; }
         public ushort ModelRotation1 { get; set; }
         public ushort ModelRotation2 { get; set; }
@@ -81,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         public ushort UnknownShort16 { get; set; }
         public ushort UnknownShort17 { get; set; }
         public ushort UnknownShort18 { get; set; }
-        public bool Is25gp { get; set; }
+        public bool Is25Gp { get; set; }
         public ushort UnknownShort19 { get; set; }
         public ushort UnknownShort20 { get; set; }
         public ushort ShardAmount { get; set; }
@@ -483,8 +487,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                             this.UnknownShort18 = reader.ReadUInt16BigEndian();
                             break;
 
-                        case Opcode.Is25gp:
-                            this.Is25gp = true;
+                        case Opcode.Is25Gp:
+                            this.Is25Gp = true;
                             break;
 
                         case Opcode.UnknownShort19:
@@ -549,111 +553,29 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             throw new NotImplementedException();
         }
 
-        public Dictionary<string, object> GetFields()
+        public Dictionary<string, string> GetFields()
         {
-            var result = new Dictionary<string, object>
-            {
-                {"ModelId", this.ModelId},
-                {"Name", this.Name},
-                {"ModelZoom", this.ModelZoom},
-                {"ModelRotation1", this.ModelRotation1},
-                {"ModelRotation2", this.ModelRotation2},
-                {"ModelOffset1", this.ModelOffset1},
-                {"ModelOffset2", this.ModelOffset2},
-                {"Stackable", this.Stackable},
-                {"Value", this.Value},
-                {"EquipSlotId", this.EquipSlotId},
-                {"EquipId", this.EquipId},
-                {"MembersOnly", this.MembersOnly},
-                {"UnknownShort1", this.UnknownShort1},
-                {"MaleEquip1", this.MaleEquip1},
-                {"MaleEquip2", this.MaleEquip2},
-                {"FemaleEquip1", this.FemaleEquip1},
-                {"FemaleEquip2", this.FemaleEquip2},
-                {"UnknownByte1", this.UnknownByte1},
-                {"GroundOption1", this.GroundOptions[0]},
-                {"GroundOption2", this.GroundOptions[1]},
-                {"GroundOption3", this.GroundOptions[2]},
-                {"GroundOption4", this.GroundOptions[3]},
-                {"GroundOption5", this.GroundOptions[4]},
-                {"InventoryOption1", this.InventoryOptions[0]},
-                {"InventoryOption2", this.InventoryOptions[1]},
-                {"InventoryOption3", this.InventoryOptions[2]},
-                {"InventoryOption4", this.InventoryOptions[3]},
-                {"InventoryOption5", this.InventoryOptions[4]},
-                {"OriginalModelColors", this.OriginalModelColors},
-                {"ModifiedModelColors", this.ModifiedModelColors},
-                {"OriginalTextureColors", this.OriginalTextureColors},
-                {"ModifiedTextureColors", this.ModifiedTextureColors},
-                {"UnknownByteArray1", this.UnknownByteArray1},
-                {"UnknownInt1", this.UnknownInt1},
-                {"UnknownShort2", this.UnknownShort2},
-                {"UnknownShort3", this.UnknownShort3},
-                {"Unnoted", this.Unnoted},
-                {"ColorEquip1", this.ColorEquip1},
-                {"ColorEquip2", this.ColorEquip2},
-                {"UnknownAwkwardInt1", this.UnknownAwkwardInt1},
-                {"UnknownAwkwardInt2", this.UnknownAwkwardInt2},
-                {"UnknownAwkwardInt3", this.UnknownAwkwardInt3},
-                {"UnknownAwkwardInt4", this.UnknownAwkwardInt4},
-                {"UnknownShort4", this.UnknownShort4},
-                {"UnknownShort5", this.UnknownShort5},
-                {"UnknownByte2", this.UnknownByte2},
-                {"NoteId", this.NoteId},
-                {"NoteTemplateId", this.NoteTemplateId},
-                {"Stack1", this.Stacks[0]},
-                {"Stack2", this.Stacks[1]},
-                {"Stack3", this.Stacks[2]},
-                {"Stack4", this.Stacks[3]},
-                {"Stack5", this.Stacks[4]},
-                {"Stack6", this.Stacks[5]},
-                {"Stack7", this.Stacks[6]},
-                {"Stack8", this.Stacks[7]},
-                {"Stack9", this.Stacks[8]},
-                {"Stack10", this.Stacks[9]},
-                {"UnknownShort6", this.UnknownShort6},
-                {"UnknownShort7", this.UnknownShort7},
-                {"UnknownShort8", this.UnknownShort8},
-                {"UnknownByte3", this.UnknownByte3},
-                {"UnknownByte4", this.UnknownByte4},
-                {"TeamId", this.TeamId},
-                {"LendId", this.LendId},
-                {"LendTemplateId", this.LendTemplateId},
-                {"UnknownTribyte1", this.UnknownTribyte1},
-                {"UnknownTribyte2", this.UnknownTribyte2},
-                {"UnknownTribyte3", this.UnknownTribyte3},
-                {"UnknownTribyte4", this.UnknownTribyte4},
-                {"UnknownTribyte5", this.UnknownTribyte5},
-                {"UnknownTribyte6", this.UnknownTribyte6},
-                {"UnknownShortArray1", this.UnknownShortArray1},
-                {"UnknownByte5", this.UnknownByte5},
-                {"BindId", this.BindId},
-                {"BindTemplateId", this.BindTemplateId},
-                {"UnknownShort9", this.UnknownShort9},
-                {"UnknownShort10", this.UnknownShort10},
-                {"UnknownShort11", this.UnknownShort11},
-                {"UnknownShort12", this.UnknownShort12},
-                {"UnknownShort13", this.UnknownShort13},
-                {"UnknownShort14", this.UnknownShort14},
-                {"UnknownShort15", this.UnknownShort15},
-                {"UnknownShort16", this.UnknownShort16},
-                {"UnknownShort17", this.UnknownShort17},
-                {"UnknownShort18", this.UnknownShort18},
-                {"Is25gp", this.Is25gp},
-                {"UnknownShort19", this.UnknownShort19},
-                {"UnknownShort20", this.UnknownShort20},
-                {"ShardAmount", this.ShardAmount},
-                {"ShardName", this.ShardName},
-                {"UnknownSwitch2", this.UnknownSwitch2}
-            };
+            var result = new Dictionary<string, string>();
 
+            // Add all public properties' names and values (except "Properties") to the list
+            foreach (var typeProperty in typeof(ItemDefinitionFile).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                if (typeProperty.Name == "Properties")
+                {
+                    continue;
+                }
+
+                result.Add(typeProperty.Name, Formatter.GetValueRepresentation(typeProperty.GetValue(this)));
+            }
+
+            // Every property will get its own key
             foreach (var property in this.Properties)
             {
                 result.Add(
                     Enum.IsDefined(typeof(PropertyKey), property.Key)
                         ? $"Property{property.Key}"
                         : $"PropertyUnknown{property.Key}",
-                    property.Value
+                    Formatter.GetValueRepresentation(property.Value)
                 );
             }
 
@@ -747,7 +669,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             UnknownShort16 = 152,
             UnknownShort17 = 153,
             UnknownShort18 = 154,
-            Is25gp = 157,
+            Is25Gp = 157,
             UnknownShort19 = 161,
             UnknownShort20 = 162,
             ShardAmount = 163,
@@ -769,6 +691,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             RangedAffinity = 2867,
             MagicAffinity = 2868,
             ArmourBonus = 2870,
+            PotionEffectValue = 3000,
+            PortentOfDegradationHealAmount = 3698,
             Broken = 3793,
             UnknownMtxDescription = 4085,
             SpecialAttackCost = 4332,

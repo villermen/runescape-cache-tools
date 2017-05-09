@@ -116,6 +116,7 @@
     <Compile Include="Exceptions\DownloaderException.cs" />
     <Compile Include="Exceptions\SoundtrackException.cs" />
     <Compile Include="Extensions\BinaryStreamExtensions.cs" />
+    <Compile Include="Extensions\Formatter.cs" />
     <Compile Include="Extensions\PathExtensions.cs" />
     <Compile Include="Extensions\ExtendedProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

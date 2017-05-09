@@ -96,7 +96,7 @@ namespace RuneScapeCacheToolsTests
                                     headers.Add(field.Key);
                                 }
 
-                                row.Add(headers.IndexOf(field.Key), field.Value?.ToString());
+                                row.Add(headers.IndexOf(field.Key), field.Value);
                             }
 
                             var lastIndex = row.Keys.Max();
