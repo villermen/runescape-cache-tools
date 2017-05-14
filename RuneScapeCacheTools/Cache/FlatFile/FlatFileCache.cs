@@ -25,12 +25,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             set { this._baseDirectory = PathExtensions.FixDirectory(value); }
         }
 
-        public override IEnumerable<Index> Indexes
+        public override IEnumerable<Index> GetIndexes()
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
+            return Directory.EnumerateDirectories(this._baseDirectory)
+                .Select(Path.GetFileName)
+                .Select(indexIdString =>
+                {
+                    int value;
+                    return int.TryParse(indexIdString, out value) ? value : -1;
+                })
+                .Where(indexId => indexId != -1)
+                .Cast<Index>();
         }
 
         public FlatFileCache(string baseDirectory)
@@ -38,7 +43,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             this.BaseDirectory = baseDirectory;
         }
 
-        protected override BinaryFile FetchFile(Index index, int fileId)
+        protected override BinaryFile GetFile(Index index, int fileId)
         {
             throw new NotImplementedException();
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
@@ -31,7 +32,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public static string DefaultCacheDirectory
             => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
-        public override IEnumerable<Index> Indexes => this.FileStore.Indexes;
+        public override IEnumerable<Index> GetIndexes()
+        {
+            return this.FileStore.Indexes;
+        }
 
         /// <summary>
         ///     The directory where the cache is located.
@@ -47,7 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private ConcurrentDictionary<Index, ReferenceTableFile> ReferenceTables { get; set; }
 
-        protected override BinaryFile FetchFile(Index index, int fileId)
+        protected override BinaryFile GetFile(Index index, int fileId)
         {
             CacheFileInfo info;
 
@@ -152,12 +156,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             this.ReferenceTables = new ConcurrentDictionary<Index, ReferenceTableFile>();
         }
 
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
-            if (disposing)
-            {
-                this.FileStore.Dispose();
-            }
+            this.FileStore.Dispose();
+            base.Dispose();
         }
     }
 }

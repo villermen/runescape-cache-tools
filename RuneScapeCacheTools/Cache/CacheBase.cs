@@ -1,25 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using log4net;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
-    ///     Base class for current cache systems.
-    ///     For cache structures expressing the notion of indexes and archives.
+    /// Base class for cache systems.
     /// </summary>
     public abstract class CacheBase : IDisposable
     {
-        public abstract IEnumerable<Index> Indexes { get; }
+        /// <summary>
+        /// Returns the indexes available in the cache.
+        /// </summary>
+        /// <returns></returns>
+        public abstract IEnumerable<Index> GetIndexes();
 
         /// <summary>
-        ///     Returns the requested file and tries to convert it to the requested type if possible.
+        /// Returns the files available in the given index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public abstract IEnumerable<int> GetFileIds(Index index);
+
+        /// <summary>
+        /// Returns info on the specified file without actually obtaining the file.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        public abstract CacheFileInfo GetFileInfo(Index index, int fileId);
+
+        /// <summary>
+        /// Returns the requested file converted to the requested type.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="fileId"></param>
@@ -27,7 +39,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public T GetFile<T>(Index index, int fileId) where T : CacheFile
         {
             // Obtain the file /entry
-            var file = this.FetchFile(index, fileId);
+            var file = this.GetFile(index, fileId);
 
             // These we know
             file.Info.Index = index;
@@ -51,10 +63,14 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <param name="index"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        protected abstract BinaryFile FetchFile(Index index, int fileId);
+        protected abstract BinaryFile GetFile(Index index, int fileId);
 
-        public abstract IEnumerable<int> GetFileIds(Index index);
-
+        /// <summary>
+        /// Writes a file to the cache.
+        /// The file's info will be used to determine where and how to put the file in the cache.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <exception cref="ArgumentException"></exception>
         public void PutFile(CacheFile file)
         {
             if (file.Info.EntryId != -1)
@@ -67,22 +83,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         protected abstract void PutFile(BinaryFile file);
 
-        /// <summary>
-        ///     Returns info on the file without actually obtaining the file.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="fileId"></param>
-        /// <returns></returns>
-        public abstract CacheFileInfo GetFileInfo(Index index, int fileId);
-
-        public void Dispose()
+        public void CopyFile(Index index, int fileId, CacheBase cache)
         {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
+            cache.PutFile(this.GetFile(index, fileId));
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-        }
+        public virtual void Dispose() { }
     }
 }

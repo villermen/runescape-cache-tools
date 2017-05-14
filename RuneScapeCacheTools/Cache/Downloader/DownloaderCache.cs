@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
@@ -17,7 +16,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     /// <author>Method</author>
     public class DownloaderCache : CacheBase
     {
-        public override IEnumerable<Index> Indexes => this.GetMasterReferenceTable().ReferenceTableFiles.Keys;
+        public override IEnumerable<Index> GetIndexes()
+        {
+            return this.GetMasterReferenceTable().ReferenceTableFiles.Keys;
+        }
 
         private static readonly Index[] IndexesUsingHttpInterface = { Index.Music };
 
@@ -29,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private readonly TcpFileDownloader _tcpFileDownloader = new TcpFileDownloader();
 
-        protected override BinaryFile FetchFile(Index index, int fileId)
+        protected override BinaryFile GetFile(Index index, int fileId)
         {
             var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
             {
@@ -74,9 +76,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             return this._cachedReferenceTables.GetOrAdd(index, index2 => this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
         }
 
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
             this._tcpFileDownloader.Dispose();
+            base.Dispose();
         }
     }
 }

@@ -44,7 +44,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(trackNames.Any(trackNamePair => trackNamePair.Value == "20386"), "\"20386\" did not occur in the list of track names.");
         }
 
-        [Theory(Skip = "Unfinished")]
+        [Theory]
         [InlineData("Soundscape", "Soundscape.ogg", 15, false)] // OGG
         [InlineData("undsca", "Soundscape.flac", 15, true)] // FLAC and partial case insensitive filter matching
         [InlineData("Black Zabeth LIVE!", "Black Zabeth LIVE!.ogg", 15, false)] // Fixing invalid filenames (Actual name is "Black Zabeth: LIVE!" which is invalid on Windows)

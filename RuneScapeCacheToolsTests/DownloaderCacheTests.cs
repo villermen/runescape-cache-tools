@@ -58,7 +58,7 @@ namespace RuneScapeCacheToolsTests
         [InlineData(52)]
         public void TestIndexIds(int expectedIndexCount)
         {
-            var reportedIndexCount = this.Fixture.Downloader.Indexes.Count();
+            var reportedIndexCount = this.Fixture.Downloader.GetIndexes().Count();
 
             Assert.InRange(reportedIndexCount, expectedIndexCount, 253);
         }

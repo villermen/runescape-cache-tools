@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Xunit;
@@ -20,7 +21,7 @@ namespace RuneScapeCacheToolsTests
             this.Output = output;
         }
 
-        [Theory(Skip = "Unfinished")]
+        [Theory]
         [InlineData(Index.ClientScripts, 3)]
         public void TestExtract(Index index, int fileId)
         {
@@ -37,7 +38,7 @@ namespace RuneScapeCacheToolsTests
             Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
         }
 
-        [Fact(Skip = "Unfinished")]
+        [Fact]
         public void TestExtractWithEntries()
         {
             var expectedFilePath = $"output/extracted/{(int)Index.Enums}/5-65";
@@ -53,13 +54,20 @@ namespace RuneScapeCacheToolsTests
             Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
         }
 
-        [Fact(Skip = "Unfinished")]
+        [Fact]
         public void TestExtractExtension()
         {
-            // TODO: his.Fixture.RuneTek5Cache.Extract(Index.LoadingSprites, 8501);
+            // TODO: this.Fixture.RuneTek5Cache.Extract(Index.LoadingSprites, 8501);
 
             // Verify that the .jpg extension was added
-            Assert.True(File.Exists($"output/extracted/{(int)Index.LoadingSprites}/8501.jpg"));
+            Assert.True(File.Exists($"output/extracted/{(int)Index.LoadingSprites}/30556.jpg"));
+        }
+
+        [Fact]
+        public void TestGetIndexes()
+        {
+            var indexes = this.Fixture.FlatFileCache.GetIndexes();
+            Assert.Equal(7, indexes.Count());
         }
     }
 }

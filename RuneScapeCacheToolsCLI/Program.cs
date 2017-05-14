@@ -328,12 +328,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			else if (Program.FileIds == null)
 			{
 				// Extract the given index(es) fully
-				// TODO: Program.Cache.Extract(Program.Indexes, Program.Overwrite, progress);
+				// TODO: Program.Cache.Extract(Program.GetIndexes, Program.Overwrite, progress);
 			}
 			else if (Program.Indexes.Count() == 1)
 			{
 				// Extract specified files from the given index
-				// TODO: Program.Cache.Extract(Program.Indexes.First(), Program.FileIds, Program.Overwrite, progress);
+				// TODO: Program.Cache.Extract(Program.GetIndexes.First(), Program.FileIds, Program.Overwrite, progress);
 			}
 			else
 			{

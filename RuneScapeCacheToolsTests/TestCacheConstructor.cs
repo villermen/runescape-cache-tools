@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting.Channels;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
@@ -13,18 +15,18 @@ namespace RuneScapeCacheToolsTests
     public class TestCacheConstructor
     {
         /// <summary>
-        /// Only used manually to construct a new test cache.
-        /// 
         /// Downloads and stores files necessary to perform all tests.
         /// </summary>
-        [Fact(Skip = "Only run manually to construct a new test cache")]
+        [Fact(
+            Skip = "Only run manually to construct a new test cache"
+        )]
         public void ConstructTestCache()
         {
             var files = new List<Tuple<Index, int>>
             {
                 new Tuple<Index, int>(Index.Enums, 5),
                 new Tuple<Index, int>(Index.ClientScripts, 3),
-                new Tuple<Index, int>(Index.LoadingSprites, 8501),
+                new Tuple<Index, int>(Index.LoadingSprites, 30556),
                 new Tuple<Index, int>(Index.Models, 47000),
                 new Tuple<Index, int>(Index.Enums, 23),
                 new Tuple<Index, int>(Index.ItemDefinitions, 155),
@@ -129,26 +131,30 @@ namespace RuneScapeCacheToolsTests
 
             try
             {
-                Directory.Delete("NewCache", true);
+                Directory.Delete("generated", true);
             }
             catch (DirectoryNotFoundException)
             {
             }
 
-            using (var cache = new RuneTek5Cache("NewCache", false))
             using (var downloader = new DownloaderCache())
+            using (var runeTek5Cache = new RuneTek5Cache("generated/runetek5", false))
+            using (var flatFileCache = new FlatFileCache("generated/flatfile"))
+
             {
                 foreach (var fileTuple in files)
                 {
                     var file = downloader.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
-                    cache.PutFile(file);
+                    runeTek5Cache.PutFile(file);
+                    flatFileCache.PutFile(file);
                 }
 
                 // Verify that the files are now obtainable
-                cache.Refresh();
+                runeTek5Cache.Refresh();
                 foreach (var fileTuple in files)
                 {
-                    cache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
+                    runeTek5Cache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
+                    flatFileCache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
                 }
             }
         }
