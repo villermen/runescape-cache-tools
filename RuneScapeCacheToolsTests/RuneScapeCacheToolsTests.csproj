@@ -85,16 +85,20 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BinaryStreamExtensionsTests.cs" />
-    <Compile Include="FileTypesTests.cs" />
     <Compile Include="FileStoreTests.cs" />
+    <Compile Include="FileTypesTests\EntryFileTests.cs" />
+    <Compile Include="FileTypesTests\ItemDefinitionFileTests.cs" />
+    <Compile Include="FileTypesTests\JagaFileTests.cs" />
+    <Compile Include="FileTypesTests\ReferenceTableFileTests.cs" />
     <Compile Include="Fixtures\TestCacheCollection.cs" />
     <Compile Include="Fixtures\TestCacheFixture.cs" />
     <Compile Include="FlatFileCacheTests.cs" />
     <Compile Include="FormatterTests.cs" />
-    <Compile Include="RuneTek5CacheTests.cs" />
+    <Compile Include="CacheTypesTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DownloaderCacheTests.cs" />
     <Compile Include="SoundtrackTests.cs" />
+    <Compile Include="TemporaryTests.cs" />
     <Compile Include="TestCacheConstructor.cs" />
   </ItemGroup>
   <ItemGroup>

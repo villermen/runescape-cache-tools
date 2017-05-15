@@ -3,18 +3,20 @@ using System.IO;
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
 namespace RuneScapeCacheToolsTests
 {
     [Collection(TestCacheCollection.Name)]
-    public class RuneTek5CacheTests
+    public class CacheTypesTests
     {
         private TestCacheFixture Fixture { get; }
 
-        public RuneTek5CacheTests(TestCacheFixture fixture)
+        public CacheTypesTests(TestCacheFixture fixture)
         {
             this.Fixture = fixture;
         }
@@ -22,16 +24,21 @@ namespace RuneScapeCacheToolsTests
         /// <summary>
         /// Test for a file that exists, an archive file that exists and a file that doesn't exist.
         /// </summary>
-        [Fact]
-        public void TestGetFile()
+        [Theory]
+        [InlineData(typeof(RuneTek5Cache))]
+        [InlineData(typeof(DownloaderCache))]
+        [InlineData(typeof(FlatFileCache))]
+        public void TestGetFile(Type cacheType)
         {
-            var file = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ClientScripts, 3);
+            var cache = this.Fixture.GetCache(cacheType);
+
+            var file = cache.GetFile<BinaryFile>(Index.ClientScripts, 3);
 
             var fileData = file.Data;
 
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
-            var archiveFile = this.Fixture.RuneTek5Cache.GetFile<EntryFile>(Index.Enums, 5);
+            var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
 
             var archiveEntry = archiveFile.GetEntry<BinaryFile>(255);
 
@@ -39,23 +46,31 @@ namespace RuneScapeCacheToolsTests
 
             Assert.Throws<FileNotFoundException>(() =>
             {
-                this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.Music, 30);
+                cache.GetFile<BinaryFile>(Index.Music, 30);
             });
         }
 
         [Theory]
-        [InlineData(Index.Music)]
-        [InlineData(Index.Enums)]
-        [InlineData(Index.ClientScripts)]
-        public void TestGetReferenceTable(Index index)
+        [InlineData(typeof(RuneTek5Cache), Index.Music)]
+        [InlineData(typeof(RuneTek5Cache), Index.Enums)]
+        [InlineData(typeof(RuneTek5Cache), Index.ClientScripts)]
+        [InlineData(typeof(FlatFileCache), Index.Music)]
+        [InlineData(typeof(DownloaderCache), Index.Enums)]
+        public void TestGetReferenceTableFile(Type cacheType, Index[] indexes)
         {
-            var referenceTable = this.Fixture.RuneTek5Cache.GetReferenceTable(index);
+            var cache = this.Fixture.GetCache(cacheType);
+
+            foreach (var index in indexes)
+            {
+                cache.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
+            }
         }
 
         [Theory]
-        [InlineData(Index.Models, 47000)] // Gzip
-        [InlineData(Index.Enums, 23)] // Bzip2, entries
-        public void TestWriteCacheFile(Index index, int fileId)
+        [InlineData(typeof(RuneTek5Cache), Index.Models, 47000)] // Gzip
+        [InlineData(typeof(RuneTek5Cache), Index.Enums, 23)] // Bzip2, entries
+        [InlineData(typeof(FlatFileCache), Index.Enums, 23)]
+        public void TestWriteBinaryFile(Type cacheType, Index index, int fileId)
         {
             var file1 = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
@@ -71,19 +86,6 @@ namespace RuneScapeCacheToolsTests
 
             // Byte-compare both files
             Assert.True(file1.Data.SequenceEqual(file2.Data));
-        }
-
-        [Theory]
-        [InlineData(Index.Music)]
-        public void TestEncodeReferenceTable(Index index)
-        {
-            var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
-            var referenceTable =  new ReferenceTableFile();
-            referenceTable.FromBinaryFile(referenceTableFile);
-
-            var encodedFile = referenceTable.ToBinaryFile();
-
-            Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
         }
     }
 }

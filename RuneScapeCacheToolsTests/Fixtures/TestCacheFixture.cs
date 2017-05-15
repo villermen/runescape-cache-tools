@@ -1,5 +1,6 @@
 ﻿using System;
 using Villermen.RuneScapeCacheTools;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -12,12 +13,10 @@ namespace RuneScapeCacheToolsTests.Fixtures
     public class TestCacheFixture : IDisposable
     {
         public RuneTek5Cache RuneTek5Cache { get; }
+        public DownloaderCache Downloader { get; }
+        public FlatFileCache FlatFileCache { get; }
 
         public Soundtrack Soundtrack { get; }
-
-        public DownloaderCache Downloader { get; }
-
-        public FlatFileCache FlatFileCache { get; }
 
         public TestCacheFixture()
         {
@@ -25,6 +24,24 @@ namespace RuneScapeCacheToolsTests.Fixtures
             this.Soundtrack = new Soundtrack(this.RuneTek5Cache, "soundtrack");
             this.Downloader = new DownloaderCache();
             this.FlatFileCache = new FlatFileCache("testdata/flatfile");
+        }
+
+        public CacheBase GetCache(Type cacheType)
+        {
+            if (cacheType == typeof(RuneTek5Cache))
+            {
+                return this.RuneTek5Cache;
+            }
+            if (cacheType == typeof(FlatFileCache))
+            {
+                return this.FlatFileCache;
+            }
+            if (cacheType == typeof(DownloaderCache))
+            {
+                return this.Downloader;
+            }
+
+            throw new ArgumentException("Invalid cache type requested.");
         }
 
         public void Dispose()
