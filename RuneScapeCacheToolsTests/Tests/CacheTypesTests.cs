@@ -9,7 +9,7 @@ using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     [Collection(TestCacheCollection.Name)]
     public class CacheTypesTests

@@ -5,7 +5,7 @@ using RuneScapeCacheToolsTests.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     [Collection(TestCacheCollection.Name)]
     public class SoundtrackTests

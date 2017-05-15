@@ -7,7 +7,7 @@
     <ProjectGuid>{55E68712-4819-4BC6-B829-A09F7FF04E78}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RuneScapeCacheToolsTests</RootNamespace>
+    <RootNamespace>Villermen.RuneScapeCacheTools.Tests</RootNamespace>
     <AssemblyName>RuneScapeCacheToolsTests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

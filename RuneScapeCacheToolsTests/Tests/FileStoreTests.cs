@@ -4,7 +4,7 @@ using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     public class FileStoreTests : IDisposable
     {

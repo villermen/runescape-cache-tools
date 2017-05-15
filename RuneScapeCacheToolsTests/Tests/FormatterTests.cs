@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Villermen.RuneScapeCacheTools.Extensions;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     public class FormatterTests
     {

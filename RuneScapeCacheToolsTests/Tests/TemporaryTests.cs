@@ -7,7 +7,7 @@ using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     [Collection(TestCacheCollection.Name)]
     public class TemporaryTests

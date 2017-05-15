@@ -4,7 +4,7 @@ using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests.FileTypesTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
 {
     [Collection(TestCacheCollection.Name)]
     public class ReferenceTableFileTests

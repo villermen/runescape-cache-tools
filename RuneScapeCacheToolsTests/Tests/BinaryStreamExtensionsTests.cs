@@ -2,7 +2,7 @@
 using Villermen.RuneScapeCacheTools.Extensions;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     public class BinaryStreamExtensionsTests
     {

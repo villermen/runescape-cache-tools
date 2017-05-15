@@ -4,7 +4,7 @@ using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Xunit;
 
-namespace RuneScapeCacheToolsTests
+namespace Villermen.RuneScapeCacheTools.Tests.Tests
 {
     [Collection(TestCacheCollection.Name)]
     public class DownloaderCacheTests
