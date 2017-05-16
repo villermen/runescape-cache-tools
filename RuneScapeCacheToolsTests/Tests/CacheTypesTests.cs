@@ -56,14 +56,11 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [InlineData(typeof(RuneTek5Cache), Index.ClientScripts)]
         [InlineData(typeof(FlatFileCache), Index.Music)]
         [InlineData(typeof(DownloaderCache), Index.Enums)]
-        public void TestGetReferenceTableFile(Type cacheType, Index[] indexes)
+        public void TestGetReferenceTableFile(Type cacheType, Index index)
         {
             var cache = this.Fixture.GetCache(cacheType);
 
-            foreach (var index in indexes)
-            {
-                cache.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
-            }
+            cache.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
         }
 
         [Theory]
