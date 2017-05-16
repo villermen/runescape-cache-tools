@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Org.BouncyCastle.Asn1.Cmp;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 
 namespace Villermen.RuneScapeCacheTools.Cache
@@ -47,8 +48,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <returns></returns>
         public T GetFile<T>(Index index, int fileId) where T : CacheFile
         {
-            // Obtain the file /entry
-            var file = this.GetBinaryFile(this.GetFileInfo(index, fileId));
+            // Obtain the file
+            var info = this.GetFileInfo(index, fileId);
+            var file = this.GetBinaryFile(info);
 
             // Return the file as is when a binary file is requested
             if (typeof(T) == typeof(BinaryFile))
@@ -63,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         /// <summary>
-        /// Implements the logic for actually retrieving a file from the cache.
+        /// Implements the logic for actually retrieving file from the cache.
         /// </summary>
         /// <returns></returns>
         protected abstract BinaryFile GetBinaryFile(CacheFileInfo fileInfo);

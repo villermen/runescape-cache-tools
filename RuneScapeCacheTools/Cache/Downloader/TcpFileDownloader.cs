@@ -334,6 +334,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 this.MetaWritten = true;
             }
 
+            // TODO: Change Get and Put to byte arrays?
+
             public void WriteContent(byte[] data)
             {
                 if (!this.MetaWritten)
@@ -361,7 +363,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                     var file = new BinaryFile
                     {
-                        Info = this._cacheFileInfo,
+                        Info = this._cacheFileInfo
                     };
 
                     file.Decode(this._dataStream.ToArray());

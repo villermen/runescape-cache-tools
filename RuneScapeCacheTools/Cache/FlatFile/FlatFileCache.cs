@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -45,7 +47,36 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
-            throw new NotImplementedException();
+            var indexDirectory = $"{this.BaseDirectory}{(int)fileInfo.Index}/";
+
+            // Single file
+            if (!fileInfo.HasEntries)
+            {
+                return new BinaryFile
+                {
+                    Info = fileInfo,
+                    Data = File.ReadAllBytes(this.GetExistingFilePaths(fileInfo.Index, fileInfo.FileId).First())
+                };
+            }
+
+            // Entries
+            var entryFile = new EntryFile
+            {
+                Info = fileInfo
+            };
+
+            foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId))
+            {
+                var entryFileEntry = new BinaryFile
+                {
+                    Data = File.ReadAllBytes(existingEntryPath.Value)
+                };
+
+                entryFile.AddEntry(existingEntryPath.Key, entryFileEntry);
+            }
+
+            // TODO: Return EntryFile directly so it doesn't have to be needlessly encoded
+            return entryFile.ToBinaryFile();
         }
 
         protected override void PutBinaryFile(BinaryFile file)
@@ -56,24 +87,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 throw new InvalidOperationException("Base directory must be set before writing files.");
             }
 
-            var indexDirectory = $"{this.BaseDirectory}{(int)file.Info.Index}/";
-            var entryDirectory = $"{indexDirectory}{file.Info.FileId}/";
+            var indexDirectory = this.GetIndexDirectory(file.Info.Index);
 
             // Create index directory for when it does not exist yet
             Directory.CreateDirectory(indexDirectory);
 
             // Clean existing files/entries
-
-            // Get all files that start with the given fileId
-            var matchedExistingFiles = Directory.EnumerateFiles(indexDirectory, $"{file.Info.FileId}*")
-                // Filter out false-positivies like 2345 when looking for 234.ext
-                .Where(matchedFile => Regex.IsMatch(matchedFile, $@"[/\\]{file.Info.FileId}(\..+)?$"))
-                .ToList();
-
-            foreach (var matchedExistingFile in matchedExistingFiles)
+            foreach (var existingFilePath in this.GetExistingFilePaths(file.Info.Index, file.Info.FileId))
             {
-                File.Delete(matchedExistingFile);
+                File.Delete(existingFilePath);
             }
+
+            var entryDirectory = this.GetEntryDirectory(file.Info.Index, file.Info.FileId);
 
             if (Directory.Exists(entryDirectory))
             {
@@ -125,6 +150,37 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                     FlatFileCache.Logger.Info($"Did not write {(int)file.Info.Index}/{file.Info.FileId} because it contains no entries.");
                 }
             }
+        }
+
+        private IEnumerable<string> GetExistingFilePaths(Index index, int fileId)
+        {
+            return Directory.EnumerateFiles(this.GetIndexDirectory(index), $"{fileId}*")
+                // Filter out false-positivies like 2345 when looking for 234.ext
+                .Where(matchedFilePath => Regex.IsMatch(matchedFilePath, $@"[/\\]{fileId}(\..+)?$"));
+        }
+
+        private SortedDictionary<int, string> GetExistingEntryPaths(Index index, int fileId)
+        {
+            var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(index, fileId))
+                .Where(matchedFilePath => Regex.IsMatch(matchedFilePath, @"[/\\]\d+(\..+)?$"))
+                .ToDictionary(matchedFilePath =>
+                {
+                    var matches = Regex.Matches(matchedFilePath, @"[/\\](\d+)(\..+)?$");
+
+                    return int.Parse(matches[1].Value);
+                }, matchedFilePath => matchedFilePath);
+
+            return new SortedDictionary<int, string>(unsortedDictionary);
+        }
+
+        private string GetIndexDirectory(Index index)
+        {
+            return $"{this.BaseDirectory}{(int)index}/";
+        }
+
+        private string GetEntryDirectory(Index index, int fileId)
+        {
+            return this.GetIndexDirectory(index) + fileId + "/";
         }
     }
 }
