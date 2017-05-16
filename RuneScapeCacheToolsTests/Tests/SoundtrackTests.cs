@@ -46,14 +46,14 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
 
         [Theory]
         [InlineData("Soundscape", "Soundscape.ogg", 15, false)] // OGG
-        [InlineData("undsca", "Soundscape.flac", 15, true)] // FLAC and partial case insensitive filter matching
+        [InlineData("uNDsCa", "Soundscape.flac", 15, true)] // FLAC and partial case insensitive filter matching
         [InlineData("Black Zabeth LIVE!", "Black Zabeth LIVE!.ogg", 15, false)] // Fixing invalid filenames (Actual name is "Black Zabeth: LIVE!" which is invalid on Windows)
         public void TestExtract(string trackName, string expectedFilename, int expectedVersion, bool lossless)
         {
             var startTime = DateTime.UtcNow;
             this.Fixture.Soundtrack.Extract(true, lossless, false, trackName);
 
-            string expectedOutputPath = $"output/soundtrack/{expectedFilename}";
+            var expectedOutputPath = $"soundtrack/{expectedFilename}";
 
             // Verify that Soundscape.ogg has been created
             Assert.True(File.Exists(expectedOutputPath), $"{expectedFilename} should've been created during extraction.");
@@ -62,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             var modifiedTime = File.GetLastWriteTimeUtc(expectedOutputPath);
             Assert.True(modifiedTime >= startTime, $"{expectedFilename}'s modified time was not updated during extraction (so probably was not extracted).");
 
-            var version = this.Fixture.Soundtrack.GetVersionFromExportedTrackFile($"output/soundtrack/{expectedFilename}");
+            var version = this.Fixture.Soundtrack.GetVersionFromExportedTrackFile($"soundtrack/{expectedFilename}");
 
             Assert.True(version == expectedVersion, $"Version of {expectedFilename} was incorrect ({version} instead of {expectedVersion}).");
         }
