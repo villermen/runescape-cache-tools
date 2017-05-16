@@ -46,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
 
             Assert.Throws<FileNotFoundException>(() =>
             {
-                cache.GetFile<BinaryFile>(Index.Music, 30);
+                cache.GetFile<BinaryFile>(Index.Music, 180000);
             });
         }
 
