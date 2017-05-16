@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
@@ -14,49 +13,32 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Method</author>
-    public class DownloaderCache : CacheBase
+    public class DownloaderCache : ReferenceTableCache
     {
-        public override IEnumerable<Index> GetIndexes()
-        {
-            return this.GetMasterReferenceTable().ReferenceTableFiles.Keys;
-        }
-
         private static readonly Index[] IndexesUsingHttpInterface = { Index.Music };
-
-        private MasterReferenceTableFile _cachedMasterReferenceTableFile;
-
-        private readonly ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables = new ConcurrentDictionary<Index, ReferenceTableFile>();
 
         private readonly HttpFileDownloader _httpFileDownloader = new HttpFileDownloader();
 
         private readonly TcpFileDownloader _tcpFileDownloader = new TcpFileDownloader();
 
-        protected override BinaryFile GetFile(Index index, int fileId)
+        private MasterReferenceTableFile _cachedMasterReferenceTableFile;
+
+        public override IEnumerable<Index> GetIndexes()
         {
-            var fileInfo = index != Index.ReferenceTables ? this.GetReferenceTable(index).GetFileInfo(fileId) : new CacheFileInfo
-            {
-                Index = index,
-                FileId = fileId
-            };
+            return this.GetMasterReferenceTable().ReferenceTableFiles.Keys;
 
-            var downloader = DownloaderCache.IndexesUsingHttpInterface.Contains(index) ? (IFileDownloader)this._httpFileDownloader : this._tcpFileDownloader;
-
-            return downloader.DownloadFileAsync(index, fileId, fileInfo).Result;
         }
 
-        protected override void PutFile(BinaryFile file)
+        protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
+        {
+            var downloader = DownloaderCache.IndexesUsingHttpInterface.Contains(fileInfo.Index) ? (IFileDownloader)this._httpFileDownloader : this._tcpFileDownloader;
+
+            return downloader.DownloadFileAsync(fileInfo.Index, fileInfo.FileId, fileInfo).Result;
+        }
+
+        protected override void PutBinaryFile(BinaryFile file)
         {
             throw new NotSupportedException("I am a downloader, not an uploader...");
-        }
-
-        public override IEnumerable<int> GetFileIds(Index index)
-        {
-            return this.GetReferenceTable(index).FileIds;
-        }
-
-        public override CacheFileInfo GetFileInfo(Index index, int fileId)
-        {
-            return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
         public MasterReferenceTableFile GetMasterReferenceTable()
@@ -66,19 +48,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 return this._cachedMasterReferenceTableFile;
             }
 
-            this._cachedMasterReferenceTableFile = this.GetFile<MasterReferenceTableFile>(Index.ReferenceTables, (int)Index.ReferenceTables);
-
-            return this._cachedMasterReferenceTableFile;
-        }
-
-        public ReferenceTableFile GetReferenceTable(Index index)
-        {
-            return this._cachedReferenceTables.GetOrAdd(index, index2 => this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
+            return this._cachedMasterReferenceTableFile = this.GetFile<MasterReferenceTableFile>(Index.ReferenceTables, (int)Index.ReferenceTables);
         }
 
         public override void Dispose()
         {
             this._tcpFileDownloader.Dispose();
+
             base.Dispose();
         }
     }

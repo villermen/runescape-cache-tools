@@ -101,6 +101,7 @@
     <Compile Include="Cache\FlatFile\FlatFileCache.cs" />
     <Compile Include="Cache\Index.cs" />
     <Compile Include="Cache\Language.cs" />
+    <Compile Include="Cache\ReferenceTableCache.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
     <Compile Include="Cache\RuneTek5\CompressionType.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />

@@ -73,7 +73,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     The loaded/existing indexes.
         /// </summary>
-        public IEnumerable<Index> Indexes => this.indexStreams.Keys.Where(index => index != Index.ReferenceTables);
+        public IEnumerable<Index> GetIndexes()
+        {
+            return this.indexStreams.Keys.Where(index => index != Index.ReferenceTables);
+        }
 
         /// <summary>
         /// Reads the sectors

@@ -1,23 +1,34 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    ///     The <see cref="RuneTek5Cache" /> class provides a unified, high-level API for modifying the cache of a Jagex game.
+    /// Can read and write to a RuneTek5 type cache consisting of a single data (.dat2) file and some index (.id#) files.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Villermen</author>
-    public class RuneTek5Cache : CacheBase
+    public class RuneTek5Cache : ReferenceTableCache
     {
+        public static string DefaultCacheDirectory =>
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
+
         /// <summary>
-        ///     Creates an interface on the cache stored in the given directory.
+        /// The directory where the cache is located.
+        /// </summary>
+        public string CacheDirectory { get; }
+
+        public bool ReadOnly { get; }
+
+        /// <summary>
+        /// The <see cref="RuneTek5.FileStore" /> that backs this cache.
+        /// </summary>
+        private readonly FileStore _fileStore;
+
+        /// <summary>
+        /// Creates an interface on the cache stored in the given directory.
         /// </summary>
         /// <param name="cacheDirectory"></param>
         /// <param name="readOnly"></param>
@@ -26,139 +37,35 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             this.CacheDirectory = cacheDirectory ?? RuneTek5Cache.DefaultCacheDirectory;
             this.ReadOnly = readOnly;
 
-            this.Refresh();
+            this._fileStore = new FileStore(this.CacheDirectory, this.ReadOnly);
         }
-
-        public static string DefaultCacheDirectory
-            => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/jagexcache/runescape/LIVE/";
 
         public override IEnumerable<Index> GetIndexes()
         {
-            return this.FileStore.Indexes;
+            return this._fileStore.GetIndexes();
         }
 
-        /// <summary>
-        ///     The directory where the cache is located.
-        /// </summary>
-        public string CacheDirectory { get; }
-
-        public bool ReadOnly { get; }
-
-        /// <summary>
-        ///     The <see cref="RuneTek5.FileStore" /> that backs this cache.
-        /// </summary>
-        public FileStore FileStore { get; private set; }
-
-        private ConcurrentDictionary<Index, ReferenceTableFile> ReferenceTables { get; set; }
-
-        protected override BinaryFile GetFile(Index index, int fileId)
+        protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
-            CacheFileInfo info;
-
-            if (index != Index.ReferenceTables)
-            {
-                // Obtain the reference table for the requested index
-                var referenceTable = this.GetReferenceTable(index);
-
-                // The file must at least be defined in the reference table (doesn't mean it is actually complete)
-                if (!referenceTable.FileIds.Contains(fileId))
-                {
-                    throw new FileNotFoundException($"{index}/{fileId} does not exist.");
-                }
-
-                info = referenceTable.GetFileInfo(fileId);
-            }
-            else
-            {
-                info = new CacheFileInfo();
-            }
-
             var file = new BinaryFile
             {
-                Info = info
+                Info = fileInfo
             };
 
-            file.Decode(this.FileStore.ReadFileData(index, fileId));
+            file.Decode(this._fileStore.ReadFileData(fileInfo.Index, fileInfo.FileId));
 
             return file;
         }
 
-        /// <summary>
-        ///     Gets the files specified in the given index.
-        ///     Returned files might still not be present in the cache however.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public override IEnumerable<int> GetFileIds(Index index)
-        {
-            var referenceTable = this.GetReferenceTable(index);
-            return referenceTable.FileIds;
-        }
-
-        public override CacheFileInfo GetFileInfo(Index index, int fileId)
-        {
-            return this.GetReferenceTable(index).GetFileInfo(fileId);
-        }
-
-        public ReferenceTableFile GetReferenceTable(Index index)
-        {
-            // Try to get it from cache (I mean our own cache, it will be obtained from some kind of cache either way)
-            return this.ReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
-                this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
-        }
-
-        protected override void PutFile(BinaryFile file)
+        protected override void PutBinaryFile(BinaryFile file)
         {
             // Write data to file store
-            this.FileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
-
-            // Adjust and write reference table
-            if (file.Info.Index != Index.ReferenceTables)
-            {
-                ReferenceTableFile referenceTableFile;
-
-                try
-                {
-                    referenceTableFile = this.GetReferenceTable(file.Info.Index);
-                }
-                catch (FileNotFoundException)
-                {
-                    referenceTableFile = new ReferenceTableFile
-                    {
-                        Format = 7,
-                        Options = CacheFileOptions.Sizes | CacheFileOptions.MysteryHashes,
-                        Info = new CacheFileInfo
-                        {
-                            CompressionType = CompressionType.Gzip,
-                            Index = Index.ReferenceTables,
-                            FileId = (int)file.Info.Index
-                        },
-                        Version = 0
-                    };
-                }
-
-                // Update stored file in reference table and store reference table
-                referenceTableFile.SetFileInfo(file.Info.FileId, file.Info);
-
-                this.PutFile(referenceTableFile);
-            }
-        }
-
-        /// <summary>
-        /// Recreates the backing file store and drops all cached reference tables.
-        /// </summary>
-        public void Refresh()
-        {
-            this.FileStore?.Dispose();
-
-            this.FileStore = new FileStore(this.CacheDirectory, this.ReadOnly);
-
-            this.ReferenceTables = new ConcurrentDictionary<Index, ReferenceTableFile>();
+            this._fileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
         }
 
         public override void Dispose()
         {
-            this.FileStore.Dispose();
+            this._fileStore.Dispose();
             base.Dispose();
         }
     }

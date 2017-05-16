@@ -31,6 +31,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public abstract CacheFileInfo GetFileInfo(Index index, int fileId);
 
         /// <summary>
+        /// Writes the given info to the cache.
+        /// </summary>
+        /// <param name="fileInfo"></param>
+        /// <returns></returns>
+        protected abstract void PutFileInfo(CacheFileInfo fileInfo);
+
+        /// <summary>
         /// Returns the requested file converted to the requested type.
         /// </summary>
         /// <param name="index"></param>
@@ -39,11 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public T GetFile<T>(Index index, int fileId) where T : CacheFile
         {
             // Obtain the file /entry
-            var file = this.GetFile(index, fileId);
-
-            // These we know
-            file.Info.Index = index;
-            file.Info.FileId = fileId;
+            var file = this.GetBinaryFile(this.GetFileInfo(index, fileId));
 
             // Return the file as is when a binary file is requested
             if (typeof(T) == typeof(BinaryFile))
@@ -60,10 +63,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         /// Implements the logic for actually retrieving a file from the cache.
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="fileId"></param>
         /// <returns></returns>
-        protected abstract BinaryFile GetFile(Index index, int fileId);
+        protected abstract BinaryFile GetBinaryFile(CacheFileInfo fileInfo);
 
         /// <summary>
         /// Writes a file to the cache.
@@ -78,14 +79,22 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
             }
 
-            this.PutFile(file.ToBinaryFile());
+            this.PutBinaryFile(file.ToBinaryFile());
+
+            this.PutFileInfo(file.Info);
         }
 
-        protected abstract void PutFile(BinaryFile file);
+        protected abstract void PutBinaryFile(BinaryFile file);
 
+        /// <summary>
+        /// Copies the specified file over to the given cache.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="fileId"></param>
+        /// <param name="cache"></param>
         public void CopyFile(Index index, int fileId, CacheBase cache)
         {
-            cache.PutFile(this.GetFile(index, fileId));
+            cache.PutBinaryFile(this.GetFile<BinaryFile>(index, fileId));
         }
 
         public virtual void Dispose() { }

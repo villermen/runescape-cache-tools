@@ -10,7 +10,7 @@ using Villermen.RuneScapeCacheTools.Extensions;
 namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 {
     [Obsolete("Unfinished")]
-    public class FlatFileCache : CacheBase
+    public class FlatFileCache : ReferenceTableCache
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(FlatFileCache));
 
@@ -43,17 +43,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             this.BaseDirectory = baseDirectory;
         }
 
-        protected override BinaryFile GetFile(Index index, int fileId)
+        protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<int> GetFileIds(Index index)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void PutFile(BinaryFile file)
+        protected override void PutBinaryFile(BinaryFile file)
         {
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(this.BaseDirectory))
@@ -130,11 +125,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                     FlatFileCache.Logger.Info($"Did not write {(int)file.Info.Index}/{file.Info.FileId} because it contains no entries.");
                 }
             }
-        }
-
-        public override CacheFileInfo GetFileInfo(Index index, int fileId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

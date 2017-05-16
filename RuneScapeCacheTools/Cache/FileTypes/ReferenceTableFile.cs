@@ -58,7 +58,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             return this._files[fileId].Clone();
         }
 
-        internal void SetFileInfo(int fileId, CacheFileInfo info)
+        public void SetFileInfo(int fileId, CacheFileInfo info)
         {
             if (this._files.ContainsKey(fileId))
             {

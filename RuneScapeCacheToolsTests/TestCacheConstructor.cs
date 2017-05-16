@@ -135,10 +135,10 @@ namespace Villermen.RuneScapeCacheTools.Tests
             {
             }
 
+            // Download and write the files
             using (var downloader = new DownloaderCache())
             using (var runeTek5Cache = new RuneTek5Cache("generated/runetek5", false))
             using (var flatFileCache = new FlatFileCache("generated/flatfile"))
-
             {
                 foreach (var fileTuple in files)
                 {
@@ -146,13 +146,16 @@ namespace Villermen.RuneScapeCacheTools.Tests
                     runeTek5Cache.PutFile(file);
                     flatFileCache.PutFile(file);
                 }
+            }
 
-                // Verify that the files are now obtainable
-                runeTek5Cache.Refresh();
+            // Verify that the files are now obtainable
+            using (var freshRuneTek5Cache = new RuneTek5Cache("generated/runetek5", true))
+            using (var freshFlatFileCache = new FlatFileCache("generated/flatfile"))
+            {
                 foreach (var fileTuple in files)
                 {
-                    runeTek5Cache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
-                    flatFileCache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
+                    freshRuneTek5Cache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
+                    freshFlatFileCache.GetFile<BinaryFile>(fileTuple.Item1, fileTuple.Item2);
                 }
             }
         }

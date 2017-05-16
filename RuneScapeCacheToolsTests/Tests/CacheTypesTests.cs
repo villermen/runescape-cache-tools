@@ -77,15 +77,18 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             this.Fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
-            this.Fixture.RuneTek5Cache.Refresh();
+            this.Fixture.RuneTek5Cache.Dispose();
 
-            var file2 = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
+            using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", true))
+            {
+                var file2 = freshRuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
-            // Compare the info objects
-            Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
+                // Compare the info objects
+                Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
 
-            // Byte-compare both files
-            Assert.True(file1.Data.SequenceEqual(file2.Data));
+                // Byte-compare both files
+                Assert.True(file1.Data.SequenceEqual(file2.Data));
+            }
         }
     }
 }
