@@ -51,10 +51,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             base.Dispose();
 
-            // Write out cached reference tables
-            foreach (var referenceTable in this._cachedReferenceTables)
+            if (!this.Disposed)
             {
-                this.PutFile(referenceTable.Value);
+                // Write out cached reference tables
+                foreach (var referenceTable in this._cachedReferenceTables)
+                {
+                    this.PutFile(referenceTable.Value);
+                }
             }
         }
     }

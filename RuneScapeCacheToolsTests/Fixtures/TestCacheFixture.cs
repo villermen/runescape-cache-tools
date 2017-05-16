@@ -13,7 +13,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
     public class TestCacheFixture : IDisposable
     {
         public RuneTek5Cache RuneTek5Cache { get; }
-        public DownloaderCache Downloader { get; }
+        public DownloaderCache DownloaderCache { get; }
         public FlatFileCache FlatFileCache { get; }
 
         public Soundtrack Soundtrack { get; }
@@ -21,9 +21,10 @@ namespace RuneScapeCacheToolsTests.Fixtures
         public TestCacheFixture()
         {
             this.RuneTek5Cache = new RuneTek5Cache("testdata/runetek5", false);
-            this.Soundtrack = new Soundtrack(this.RuneTek5Cache, "soundtrack");
-            this.Downloader = new DownloaderCache();
+            this.DownloaderCache = new DownloaderCache();
             this.FlatFileCache = new FlatFileCache("testdata/flatfile");
+
+            this.Soundtrack = new Soundtrack(this.RuneTek5Cache, "soundtrack");
         }
 
         public CacheBase GetCache(Type cacheType)
@@ -38,7 +39,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
             }
             if (cacheType == typeof(DownloaderCache))
             {
-                return this.Downloader;
+                return this.DownloaderCache;
             }
 
             throw new ArgumentException("Invalid cache type requested.");
@@ -47,6 +48,8 @@ namespace RuneScapeCacheToolsTests.Fixtures
         public void Dispose()
         {
             this.RuneTek5Cache.Dispose();
+            this.DownloaderCache.Dispose();
+            this.FlatFileCache.Dispose();
         }
     }
 }

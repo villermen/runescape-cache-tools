@@ -67,7 +67,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         {
             base.Dispose();
 
-            this._fileStore.Dispose();
+            if (!this.Disposed)
+            {
+                this._fileStore.Dispose();
+            }
         }
     }
 }

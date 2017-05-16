@@ -55,7 +55,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             base.Dispose();
 
-            this._tcpFileDownloader.Dispose();
+            if (!this.Disposed)
+            {
+                this._tcpFileDownloader.Dispose();
+            }
         }
     }
 }

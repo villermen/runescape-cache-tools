@@ -28,11 +28,11 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
 
             using (var tempWriter = new StreamWriter(File.Open("items.csv.tmp", FileMode.Create)))
             {
-                foreach (var fileId in this.Fixture.Downloader.GetFileIds(Index.ItemDefinitions))
+                foreach (var fileId in this.Fixture.DownloaderCache.GetFileIds(Index.ItemDefinitions))
                 {
                     try
                     {
-                        var entryFile = this.Fixture.Downloader.GetFile<EntryFile>(Index.ItemDefinitions, fileId);
+                        var entryFile = this.Fixture.DownloaderCache.GetFile<EntryFile>(Index.ItemDefinitions, fileId);
 
                         var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
                         foreach (var itemDefinitionFile in itemDefinitionFiles)
