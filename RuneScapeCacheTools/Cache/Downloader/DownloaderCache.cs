@@ -53,9 +53,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public override void Dispose()
         {
-            this._tcpFileDownloader.Dispose();
-
             base.Dispose();
+
+            this._tcpFileDownloader.Dispose();
         }
     }
 }

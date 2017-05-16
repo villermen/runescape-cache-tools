@@ -65,8 +65,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public override void Dispose()
         {
-            this._fileStore.Dispose();
             base.Dispose();
+
+            this._fileStore.Dispose();
         }
     }
 }

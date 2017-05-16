@@ -49,13 +49,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public override void Dispose()
         {
+            base.Dispose();
+
             // Write out cached reference tables
             foreach (var referenceTable in this._cachedReferenceTables)
             {
                 this.PutFile(referenceTable.Value);
             }
-
-            base.Dispose();
         }
     }
 }
