@@ -47,7 +47,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
-            var indexDirectory = $"{this.BaseDirectory}{(int)fileInfo.Index}/";
+            // TODO: Add some fallback mechanic for when a file but no info is added
 
             // Single file
             if (!fileInfo.HasEntries)

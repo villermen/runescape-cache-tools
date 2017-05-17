@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -19,18 +20,18 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         ///     Lock that is used when reading data from the streams.
         /// </summary>
-        private readonly object ioLock = new object();
+        private readonly object _ioLock = new object();
 
-        private readonly Dictionary<Index, Stream> indexStreams = new Dictionary<Index, Stream>();
+        private readonly Dictionary<Index, Stream> _indexStreams = new Dictionary<Index, Stream>();
 
-        private readonly Stream dataStream;
+        private readonly Stream _dataStream;
 
         /// <summary>
         ///     Opens the file store in the specified directory.
         /// </summary>
         /// <param name="cacheDirectory">The directory containing the index and data files.</param>
         /// <param name="readOnly">No empty cache will be initialized if only reading, and writing will be disallowed.</param>
-        /// <exception cref="CacheException">If any of the main_file_cache.* files could not be found.</exception>
+        /// <exception cref="FileDoesNotExistException">If any of the main_file_cache.* files could not be found.</exception>
         public FileStore(string cacheDirectory, bool readOnly = true)
         {
             this.CacheDirectory = PathExtensions.FixDirectory(cacheDirectory);
@@ -50,7 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new FileNotFoundException("Cache data file does not exist.");
             }
 
-            this.dataStream = File.Open(dataFilePath, FileMode.OpenOrCreate, fileAccess);
+            this._dataStream = File.Open(dataFilePath, FileMode.OpenOrCreate, fileAccess);
 
             // Load in existing index files
             for (var indexId = 0; indexId <= 255; indexId++)
@@ -62,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     continue;
                 }
 
-                this.indexStreams.Add((Index)indexId, File.Open(indexFile, FileMode.Open, fileAccess));
+                this._indexStreams.Add((Index)indexId, File.Open(indexFile, FileMode.Open, fileAccess));
             }
         }
 
@@ -75,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public IEnumerable<Index> GetIndexes()
         {
-            return this.indexStreams.Keys.Where(index => index != Index.ReferenceTables);
+            return this._indexStreams.Keys.Where(index => index != Index.ReferenceTables);
         }
 
         /// <summary>
@@ -102,12 +103,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         private IEnumerable<Sector> ReadSectors(Index index, int fileId, out int filesize)
         {
-            if (!this.indexStreams.ContainsKey(index))
+            if (!this._indexStreams.ContainsKey(index))
             {
                 throw new FileNotFoundException($"Index does not exist for {(int)index}/{fileId}.");
             }
 
-            var indexReader = new BinaryReader(this.indexStreams[index]);
+            var indexReader = new BinaryReader(this._indexStreams[index]);
 
             var indexPosition = (long)fileId * IndexPointer.Length;
 
@@ -119,7 +120,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var sectors = new List<Sector>();
 
             // Lock stream, to allow multiple threads from calling this method at the same time
-            lock (this.ioLock)
+            lock (this._ioLock)
             {
                 indexReader.BaseStream.Position = indexPosition;
                 var indexPointer = IndexPointer.Decode(indexReader.BaseStream);
@@ -133,7 +134,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 var chunkId = 0;
                 var remaining = indexPointer.Filesize;
-                var dataReader = new BinaryReader(this.dataStream);
+                var dataReader = new BinaryReader(this._dataStream);
                 var dataPosition = (long)indexPointer.FirstSectorPosition * Sector.Length;
 
                 do
@@ -176,7 +177,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new InvalidOperationException("Can't write data in readonly mode.");
             }
 
-            lock (this.ioLock)
+            lock (this._ioLock)
             {
                 // Obtain possibly existing sector positions to overwrite
                 int[] existingSectorPositions;
@@ -194,7 +195,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
                 var sectors = Sector.FromData(data, index, fileId);
 
-                var dataWriter = new BinaryWriter(this.dataStream);
+                var dataWriter = new BinaryWriter(this._dataStream);
 
                 foreach (var sector in sectors)
                 {
@@ -224,15 +225,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         };
 
                         // Create index file if it does not exist yet
-                        if (!this.indexStreams.ContainsKey(index))
+                        if (!this._indexStreams.ContainsKey(index))
                         {
-                            this.indexStreams.Add(index, File.Open(
+                            this._indexStreams.Add(index, File.Open(
                                 Path.Combine(this.CacheDirectory, "main_file_cache.idx" + (int)index),
                                 FileMode.OpenOrCreate,
                                 FileAccess.ReadWrite));
                         }
 
-                        var indexWriter = new BinaryWriter(this.indexStreams[index]);
+                        var indexWriter = new BinaryWriter(this._indexStreams[index]);
                         var pointerPosition = fileId * IndexPointer.Length;
 
                         // Write zeroes up to the desired position of the index stream if it is larger than its size
@@ -258,9 +259,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public void Dispose()
         {
-            this.dataStream.Dispose();
+            this._dataStream.Dispose();
 
-            foreach (var indexStream in this.indexStreams.Values)
+            foreach (var indexStream in this._indexStreams.Values)
             {
                 indexStream.Dispose();
             }

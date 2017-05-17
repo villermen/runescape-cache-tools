@@ -30,7 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 Index = index,
                 FileId = fileId
-                // TODO: Compression for reference tables?
+                // TODO: Compression for reference tables? Compression by default?
             };
         }
 

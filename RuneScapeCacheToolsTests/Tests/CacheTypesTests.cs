@@ -40,6 +40,9 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
 
             var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
 
+            Assert.Equal(1493044636, archiveFile.Info.Version);
+            Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
+
             var archiveEntry = archiveFile.GetEntry<BinaryFile>(255);
 
             Assert.True(archiveEntry.Data.Length > 0, "Archive entry's data is empty.");

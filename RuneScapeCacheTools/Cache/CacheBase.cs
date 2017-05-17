@@ -83,9 +83,10 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
             }
 
-            this.PutBinaryFile(file.ToBinaryFile());
+            var binaryFile = file.ToBinaryFile();
 
-            this.PutFileInfo(file.Info);
+            this.PutBinaryFile(binaryFile);
+            this.PutFileInfo(binaryFile.Info);
         }
 
         protected abstract void PutBinaryFile(BinaryFile file);
