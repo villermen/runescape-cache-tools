@@ -11,6 +11,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     /// </summary>
     public class EntryFile : CacheFile
     {
+        // TODO: Store as BinaryFile and clone when requested as one
         private byte[][] _entryData;
 
         public int EntryCount => this._entryData.Length;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Org.BouncyCastle.Asn1.Cmp;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 
 namespace Villermen.RuneScapeCacheTools.Cache
@@ -69,6 +68,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <returns></returns>
         protected abstract BinaryFile GetBinaryFile(CacheFileInfo fileInfo);
+        
+        // TODO: GetEntryFile if requested type is an EntryFile
 
         /// <summary>
         /// Writes a file to the cache.

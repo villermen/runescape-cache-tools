@@ -14,11 +14,11 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
     [Collection(TestCacheCollection.Name)]
     public class CacheTypesTests
     {
-        private TestCacheFixture Fixture { get; }
+        private readonly TestCacheFixture _fixture;
 
         public CacheTypesTests(TestCacheFixture fixture)
         {
-            this.Fixture = fixture;
+            this._fixture = fixture;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [InlineData(typeof(FlatFileCache))]
         public void TestGetFile(Type cacheType)
         {
-            var cache = this.Fixture.GetCache(cacheType);
+            var cache = this._fixture.GetCache(cacheType);
 
             var file = cache.GetFile<BinaryFile>(Index.ClientScripts, 3);
 
@@ -57,11 +57,10 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [InlineData(typeof(RuneTek5Cache), Index.Music)]
         [InlineData(typeof(RuneTek5Cache), Index.Enums)]
         [InlineData(typeof(RuneTek5Cache), Index.ClientScripts)]
-        [InlineData(typeof(FlatFileCache), Index.Music)]
         [InlineData(typeof(DownloaderCache), Index.Enums)]
         public void TestGetReferenceTableFile(Type cacheType, Index index)
         {
-            var cache = this.Fixture.GetCache(cacheType);
+            var cache = this._fixture.GetCache(cacheType);
 
             cache.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
         }
@@ -72,12 +71,12 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [InlineData(typeof(FlatFileCache), Index.Enums, 23)]
         public void TestWriteBinaryFile(Type cacheType, Index index, int fileId)
         {
-            var file1 = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
+            var file1 = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
-            this.Fixture.RuneTek5Cache.PutFile(file1);
+            this._fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
-            this.Fixture.RuneTek5Cache.Dispose();
+            this._fixture.RuneTek5Cache.Dispose();
 
             using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", true))
             {
@@ -89,6 +88,16 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
                 // Byte-compare both files
                 Assert.True(file1.Data.SequenceEqual(file2.Data));
             }
+        }
+        
+        [Theory]
+        [InlineData(typeof(RuneTek5Cache))]
+        [InlineData(typeof(FlatFileCache))]
+        public void TestGetIndexes(Type cacheType)
+        {
+            var indexes = this._fixture.GetCache(cacheType).GetIndexes();
+            
+            Assert.Equal(6, indexes.Count());
         }
     }
 }
