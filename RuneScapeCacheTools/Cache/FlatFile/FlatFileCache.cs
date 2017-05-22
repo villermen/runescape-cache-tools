@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using log4net;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 {
-    [Obsolete("Unfinished")]
-    public class FlatFileCache : ReferenceTableCache
+    public class FlatFileCache : CacheBase
     {
+        private static readonly Regex FileNameRegex = new Regex(@"[/\\](\d+)(\..+)?$");
+        
         private static readonly ILog Logger = LogManager.GetLogger(typeof(FlatFileCache));
 
         private string _baseDirectory;
@@ -38,6 +38,56 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 })
                 .Where(indexId => indexId != -1)
                 .Cast<Index>();
+        }
+
+        public override IEnumerable<int> GetFileIds(Index index)
+        {
+            return Directory.EnumerateFileSystemEntries(this.GetIndexDirectory(index))
+                .Where(fileSystemEntry =>
+                    FlatFileCache.FileNameRegex.IsMatch(fileSystemEntry))
+                .Select(fileSystemEntry => 
+                    int.Parse(FlatFileCache.FileNameRegex.Match(fileSystemEntry).Groups[1].Value));
+        }
+
+        public override CacheFileInfo GetFileInfo(Index index, int fileId)
+        {
+            var info = new CacheFileInfo
+            {
+                Index = index,
+                FileId = fileId
+            };
+            
+            var filePath = this.GetExistingFilePaths(index, fileId).FirstOrDefault();
+            if (filePath != null)
+            {
+                var filePathInfo = new FileInfo(filePath);
+
+                info.CompressionType = CompressionType.None;
+                info.UncompressedSize = (int)filePathInfo.Length;
+
+                return info;
+            }
+
+            var entryPaths = this.GetExistingEntryPaths(index, fileId);
+            if (entryPaths.Any())
+            {
+                info.Entries = entryPaths
+                    .ToDictionary(
+                        entryPathPair => entryPathPair.Key,
+                        entryPathPair => new CacheFileEntryInfo
+                        {
+                            EntryId = entryPathPair.Key
+                        });
+                
+                return info;
+            }
+            
+            throw new FileNotFoundException("Requested file does not exist.");
+        }
+
+        protected override void PutFileInfo(CacheFileInfo fileInfo)
+        {
+            // Nothing interesting happens.
         }
 
         public FlatFileCache(string baseDirectory)
@@ -162,12 +212,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         private SortedDictionary<int, string> GetExistingEntryPaths(Index index, int fileId)
         {
             var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(index, fileId))
-                .Where(matchedFilePath => Regex.IsMatch(matchedFilePath, @"[/\\]\d+(\..+)?$"))
+                .Where(matchedFilePath => FlatFileCache.FileNameRegex.IsMatch(matchedFilePath))
                 .ToDictionary(matchedFilePath =>
                 {
-                    var matches = Regex.Matches(matchedFilePath, @"[/\\](\d+)(\..+)?$");
-
-                    return int.Parse(matches[1].Value);
+                    var match = FlatFileCache.FileNameRegex.Match(matchedFilePath);
+                    return int.Parse(match.Groups[1].Value);
                 }, matchedFilePath => matchedFilePath);
 
             return new SortedDictionary<int, string>(unsortedDictionary);

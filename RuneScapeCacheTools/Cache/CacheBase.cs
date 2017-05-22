@@ -78,6 +78,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <exception cref="ArgumentException"></exception>
         public void PutFile(CacheFile file)
         {
+            // TODO: Allowed in FlatFileCache
             if (file.Info.EntryId != -1)
             {
                 throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
