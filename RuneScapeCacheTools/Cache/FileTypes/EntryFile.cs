@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exceptions;
@@ -11,24 +12,34 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     /// </summary>
     public class EntryFile : CacheFile
     {
-        // TODO: Store as BinaryFile and clone when requested as one
-        private byte[][] _entryData;
+        private readonly Dictionary<int, BinaryFile> _entries = new Dictionary<int, BinaryFile>();
 
-        public int EntryCount => this._entryData.Length;
+        private int _capacity = 0;
+        
+        /// <summary>
+        /// The amount of entries that can be stored in this file.
+        /// </summary>
+        public int Capacity
+        {
+            get { return this._capacity; }
+            set
+            {
+                var highestIndex = this._entries.Keys.Max();
+                if (value <= highestIndex)
+                {
+                    throw new ArgumentOutOfRangeException($"Can not set entry file's capacity to {value} as there are entries up to index {highestIndex}.");
+                }
+
+                this._capacity = value;
+            }
+        }
+
+        public bool Empty => !this._entries.Any();
 
         public T GetEntry<T>(int entryId) where T : CacheFile
         {
-            var binaryFile = new BinaryFile
-            {
-                Data = this._entryData[entryId],
-                Info =  new CacheFileInfo
-                {
-                    Index = this.Info.Index,
-                    FileId =  this.Info.FileId,
-                    EntryId = entryId
-                }
-            };
-
+            var binaryFile = this._entries[entryId];
+            
             if (typeof(T) == typeof(BinaryFile))
             {
                 return binaryFile as T;
@@ -40,16 +51,31 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             return file;
         }
 
-        public T[] GetEntries<T>() where T : CacheFile
+        public IEnumerable<T> GetEntries<T>() where T : CacheFile
         {
-            return Enumerable.Range(0, this.EntryCount)
-                .Select(this.GetEntry<T>)
-                .ToArray();
+            return this._entries.Keys
+                .OrderBy(entryId => entryId)
+                .Select(this.GetEntry<T>);
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="entryId">The EntryFile's capacity will be increased to match the given index.</param>
+        /// <param name="entry"></param>
+        /// <exception cref="NotImplementedException"></exception>
         public void AddEntry(int entryId, CacheFile entry)
         {
-            throw new NotImplementedException();
+            var binaryFileEntry = entry.ToBinaryFile();
+            binaryFileEntry.Info.Index = this.Info.Index;
+            binaryFileEntry.Info.FileId = this.Info.FileId;
+            binaryFileEntry.Info.EntryId = entryId;
+            
+            this._entries.Add(entryId, binaryFileEntry);
+
+            if (entryId >= this.Capacity)
+            {
+                this.Capacity = entryId + 1;
+            }
         }
 
         public override void Decode(byte[] data)
@@ -65,7 +91,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
              * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
              */
 
-            this._entryData = new byte[this.Info.Entries.Count][];
+            var entriesData = new byte[this.Info.Entries.Count][];
 
             var reader = new BinaryReader(new MemoryStream(data));
 
@@ -112,7 +138,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     }
 
                     // Put or append the entry data to the result
-                    this._entryData[entryId] = chunkId == 0 ? entryData : this._entryData[entryId].Concat(entryData).ToArray();
+                    entriesData[entryId] = chunkId == 0 ? entryData : entriesData[entryId].Concat(entryData).ToArray();
+                }
+            }
+            
+            // Convert to binary files and store
+            for(var entryId = 0; entryId < entriesData.Length; entryId++)
+            {
+                var entryData = entriesData[entryId];
+
+                if (!entryData.SequenceEqual(new byte[] {0}))
+                {
+                    var binaryFile = new BinaryFile
+                    {
+                        Info = new CacheFileInfo(),
+                        Data = entryData
+                    };
+
+                    this.AddEntry(entryId, binaryFile);
                 }
             }
         }
@@ -122,9 +165,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
 
-            foreach (var entryData in this._entryData)
+            for (var entryId = 0; entryId < this.Capacity; entryId++)
             {
-                writer.Write(entryData);
+                // Write empty entries as a single 0 byte
+                writer.Write(
+                    this._entries.ContainsKey(entryId) 
+                        ? this._entries[entryId].Data 
+                        : new byte[] {0});
             }
 
             // TODO: Split entries into multiple chunks (when?)
@@ -134,9 +181,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 // Write delta encoded entry sizes
                 var previousEntrySize = 0;
-                foreach (var entry in this._entryData)
+                for (var entryId = 0; entryId < this.Capacity; entryId++)
                 {
-                    var entrySize = entry.Length;
+                    var entrySize = this._entries.ContainsKey(entryId)
+                        ? this._entries[entryId].Data.Length
+                        : 1;
 
                     var delta = entrySize - previousEntrySize;
 

@@ -13,8 +13,17 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public void FromBinaryFile(BinaryFile file)
         {
             this.Info = file.Info;
+            
+            var thisBinaryFile = this as BinaryFile;
 
-            this.Decode(file.Data);
+            if (thisBinaryFile != null)
+            {
+                thisBinaryFile.Data = file.Data;
+            }
+            else
+            {
+                this.Decode(file.Data);
+            }
         }
 
         public abstract void Decode(byte[] data);

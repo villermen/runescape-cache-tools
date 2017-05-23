@@ -179,11 +179,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 var entryFile = new EntryFile();
                 entryFile.FromBinaryFile(file);
 
-                if (entryFile.EntryCount > 0)
+                if (!entryFile.Empty)
                 {
                     Directory.CreateDirectory(entryDirectory);
 
-                    var entryBinaryFiles = entryFile.GetEntries<BinaryFile>();
+                    var entryBinaryFiles = entryFile.GetEntries<BinaryFile>().ToList();
                     foreach (var entryBinaryFile in entryBinaryFiles)
                     {
                         var extension = ExtensionGuesser.GuessExtension(entryBinaryFile.Data);
@@ -193,7 +193,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                         File.WriteAllBytes(entryPath, entryBinaryFile.Data);
                     }
 
-                    FlatFileCache.Logger.Info($"Wrote {(int)file.Info.Index}/{file.Info.FileId} ({entryBinaryFiles.Length} entries).");
+                    FlatFileCache.Logger.Info($"Wrote {(int)file.Info.Index}/{file.Info.FileId} ({entryBinaryFiles.Count} entries).");
                 }
                 else
                 {

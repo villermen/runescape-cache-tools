@@ -30,8 +30,8 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
             Assert.Equal(2609, itemDefinitionFile.UnknownShort4);
 
             var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
-            Assert.Equal(256, itemDefinitionFiles.Length);
-            Assert.Equal(2609, itemDefinitionFiles[0].UnknownShort4);
+            Assert.Equal(256, entryFile.Capacity);
+            Assert.Equal(2609, itemDefinitionFiles.First(file => file.Info.EntryId == 0).UnknownShort4);
 
             Assert.True(entryFile.Encode().SequenceEqual(binaryFile.Data));
         }

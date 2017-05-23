@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     /// <summary>
     /// A cache file that just represents the raw bytes of a file.
     /// </summary>
-    public class BinaryFile : CacheFile
+    public sealed class BinaryFile : CacheFile
     {
         public byte[] Data { get; set; }
 

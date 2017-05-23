@@ -58,7 +58,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             // Readback
             var readFile = this._outputFlatFileCache.GetFile<EntryFile>(index, fileId);
 
-            Assert.Equal(file.EntryCount, readFile.EntryCount);
+            Assert.Equal(file.Capacity, readFile.Capacity);
             Assert.Equal(
                 file.GetEntry<BinaryFile>(entryId).Data.Length,
                 readFile.GetEntry<BinaryFile>(entryId).Data.Length);
