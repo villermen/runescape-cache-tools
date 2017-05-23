@@ -19,7 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private readonly HttpFileDownloader _httpFileDownloader = new HttpFileDownloader();
 
-        private readonly TcpFileDownloader _tcpFileDownloader = new TcpFileDownloader();
+        private TcpFileDownloader _tcpFileDownloader = new TcpFileDownloader();
 
         private MasterReferenceTableFile _cachedMasterReferenceTableFile;
 
@@ -54,9 +54,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             base.Dispose();
 
-            if (!this.Disposed)
+            if (this._tcpFileDownloader != null)
             {
                 this._tcpFileDownloader.Dispose();
+                this._tcpFileDownloader = null;
             }
         }
     }

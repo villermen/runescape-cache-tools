@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.Tests
         /// Downloads and stores files necessary to perform all tests.
         /// </summary>
         [Fact(
-            // Skip = "Only run manually to construct a new test cache"
+            Skip = "Only run manually to construct a new test cache"
         )]
         public void ConstructTestCache()
         {

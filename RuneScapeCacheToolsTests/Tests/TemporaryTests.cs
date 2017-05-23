@@ -66,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
                             tempWriter.WriteLine();
                         }
                     }
-                    catch (DecodeException exception)
+                    catch (DecodeException)
                     {
                     }
                 }

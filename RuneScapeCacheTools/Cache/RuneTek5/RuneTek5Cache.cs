@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <summary>
         /// The <see cref="RuneTek5.FileStore" /> that backs this cache.
         /// </summary>
-        private readonly FileStore _fileStore;
+        private FileStore _fileStore;
 
         /// <summary>
         /// Creates an interface on the cache stored in the given directory.
@@ -66,11 +66,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         public override void Dispose()
         {
             base.Dispose();
-
-            if (!this.Disposed)
+            
+            if (this._fileStore != null)
             {
                 this._fileStore.Dispose();
-            }
+                this._fileStore = null;
+            }   
         }
     }
 }

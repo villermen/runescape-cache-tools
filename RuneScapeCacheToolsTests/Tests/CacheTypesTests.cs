@@ -78,7 +78,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             // Refresh the cache to make sure everything read after this point is freshly obtained
             this._fixture.RuneTek5Cache.Dispose();
 
-            using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", true))
+            using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", readOnly: true))
             {
                 var file2 = freshRuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 

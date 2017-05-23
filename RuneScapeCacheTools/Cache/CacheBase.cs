@@ -9,8 +9,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public abstract class CacheBase : IDisposable
     {
-        protected bool Disposed { get; private set; }
-
         /// <summary>
         /// Returns the indexes available in the cache.
         /// </summary>
@@ -68,8 +66,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <returns></returns>
         protected abstract BinaryFile GetBinaryFile(CacheFileInfo fileInfo);
-        
-        // TODO: GetEntryFile if requested type is an EntryFile
 
         /// <summary>
         /// Writes a file to the cache.
@@ -106,7 +102,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public virtual void Dispose()
         {
-            this.Disposed = true;
         }
     }
 }

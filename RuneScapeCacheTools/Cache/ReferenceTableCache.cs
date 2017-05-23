@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -9,14 +11,32 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public abstract class ReferenceTableCache : CacheBase
     {
-        private readonly ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables =
+        private ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables =
             new ConcurrentDictionary<Index, ReferenceTableFile>();
+        
+        private List<Index> _changedReferenceTableIndexes = new List<Index>();
 
-        public ReferenceTableFile GetReferenceTable(Index index)
+        public ReferenceTableFile GetReferenceTable(Index index, bool createIfNotFound = false)
         {
             // Obtain the reference table either from our own cache or the actual cache
             return this._cachedReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
-                this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index));
+            {
+                try
+                {
+                    return this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
+                }
+                catch (FileNotFoundException) when (createIfNotFound)
+                {
+                    return new ReferenceTableFile
+                    {
+                        Info = new CacheFileInfo
+                        {
+                            Index = Index.ReferenceTables,
+                            FileId = (int)index
+                        }
+                    };
+                }
+            });
         }
 
         public sealed override CacheFileInfo GetFileInfo(Index index, int fileId)
@@ -36,9 +56,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         protected sealed override void PutFileInfo(CacheFileInfo fileInfo)
         {
+            // Reference tables don't need no reference tables of their own 
             if (fileInfo.Index != Index.ReferenceTables)
             {
-                this.GetReferenceTable(fileInfo.Index).SetFileInfo(fileInfo.FileId, fileInfo);
+                this.GetReferenceTable(fileInfo.Index, true).SetFileInfo(fileInfo.FileId, fileInfo);
+                this._changedReferenceTableIndexes.Add(fileInfo.Index);
             }
         }
 
@@ -51,13 +73,17 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             base.Dispose();
 
-            if (!this.Disposed)
+            if (this._changedReferenceTableIndexes != null)
             {
-                // Write out cached reference tables
-                foreach (var referenceTable in this._cachedReferenceTables)
+                // Write out changed cached reference tables
+                foreach (var tableIndex in this._changedReferenceTableIndexes)
                 {
-                    this.PutFile(referenceTable.Value);
+                    var referenceTable = this._cachedReferenceTables[tableIndex];
+                    this.PutFile(referenceTable);
                 }
+
+                this._cachedReferenceTables = null;
+                this._changedReferenceTableIndexes = null;
             }
         }
     }

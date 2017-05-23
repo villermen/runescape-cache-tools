@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader

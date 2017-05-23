@@ -32,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         /// <summary>
         ///     The format of this table.
         /// </summary>
-        public byte Format { get; set; }
+        public byte Format { get; set; } = 7;
 
         /// <summary>
         ///     The flags of this table.
