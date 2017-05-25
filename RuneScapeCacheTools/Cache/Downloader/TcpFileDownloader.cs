@@ -285,7 +285,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public void Dispose()
         {
-            this._contentClient.Dispose();
+            if (this._contentClient != null)
+            {
+                this._contentClient.Dispose();
+                this._contentClient = null;
+            }
         }
 
         private enum HandshakeResponse

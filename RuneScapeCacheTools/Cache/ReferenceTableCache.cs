@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
