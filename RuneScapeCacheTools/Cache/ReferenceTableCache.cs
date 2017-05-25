@@ -68,22 +68,29 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this.GetReferenceTable(index).FileIds;
         }
 
+        /// <summary>
+        /// Writes changes made to the locally cached reference tables and clears the local cache.
+        /// </summary>
+        public void FlushCachedReferenceTables()
+        {
+            foreach (var tableIndex in this._changedReferenceTableIndexes)
+            {
+                var referenceTable = this._cachedReferenceTables[tableIndex];
+                this.PutFile(referenceTable);
+            }
+            
+            this._changedReferenceTableIndexes.Clear();
+            this._cachedReferenceTables.Clear();
+        }
+
         public override void Dispose()
         {
+            this.FlushCachedReferenceTables();
+            
             base.Dispose();
-
-            if (this._changedReferenceTableIndexes != null)
-            {
-                // Write out changed cached reference tables
-                foreach (var tableIndex in this._changedReferenceTableIndexes)
-                {
-                    var referenceTable = this._cachedReferenceTables[tableIndex];
-                    this.PutFile(referenceTable);
-                }
-
-                this._cachedReferenceTables = null;
-                this._changedReferenceTableIndexes = null;
-            }
+            
+            this._cachedReferenceTables = null;
+            this._changedReferenceTableIndexes = null;
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             this._fixture.RuneTek5Cache.PutFile(file1);
 
             // Refresh the cache to make sure everything read after this point is freshly obtained
-            this._fixture.RuneTek5Cache.Dispose();
+            this._fixture.RuneTek5Cache.FlushCachedReferenceTables();
 
             using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", readOnly: true))
             {
