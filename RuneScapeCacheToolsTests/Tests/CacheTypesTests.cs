@@ -81,16 +81,13 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             // Refresh the cache to make sure everything read after this point is freshly obtained
             this._fixture.RuneTek5Cache.FlushCachedReferenceTables();
 
-            using (var freshRuneTek5Cache = new RuneTek5Cache("testdata/runetek5", readOnly: true))
-            {
-                var file2 = freshRuneTek5Cache.GetFile<BinaryFile>(index, fileId);
+            var file2 = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
 
-                // Compare the info objects
-                Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
+            // Compare the info objects
+            Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
 
-                // Byte-compare both files
-                Assert.True(file1.Data.SequenceEqual(file2.Data));
-            }
+            // Byte-compare both files
+            Assert.True(file1.Data.SequenceEqual(file2.Data));
         }
         
         [Theory]

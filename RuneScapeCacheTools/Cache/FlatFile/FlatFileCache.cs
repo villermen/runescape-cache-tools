@@ -211,15 +211,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         private SortedDictionary<int, string> GetExistingEntryPaths(Index index, int fileId)
         {
-            var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(index, fileId))
-                .Where(matchedFilePath => FlatFileCache.FileNameRegex.IsMatch(matchedFilePath))
-                .ToDictionary(matchedFilePath =>
-                {
-                    var match = FlatFileCache.FileNameRegex.Match(matchedFilePath);
-                    return int.Parse(match.Groups[1].Value);
-                }, matchedFilePath => matchedFilePath);
-
-            return new SortedDictionary<int, string>(unsortedDictionary);
+            try
+            {
+                var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(index, fileId))
+                    .Where(matchedFilePath => FlatFileCache.FileNameRegex.IsMatch(matchedFilePath))
+                    .ToDictionary(matchedFilePath =>
+                    {
+                        var match = FlatFileCache.FileNameRegex.Match(matchedFilePath);
+                        return int.Parse(match.Groups[1].Value);
+                    }, matchedFilePath => matchedFilePath);
+                
+                return new SortedDictionary<int, string>(unsortedDictionary);
+            }
+            catch (DirectoryNotFoundException exception)
+            {
+                throw new FileNotFoundException($"Directory for entry ({(int)index})/{fileId} does not exist.", exception);
+            }
         }
 
         private string GetIndexDirectory(Index index)
