@@ -24,7 +24,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             get { return this._capacity; }
             set
             {
-                var highestIndex = this._entries.Keys.Max();
+                var highestIndex = this._entries.Keys.DefaultIfEmpty().Max();
                 if (value <= highestIndex)
                 {
                     throw new ArgumentOutOfRangeException($"Can not set entry file's capacity to {value} as there are entries up to index {highestIndex}.");
@@ -67,21 +67,34 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         {
             var binaryFileEntry = entry.ToBinaryFile();
             
-            if (binaryFileEntry.Info == null)
+            // Only store entries that are not "empty" (a 0-byte only)
+            if (!binaryFileEntry.Data.SequenceEqual(new byte[] {0}))
             {
-                binaryFileEntry.Info = new CacheFileInfo();
-            }
-            
-            binaryFileEntry.Info.Index = this.Info.Index;
-            binaryFileEntry.Info.FileId = this.Info.FileId;
-            binaryFileEntry.Info.EntryId = entryId;
-            
-            this._entries.Add(entryId, binaryFileEntry);
+                if (binaryFileEntry.Info == null)
+                {
+                    binaryFileEntry.Info = new CacheFileInfo();
+                }
 
+                binaryFileEntry.Info.Index = this.Info.Index;
+                binaryFileEntry.Info.FileId = this.Info.FileId;
+                binaryFileEntry.Info.EntryId = entryId;
+
+                this._entries.Add(entryId, binaryFileEntry);
+            }
+
+            // Increase capacity, even for empty entries so that they will be written out as well
             if (entryId >= this.Capacity)
             {
                 this.Capacity = entryId + 1;
             }
+        }
+
+        public void AddEntry(int entryId, byte[] entryData)
+        {
+            this.AddEntry(entryId, new BinaryFile
+            {
+                Data = entryData
+            });
         }
 
         public override void Decode(byte[] data)
@@ -151,17 +164,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             // Convert to binary files and store
             for(var entryId = 0; entryId < entriesData.Length; entryId++)
             {
-                var entryData = entriesData[entryId];
-
-                if (!entryData.SequenceEqual(new byte[] {0}))
-                {
-                    var binaryFile = new BinaryFile
-                    {
-                        Data = entryData
-                    };
-
-                    this.AddEntry(entryId, binaryFile);
-                }
+                this.AddEntry(entryId, entriesData[entryId]);
             }
         }
 
