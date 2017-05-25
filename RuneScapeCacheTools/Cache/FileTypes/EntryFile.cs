@@ -66,6 +66,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         public void AddEntry(int entryId, CacheFile entry)
         {
             var binaryFileEntry = entry.ToBinaryFile();
+            
+            if (binaryFileEntry.Info == null)
+            {
+                binaryFileEntry.Info = new CacheFileInfo();
+            }
+            
             binaryFileEntry.Info.Index = this.Info.Index;
             binaryFileEntry.Info.FileId = this.Info.FileId;
             binaryFileEntry.Info.EntryId = entryId;
@@ -151,7 +157,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 {
                     var binaryFile = new BinaryFile
                     {
-                        Info = new CacheFileInfo(),
                         Data = entryData
                     };
 

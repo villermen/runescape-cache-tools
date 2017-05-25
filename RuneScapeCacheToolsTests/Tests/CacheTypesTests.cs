@@ -26,7 +26,6 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         /// </summary>
         [Theory]
         [InlineData(typeof(RuneTek5Cache))]
-        [InlineData(typeof(DownloaderCache))]
         [InlineData(typeof(FlatFileCache))]
         public void TestGetFile(Type cacheType)
         {
@@ -39,9 +38,13 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
             var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
-
-            Assert.Equal(1493044636, archiveFile.Info.Version);
-            Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
+            
+            // Flatfile cache doesn't do info
+            if (cacheType != typeof(FlatFileCache))
+            {
+                Assert.Equal(1493044636, archiveFile.Info.Version);
+                Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
+            }
 
             var archiveEntry = archiveFile.GetEntry<BinaryFile>(255);
 
