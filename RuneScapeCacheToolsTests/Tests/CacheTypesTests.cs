@@ -42,7 +42,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             // Flatfile cache doesn't do info
             if (cacheType != typeof(FlatFileCache))
             {
-                Assert.Equal(1493044636, archiveFile.Info.Version);
+                Assert.Equal(1495007468, archiveFile.Info.Version);
                 Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
             }
 
@@ -74,14 +74,16 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [InlineData(typeof(FlatFileCache), Index.Enums, 23)]
         public void TestWriteBinaryFile(Type cacheType, Index index, int fileId)
         {
-            var file1 = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
+            var cache = this._fixture.GetCache(cacheType);
+            
+            var file1 = cache.GetFile<BinaryFile>(index, fileId);
 
-            this._fixture.RuneTek5Cache.PutFile(file1);
+            cache.PutFile(file1);
 
-            // Refresh the cache to make sure everything read after this point is freshly obtained
-            this._fixture.RuneTek5Cache.FlushCachedReferenceTables();
+            // Refresh a reference table cache to make sure everything read after this point is freshly obtained
+            (cache as ReferenceTableCache)?.FlushCachedReferenceTables();
 
-            var file2 = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(index, fileId);
+            var file2 = cache.GetFile<BinaryFile>(index, fileId);
 
             // Compare the info objects
             Assert.Equal(file1.Info.UncompressedSize, file2.Info.UncompressedSize);
