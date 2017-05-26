@@ -37,8 +37,10 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         }
 
         [Fact]
-        public void TestGaps()
+        public void TestEncodeDecodeWithEmptyEntries()
         {
+            // TODO: EntryFile takes entrycount based on info, so flatfile needs some way to store the capacity of an entryfile
+            
             var entryData = new byte[] {0, 12, 123, 8};
             
             var entryFile = new EntryFile
