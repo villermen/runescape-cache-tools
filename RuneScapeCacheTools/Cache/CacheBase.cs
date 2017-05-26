@@ -75,13 +75,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <exception cref="ArgumentException"></exception>
         public void PutFile(CacheFile file)
         {
-            if (file.Info.Index == Index.Undefined || file.Info.FileId == -1)
+            if (file.Info.Index == Index.Undefined || file.Info.FileId == null)
             {
                 throw new ArgumentException("A file must have an index and file id to be written.");
             }
             
             // TODO: Allowed in FlatFileCache
-            if (file.Info.EntryId != -1)
+            if (file.Info.EntryId != null)
             {
                 throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
             }

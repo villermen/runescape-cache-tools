@@ -6,52 +6,50 @@ namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
     /// Contains detailed information on a file in the cache.
-    ///
-    /// TODO: Also use for entries? (Add EntryId, uses identifier anyway)
     /// </summary>
     public class CacheFileInfo
     {
         public CacheFileOptions Options { get; set; }
 
         /// <summary>
-        ///     The compressed size of this entry.
+        /// The compressed size of this entry.
         /// </summary>
-        public int CompressedSize { get; set; }
+        public int? CompressedSize { get; set; }
 
         public CompressionType CompressionType { get; set; } = CompressionType.None;
 
         public int? Crc { get; set; }
 
         /// <summary>
-        ///     The children in this entry.
+        /// The children in this entry.
         /// </summary>
         public IDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new Dictionary<int, CacheFileEntryInfo>();
 
         public bool HasEntries => this.Entries.Count > 1;
 
-        public int FileId { get; set; } = -1;
+        public int? FileId { get; set; }
 
         /// <summary>
         /// If this file is an entry, this will be set to its index.
         /// </summary>
-        public int EntryId { get; set; } = -1;
+        public int? EntryId { get; set; }
 
-        public int Identifier { get; set; }
+        public int? Identifier { get; set; }
 
         public Index Index { get; set; } = Index.Undefined;
 
         /// <summary>
-        ///     Some unknown hash added on build 816.
-        ///     It is hard to pinpoint what exactly this is because it is not used in the client.
+        /// Some unknown hash added on build 816.
+        /// It is hard to pinpoint what exactly this is because it is not used in the client.
         /// </summary>
-        public int MysteryHash { get; set; }
+        public int? MysteryHash { get; set; }
 
         /// <summary>
-        ///     The uncompressed size of this entry.
+        /// The uncompressed size of this entry.
         /// </summary>
-        public int UncompressedSize { get; set; }
+        public int? UncompressedSize { get; set; }
 
-        public int Version { get; set; } = -1;
+        public int? Version { get; set; }
 
         public byte[] WhirlpoolDigest { get; set; }
 

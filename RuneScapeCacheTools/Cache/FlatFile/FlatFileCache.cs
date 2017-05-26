@@ -105,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 return new BinaryFile
                 {
                     Info = fileInfo,
-                    Data = File.ReadAllBytes(this.GetExistingFilePaths(fileInfo.Index, fileInfo.FileId).First())
+                    Data = File.ReadAllBytes(this.GetExistingFilePaths(fileInfo.Index, fileInfo.FileId.Value).First())
                 };
             }
 
@@ -115,7 +115,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Info = fileInfo
             };
 
-            foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId))
+            foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId.Value))
             {
                 entryFile.AddEntry(existingEntryPath.Key, File.ReadAllBytes(existingEntryPath.Value));
             }
@@ -138,12 +138,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             Directory.CreateDirectory(indexDirectory);
 
             // Clean existing files/entries
-            foreach (var existingFilePath in this.GetExistingFilePaths(file.Info.Index, file.Info.FileId))
+            foreach (var existingFilePath in this.GetExistingFilePaths(file.Info.Index, file.Info.FileId.Value))
             {
                 File.Delete(existingFilePath);
             }
 
-            var entryDirectory = this.GetEntryDirectory(file.Info.Index, file.Info.FileId);
+            var entryDirectory = this.GetEntryDirectory(file.Info.Index, file.Info.FileId.Value);
 
             if (Directory.Exists(entryDirectory))
             {

@@ -52,7 +52,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 Info = fileInfo
             };
 
-            file.Decode(this._fileStore.ReadFileData(fileInfo.Index, fileInfo.FileId));
+            file.Decode(this._fileStore.ReadFileData(fileInfo.Index, fileInfo.FileId.Value));
 
             return file;
         }
@@ -60,7 +60,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         protected override void PutBinaryFile(BinaryFile file)
         {
             // Write data to file store
-            this._fileStore.WriteFileData(file.Info.Index, file.Info.FileId, file.Encode());
+            this._fileStore.WriteFileData(file.Info.Index, file.Info.FileId.Value, file.Encode());
         }
 
         public override void Dispose()

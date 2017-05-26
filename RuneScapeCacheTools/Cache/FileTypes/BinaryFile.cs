@@ -49,14 +49,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             // Check if we should decompress the data or not
             if (this.Info.CompressionType == CompressionType.None)
             {
+                this.Info.UncompressedSize = dataLength;
                 this.Data = dataReader.ReadBytes(dataLength);
             }
             else
             {
                 // Decompress the data
-                var uncompressedLength = dataReader.ReadInt32BigEndian();
+                this.Info.CompressedSize = dataLength;
+                this.Info.UncompressedSize = dataReader.ReadInt32BigEndian();
                 var compressedBytes = dataReader.ReadBytes(dataLength);
-                var uncompressedBytes = new byte[uncompressedLength];
+                var uncompressedBytes = new byte[this.Info.UncompressedSize.Value];
 
                 switch (this.Info.CompressionType)
                 {
@@ -71,9 +73,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
                         using (var bzip2Stream = new BZip2InputStream(new MemoryStream(bzipCompressedBytes)))
                         {
-                            var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, uncompressedLength);
+                            var readBzipBytes = bzip2Stream.Read(uncompressedBytes, 0, this.Info.UncompressedSize.Value);
 
-                            if (readBzipBytes != uncompressedLength)
+                            if (readBzipBytes != this.Info.UncompressedSize)
                             {
                                 throw new DecodeException("Uncompressed container data length does not match obtained length.");
                             }
@@ -83,9 +85,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     case CompressionType.Gzip:
                         using (var gzipStream = new GZipInputStream(new MemoryStream(compressedBytes)))
                         {
-                            var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, uncompressedLength);
+                            var readGzipBytes = gzipStream.Read(uncompressedBytes, 0, this.Info.UncompressedSize.Value);
 
-                            if (readGzipBytes != uncompressedLength)
+                            if (readGzipBytes != this.Info.UncompressedSize)
                             {
                                 throw new DecodeException("Uncompressed container data length does not match obtained length.");
                             }
@@ -99,7 +101,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                             var lzmaDecoder = new SevenZip.Compression.LZMA.Decoder();
                             lzmaDecoder.Code(compressedStream, uncompressedStream, compressedStream.Length, -1, null);
 
-                            if (uncompressedStream.Length != uncompressedLength)
+                            if (uncompressedStream.Length != this.Info.UncompressedSize)
                             {
                                 throw new DecodeException("Uncompressed container data length does not match obtained length.");
                             }
@@ -122,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 var version = dataReader.ReadUInt16BigEndian();
 
-                if (this.Info.Version != -1)
+                if (this.Info.Version != null)
                 {
                     // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared
                     var truncatedInfoVersion = (int)(ushort)this.Info.Version;
@@ -248,7 +250,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             writer.Write(compressedData);
 
             // Suffix with version truncated to two bytes (not part of data for whatever reason)
-            if (this.Info.Version > -1)
+            if (this.Info.Version != null)
             {
                 writer.WriteUInt16BigEndian((ushort)this.Info.Version);
             }

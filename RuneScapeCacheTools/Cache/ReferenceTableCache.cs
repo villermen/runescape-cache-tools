@@ -58,7 +58,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             // Reference tables don't need no reference tables of their own 
             if (fileInfo.Index != Index.ReferenceTables)
             {
-                this.GetReferenceTable(fileInfo.Index, true).SetFileInfo(fileInfo.FileId, fileInfo);
+                this.GetReferenceTable(fileInfo.Index, true).SetFileInfo(fileInfo.FileId.Value, fileInfo);
                 this._changedReferenceTableIndexes.Add(fileInfo.Index);
             }
         }
@@ -75,8 +75,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             foreach (var tableIndex in this._changedReferenceTableIndexes)
             {
-                var referenceTable = this._cachedReferenceTables[tableIndex];
-                this.PutFile(referenceTable);
+                this.PutFile(this._cachedReferenceTables[tableIndex]);
             }
             
             this._changedReferenceTableIndexes.Clear();

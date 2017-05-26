@@ -100,7 +100,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
                 this._files.Add(fileId, new CacheFileInfo
                 {
-                    Index = (Index)this.Info.FileId,
+                    Index = (Index)this.Info.FileId.Value,
                     FileId = fileId
                 });
             }
@@ -158,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             var entryCounts = new Dictionary<int, int>();
             foreach (var file in this._files.Values)
             {
-                entryCounts.Add(file.FileId, this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
+                entryCounts.Add(file.FileId.Value, this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
             }
 
             // Read the delta encoded entry ids
@@ -241,7 +241,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 foreach (var file in this._files.Values)
                 {
-                    writer.WriteInt32BigEndian(file.Identifier);
+                    writer.WriteInt32BigEndian(file.Identifier.Value);
                 }
             }
 
@@ -256,7 +256,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 foreach (var file in this._files.Values)
                 {
-                    writer.WriteInt32BigEndian(file.MysteryHash);
+                    writer.WriteInt32BigEndian(file.MysteryHash.Value);
                 }
             }
 
@@ -280,15 +280,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 foreach (var file in this._files.Values)
                 {
-                    writer.WriteInt32BigEndian(file.CompressedSize);
-                    writer.WriteInt32BigEndian(file.UncompressedSize);
+                    writer.WriteInt32BigEndian(file.CompressedSize.GetValueOrDefault());
+                    writer.WriteInt32BigEndian(file.UncompressedSize.Value);
                 }
             }
 
             // Write the version numbers
             foreach (var file in this._files.Values)
             {
-                writer.WriteInt32BigEndian(file.Version);
+                writer.WriteInt32BigEndian(file.Version.Value);
             }
 
             // Write the entry counts
@@ -332,7 +332,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 {
                     foreach (var entry in file.Entries.Values)
                     {
-                        writer.WriteInt32BigEndian(entry.Identifier);
+                        writer.WriteInt32BigEndian(entry.Identifier.Value);
                     }
                 }
             }

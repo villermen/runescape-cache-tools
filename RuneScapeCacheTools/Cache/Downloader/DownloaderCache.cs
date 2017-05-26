@@ -32,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             var downloader = DownloaderCache.IndexesUsingHttpInterface.Contains(fileInfo.Index) ? (IFileDownloader)this._httpFileDownloader : this._tcpFileDownloader;
 
-            return downloader.DownloadFileAsync(fileInfo.Index, fileInfo.FileId, fileInfo).Result;
+            return downloader.DownloadFileAsync(fileInfo.Index, fileInfo.FileId.Value, fileInfo).Result;
         }
 
         protected override void PutBinaryFile(BinaryFile file)
