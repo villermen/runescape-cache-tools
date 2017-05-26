@@ -167,6 +167,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 var entryCountFileId = entryCountPair.Key;
                 var entryCount = entryCountPair.Value;
 
+                this._files[entryCountFileId].Entries = new Dictionary<int, CacheFileEntryInfo>();
+
                 var entryId = 0;
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
                 {

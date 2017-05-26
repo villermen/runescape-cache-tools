@@ -40,6 +40,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         public void TestEncodeDecodeWithEmptyEntries()
         {
             // TODO: EntryFile takes entrycount based on info, so flatfile needs some way to store the capacity of an entryfile
+            // TODO: Unrelated to this, as this doesn't require a flatfilecache
             
             var entryData = new byte[] {0, 12, 123, 8};
             
@@ -54,7 +55,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
             var decodedEntryFile = new EntryFile();
             decodedEntryFile.FromBinaryFile(binaryFile);
             
-            Assert.Equal(entryData, decodedEntryFile.GetEntry<BinaryFile>(5).Data);
+            Assert.True(entryData.SequenceEqual(decodedEntryFile.GetEntry<BinaryFile>(5).Data));
         }
     }
 }

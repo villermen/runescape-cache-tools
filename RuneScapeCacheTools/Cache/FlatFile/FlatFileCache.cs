@@ -100,7 +100,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             // TODO: Add some fallback mechanic for when a file but no info is added
 
             // Single file
-            if (!fileInfo.HasEntries)
+            if (fileInfo.Entries != null)
             {
                 return new BinaryFile
                 {
@@ -150,7 +150,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Directory.Delete(entryDirectory, true);
             }
 
-            if (!file.Info.HasEntries)
+            if (file.Info.Entries != null)
             {
                 // Extract file
                 if (file.Data.Length > 0)
