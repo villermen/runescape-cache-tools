@@ -71,6 +71,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             var entryPaths = this.GetExistingEntryPaths(index, fileId);
             if (entryPaths.Any())
             {
+                var capacity = this.GetEntryCapacity(index, fileId);
+                
+                if (capacity != null)asdfasdf
+                    
+                    // TODO: Better way of storing entry info in CacheFileInfo...
+                    
                 info.Entries = entryPaths
                     .ToDictionary(
                         entryPathPair => entryPathPair.Key,
@@ -118,10 +124,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 entryFile.AddEntry(existingEntryPath.Key, File.ReadAllBytes(existingEntryPath.Value));
             }
 
-            var capacityFile = this.GetEntryDirectory(fileInfo.Index, fileInfo.FileId.Value) + ".capacity";
-            if (File.Exists(capacityFile))
+            var capacity = this.GetEntryCapacity(fileInfo.Index, fileInfo.FileId.Value);
+            
+            if (capacity != null)
             {
-                entryFile.Capacity = int.Parse(File.ReadAllText(capacityFile));
+                entryFile.Capacity = capacity.Value;
             }
 
             // TODO: Return EntryFile directly so it doesn't have to be needlessly encoded
@@ -239,6 +246,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         private string GetEntryDirectory(Index index, int fileId)
         {
             return this.GetIndexDirectory(index) + fileId + "/";
+        }
+
+        private int? GetEntryCapacity(Index index, int fileId)
+        {
+            var capacityFile = this.GetEntryDirectory(index, fileId) + ".capacity";
+            if (File.Exists(capacityFile))
+            {
+                return int.Parse(File.ReadAllText(capacityFile));
+            }
+
+            return null;
         }
     }
 }
