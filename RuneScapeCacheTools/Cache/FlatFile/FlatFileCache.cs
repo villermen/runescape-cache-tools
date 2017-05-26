@@ -117,12 +117,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
             foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId))
             {
-                var entryFileEntry = new BinaryFile
-                {
-                    Data = File.ReadAllBytes(existingEntryPath.Value)
-                };
-
-                entryFile.AddEntry(existingEntryPath.Key, entryFileEntry);
+                entryFile.AddEntry(existingEntryPath.Key, File.ReadAllBytes(existingEntryPath.Value));
             }
 
             // TODO: Return EntryFile directly so it doesn't have to be needlessly encoded
@@ -225,7 +220,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             }
             catch (DirectoryNotFoundException exception)
             {
-                throw new FileNotFoundException($"Directory for entry ({(int)index})/{fileId} does not exist.", exception);
+                throw new FileNotFoundException($"Directory for entry {(int)index}/{fileId} does not exist.", exception);
             }
         }
 

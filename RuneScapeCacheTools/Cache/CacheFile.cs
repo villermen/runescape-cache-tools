@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public abstract class CacheFile
     {
-        public CacheFileInfo Info { get; set; }
+        public CacheFileInfo Info { get; set; } = new CacheFileInfo();
 
         public void FromBinaryFile(BinaryFile file)
         {

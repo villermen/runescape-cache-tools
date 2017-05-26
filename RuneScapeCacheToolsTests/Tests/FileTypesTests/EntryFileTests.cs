@@ -35,5 +35,24 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
 
             Assert.True(entryFile.Encode().SequenceEqual(binaryFile.Data));
         }
+
+        [Fact]
+        public void TestGaps()
+        {
+            var entryData = new byte[] {0, 12, 123, 8};
+            
+            var entryFile = new EntryFile
+            {
+                Capacity = 20
+            };
+            entryFile.AddEntry(5, entryData);
+
+            var binaryFile = entryFile.ToBinaryFile();
+            
+            var decodedEntryFile = new EntryFile();
+            decodedEntryFile.FromBinaryFile(binaryFile);
+            
+            Assert.Equal(entryData, decodedEntryFile.GetEntry<BinaryFile>(5).Data);
+        }
     }
 }
