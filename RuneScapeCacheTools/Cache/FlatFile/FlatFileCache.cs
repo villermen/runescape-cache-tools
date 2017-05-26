@@ -97,10 +97,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
-            // TODO: Add some fallback mechanic for when a file but no info is added
-
             // Single file
-            if (fileInfo.Entries != null)
+            if (fileInfo.Entries == null)
             {
                 return new BinaryFile
                 {
@@ -118,6 +116,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId.Value))
             {
                 entryFile.AddEntry(existingEntryPath.Key, File.ReadAllBytes(existingEntryPath.Value));
+            }
+
+            var capacityFile = this.GetEntryDirectory(fileInfo.Index, fileInfo.FileId.Value) + ".capacity";
+            if (File.Exists(capacityFile))
+            {
+                entryFile.Capacity = int.Parse(File.ReadAllText(capacityFile));
             }
 
             // TODO: Return EntryFile directly so it doesn't have to be needlessly encoded
@@ -150,7 +154,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Directory.Delete(entryDirectory, true);
             }
 
-            if (file.Info.Entries != null)
+            if (file.Info.Entries == null)
             {
                 // Extract file
                 if (file.Data.Length > 0)
@@ -184,9 +188,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                         var extension = ExtensionGuesser.GuessExtension(entryBinaryFile.Data);
                         extension = extension != null ? $".{extension}" : "";
 
-                        var entryPath = $"{entryDirectory}/{entryBinaryFile.Info.EntryId}{extension}";
+                        var entryPath = $"{entryDirectory}{entryBinaryFile.Info.EntryId}{extension}";
                         File.WriteAllBytes(entryPath, entryBinaryFile.Data);
                     }
+                    
+                    // Write the capacity
+                    File.WriteAllText($"{entryDirectory}.capacity", entryFile.Capacity.ToString());
 
                     FlatFileCache.Logger.Info($"Wrote {(int)file.Info.Index}/{file.Info.FileId} ({entryBinaryFiles.Count} entries).");
                 }
