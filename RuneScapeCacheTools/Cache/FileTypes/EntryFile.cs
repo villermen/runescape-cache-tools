@@ -110,7 +110,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
              * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
              */
 
-            var entriesData = new byte[this.Info.Entries.Count][];
+            var entriesData = new byte[this.Info.Entries.Length][];
 
             var reader = new BinaryReader(new MemoryStream(data));
 
@@ -123,14 +123,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
 
             // Read the sizes of the child entries and individual chunks
-            var chunkEntrySizes = new int[amountOfChunks, this.Info.Entries.Count];
+            var chunkEntrySizes = new int[amountOfChunks, this.Info.Entries.Length];
 
-            reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * this.Info.Entries.Count * 4;
+            reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * this.Info.Entries.Length * 4;
 
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
                 var chunkSize = 0;
-                for (var entryId = 0; entryId < this.Info.Entries.Count; entryId++)
+                for (var entryId = 0; entryId < this.Info.Entries.Length; entryId++)
                 {
                     // Read the delta encoded chunk length
                     var delta = reader.ReadInt32BigEndian();
@@ -145,7 +145,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             reader.BaseStream.Position = 0;
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
-                for (var entryId = 0; entryId < this.Info.Entries.Count; entryId++)
+                for (var entryId = 0; entryId < this.Info.Entries.Length; entryId++)
                 {
                     // Read the bytes of the entry into the archive entries
                     var entrySize = chunkEntrySizes[chunkId, entryId];

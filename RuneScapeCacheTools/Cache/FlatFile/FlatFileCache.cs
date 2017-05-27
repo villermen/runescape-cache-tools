@@ -71,19 +71,25 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             var entryPaths = this.GetExistingEntryPaths(index, fileId);
             if (entryPaths.Any())
             {
+                // Just add as many entries without identifiers to the info as the capacity dictates
                 var capacity = this.GetEntryCapacity(index, fileId);
-                
-                if (capacity != null)asdfasdf
-                    
-                    // TODO: Better way of storing entry info in CacheFileInfo...
-                    
-                info.Entries = entryPaths
-                    .ToDictionary(
-                        entryPathPair => entryPathPair.Key,
-                        entryPathPair => new CacheFileEntryInfo
-                        {
-                            EntryId = entryPathPair.Key
-                        });
+
+                if (capacity != null)
+                {
+                    info.Entries = new CacheFileEntryInfo[capacity.Value];
+                }
+                else
+                {
+                    info.Entries = new CacheFileEntryInfo[entryPaths.Keys.Max() + 1];
+                }
+
+                for (var entryId = 0; entryId < info.Entries.Length; entryId++)
+                {
+                    info.Entries[entryId] = new CacheFileEntryInfo
+                    {
+                        EntryId = entryId
+                    };
+                }
                 
                 return info;
             }
