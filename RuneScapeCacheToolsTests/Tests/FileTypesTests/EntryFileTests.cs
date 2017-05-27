@@ -2,6 +2,7 @@
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
@@ -39,14 +40,15 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         [Fact]
         public void TestEncodeDecodeWithEmptyEntries()
         {
-            // TODO: EntryFile takes entrycount based on info, so flatfile needs some way to store the capacity of an entryfile
-            // TODO: Unrelated to this, as this doesn't require a flatfilecache
-            
             var entryData = new byte[] {0, 12, 123, 8};
             
             var entryFile = new EntryFile
             {
-                Capacity = 20
+                Capacity = 20,
+                Info = new CacheFileInfo
+                {
+                    Entries = new CacheFileEntryInfo[20]
+                }
             };
             entryFile.AddEntry(5, entryData);
 
