@@ -110,54 +110,55 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			}
 			else
 			{
-				
-			}
-			
-			try
-			{
-				
-				
-				// Perform the action if everything is ok
-				if (run && !Program._doHelp)
+
+				try
 				{
-					// Initialize the cache
-					Program._cache = Program._download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(Program._cacheDirectory);
+					var cache = this._arguments.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._arguments.CacheDirectory, true);
 
-					// Perform the specified actions
-					if (Program._doExtract)
+
+
+					// Perform the action if everything is ok
+					if (run && !Program._doHelp)
 					{
-						Program.Extract();
-					}
+						// Initialize the cache
+						Program._cache = Program._download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(Program._cacheDirectory);
 
-					if (Program._doSoundtrackCombine)
+						// Perform the specified actions
+						if (Program._doExtract)
+						{
+							Program.Extract();
+						}
+
+						if (Program._doSoundtrackCombine)
+						{
+							Program.CombineSoundtrack();
+						}
+
+						returnCode = 0;
+					}
+					else
 					{
-						Program.CombineSoundtrack();
-					}
+						// Show help if something went wrong during argument parsing
+						Program.ShowHelp();
 
-					returnCode = 0;
+						returnCode = 1;
+					}
 				}
-				else
+				catch (Exception exception) when (exception is OptionException || exception is CLIException)
 				{
-					// Show help if something went wrong during argument parsing
-					Program.ShowHelp();
+					Console.WriteLine(exception);
+
+					returnCode = 1;
+				}
+				catch (Exception exception)
+				{
+					Console.WriteLine(exception);
 
 					returnCode = 1;
 				}
 			}
-			catch (Exception exception) when (exception is OptionException || exception is CLIException)
-			{
-				Console.WriteLine(exception);
 
-				returnCode = 1;
-			}
-			catch (Exception exception)
-			{
-				Console.WriteLine(exception);
 
-				returnCode = 1;
-			}
-
-            
 
 			return returnCode;
 		}
