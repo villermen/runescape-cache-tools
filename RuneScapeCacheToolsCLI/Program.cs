@@ -53,6 +53,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		    {
 			    logFile.Delete();
 		    }
+		    
+#if DEBUG
+		    Console.ReadLine();
+#endif
 
 		    return returnCode;
         }

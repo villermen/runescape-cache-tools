@@ -29,6 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Tests
                 new Tuple<Index, int>(Index.Enums, 23),
                 new Tuple<Index, int>(Index.ItemDefinitions, 155),
                 new Tuple<Index, int>(Index.ItemDefinitions, 5),
+                new Tuple<Index, int>(Index.AnimationFrames, 0),
 
                 // Soundscape
                 new Tuple<Index, int>(Index.Music, 38900),

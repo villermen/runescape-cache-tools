@@ -9,18 +9,19 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
     [Collection(TestCacheCollection.Name)]
     public class ReferenceTableFileTests
     {
-        private TestCacheFixture Fixture { get; }
+        private readonly TestCacheFixture _fixture;
 
         public ReferenceTableFileTests(TestCacheFixture fixture)
         {
-            this.Fixture = fixture;
+            this._fixture = fixture;
         }
 
         [Theory]
         [InlineData(Index.Music)]
-        public void TestEncode(Index index)
+        [InlineData(Index.AnimationFrames)]
+        public void TestDecodeEncode(Index index)
         {
-            var referenceTableFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
+            var referenceTableFile = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
             var referenceTable =  new ReferenceTableFile();
             referenceTable.FromBinaryFile(referenceTableFile);
 
