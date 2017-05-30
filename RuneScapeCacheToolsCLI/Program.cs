@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using log4net;
 using log4net.Core;
 using NDesk.Options;
@@ -21,11 +22,13 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
 		private Arguments _arguments;
+		private CacheBase _cache;
 
 	    private static int Main(string[] arguments)
 	    {
 #if DEBUG
-		    Console.WriteLine("RSCT DEBUG BUILD");
+		    Console.WriteLine();
+		    Console.WriteLine("RSCT DEVELOPMENT BUILD");
 		    Console.WriteLine();
 
 		    // Set log4net log level to debug
@@ -37,14 +40,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		    var returnCode = program.Configure(arguments);
 		    
-		    if (returnCode != 0)
+		    if (returnCode == 0)
 		    {
 			    returnCode = program.Execute();
 		    }
-			
-#if DEBUG
-		    Console.ReadLine();
-#endif
 		    
 		    // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
 		    // Delete log file if it is still empty when done
@@ -92,6 +91,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 				Console.WriteLine("Too many actions specified.");
 				Console.WriteLine("Use either the extract or soundtrack option, but not both at the same time.");
 				Console.WriteLine();
+
+				returnCode = 1;
 			}
 			
 			// TODO: Split up into multiple executables. rsct-soundtrack, rsct-extract
@@ -101,148 +102,72 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		public int Execute()
 		{
-			if (this._arguments.ShowHelp)
+			var returnCode = 0;
+			
+			if (!this._arguments.ShowHelp)
+			{
+				this._cache = this._arguments.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._arguments.CacheDirectory, true);
+
+				// Perform the specified actions
+				if (this._arguments.DoExtract)
+				{
+					this.Extract();
+				}
+
+				if (this._arguments.DoSoundtrackCombine)
+				{
+					this.CombineSoundtrack();
+				}
+			}
+			else
 			{
 				Console.WriteLine($"Usage: {typeof(Program).Assembly.GetName().Name} [OPTION]...");
 				Console.WriteLine("Tools for performing actions on RuneScape's cache.");
 				Console.WriteLine();
 				this._arguments.WriteOptionDescriptions(Console.Out);
+
+				returnCode = 1;
 			}
-			else
-			{
-
-				try
-				{
-					var cache = this._arguments.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._arguments.CacheDirectory, true);
-
-
-
-					// Perform the action if everything is ok
-					if (run && !Program._doHelp)
-					{
-						// Initialize the cache
-						Program._cache = Program._download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(Program._cacheDirectory);
-
-						// Perform the specified actions
-						if (Program._doExtract)
-						{
-							Program.Extract();
-						}
-
-						if (Program._doSoundtrackCombine)
-						{
-							Program.CombineSoundtrack();
-						}
-
-						returnCode = 0;
-					}
-					else
-					{
-						// Show help if something went wrong during argument parsing
-						Program.ShowHelp();
-
-						returnCode = 1;
-					}
-				}
-				catch (Exception exception) when (exception is OptionException || exception is CLIException)
-				{
-					Console.WriteLine(exception);
-
-					returnCode = 1;
-				}
-				catch (Exception exception)
-				{
-					Console.WriteLine(exception);
-
-					returnCode = 1;
-				}
-			}
-
-
-
+			
 			return returnCode;
 		}
 
-        /// <summary>
-        ///   Expands the given integer range into an enumerable of all individual integers.
-        /// </summary>
-        /// <param name="integerRangeString">An integer range, e.g. "0-4,6,34,200-201"</param>
-        /// <returns></returns>
-        private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
+		private void Extract()
 		{
-		    var rangeStringParts = Program.ExpandListString(integerRangeString);
-			var result = new List<int>();
+			var outputCache = new FlatFileCache(this._arguments.OutputDirectory + "files/");
+			
+//            // Display progress at bottom of console without creating a new row
+//            var progress = new ExtendedProgress();
+//            progress.ProgressChanged += (p, message) =>
+//            {
+//                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
+//            };
 
-			foreach (var rangeStringPart in rangeStringParts)
+			if (this._arguments.Indexes == null && this._arguments.FileIds != null)
 			{
-				if (rangeStringPart.Count(ch => ch == '-') == 1)
-				{
-					// Expand the range
-					var rangeParts = rangeStringPart.Split('-');
-					var rangeStart = int.Parse(rangeParts[0]);
-					var rangeCount = int.Parse(rangeParts[1]) - rangeStart + 1;
-
-					result.AddRange(Enumerable.Range(rangeStart, rangeCount));
-				}
-				else
-				{
-					// It should be a single integer
-					result.Add(int.Parse(rangeStringPart));
-				}
+				throw new ArgumentException("If you specify files to extract you must also explicitly specify indexes to extract.");
 			}
 
-			// Filter duplicates
-			return result.Distinct();
-		}
-
-	    private static IEnumerable<string> ExpandListString(string listString)
-	    {
-            return listString.Split(',', ';');
-        }
-
-		private static void Extract(CacheBase inputCache, FlatFileCache outputCache, IEnumerable<Index> indexes, IEnumerable<int> fileIds)
-		{
-            // Display progress at bottom of console without creating a new row
-            var progress = new ExtendedProgress();
-            progress.ProgressChanged += (p, message) =>
+            foreach (var index in this._arguments.Indexes ?? this._cache.GetIndexes())
             {
-                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
-            };
-
-            if (indexes == null && fileIds == null)
-			{
-				// Extract everything
-				Program._cache.Extract(Program._overwrite, progress);
+	            foreach (var fileId in this._arguments.FileIds ?? this._cache.GetFileIds(index))
+	            {
+		            this._cache.CopyFile(index, fileId, outputCache);
+	            }
 			}
-			else if (fileIds == null)
-			{
-				// Extract the given index(es) fully
-				Program._cache.Extract(Program.GetIndexes, Program._overwrite, progress);
-			}
-			else if (Program._indexes.Count() == 1)
-			{
-				// Extract specified files from the given index
-				Program._cache.Extract(Program.GetIndexes.First(), Program._fileIds, Program._overwrite, progress);
-			}
-			else
-			{
-				throw new CLIException("You can only specify multiple files if you specify exactly one index to extract from.");
-			}
-
-            Console.WriteLine();
 		}
 
-		private static void CombineSoundtrack(CacheBase cache, string soundtrackDirectory, string temporaryDirectory,
-			bool overwrite, bool lossless, bool includeUnnamedSoundtracks, IEnumerable<string> filter)
+		private void CombineSoundtrack()
 		{
-			var soundtrack = new Soundtrack(cache, soundtrackDirectory);
+			var soundtrack = new Soundtrack(this._cache, this._arguments.OutputDirectory + "soundtrack/");
 
-			if (temporaryDirectory != null)
+			if (this._arguments.TemporaryDirectory != null)
 			{
-				soundtrack.TemporaryDirectory = temporaryDirectory;
+				soundtrack.TemporaryDirectory = this._arguments.TemporaryDirectory;
 			}
 
-			soundtrack.Extract(overwrite, lossless, includeUnnamedSoundtracks, filter?.ToArray() ?? new string[0]);
+			soundtrack.Extract(this._arguments.Overwrite, this._arguments.Lossless,
+				this._arguments.IncludeUnnamedSoundtracks, this._arguments.SoundtrackNameFilter?.ToArray() ?? new string[0]);
 		}
 	}
 }

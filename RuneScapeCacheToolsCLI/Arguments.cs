@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
                     value =>
                     {
-                        this.Indexes = Program.ExpandIntegerRangeString(value).Cast<Index>();
+                        this.Indexes = Arguments.ExpandIntegerRangeString(value).Cast<Index>();
                     }
                 },
                 {
@@ -84,7 +84,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     "A file id or range of file ids to extract. E.g. \"1-2,4,6-7\".",
                     value =>
                     {
-                        this.FileIds = Program.ExpandIntegerRangeString(value);
+                        this.FileIds = Arguments.ExpandIntegerRangeString(value);
                     }
                 },
                 {
@@ -104,7 +104,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                         if (!string.IsNullOrWhiteSpace(value))
                         {
-                            this.SoundtrackNameFilter = Program.ExpandListString(value);
+                            this.SoundtrackNameFilter = Arguments.ExpandListString(value);
                         }
 
                         this.Actions++;
@@ -138,7 +138,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             this.UnparsedArguments = this._optionSet.Parse(arguments);
 
-            if (this.Actions == 0 && arguments.Length > 0)
+            if (this.Actions == 0 && arguments.Length > 0 ||
+                arguments.Length == 0)
             {
                 this.ShowHelp = true;
             }
@@ -147,6 +148,43 @@ namespace Villermen.RuneScapeCacheTools.CLI
         public void WriteOptionDescriptions(TextWriter writer)
         {
             this._optionSet.WriteOptionDescriptions(writer);
+        }
+        
+        /// <summary>
+        /// Expands the given integer range into an enumerable of all individual integers.
+        /// </summary>
+        /// <param name="integerRangeString">An integer range, e.g. "0-4,6,34,200-201"</param>
+        /// <returns></returns>
+        private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
+        {
+            var rangeStringParts = Arguments.ExpandListString(integerRangeString);
+            var result = new List<int>();
+
+            foreach (var rangeStringPart in rangeStringParts)
+            {
+                if (rangeStringPart.Count(ch => ch == '-') == 1)
+                {
+                    // Expand the range
+                    var rangeParts = rangeStringPart.Split('-');
+                    var rangeStart = int.Parse(rangeParts[0]);
+                    var rangeCount = int.Parse(rangeParts[1]) - rangeStart + 1;
+
+                    result.AddRange(Enumerable.Range(rangeStart, rangeCount));
+                }
+                else
+                {
+                    // It should be a single integer
+                    result.Add(int.Parse(rangeStringPart));
+                }
+            }
+
+            // Filter duplicates
+            return result.Distinct();
+        }
+
+        private static IEnumerable<string> ExpandListString(string listString)
+        {
+            return listString.Split(',', ';');
         }
     }
 }
