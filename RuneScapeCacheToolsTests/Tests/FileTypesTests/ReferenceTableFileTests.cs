@@ -29,11 +29,5 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
 
             Assert.True(referenceTableFile.Data.SequenceEqual(encodedFile.Data));
         }
-
-        [Fact]
-        public void TestTemp()
-        {
-            this._fixture.DownloaderCache.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)Index.Enums);
-        }
     }
 }
