@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         {
             var archiveFile = this.Fixture.DownloaderCache.GetFile<EntryFile>(Index.Enums, 5);
 
-            Assert.Equal(256, archiveFile.Capacity);
+            Assert.Equal(256, archiveFile.EntryCount);
         }
 
         [Fact]

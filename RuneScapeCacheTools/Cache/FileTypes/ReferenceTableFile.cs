@@ -167,7 +167,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                 var entryCountFileId = entryCountPair.Key;
                 var entryCount = entryCountPair.Value;
 
-                this._files[entryCountFileId].Entries = new CacheFileEntryInfo[entryCount];
+                this._files[entryCountFileId].EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>();
 
                 var entryId = 0;
                 for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
@@ -175,7 +175,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     var delta = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
                     entryId += delta;
 
-                    this._files[entryCountFileId].Entries[entryId] = new CacheFileEntryInfo
+                    this._files[entryCountFileId].EntryInfo[entryId] = new CacheFileEntryInfo
                     {
                         EntryId = entryId
                     };
@@ -187,9 +187,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 foreach (var file in this._files.Values)
                 {
-                    foreach (var entry in file.Entries)
+                    foreach (var entryInfoPair in file.EntryInfo)
                     {
-                        entry.Identifier = reader.ReadInt32BigEndian();
+                        entryInfoPair.Value.Identifier = reader.ReadInt32BigEndian();
                     }
                 }
             }
@@ -298,11 +298,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 if (this.Format >= 7)
                 {
-                    writer.WriteAwkwardInt(file.Entries.Length);
+                    writer.WriteAwkwardInt(file.EntryInfo.Count);
                 }
                 else
                 {
-                    writer.WriteUInt16BigEndian((ushort)file.Entries.Length);
+                    writer.WriteUInt16BigEndian((ushort)file.EntryInfo.Count);
                 }
             }
 
@@ -310,9 +310,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             foreach (var file in this._files.Values)
             {
                 var previousEntryId = 0;
-                for (var entryId = 0; entryId < file.Entries.Length; entryId++)
+
+                foreach (var entryInfoPair in file.EntryInfo)
                 {
-                    var delta = entryId - previousEntryId;
+                    var delta = entryInfoPair.Key - previousEntryId;
 
                     if (this.Format >= 7)
                     {
@@ -323,7 +324,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                         writer.WriteUInt16BigEndian((ushort)delta);
                     }
 
-                    previousEntryId = entryId;
+                    previousEntryId = entryInfoPair.Key;
                 }
             }
 
@@ -332,9 +333,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 foreach (var file in this._files.Values)
                 {
-                    foreach (var entry in file.Entries)
+                    foreach (var entryInfo in file.EntryInfo.Values)
                     {
-                        writer.WriteInt32BigEndian(entry.Identifier.Value);
+                        writer.WriteInt32BigEndian(entryInfo.Identifier.Value);
                     }
                 }
             }

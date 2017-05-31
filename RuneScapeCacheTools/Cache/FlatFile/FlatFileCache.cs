@@ -71,25 +71,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             var entryPaths = this.GetExistingEntryPaths(index, fileId);
             if (entryPaths.Any())
             {
-                // Just add as many entries without identifiers to the info as the capacity dictates
-                var capacity = this.GetEntryCapacity(index, fileId);
-
-                if (capacity != null)
-                {
-                    info.Entries = new CacheFileEntryInfo[capacity.Value];
-                }
-                else
-                {
-                    info.Entries = new CacheFileEntryInfo[entryPaths.Keys.Max() + 1];
-                }
-
-                for (var entryId = 0; entryId < info.Entries.Length; entryId++)
-                {
-                    info.Entries[entryId] = new CacheFileEntryInfo
+                info.EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>(entryPaths.Keys.ToDictionary(
+                    entryId => entryId,
+                    entryId => new CacheFileEntryInfo
                     {
                         EntryId = entryId
-                    };
-                }
+                    }));
                 
                 return info;
             }
@@ -110,7 +97,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
             // Single file
-            if (fileInfo.Entries == null)
+            if (fileInfo.EntryInfo == null)
             {
                 return new BinaryFile
                 {
@@ -128,13 +115,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId.Value))
             {
                 entryFile.AddEntry(existingEntryPath.Key, File.ReadAllBytes(existingEntryPath.Value));
-            }
-
-            var capacity = this.GetEntryCapacity(fileInfo.Index, fileInfo.FileId.Value);
-            
-            if (capacity != null)
-            {
-                entryFile.Capacity = capacity.Value;
             }
 
             // TODO: Return EntryFile directly so it doesn't have to be needlessly encoded
@@ -167,7 +147,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Directory.Delete(entryDirectory, true);
             }
 
-            if (file.Info.Entries == null)
+            if (file.Info.EntryInfo == null)
             {
                 // Extract file
                 if (file.Data.Length > 0)
@@ -204,9 +184,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                         var entryPath = $"{entryDirectory}{entryBinaryFile.Info.EntryId}{extension}";
                         File.WriteAllBytes(entryPath, entryBinaryFile.Data);
                     }
-                    
-                    // Write the capacity
-                    File.WriteAllText($"{entryDirectory}.capacity", entryFile.Capacity.ToString());
 
                     FlatFileCache.Logger.Info($"Wrote {(int)file.Info.Index}/{file.Info.FileId} ({entryBinaryFiles.Count} entries).");
                 }
@@ -252,17 +229,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         private string GetEntryDirectory(Index index, int fileId)
         {
             return this.GetIndexDirectory(index) + fileId + "/";
-        }
-
-        private int? GetEntryCapacity(Index index, int fileId)
-        {
-            var capacityFile = this.GetEntryDirectory(index, fileId) + ".capacity";
-            if (File.Exists(capacityFile))
-            {
-                return int.Parse(File.ReadAllText(capacityFile));
-            }
-
-            return null;
         }
     }
 }

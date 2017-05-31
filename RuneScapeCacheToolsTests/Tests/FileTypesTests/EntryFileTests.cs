@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
@@ -31,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
             Assert.Equal(2609, itemDefinitionFile.UnknownShort4);
 
             var itemDefinitionFiles = entryFile.GetEntries<ItemDefinitionFile>();
-            Assert.Equal(256, entryFile.Capacity);
+            Assert.Equal(256, entryFile.EntryCount);
             Assert.Equal(2609, itemDefinitionFiles.First(file => file.Info.EntryId == 0).UnknownShort4);
 
             Assert.True(entryFile.Encode().SequenceEqual(binaryFile.Data));
@@ -44,10 +45,12 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
             
             var entryFile = new EntryFile
             {
-                Capacity = 20,
                 Info = new CacheFileInfo
                 {
-                    Entries = new CacheFileEntryInfo[20]
+                    EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>
+                    {
+                        {5, new CacheFileEntryInfo {EntryId = 5}}
+                    }
                 }
             };
             entryFile.AddEntry(5, entryData);

@@ -23,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         /// The children in this entry.
         /// </summary>
-        public CacheFileEntryInfo[] Entries { get; set; }
+        public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; }
 
         public int? FileId { get; set; }
 
@@ -69,7 +69,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 CompressedSize = this.CompressedSize,
                 CompressionType = this.CompressionType,
                 Crc = this.Crc,
-                Entries = this.Entries?.Select(entryInfo => entryInfo.Clone()).ToArray(),
+                EntryInfo = this.EntryInfo != null 
+                    ? new SortedDictionary<int, CacheFileEntryInfo>(this.EntryInfo.ToDictionary(
+                        entryInfoPair => entryInfoPair.Key,
+                        entryInfoPair => entryInfoPair.Value.Clone()))
+                    : null,
                 FileId = this.FileId,
                 Identifier = this.Identifier,
                 Index = this.Index,
