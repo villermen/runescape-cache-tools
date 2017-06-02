@@ -25,9 +25,9 @@ jobs:
 
             - run:
                 name: Merge assemblies
-                command:
-                    - nuget install ILRepack
-                    - packages/ILRepack.*/tools/ILRepack.exe /out:rsct.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll
+                command: |
+                    nuget install ILRepack &&
+                    packages/ILRepack.*/tools/ILRepack.exe /out:rsct.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll
 
             - store_artifacts:
                 path: rsct.*
