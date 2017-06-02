@@ -6,15 +6,27 @@ jobs:
         working_directory: ~/rsct/
         steps:
             - checkout
+
             - run:
                 name: Install package dependencies
                 command: apt-get update && apt-get install -y sox
+
             - run:
                 name: Install NuGet dependencies
                 command: nuget restore
+
             - run:
                 name: Build
                 command: msbuild /p:Configuration=Release RuneScapeCacheTools.sln
+
             - run:
                 name: Test
                 command: mono --debug packages/xunit.runner.console.*/tools/xunit.console.exe RuneScapeCacheToolsTests/bin/Release/RuneScapeCacheToolsTests.dll
+
+            - run:
+                name: Merge assemblies
+                command: nuget install ILRepack
+                command: packages/ILRepack.*/tools/ILRepack.exe /out:rsct.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll
+
+            - store_artifacts:
+                path: rsct.*
