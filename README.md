@@ -1,6 +1,6 @@
 # Viller's RuneScape Cache Tools
 
-[![Travis CI build status](https://api.travis-ci.org/villermen/runescape-cache-tools.svg)](https://travis-ci.org/villermen/runescape-cache-tools "Travis CI build status")
+[![CircleCI](https://circleci.com/gh/villermen/runescape-cache-tools.svg?style=svg)](https://circleci.com/gh/villermen/runescape-cache-tools)
 
 ###### A .NET library and command-line interface for manipulating RuneScape's cache.
 A pre-compiled executable of the latest release is available from the [releases page on GitHub](https://github.com/villermen/runescape-cache-tools/releases).
