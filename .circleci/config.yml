@@ -9,10 +9,12 @@ jobs:
 
             - run:
                 name: Install package dependencies
-                command: apt-get update && apt-get install -y sox
+                command: |
+                    apt-get update &&
+                    apt-get install -y sox
 
             - run:
-                name: Install NuGet dependencies
+                name: Restore NuGet dependencies
                 command: nuget restore
 
             - run:
@@ -26,7 +28,7 @@ jobs:
             - run:
                 name: Merge assemblies
                 command: |
-                    nuget install ILRepack &&
+                    nuget install ILRepack -OutputDirectory packages &&
                     packages/ILRepack.*/tools/ILRepack.exe /out:rsct.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll
 
             - store_artifacts:
