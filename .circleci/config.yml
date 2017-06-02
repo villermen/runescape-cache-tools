@@ -1,0 +1,17 @@
+version: 2.0
+
+jobs:
+    build:
+        docker:
+            - image: mono:latest
+        steps:
+            - checkout
+            - run:
+                name: install-package-dependencies
+                command: "sudo apt-get update && sudo apt-get install -y sox"
+            - run:
+                name: build
+                command: "xbuild /p:Configuration=Release RuneScapeCacheTools.sln"
+            - run:
+                name: test
+                command: "mono --debug packages/xunit.runner.console.*/tools/xunit.console.exe RuneScapeCacheToolsTests/bin/Release/RuneScapeCacheToolsTests.dll"
