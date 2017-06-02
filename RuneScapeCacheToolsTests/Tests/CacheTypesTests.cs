@@ -27,6 +27,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [Theory]
         [InlineData(typeof(RuneTek5Cache))]
         [InlineData(typeof(FlatFileCache))]
+        [InlineData(typeof(DownloaderCache))]
         public void TestGetFile(Type cacheType)
         {
             var cache = this._fixture.GetCache(cacheType);
@@ -39,8 +40,8 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
 
             var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
             
-            // Flatfile cache doesn't do info
-            if (cacheType != typeof(FlatFileCache))
+            // Downloader cache changes too frequently, and flatfile cache doesn't do info
+            if (cacheType == typeof(RuneTek5Cache))
             {
                 Assert.Equal(1495007468, archiveFile.Info.Version);
                 Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
@@ -93,13 +94,14 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         }
         
         [Theory]
-        [InlineData(typeof(RuneTek5Cache))]
-        [InlineData(typeof(FlatFileCache))]
-        public void TestGetIndexes(Type cacheType)
+        [InlineData(typeof(RuneTek5Cache), 7)]
+        [InlineData(typeof(FlatFileCache), 7)]
+        [InlineData(typeof(DownloaderCache), 52)]
+        public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.GetCache(cacheType).GetIndexes();
             
-            Assert.Equal(6, indexes.Count());
+            Assert.Equal(amountOfIndexes, indexes.Count());
         }
     }
 }
