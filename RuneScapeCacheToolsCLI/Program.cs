@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using log4net;
 using log4net.Core;
-using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
@@ -21,7 +17,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-		private Arguments _arguments;
+	    private readonly string[] _arguments;
+		private readonly ArgumentParser _argumentParser = new ArgumentParser();
 		private CacheBase _cache;
 
 	    private static int Main(string[] arguments)
@@ -35,16 +32,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
 		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
 #endif
-		    
-		    var program = new Program();
 
-		    var returnCode = program.Configure(arguments);
-		    
-		    if (returnCode == 0)
-		    {
-			    returnCode = program.Execute();
-		    }
-		    
+		    var returnCode = new Program(arguments).Run();
+
 		    // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
 		    // Delete log file if it is still empty when done
 		    LogManager.GetRepository().ResetConfiguration();
@@ -53,7 +43,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		    {
 			    logFile.Delete();
 		    }
-		    
+
 #if DEBUG
 		    Console.ReadLine();
 #endif
@@ -61,85 +51,81 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		    return returnCode;
         }
 
-		private int Configure(string[] stringArguments)
+	    private Program(string[] arguments)
+	    {
+	        this._arguments = arguments;
+	    }
+
+	    private int Run()
+	    {
+	        return this.Configure()
+	            ? this.Execute()
+	            : 1;
+	    }
+
+		private bool Configure()
 		{
-			this._arguments = new Arguments();
-			this._arguments.Parse(stringArguments);
+			this._argumentParser.Parse(this._arguments);
 
-			var returnCode = 0;
-
-			// Show supplied arguments that could not be parsed
-			if (this._arguments.UnparsedArguments.Count > 0)
+			if (this._argumentParser.UnparsedArguments.Count > 0)
 			{
-				foreach (var unparsedArgument in this._arguments.UnparsedArguments)
+				foreach (var unparsedArgument in this._argumentParser.UnparsedArguments)
 				{
 					Console.WriteLine($"Unknown argument \"{unparsedArgument}\".");
-					Console.WriteLine();
 				}
 
-				returnCode = 1;
+			    Console.WriteLine();
 			}
 
-			// Show help when no action arguments are specified. This is considered an error as it is unexpected.
-			if (this._arguments.Actions == 0)
+			if (this._argumentParser.NoActions)
 			{
 				Console.WriteLine("No actions specified.");
 				Console.WriteLine("Use either the extract or soundtrack options to actually do something.");
 				Console.WriteLine();
-
-				returnCode = 1;
 			}
 
-			if (this._arguments.Actions > 1)
+			if (this._argumentParser.TooManyActions)
 			{
 				Console.WriteLine("Too many actions specified.");
 				Console.WriteLine("Use either the extract or soundtrack option, but not both at the same time.");
 				Console.WriteLine();
-
-				returnCode = 1;
 			}
-			
+
+		    if (this._argumentParser.ShowHelp)
+		    {
+		        Console.WriteLine($"Usage: {typeof(Program).Assembly.GetName().Name} [OPTION]...");
+		        Console.WriteLine("Tools for performing actions on RuneScape's cache.");
+		        Console.WriteLine();
+		        this._argumentParser.WriteOptionDescriptions(Console.Out);
+		    }
+
 			// TODO: Split up into multiple executables. rsct-soundtrack, rsct-extract
 
-			return returnCode;
+		    return this._argumentParser.CanExecute;
 		}
 
-		public int Execute()
+		private int Execute()
 		{
-			var returnCode = 0;
-			
-			if (!this._arguments.ShowHelp)
-			{
-				this._cache = this._arguments.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._arguments.CacheDirectory, true);
+            this._cache = this._argumentParser.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._argumentParser.CacheDirectory, true);
 
-				// Perform the specified actions
-				if (this._arguments.DoExtract)
-				{
-					this.Extract();
-				}
+            // Perform the specified actions
+            if (this._argumentParser.DoExtract)
+            {
+                this.Extract();
+            }
 
-				if (this._arguments.DoSoundtrackCombine)
-				{
-					this.CombineSoundtrack();
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Usage: {typeof(Program).Assembly.GetName().Name} [OPTION]...");
-				Console.WriteLine("Tools for performing actions on RuneScape's cache.");
-				Console.WriteLine();
-				this._arguments.WriteOptionDescriptions(Console.Out);
+            if (this._argumentParser.DoSoundtrackCombine)
+            {
+                this.CombineSoundtrack();
+            }
 
-				returnCode = 1;
-			}
-			
-			return returnCode;
+			return 0;
 		}
 
 		private void Extract()
 		{
-			var outputCache = new FlatFileCache(this._arguments.OutputDirectory + "files/");
-			
+			var outputCache = new FlatFileCache(this._argumentParser.OutputDirectory + "files/");
+
 //            // Display progress at bottom of console without creating a new row
 //            var progress = new ExtendedProgress();
 //            progress.ProgressChanged += (p, message) =>
@@ -147,14 +133,14 @@ namespace Villermen.RuneScapeCacheTools.CLI
 //                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
 //            };
 
-			if (this._arguments.Indexes == null && this._arguments.FileIds != null)
+			if (this._argumentParser.Indexes == null && this._argumentParser.FileIds != null)
 			{
 				throw new ArgumentException("If you specify files to extract you must also explicitly specify indexes to extract.");
 			}
 
-            foreach (var index in this._arguments.Indexes ?? this._cache.GetIndexes())
+            foreach (var index in this._argumentParser.Indexes ?? this._cache.GetIndexes())
             {
-	            foreach (var fileId in this._arguments.FileIds ?? this._cache.GetFileIds(index))
+	            foreach (var fileId in this._argumentParser.FileIds ?? this._cache.GetFileIds(index))
 	            {
 		            this._cache.CopyFile(index, fileId, outputCache);
 	            }
@@ -163,15 +149,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
 		private void CombineSoundtrack()
 		{
-			var soundtrack = new Soundtrack(this._cache, this._arguments.OutputDirectory + "soundtrack/");
+			var soundtrack = new Soundtrack(this._cache, this._argumentParser.OutputDirectory + "soundtrack/");
 
-			if (this._arguments.TemporaryDirectory != null)
+			if (this._argumentParser.TemporaryDirectory != null)
 			{
-				soundtrack.TemporaryDirectory = this._arguments.TemporaryDirectory;
+				soundtrack.TemporaryDirectory = this._argumentParser.TemporaryDirectory;
 			}
 
-			soundtrack.Extract(this._arguments.Overwrite, this._arguments.Lossless,
-				this._arguments.IncludeUnnamedSoundtracks, this._arguments.SoundtrackNameFilter?.ToArray() ?? new string[0]);
+			soundtrack.Extract(this._argumentParser.Overwrite, this._argumentParser.Lossless,
+				this._argumentParser.IncludeUnnamedSoundtracks, this._argumentParser.SoundtrackNameFilter?.ToArray() ?? new string[0]);
 		}
 	}
 }

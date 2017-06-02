@@ -6,7 +6,7 @@ using Villermen.RuneScapeCacheTools.Cache;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
-    public class Arguments
+    public class ArgumentParser
     {
         public string CacheDirectory { get; set; }
         public string OutputDirectory { get; set; }
@@ -23,6 +23,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
         public bool ShowHelp { get; set; }
         public bool IncludeUnnamedSoundtracks { get; set; }
         public List<string> UnparsedArguments { get; set; }
+        public bool TooManyActions { get; set; }
+        public bool NoActions { get; set; }
+        public bool CanExecute { get; set; }
 
         private OptionSet _optionSet;
 
@@ -76,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     "A index id or range of index ids to extract. E.g. \"1-2,4,6-7\".",
                     value =>
                     {
-                        this.Indexes = Arguments.ExpandIntegerRangeString(value).Cast<Index>();
+                        this.Indexes = ArgumentParser.ExpandIntegerRangeString(value).Cast<Index>();
                     }
                 },
                 {
@@ -84,7 +87,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     "A file id or range of file ids to extract. E.g. \"1-2,4,6-7\".",
                     value =>
                     {
-                        this.FileIds = Arguments.ExpandIntegerRangeString(value);
+                        this.FileIds = ArgumentParser.ExpandIntegerRangeString(value);
                     }
                 },
                 {
@@ -104,7 +107,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                         if (!string.IsNullOrWhiteSpace(value))
                         {
-                            this.SoundtrackNameFilter = Arguments.ExpandListString(value);
+                            this.SoundtrackNameFilter = ArgumentParser.ExpandListString(value);
                         }
 
                         this.Actions++;
@@ -138,18 +141,26 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             this.UnparsedArguments = this._optionSet.Parse(arguments);
 
-            if (this.Actions == 0 && arguments.Length > 0 ||
-                arguments.Length == 0)
+            if (arguments.Length == 0)
             {
                 this.ShowHelp = true;
             }
+
+            this.TooManyActions = this.Actions > 1 && !this.ShowHelp;
+
+            this.NoActions = this.Actions == 0 && !this.ShowHelp && this.UnparsedArguments.Count == 0;
+
+            this.CanExecute = !this.ShowHelp &&
+                !this.TooManyActions &&
+                !this.NoActions &&
+                this.UnparsedArguments.Count == 0;
         }
 
         public void WriteOptionDescriptions(TextWriter writer)
         {
             this._optionSet.WriteOptionDescriptions(writer);
         }
-        
+
         /// <summary>
         /// Expands the given integer range into an enumerable of all individual integers.
         /// </summary>
@@ -157,7 +168,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
         /// <returns></returns>
         private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
         {
-            var rangeStringParts = Arguments.ExpandListString(integerRangeString);
+            var rangeStringParts = ArgumentParser.ExpandListString(integerRangeString);
             var result = new List<int>();
 
             foreach (var rangeStringPart in rangeStringParts)

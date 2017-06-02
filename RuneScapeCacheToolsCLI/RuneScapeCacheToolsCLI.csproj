@@ -77,7 +77,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Arguments.cs" />
+    <Compile Include="ArgumentParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="CLIException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
