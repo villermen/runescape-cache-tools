@@ -4,6 +4,7 @@ jobs:
     build:
         docker:
             - image: mono:latest
+        working_directory: ~/rsct/
         steps:
             - checkout
             - run:
