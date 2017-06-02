@@ -23,7 +23,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// <summary>
         /// The children in this entry.
         /// </summary>
-        public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; }
+        public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; } =
+            new SortedDictionary<int, CacheFileEntryInfo>();
 
         public int? FileId { get; set; }
 
@@ -57,6 +58,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public byte[] EncryptionKey { get; set; }
 
         /// <summary>
+        /// A file is an entry file when there are multiple entries defined in the info.
+        /// A non-entry file only has one entry defined at index 0.
+        /// </summary>
+        public bool UsesEntries => this.EntryInfo.Count > 1;
+
+        /// <summary>
         /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.
         /// Entries will also be cloned to the new object.
         /// </summary>
@@ -69,11 +76,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 CompressedSize = this.CompressedSize,
                 CompressionType = this.CompressionType,
                 Crc = this.Crc,
-                EntryInfo = this.EntryInfo != null 
-                    ? new SortedDictionary<int, CacheFileEntryInfo>(this.EntryInfo.ToDictionary(
-                        entryInfoPair => entryInfoPair.Key,
-                        entryInfoPair => entryInfoPair.Value.Clone()))
-                    : null,
+                EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>(this.EntryInfo.ToDictionary(
+                    entryInfoPair => entryInfoPair.Key,
+                    entryInfoPair => entryInfoPair.Value.Clone())),
                 FileId = this.FileId,
                 Identifier = this.Identifier,
                 Index = this.Index,

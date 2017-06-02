@@ -64,6 +64,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
                 info.CompressionType = CompressionType.None;
                 info.UncompressedSize = (int)filePathInfo.Length;
+                info.EntryInfo.Add(0, new CacheFileEntryInfo
+                {
+                    EntryId = 0
+                });
 
                 return info;
             }
@@ -71,13 +75,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             var entryPaths = this.GetExistingEntryPaths(index, fileId);
             if (entryPaths.Any())
             {
-                info.EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>(entryPaths.Keys.ToDictionary(
-                    entryId => entryId,
-                    entryId => new CacheFileEntryInfo
+                foreach (var entryId in entryPaths.Keys)
+                {
+                    info.EntryInfo.Add(entryId,  new CacheFileEntryInfo
                     {
                         EntryId = entryId
-                    }));
-                
+                    });
+                }
+
                 return info;
             }
             
@@ -97,7 +102,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
         {
             // Single file
-            if (fileInfo.EntryInfo == null)
+            if (!fileInfo.UsesEntries)
             {
                 return new BinaryFile
                 {
@@ -147,7 +152,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Directory.Delete(entryDirectory, true);
             }
 
-            if (file.Info.EntryInfo == null)
+            if (!file.Info.UsesEntries)
             {
                 // Extract file
                 if (file.Data.Length > 0)
