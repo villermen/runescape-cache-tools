@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using log4net;
 using log4net.Core;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -141,32 +142,18 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             foreach (var index in this._argumentParser.Indexes ?? this._cache.GetIndexes())
             {
-	            foreach (var fileId in this._argumentParser.FileIds ?? this._cache.GetFileIds(index))
-	            {
-	                var doCopy = false;
-	                if (this._argumentParser.Overwrite)
-	                {
-	                    doCopy = true;
-	                }
-	                else
-	                {
-	                    try
-	                    {
-	                        outputCache.GetFile<BinaryFile>(index, fileId);
+                // Create a list of files to be extracted (requested if overwriting, missing if not)
+                var requestedFileIds = this._argumentParser.FileIds ?? this._cache.GetFileIds(index);
+                var existingFileIds = outputCache.GetFileIds(index).ToList();
 
-	                        Program.Logger.Info($"Skipped extracting {(int)index}/{fileId} because the file already exists.");
-	                    }
-	                    catch (FileNotFoundException)
-	                    {
-	                        doCopy = true;
-	                    }
-	                }
+                var fileIds = this._argumentParser.Overwrite
+                    ? requestedFileIds
+                    : requestedFileIds.Where(fileId => !existingFileIds.Contains(fileId));
 
-	                if (doCopy)
-	                {
-	                    this._cache.CopyFile(index, fileId, outputCache);
-	                }
-	            }
+                Parallel.ForEach(fileIds, fileId =>
+                {
+                    this._cache.CopyFile(index, fileId, outputCache);
+                });
 			}
 		}
 
