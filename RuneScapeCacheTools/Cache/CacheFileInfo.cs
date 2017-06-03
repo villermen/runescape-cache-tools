@@ -59,7 +59,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         /// <summary>
         /// A file is an entry file when there are multiple entries defined in the info.
-        /// A non-entry file only has one entry defined at index 0.
+        /// A non-entry file only has one entry defined.
         /// </summary>
         public bool UsesEntries => this.EntryInfo.Count > 1;
 
