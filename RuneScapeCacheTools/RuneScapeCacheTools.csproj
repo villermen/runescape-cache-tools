@@ -119,7 +119,6 @@
     <Compile Include="Extensions\BinaryStreamExtensions.cs" />
     <Compile Include="Extensions\Formatter.cs" />
     <Compile Include="Extensions\PathExtensions.cs" />
-    <Compile Include="Extensions\ExtendedProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Soundtrack.cs" />
   </ItemGroup>

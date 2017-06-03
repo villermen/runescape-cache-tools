@@ -79,7 +79,6 @@
   <ItemGroup>
     <Compile Include="ArgumentParser.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="CLIException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

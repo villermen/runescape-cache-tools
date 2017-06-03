@@ -5,6 +5,7 @@ using log4net;
 using log4net.Core;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
+using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 
@@ -142,7 +143,29 @@ namespace Villermen.RuneScapeCacheTools.CLI
             {
 	            foreach (var fileId in this._argumentParser.FileIds ?? this._cache.GetFileIds(index))
 	            {
-		            this._cache.CopyFile(index, fileId, outputCache);
+	                var doCopy = false;
+	                if (this._argumentParser.Overwrite)
+	                {
+	                    doCopy = true;
+	                }
+	                else
+	                {
+	                    try
+	                    {
+	                        outputCache.GetFile<BinaryFile>(index, fileId);
+
+	                        Program.Logger.Info($"Skipped extracting {(int)index}/{fileId} because the file already exists.");
+	                    }
+	                    catch (FileNotFoundException)
+	                    {
+	                        doCopy = true;
+	                    }
+	                }
+
+	                if (doCopy)
+	                {
+	                    this._cache.CopyFile(index, fileId, outputCache);
+	                }
 	            }
 			}
 		}
