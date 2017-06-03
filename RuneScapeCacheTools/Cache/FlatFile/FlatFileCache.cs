@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using log4net;
+using Org.BouncyCastle.Asn1.Misc;
 using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Extensions;
@@ -13,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
     public class FlatFileCache : CacheBase
     {
         private static readonly Regex FileNameRegex = new Regex(@"[/\\](\d+)(\..+)?$");
-        
+
         private static readonly ILog Logger = LogManager.GetLogger(typeof(FlatFileCache));
 
         private string _baseDirectory;
@@ -29,7 +30,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         public override IEnumerable<Index> GetIndexes()
         {
-            return Directory.EnumerateDirectories(this._baseDirectory)
+            if (!Directory.Exists(this.BaseDirectory))
+            {
+                return Enumerable.Empty<Index>();
+            }
+
+            return Directory.EnumerateDirectories(this.BaseDirectory)
                 .Select(Path.GetFileName)
                 .Select(indexIdString =>
                 {
@@ -42,10 +48,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
         public override IEnumerable<int> GetFileIds(Index index)
         {
+            var indexDirectory = this.GetIndexDirectory(index);
+
+            if (!Directory.Exists(indexDirectory))
+            {
+                return Enumerable.Empty<int>();
+            }
+
             return Directory.EnumerateFileSystemEntries(this.GetIndexDirectory(index))
                 .Where(fileSystemEntry =>
                     FlatFileCache.FileNameRegex.IsMatch(fileSystemEntry))
-                .Select(fileSystemEntry => 
+                .Select(fileSystemEntry =>
                     int.Parse(FlatFileCache.FileNameRegex.Match(fileSystemEntry).Groups[1].Value));
         }
 
@@ -56,7 +69,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 Index = index,
                 FileId = fileId
             };
-            
+
             var filePath = this.GetExistingFilePaths(index, fileId).FirstOrDefault();
             if (filePath != null)
             {
@@ -85,7 +98,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
                 return info;
             }
-            
+
             throw new FileNotFoundException("Requested file does not exist.");
         }
 
@@ -217,7 +230,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                         var match = FlatFileCache.FileNameRegex.Match(matchedFilePath);
                         return int.Parse(match.Groups[1].Value);
                     }, matchedFilePath => matchedFilePath);
-                
+
                 return new SortedDictionary<int, string>(unsortedDictionary);
             }
             catch (DirectoryNotFoundException exception)
