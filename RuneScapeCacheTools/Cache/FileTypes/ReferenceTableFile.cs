@@ -193,6 +193,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     }
                 }
             }
+
+            if (reader.BaseStream.Position < reader.BaseStream.Length - 1)
+            {
+                throw new DecodeException($"Input data not fully consumed while decoding reference table. {reader.BaseStream.Length - 1 - reader.BaseStream.Position} bytes remain.");
+            }
         }
 
         public override byte[] Encode()

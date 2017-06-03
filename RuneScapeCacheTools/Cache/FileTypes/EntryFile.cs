@@ -17,13 +17,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
         public int EntryCount => this._entries.Count;
 
         public bool Empty => !this._entries.Any();
-        
+
         public bool HasEntry(int entryId) => this._entries.ContainsKey(entryId);
 
         public T GetEntry<T>(int entryId) where T : CacheFile
         {
             var binaryFile = this._entries[entryId];
-            
+
             if (typeof(T) == typeof(BinaryFile))
             {
                 return binaryFile as T;
@@ -95,9 +95,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
 
             // Read the sizes of the child entries and individual chunks
-            var chunkEntrySizes = new int[amountOfChunks, this.Info.EntryInfo.Count];
+            var sizesStartPosition = reader.BaseStream.Length - 1 - amountOfChunks * this.Info.EntryInfo.Count * 4;
+            reader.BaseStream.Position = sizesStartPosition;
 
-            reader.BaseStream.Position = reader.BaseStream.Length - 1 - amountOfChunks * this.Info.EntryInfo.Count * 4;
+            var chunkEntrySizes = new int[amountOfChunks, this.Info.EntryInfo.Count];
 
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
@@ -132,12 +133,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     entriesData[entryIndex] = chunkId == 0 ? entryData : entriesData[entryIndex].Concat(entryData).ToArray();
                 }
             }
-            
+
             // Convert to binary files and store with the right id
             var entryIds = this.Info.EntryInfo.Keys.ToArray();
             for (var entryIndex = 0; entryIndex < entriesData.Length; entryIndex++)
             {
                 this.AddEntry(entryIds[entryIndex], entriesData[entryIndex]);
+            }
+
+            if (reader.BaseStream.Position != sizesStartPosition)
+            {
+                throw new DecodeException($"Not all data or too much data was read while constructing entry file. {sizesStartPosition - reader.BaseStream.Position} bytes remain.");
             }
         }
 

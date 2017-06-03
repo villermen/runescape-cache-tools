@@ -169,6 +169,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
 
             this.Info.WhirlpoolDigest = whirlpoolDigest;
+
+            if (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
+            {
+                throw new DecodeException($"Input data not fully consumed while decoding binary file. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
+            }
         }
 
         public override byte[] Encode()

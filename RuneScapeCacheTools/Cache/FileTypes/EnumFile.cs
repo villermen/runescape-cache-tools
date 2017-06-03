@@ -137,6 +137,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 throw new DecodeException("Enum does not contain any values.");
             }
+
+            if (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
+            {
+                throw new DecodeException($"Input data not fully consumed while decoding enum file. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
+            }
         }
 
         public override byte[] Encode()

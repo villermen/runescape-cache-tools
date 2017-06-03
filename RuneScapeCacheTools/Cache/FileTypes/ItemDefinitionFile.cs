@@ -539,7 +539,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
 
                 if (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    throw new DecodeException("Data remaining after parsing item definition.");
+                    throw new DecodeException($"Data remaining after decoding item definition. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
                 }
             }
         }

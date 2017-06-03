@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
@@ -38,6 +39,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             }
 
             this.RsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+
+            if (reader.BaseStream.Position < reader.BaseStream.Length)
+            {
+                throw new DecodeException($"Not all bytes read while decoding master reference table. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
+            }
         }
 
         public override byte[] Encode()
