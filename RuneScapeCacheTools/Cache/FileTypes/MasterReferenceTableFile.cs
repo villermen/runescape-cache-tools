@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Villermen.RuneScapeCacheTools.Exceptions;
 using Villermen.RuneScapeCacheTools.Extensions;
 
@@ -12,9 +13,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
     /// </summary>
     public class MasterReferenceTableFile : CacheFile
     {
-        public IDictionary<Index, Entry> ReferenceTableFiles { get; } = new Dictionary<Index, Entry>();
+        public Dictionary<Index, ReferenceTableInfo> ReferenceTables { get; } = new Dictionary<Index, ReferenceTableInfo>();
 
         public byte[] RsaEncryptedWhirlpoolDigest { get; set; }
+
+        public Dictionary<Index, ReferenceTableInfo> GetAvailableReferenceTables() => this.ReferenceTables
+            .Where(infoPair => infoPair.Value.FileCount > 0)
+            .ToDictionary(infoPair => infoPair.Key, infoPair => infoPair.Value);
 
         public override void Decode(byte[] data)
         {
@@ -26,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             {
                 var index = (Index)tableId;
 
-                var table = new Entry(index)
+                var table = new ReferenceTableInfo(index)
                 {
                     CRC = reader.ReadInt32BigEndian(),
                     Version = reader.ReadInt32BigEndian(),
@@ -35,7 +40,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                this.ReferenceTableFiles.Add(index, table);
+                this.ReferenceTables.Add(index, table);
             }
 
             this.RsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
@@ -51,9 +56,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.FileTypes
             throw new NotImplementedException("Encoding of master reference table is not implemented. AFAIK it's a downloader only thing.");
         }
 
-        public class Entry
+        public class ReferenceTableInfo
         {
-            public Entry(Index index)
+            public ReferenceTableInfo(Index index)
             {
                 this.Index = index;
             }

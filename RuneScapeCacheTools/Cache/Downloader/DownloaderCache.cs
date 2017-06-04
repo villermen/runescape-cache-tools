@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public override IEnumerable<Index> GetIndexes()
         {
-            return this.GetMasterReferenceTable().ReferenceTableFiles.Keys;
+            return this.GetMasterReferenceTable().GetAvailableReferenceTables().Keys;
         }
 
         protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
