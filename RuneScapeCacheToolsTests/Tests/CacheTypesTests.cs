@@ -39,7 +39,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             Assert.True(fileData.Length > 0, "File's data is empty.");
 
             var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
-            
+
             // Downloader cache changes too frequently, and flatfile cache doesn't do info
             if (cacheType == typeof(RuneTek5Cache))
             {
@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         public void TestWriteBinaryFile(Type cacheType, Index index, int fileId)
         {
             var cache = this._fixture.GetCache(cacheType);
-            
+
             var file1 = cache.GetFile<BinaryFile>(index, fileId);
 
             cache.PutFile(file1);
@@ -92,15 +92,15 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             // Byte-compare both files
             Assert.True(file1.Data.SequenceEqual(file2.Data));
         }
-        
+
         [Theory]
         [InlineData(typeof(RuneTek5Cache), 7)]
         [InlineData(typeof(FlatFileCache), 7)]
-        [InlineData(typeof(DownloaderCache), 52)]
+        [InlineData(typeof(DownloaderCache), 43)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.GetCache(cacheType).GetIndexes();
-            
+
             Assert.Equal(amountOfIndexes, indexes.Count());
         }
     }

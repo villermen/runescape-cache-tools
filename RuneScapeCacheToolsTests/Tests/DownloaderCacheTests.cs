@@ -42,8 +42,8 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         {
             var masterReferenceTable = this.Fixture.DownloaderCache.GetMasterReferenceTable();
 
-            Assert.InRange(masterReferenceTable.ReferenceTables.Count, expectedTableCount, 254);
-            Assert.InRange(masterReferenceTable.GetAvailableReferenceTables().Count, 20, expectedTableCount - 1);
+            Assert.Equal(expectedTableCount, masterReferenceTable.ReferenceTables.Count);
+            Assert.Equal(expectedAvailableTableCount, masterReferenceTable.GetAvailableReferenceTables().Count);
         }
 
         [Theory]
@@ -53,15 +53,6 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             var reportedFileCount = this.Fixture.DownloaderCache.GetFileIds(index).Count();
 
             Assert.InRange(reportedFileCount, expectedFileCount, 1000);
-        }
-
-        [Theory]
-        [InlineData(52)]
-        public void TestIndexIds(int expectedIndexCount)
-        {
-            var reportedIndexCount = this.Fixture.DownloaderCache.GetIndexes().Count();
-
-            Assert.InRange(reportedIndexCount, expectedIndexCount, 253);
         }
 
         [Fact]
