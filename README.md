@@ -18,6 +18,8 @@ That means it is a text-only application that should be run from your terminal w
 Running it directly will only show the manual and exit again.
 If you're not familiar with the command-line give [this page on getting started](https://www.davidbaumgold.com/tutorials/command-line/) a read.
 
+Example command which would create the soundtrack in the directory `C:\rscache\` from the Jagex servers instead of your own cache files: `rsct.exe --download --soundtrack-combine --output-directory C:\rscache\`
+
 ## Soundtrack
 I've uploaded all named tracks to YouTube. Their playlist can be found [here](https://www.youtube.com/playlist?list=PLLCViMm56RAFqVJKXi13VEFwz7Q_Bi4gR).
 You can download the soundtrack we have created together with the tool from [my website](https://villermen.com/browser/music). It's as complete as possible and is updated frequently.
