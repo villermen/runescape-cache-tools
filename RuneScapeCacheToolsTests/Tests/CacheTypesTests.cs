@@ -96,7 +96,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         [Theory]
         [InlineData(typeof(RuneTek5Cache), 7)]
         [InlineData(typeof(FlatFileCache), 7)]
-        [InlineData(typeof(DownloaderCache), 43)]
+        [InlineData(typeof(DownloaderCache), 42)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.GetCache(cacheType).GetIndexes();

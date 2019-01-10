@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         {
             var archiveFile = this.Fixture.DownloaderCache.GetFile<EntryFile>(Index.Enums, 5);
 
-            Assert.Equal(256, archiveFile.EntryCount);
+            Assert.Equal(249, archiveFile.EntryCount);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         }
 
         [Theory]
-        [InlineData(52, 43)]
+        [InlineData(57, 42)]
         public void TestDownloadMasterReferenceTable(int expectedTableCount, int expectedAvailableTableCount)
         {
             var masterReferenceTable = this.Fixture.DownloaderCache.GetMasterReferenceTable();
