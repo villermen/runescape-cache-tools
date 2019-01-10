@@ -150,10 +150,14 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     ? requestedFileIds
                     : requestedFileIds.Where(fileId => !existingFileIds.Contains(fileId));
 
-                Parallel.ForEach(fileIds, fileId =>
-                {
-                    this._cache.CopyFile(index, fileId, outputCache);
-                });
+                Parallel.ForEach(
+                    fileIds,
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = 10,
+                    },
+                    fileId => { this._cache.CopyFile(index, fileId, outputCache); }
+                );
 			}
 		}
 

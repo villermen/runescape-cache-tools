@@ -97,7 +97,8 @@ namespace Villermen.RuneScapeCacheTools
                     trackNames,
                     new ParallelOptions
                     {
-                        MaxDegreeOfParallelism = 5,
+                        // At a certain point (~16 threads?) the server will eventually start dropping requests (HTTP)
+                        MaxDegreeOfParallelism = 10,
                     },
                     trackNamePair =>
                     {

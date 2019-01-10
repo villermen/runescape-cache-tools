@@ -20,35 +20,45 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         {
             var webRequest = WebRequest.CreateHttp($"{this._baseUrl}/ms?m=0&a={(int)index}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}");
 
-            using (var response = (HttpWebResponse)await webRequest.GetResponseAsync())
+            try
             {
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (var response = (HttpWebResponse)await webRequest.GetResponseAsync())
                 {
-                    throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
+                    }
+
+                    if (response.ContentLength != fileInfo.CompressedSize)
+                    {
+                        throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize}.");
+                    }
+
+                    var dataStream = new MemoryStream();
+                    var dataWriter = new BinaryWriter(dataStream);
+
+                    var responseReader = new BinaryReader(response.GetResponseStream());
+                    dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
+
+                    // Append version
+                    dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
+
+                    var file = new BinaryFile
+                    {
+                        Info = fileInfo
+                    };
+
+                    file.Decode(dataStream.ToArray());
+
+                    return file;
                 }
-
-                if (response.ContentLength != fileInfo.CompressedSize)
-                {
-                    throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize}.");
-                }
-
-                var dataStream = new MemoryStream();
-                var dataWriter = new BinaryWriter(dataStream);
-
-                var responseReader = new BinaryReader(response.GetResponseStream());
-                dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
-
-                // Append version
-                dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
-
-                var file = new BinaryFile
-                {
-                    Info = fileInfo
-                };
-
-                file.Decode(dataStream.ToArray());
-
-                return file;
+            }
+            catch (WebException exception)
+            {
+                throw new DownloaderException(
+                    $"Could not download {(int)index}/{fileId} due to a request error.",
+                    exception
+                );
             }
         }
     }

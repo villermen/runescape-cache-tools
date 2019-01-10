@@ -79,13 +79,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 throw new ArgumentException("A file must have an index and file id to be written.");
             }
-            
+
             // TODO: #57
             if (file.Info.EntryId != null)
             {
                 throw new ArgumentException("Entries can not be directly written to the cache. Use an entry file containing entries or remove the entry id from its info.");
             }
-            
+
             var binaryFile = file.ToBinaryFile();
 
             this.PutBinaryFile(binaryFile);
