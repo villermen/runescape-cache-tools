@@ -130,7 +130,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     }
                 },
                 {
-                    "help|h|?",
+                    "help|h|?|version|v",
                     "Show this message.",
                     value =>
                     {

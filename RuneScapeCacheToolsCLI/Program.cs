@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using log4net;
 using log4net.Core;
@@ -13,7 +14,7 @@ using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 namespace Villermen.RuneScapeCacheTools.CLI
 {
     public class Program
-	{
+    {
 		/// <summary>
 		/// Even when not used, this needs to be here to initialize the logging system.
 		/// </summary>
@@ -94,14 +95,18 @@ namespace Villermen.RuneScapeCacheTools.CLI
 			}
 
 		    if (this._argumentParser.ShowHelp)
-		    {
-		        Console.WriteLine($"Usage: {typeof(Program).Assembly.GetName().Name} [OPTION]...");
-		        Console.WriteLine("Tools for performing actions on RuneScape's cache.");
-		        Console.WriteLine();
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var name = assembly.GetName().Name;
+                var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
+                var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
+                Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
+                Console.WriteLine(description);
+                Console.WriteLine();
+                Console.WriteLine($"Usage: {name} [OPTION]...");
 		        this._argumentParser.WriteOptionDescriptions(Console.Out);
 		    }
-
-			// TODO: Split up into multiple executables. rsct-soundtrack, rsct-extract
 
 		    return this._argumentParser.CanExecute;
 		}
