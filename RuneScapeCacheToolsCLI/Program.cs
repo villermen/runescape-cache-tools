@@ -1,15 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using log4net;
 using log4net.Core;
-using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.Downloader;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Cache.FlatFile;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using NDesk.Options;
+using Villermen.RuneScapeCacheTools.Extensions;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
@@ -20,163 +17,176 @@ namespace Villermen.RuneScapeCacheTools.CLI
 		/// </summary>
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
 
-	    private readonly string[] _arguments;
-		private readonly ArgumentParser _argumentParser = new ArgumentParser();
-		private CacheBase _cache;
+        private static int Main(string[] arguments)
+        {
+            var returnCode = new Program().Run(arguments);
 
-	    private static int Main(string[] arguments)
-	    {
-#if DEBUG
-		    Console.WriteLine();
-		    Console.WriteLine("RSCT DEVELOPMENT BUILD");
-		    Console.WriteLine();
+            // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
+            // Delete log file if it is still empty when done
+            LogManager.GetRepository().ResetConfiguration();
+            var logFile = new FileInfo("rsct.log");
+            if (logFile.Exists && logFile.Length == 0)
+            {
+                logFile.Delete();
+            }
 
-		    // Set log4net log level to debug
-		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
-		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
-#endif
-
-		    var returnCode = new Program(arguments).Run();
-
-		    // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
-		    // Delete log file if it is still empty when done
-		    LogManager.GetRepository().ResetConfiguration();
-		    var logFile = new FileInfo("rsct.log");
-		    if (logFile.Exists && logFile.Length == 0)
-		    {
-			    logFile.Delete();
-		    }
-
-#if DEBUG
-		    Console.ReadLine();
-#endif
-
-		    return returnCode;
+            return returnCode;
         }
 
-	    private Program(string[] arguments)
+        protected readonly IDictionary<string, string> Commands = new Dictionary<string, string>
+        {
+            {"export", "Extract cache files from various sources into an easily explorable directory structure."},
+            // {"import", "Insert exported files into a cache in Jagex's format."},
+            {"soundtrack", "Combine the in-game listed soundtrack."},
+            {"audio", "Combine arbitrary audio files from the cache."},
+        };
+
+	    private int Run(string[] arguments)
 	    {
-	        this._arguments = arguments;
-	    }
-
-	    private int Run()
-	    {
-	        return this.Configure()
-	            ? this.Execute()
-	            : 1;
-	    }
-
-		private bool Configure()
-		{
-			this._argumentParser.Parse(this._arguments);
-
-			if (this._argumentParser.UnparsedArguments.Count > 0)
-			{
-				foreach (var unparsedArgument in this._argumentParser.UnparsedArguments)
-				{
-					Console.WriteLine($"Unknown argument \"{unparsedArgument}\".");
-				}
-
-			    Console.WriteLine();
-			}
-
-			if (this._argumentParser.NoActions)
-			{
-				Console.WriteLine("No actions specified.");
-				Console.WriteLine("Use either the extract or soundtrack options to actually do something.");
-				Console.WriteLine();
-			}
-
-			if (this._argumentParser.TooManyActions)
-			{
-				Console.WriteLine("Too many actions specified.");
-				Console.WriteLine("Use either the extract or soundtrack option, but not both at the same time.");
-				Console.WriteLine();
-			}
-
-		    if (this._argumentParser.ShowHelp)
+            // Show help on modules
+            if (arguments.Length == 0 || !this.Commands.ContainsKey(arguments[0]))
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var name = assembly.GetName().Name;
-                var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
-                var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
-
-                Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
-                Console.WriteLine(description);
-                Console.WriteLine();
-                Console.WriteLine($"Usage: {name} [OPTION]...");
-		        this._argumentParser.WriteOptionDescriptions(Console.Out);
-		    }
-
-		    return this._argumentParser.CanExecute;
-		}
-
-		private int Execute()
-		{
-            this._cache = this._argumentParser.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._argumentParser.CacheDirectory, true);
-
-            // Perform the specified actions
-            if (this._argumentParser.DoExtract)
-            {
-                this.Extract();
+                return this.WriteHelp(null, null);
             }
 
-            if (this._argumentParser.DoSoundtrackCombine)
+            var command = arguments[0];
+
+            var writeHelp = false;
+            var overwrite = false;
+            var verbose = false;
+            var flac = false;
+            string filter = null;
+            string source = null;
+            string output = null;
+
+            var optionSet = new OptionSet();
+
+            // Options available for all commands
+            optionSet.Add("verbose|v", "Increase amount of log messages.", (value) => {
+                // Lower log output level
+                ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
+                ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
+
+                verbose = true;
+            });
+            optionSet.Add("help|version|?", "Show this message.", (value) => {
+                // Show help after adding all options so the usage tables are complete
+                writeHelp = true;
+            });
+            optionSet.Add("overwrite", "Overwrite files if they already exist.", (value) => {
+                overwrite = true;
+            });
+            optionSet.Add(
+                "filter=|f",
+                "Process only files matching the given pattern. E.g., \"40/*\" or \"*/1-1000\".",
+                (value) => {
+                    filter = value;
+                }
+             );
+            optionSet.Add("source=", "Process only files matching the given pattern. E.g., \"40/*\" or \"*/1-1000\".", (value) => {
+                source = value;
+
+                if (source == "download")
+                {
+                    return;
+                }
+
+                source = PathExtensions.FixDirectory(source);
+                if (!Directory.Exists(source))
+                {
+                    throw new ArgumentException($"Source directory \"{source}\" does not exist.");
+                }
+            });
+            optionSet.Add("output=", "Store processed files in this directory.", (value) => {
+                output = PathExtensions.FixDirectory(value);
+            });
+
+            if (command == "audio" || command == "soundtrack")
             {
-                this.CombineSoundtrack();
-            }
-
-			return 0;
-		}
-
-		private void Extract()
-		{
-			var outputCache = new FlatFileCache(this._argumentParser.OutputDirectory + "files/");
-
-//            // Display progress at bottom of console without creating a new row
-//            var progress = new ExtendedProgress();
-//            progress.ProgressChanged += (p, message) =>
-//            {
-//                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
-//            };
-
-			if (this._argumentParser.Indexes == null && this._argumentParser.FileIds != null)
-			{
-				throw new ArgumentException("If you specify files to extract you must also explicitly specify indexes to extract.");
-			}
-
-            foreach (var index in this._argumentParser.Indexes ?? this._cache.GetIndexes())
-            {
-                // Create a list of files to be extracted (requested if overwriting, missing if not)
-                var requestedFileIds = this._argumentParser.FileIds ?? this._cache.GetFileIds(index);
-                var existingFileIds = outputCache.GetFileIds(index).ToList();
-
-                var fileIds = this._argumentParser.Overwrite
-                    ? requestedFileIds
-                    : requestedFileIds.Where(fileId => !existingFileIds.Contains(fileId));
-
-                Parallel.ForEach(
-                    fileIds,
-                    new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = 10,
-                    },
-                    fileId => { this._cache.CopyFile(index, fileId, outputCache); }
+                optionSet.Add(
+                    "flac",
+                    "Use FLAC format instead of original OGG for a tiny quality improvement.",
+                    (value) => {
+                        flac = true;
+                    }
                 );
-			}
-		}
+            }
 
-		private void CombineSoundtrack()
-		{
-			var soundtrack = new Soundtrack(this._cache, this._argumentParser.OutputDirectory + "soundtrack/");
+            // Handle all exceptions from here by showing them in the console
+            try
+            {
+                var unparsedOptions = optionSet.Parse(arguments.Skip(1));
 
-			if (this._argumentParser.TemporaryDirectory != null)
-			{
-				soundtrack.TemporaryDirectory = this._argumentParser.TemporaryDirectory;
-			}
+                // Do not accept invalid options because they usually indicate faulty usage
+                if (unparsedOptions.Count > 0)
+                {
+                    foreach (var unparsedOption in unparsedOptions)
+                    {
+                        Console.WriteLine($"Unknown option \"{unparsedOption}\".");
+                    }
 
-			soundtrack.Extract(this._argumentParser.Overwrite, this._argumentParser.Lossless,
-				this._argumentParser.IncludeUnnamedSoundtracks, this._argumentParser.SoundtrackNameFilter?.ToArray() ?? new string[0]);
-		}
+                    return 1;
+                }
+
+                if (writeHelp)
+                {
+                    return this.WriteHelp(command, optionSet);
+                }
+
+                switch (command)
+                {
+                    case "export":
+                        // return new ExportCommand().Run(stuff...);
+                        break;
+
+                    case "audio":
+                        // return new AudioCommand().Run(stuff...);
+                        break;
+
+                    case "soundtrack":
+                        // return new SoundtrackCommand().Run(stuff...);
+                        break;
+                }
+
+                throw new InvalidOperationException($"Command \"{command}\" was not handled.");
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(verbose ? exception.ToString() : exception.Message);
+                return 2;
+            }
+        }
+
+        private int WriteHelp(string command, OptionSet optionSet)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var name = assembly.GetName().Name;
+            var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
+            var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
+            Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
+            Console.WriteLine(description);
+            Console.WriteLine();
+            Console.WriteLine($"Usage: {name} {command ?? "[command]"} [...options]");
+
+            if (command == null)
+            {
+                Console.WriteLine();
+                foreach (var pair in this.Commands)
+                {
+                    Console.WriteLine("      " + pair.Key.PadRight(23) + pair.Value);
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Run {name} help [command] --help for available options for a command.");
+            }
+            else
+            {
+                Console.WriteLine(this.Commands[command]);
+                Console.WriteLine();
+                optionSet.WriteOptionDescriptions(Console.Out);
+            }
+
+            return 1;
+        }
 	}
 }
