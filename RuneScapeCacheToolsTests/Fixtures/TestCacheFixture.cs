@@ -27,7 +27,7 @@ namespace RuneScapeCacheToolsTests.Fixtures
             this.Soundtrack = new Soundtrack(this.RuneTek5Cache, "soundtrack");
         }
 
-        public CacheBase GetCache(Type cacheType)
+        public BaseCache GetCache(Type cacheType)
         {
             if (cacheType == typeof(RuneTek5Cache))
             {

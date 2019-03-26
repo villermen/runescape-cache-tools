@@ -1,0 +1,20 @@
+﻿using System;
+
+namespace Villermen.RuneScapeCacheTools.Exception
+{
+    [Serializable]
+    public class DecodeException : System.Exception
+    {
+        public DecodeException()
+        {
+        }
+
+        public DecodeException(string message) : base(message)
+        {
+        }
+
+        public DecodeException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
+    }
+}

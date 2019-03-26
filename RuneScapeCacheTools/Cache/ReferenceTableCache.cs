@@ -1,14 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using Villermen.RuneScapeCacheTools.File;
+using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
     /// A cache that stores information on its files in reference tables in index 255.
     /// </summary>
-    public abstract class ReferenceTableCache : CacheBase
+    public abstract class ReferenceTableCache : BaseCache
     {
         private ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables =
             new ConcurrentDictionary<Index, ReferenceTableFile>();
