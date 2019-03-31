@@ -53,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// The major version is needed to correctly connect to the content server.
         /// If connection states the version is outdated, the <see cref="_contentVersionMajor" /> will be increased until it is accepted.
         /// </summary>
-        private int _contentVersionMajor = 901;
+        private int _contentVersionMajor = 904;
 
         private TcpClient _contentClient;
 

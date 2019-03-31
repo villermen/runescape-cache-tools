@@ -23,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public BaseCache SourceCache { get; private set; }
 
-        public string ExportDirectory { get; private set; }
+        public FlatFileCache ExportCache { get; private set; }
 
         public Tuple<IList<Index>, IList<int>> FileFilter { get; private set; } = new Tuple<IList<Index>, IList<int>>(
             new List<Index>(),
@@ -86,7 +86,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                 case ParserOption.ExportDirectory:
                     this._optionSet.Add("output=", "Store files in this directory.", (value) => {
-                        this.ExportDirectory = value;
+                        this.ExportCache = new FlatFileCache(value);
                     });
                     break;
 
@@ -155,12 +155,19 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public IList<string> ParseArguments(IEnumerable<string> arguments)
         {
+            var unparsedArguments = this._optionSet.Parse(arguments);
+
+            // Complex default values for configured options
             if (this._configuredOptions.Contains(ParserOption.SourceCache) && this.SourceCache == null)
             {
                 this.SourceCache = new DownloaderCache();
             }
+            if (this._configuredOptions.Contains(ParserOption.ExportDirectory) && this.ExportCache == null)
+            {
+                this.ExportCache = new FlatFileCache("files/");
+            }
 
-            return this._optionSet.Parse(arguments);
+            return unparsedArguments;
         }
 
         public string GetDescription()
