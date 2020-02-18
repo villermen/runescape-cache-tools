@@ -9,7 +9,7 @@ namespace Villermen.RuneScapeCacheTools.File
     /// <summary>
     /// A file that serves as a map to stitch audio chunks together in the right order while also containing the first chunk.
     /// </summary>
-    public class JagaFile : CacheFile
+    public class JagaFile
     {
         public static byte[] MagicNumber = Encoding.ASCII.GetBytes("JAGA");
 

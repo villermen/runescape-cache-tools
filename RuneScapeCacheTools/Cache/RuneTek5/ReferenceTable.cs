@@ -5,18 +5,18 @@ using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.File
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    ///     A <see cref="ReferenceTableFile" /> holds metadata for all registered files in an index, such as checksums, versions
-    ///     and archive members.
-    ///     Note that the data of registered files does not have to be present in the index for them to be listed.
+    /// A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
+    /// and archive members. Note that the data of registered files does not have to be present in the index for them
+    /// to be listed.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Sean</author>
     /// <author>Villermen</author>
-    public class ReferenceTableFile : CacheFile
+    public class ReferenceTable
     {
         /// <summary>
         ///     The entries in this table.
@@ -24,7 +24,7 @@ namespace Villermen.RuneScapeCacheTools.File
         private readonly SortedDictionary<int, CacheFileInfo> _files = new SortedDictionary<int, CacheFileInfo>();
 
         /// <summary>
-        /// Gets the ids of the files listed in this <see cref="ReferenceTableFile"/>.
+        /// Gets the ids of the files listed in this <see cref="ReferenceTable"/>.
         /// </summary>
         /// <returns></returns>
         public int[] FileIds => this._files.Keys.ToArray();
@@ -45,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public int Version { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTableFile"/>.
+        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
         /// </summary>
         /// <returns></returns>
         public CacheFileInfo GetFileInfo(int fileId)
@@ -100,7 +100,7 @@ namespace Villermen.RuneScapeCacheTools.File
 
                 this._files.Add(fileId, new CacheFileInfo
                 {
-                    Index = (Index)this.Info.FileId.Value,
+                    CacheIndex = (CacheIndex)this.Info.FileId.Value,
                     FileId = fileId
                 });
             }

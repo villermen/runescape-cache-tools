@@ -3,10 +3,9 @@ using System.Net;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Utility
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class HttpFileDownloader : IFileDownloader
     {
@@ -17,9 +16,9 @@ namespace Villermen.RuneScapeCacheTools.Utility
             this._baseUrl = baseUrl;
         }
 
-        public async Task<BinaryFile> DownloadFileAsync(Index index, int fileId, CacheFileInfo fileInfo)
+        public async Task<RawCacheFile> DownloadFileAsync(CacheIndex cacheIndex, int fileId, CacheFileInfo fileInfo)
         {
-            var webRequest = WebRequest.CreateHttp($"{this._baseUrl}/ms?m=0&a={(int)index}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}");
+            var webRequest = WebRequest.CreateHttp($"{this._baseUrl}/ms?m=0&a={(int)cacheIndex}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}");
 
             try
             {
@@ -44,7 +43,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                     // Append version
                     dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
 
-                    var file = new BinaryFile
+                    var file = new RawCacheFile
                     {
                         Info = fileInfo
                     };
@@ -57,7 +56,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
             catch (WebException exception)
             {
                 throw new DownloaderException(
-                    $"Could not download {(int)index}/{fileId} due to a request error.",
+                    $"Could not download {(int)cacheIndex}/{fileId} due to a request error.",
                     exception
                 );
             }

@@ -25,8 +25,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public FlatFileCache ExportCache { get; private set; }
 
-        public Tuple<IList<Index>, IList<int>> FileFilter { get; private set; } = new Tuple<IList<Index>, IList<int>>(
-            new List<Index>(),
+        public Tuple<IList<CacheIndex>, IList<int>> FileFilter { get; private set; } = new Tuple<IList<CacheIndex>, IList<int>>(
+            new List<CacheIndex>(),
             new List<int>()
         );
 
@@ -112,7 +112,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                                 return;
                             }
 
-                            this.SourceCache = new RuneTek5Cache(value);
+                            this.SourceCache = new JavaClientCache(value);
                         }
                     );
                     break;
@@ -128,12 +128,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
                                 throw new ArgumentException("Invalid file filter format.");
                             }
 
-                            var indexes = ArgumentParser.ExpandIntegerRangeString(parts[0]).Cast<Index>().ToList();
+                            var indexes = ArgumentParser.ExpandIntegerRangeString(parts[0]).Cast<CacheIndex>().ToList();
                             var files = (parts.Length == 2)
                                 ? ArgumentParser.ExpandIntegerRangeString(parts[1]).ToList()
                                 : new List<int>();
 
-                            this.FileFilter = new Tuple<IList<Index>, IList<int>>(indexes, files);
+                            this.FileFilter = new Tuple<IList<CacheIndex>, IList<int>>(indexes, files);
                         }
                     );
                     break;

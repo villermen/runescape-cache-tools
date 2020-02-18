@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// </summary>
         private readonly object _ioLock = new object();
 
-        private readonly Dictionary<Index, Stream> _indexStreams = new Dictionary<Index, Stream>();
+        private readonly Dictionary<CacheIndex, Stream> _indexStreams = new Dictionary<CacheIndex, Stream>();
 
         private readonly Stream _dataStream;
 
@@ -63,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                     continue;
                 }
 
-                this._indexStreams.Add((Index)indexId, System.IO.File.Open(indexFile, FileMode.Open, fileAccess));
+                this._indexStreams.Add((CacheIndex)indexId, System.IO.File.Open(indexFile, FileMode.Open, fileAccess));
             }
         }
 
@@ -74,52 +74,52 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// <summary>
         ///     The loaded/existing indexes.
         /// </summary>
-        public IEnumerable<Index> GetIndexes()
+        public IEnumerable<CacheIndex> GetIndexes()
         {
-            return this._indexStreams.Keys.Where(index => index != Index.ReferenceTables);
+            return this._indexStreams.Keys.Where(index => index != CacheIndex.ReferenceTables);
         }
 
         /// <summary>
         /// Reads the sectors
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="cacheIndex"></param>
         /// <param name="fileId"></param>
         /// <returns></returns>
-        public byte[] ReadFileData(Index index, int fileId)
+        public byte[] ReadFileData(CacheIndex cacheIndex, int fileId)
         {
             int filesize;
-            return this.ReadSectors(index, fileId, out filesize).Aggregate(new List<byte>(), (bytes, sector) =>
+            return this.ReadSectors(cacheIndex, fileId, out filesize).Aggregate(new List<byte>(), (bytes, sector) =>
             {
                 bytes.AddRange(sector.Data);
                 return bytes;
             }).Take(filesize).ToArray();
         }
 
-        private IEnumerable<Sector> ReadSectors(Index index, int fileId)
+        private IEnumerable<Sector> ReadSectors(CacheIndex cacheIndex, int fileId)
         {
             int filesize;
-            return this.ReadSectors(index, fileId, out filesize);
+            return this.ReadSectors(cacheIndex, fileId, out filesize);
         }
 
-        private IEnumerable<Sector> ReadSectors(Index index, int fileId, out int filesize)
+        private IEnumerable<Sector> ReadSectors(CacheIndex cacheIndex, int fileId, out int filesize)
         {
-            if (!this._indexStreams.ContainsKey(index))
+            if (!this._indexStreams.ContainsKey(cacheIndex))
             {
-                throw new FileNotFoundException($"Index does not exist for {(int)index}/{fileId}.");
+                throw new FileNotFoundException($"Index does not exist for {(int)cacheIndex}/{fileId}.");
             }
 
-            var indexReader = new BinaryReader(this._indexStreams[index]);
+            var indexReader = new BinaryReader(this._indexStreams[cacheIndex]);
 
             var indexPosition = (long)fileId * IndexPointer.Length;
 
             if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
             {
-                throw new FileNotFoundException($"{(int)index}/{fileId} is outside of the index file's bounds.");
+                throw new FileNotFoundException($"{(int)cacheIndex}/{fileId} is outside of the index file's bounds.");
             }
 
             var sectors = new List<Sector>();
 
-            // Lock stream, to allow multiple threads from calling this method at the same time
+            // Lock stream, to prevent multiple threads from calling this method at the same time
             lock (this._ioLock)
             {
                 indexReader.BaseStream.Position = indexPosition;
@@ -129,7 +129,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 if (indexPointer.Filesize <= 0)
                 {
-                    throw new FileNotFoundException($"{index}/{fileId} has no size, which means it is not stored in the cache.");
+                    throw new FileNotFoundException($"{cacheIndex}/{fileId} has no size, which means it is not stored in the cache.");
                 }
 
                 var chunkId = 0;
@@ -145,10 +145,10 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                     if (sectorBytes.Length != Sector.Length)
                     {
-                        throw new EndOfStreamException($"One of {index}/{fileId}'s sectors could not be fully read.");
+                        throw new EndOfStreamException($"One of {cacheIndex}/{fileId}'s sectors could not be fully read.");
                     }
 
-                    var sector = new Sector((int)(dataPosition / Sector.Length), index, fileId, chunkId++, sectorBytes);
+                    var sector = new Sector((int)(dataPosition / Sector.Length), cacheIndex, fileId, chunkId++, sectorBytes);
 
                     var bytesRead = Math.Min(sector.Data.Length, remaining);
 
@@ -167,10 +167,10 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// <summary>
         /// If available, overwrites the space allocated to the previous file first to save space.
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="cacheIndex"></param>
         /// <param name="fileId"></param>
         /// <param name="data"></param>
-        public void WriteFileData(Index index, int fileId, byte[] data)
+        public void WriteFileData(CacheIndex cacheIndex, int fileId, byte[] data)
         {
             if (this.ReadOnly)
             {
@@ -183,7 +183,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 int[] existingSectorPositions;
                 try
                 {
-                    existingSectorPositions = this.ReadSectors(index, fileId)
+                    existingSectorPositions = this.ReadSectors(cacheIndex, fileId)
                         .Select(sector => sector.Position)
                         .ToArray();
                 }
@@ -193,7 +193,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                     existingSectorPositions = new int[0];
                 }
 
-                var sectors = Sector.FromData(data, index, fileId);
+                var sectors = Sector.FromData(data, cacheIndex, fileId);
 
                 var dataWriter = new BinaryWriter(this._dataStream);
 
@@ -225,15 +225,15 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         };
 
                         // Create index file if it does not exist yet
-                        if (!this._indexStreams.ContainsKey(index))
+                        if (!this._indexStreams.ContainsKey(cacheIndex))
                         {
-                            this._indexStreams.Add(index, System.IO.File.Open(
-                                Path.Combine(this.CacheDirectory, "main_file_cache.idx" + (int)index),
+                            this._indexStreams.Add(cacheIndex, System.IO.File.Open(
+                                Path.Combine(this.CacheDirectory, "main_file_cache.idx" + (int)cacheIndex),
                                 FileMode.OpenOrCreate,
                                 FileAccess.ReadWrite));
                         }
 
-                        var indexWriter = new BinaryWriter(this._indexStreams[index]);
+                        var indexWriter = new BinaryWriter(this._indexStreams[cacheIndex]);
                         var pointerPosition = fileId * IndexPointer.Length;
 
                         // Write zeroes up to the desired position of the index stream if it is larger than its size

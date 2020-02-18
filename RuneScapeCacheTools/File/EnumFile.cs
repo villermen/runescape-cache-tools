@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.File
     /// <summary>
     /// Represents a list of values or references to values located elsewhere in the cache.
     /// </summary>
-    public class EnumFile : CacheFile, IEnumerable<KeyValuePair<int, object>>
+    public class EnumFile : IEnumerable<KeyValuePair<int, object>>
     {
         public int DefaultInteger { get; set; }
         public string DefaultString { get; set; } = "null";

@@ -12,17 +12,17 @@ namespace Villermen.RuneScapeCacheTools.Model
     public class IndexPointer
     {
         /// <summary>
-        ///     Length of index data in bytes.
+        /// Length of index data in bytes.
         /// </summary>
         public const int Length = 6;
 
         /// <summary>
-        ///     The number of the first sector that contains the file.
+        /// The number of the first sector that contains the file.
         /// </summary>
         public int FirstSectorPosition { get; set; }
 
         /// <summary>
-        ///     The size of the file in bytes.
+        /// The size of the file in bytes.
         /// </summary>
         public int Filesize { get; set; }
 

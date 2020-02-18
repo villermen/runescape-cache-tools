@@ -1,52 +1,46 @@
 using System.Collections.Generic;
-using System.Linq;
+using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Model
+namespace Villermen.RuneScapeCacheTools.File
 {
     /// <summary>
-    /// Contains detailed information on a file in the cache.
+    /// Contains information on a <see cref="RuneTek5CacheFile" /> file. Required to decode and encode the file.
     /// </summary>
-    public class CacheFileInfo
+    public class RuneTek5CacheFileInfo
     {
-        public CacheFileOptions Options { get; set; }
+        // TODO: Only used for reference tables?
+        // public CacheFileOptions Options { get; set; }
+        // public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; } =
+        //     new SortedDictionary<int, CacheFileEntryInfo>();
+        // public int? FileId { get; set; }
+        // public CacheIndex CacheIndex { get; set; } = CacheIndex.Undefined;
 
         /// <summary>
-        /// The compressed size of this entry.
+        /// The compressed size of this entry in bytes.
         /// </summary>
         public int? CompressedSize { get; set; }
 
+        /// <summary>
+        /// The uncompressed size of this entry in bytes.
+        /// </summary>
+        public int? UncompressedSize { get; set; }
+
         public CompressionType CompressionType { get; set; } = CompressionType.None;
 
+        /// <summary>
+        /// CRC checksum for this file. Does not include the files version that may be appended to the file's data.
+        /// </summary>
         public int? Crc { get; set; }
 
         /// <summary>
-        /// The children in this entry.
-        /// </summary>
-        public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; } =
-            new SortedDictionary<int, CacheFileEntryInfo>();
-
-        public int? FileId { get; set; }
-
-        /// <summary>
-        /// If this file is an entry, this will be set to its index.
-        /// </summary>
-        public int? EntryId { get; set; }
-
-        public int? Identifier { get; set; }
-
-        public Index Index { get; set; } = Index.Undefined;
-
-        /// <summary>
-        /// Some unknown hash added on build 816.
-        /// It is hard to pinpoint what exactly this is because it is not used in the client.
+        /// Some unknown hash added on build 816. It is hard to pinpoint what exactly this is because it is not used in
+        /// the client.
         /// </summary>
         public int? MysteryHash { get; set; }
 
         /// <summary>
-        /// The uncompressed size of this entry.
+        /// Version of the file. Sometimes a unix timestamp is used here and sometimes it is manually versioned.
         /// </summary>
-        public int? UncompressedSize { get; set; }
-
         public int? Version { get; set; }
 
         public byte[] WhirlpoolDigest { get; set; }
@@ -57,14 +51,12 @@ namespace Villermen.RuneScapeCacheTools.Model
         public byte[] EncryptionKey { get; set; }
 
         /// <summary>
-        /// A file is an entry file when there are multiple entries defined in the info.
-        /// A non-entry file only has one entry defined.
+        /// A cache file can contain multiple entries
         /// </summary>
-        public bool UsesEntries => this.EntryInfo.Count > 1;
+        public int EntryCount { get; set; } = 1;
 
         /// <summary>
         /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.
-        /// Entries will also be cloned to the new object.
         /// </summary>
         /// <returns></returns>
         public CacheFileInfo Clone()
@@ -80,7 +72,7 @@ namespace Villermen.RuneScapeCacheTools.Model
                     entryInfoPair => entryInfoPair.Value.Clone())),
                 FileId = this.FileId,
                 Identifier = this.Identifier,
-                Index = this.Index,
+                CacheIndex = this.CacheIndex,
                 MysteryHash = this.MysteryHash,
                 UncompressedSize = this.UncompressedSize,
                 Version = this.Version,

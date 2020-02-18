@@ -19,7 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         [InlineData(38900, 53)]
         public void TestDecode(int fileId, int expectedNumberOfChunks)
         {
-            var jagaFile = this.Fixture.RuneTek5Cache.GetFile<JagaFile>(Index.Music, fileId);
+            var jagaFile = this.Fixture.JavaClientCache.GetFile<JagaFile>(Index.Music, fileId);
 
             Assert.Equal(expectedNumberOfChunks, jagaFile.ChunkCount);
         }

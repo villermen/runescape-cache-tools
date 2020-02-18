@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         [InlineData(Index.AnimationFrames)]
         public void TestDecodeEncode(Index index)
         {
-            var referenceTableFile = this._fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
+            var referenceTableFile = this._fixture.JavaClientCache.GetFile<BinaryFile>(Index.ReferenceTables, (int)index);
             var referenceTable =  new ReferenceTableFile();
             referenceTable.FromBinaryFile(referenceTableFile);
 

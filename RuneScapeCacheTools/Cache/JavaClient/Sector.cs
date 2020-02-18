@@ -8,7 +8,7 @@ using Villermen.RuneScapeCacheTools.Extension;
 namespace Villermen.RuneScapeCacheTools.Model
 {
     /// <summary>
-    ///     Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
+    /// Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
     /// </summary>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
@@ -16,51 +16,46 @@ namespace Villermen.RuneScapeCacheTools.Model
     public class Sector
     {
         /// <summary>
-        ///     The total size of a sector in bytes.
+        /// The total size of a sector in bytes.
         /// </summary>
         public const int Length = 520;
 
         /// <summary>
-        ///     The size of the header within a sector in bytes.
+        /// The size of the header within a sector in bytes.
         /// </summary>
-        private const int standardHeaderLength = 8;
+        private const int StandardHeaderLength = 8;
 
         /// <summary>
-        ///     The size of the data within a sector in bytes.
+        /// The size of the data within a sector in bytes.
         /// </summary>
-        private const int standardDataLength = 512;
+        private const int StandardDataLength = 512;
 
         /// <summary>
-        ///     The extended data size
+        /// The extended data size
         /// </summary>
-        private const int extendedDataLength = 510;
+        private const int ExtendedDataLength = 510;
 
         /// <summary>
-        ///     The extended header size
+        /// The extended header size
         /// </summary>
-        private const int extendedHeaderLength = 10;
+        private const int ExtendedHeaderLength = 10;
 
         public Sector()
         {
         }
 
         /// <summary>
-        ///     Decodes the given byte array into a <see cref="Sector" /> object.
+        /// Decodes the given byte array into a <see cref="Sector" /> object.
         /// </summary>
-        /// <param name="position"></param>
-        /// <param name="expectedIndex"></param>
-        /// <param name="expectedFileId"></param>
-        /// <param name="expectedChunkId"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public Sector(int position, Index expectedIndex, int expectedFileId, int expectedChunkId, byte[] data)
+        public Sector(int position, CacheIndex expectedCacheIndex, int expectedFileId, int expectedChunkId, byte[] data)
         {
             this.Position = position;
 
             if (data.Length != Sector.Length)
             {
                 throw new ArgumentException(
-                    $"Sector data must be exactly {Sector.Length} bytes in length, {data.Length} given.");
+                    $"Sector data must be exactly {Sector.Length} bytes in length, {data.Length} given."
+                );
             }
 
             var dataReader = new BinaryReader(new MemoryStream(data));
@@ -81,40 +76,40 @@ namespace Villermen.RuneScapeCacheTools.Model
             }
 
             this.NextSectorPosition = dataReader.ReadUInt24BigEndian();
-            this.Index = (Index)dataReader.ReadByte();
+            this.CacheIndex = (CacheIndex)dataReader.ReadByte();
 
-            if (this.Index != expectedIndex)
+            if (this.CacheIndex != expectedCacheIndex)
             {
-                throw new DecodeException($"Index id mismatch. Expected {expectedIndex}, got {this.Index}.");
+                throw new DecodeException($"Index id mismatch. Expected {expectedCacheIndex}, got {this.CacheIndex}.");
             }
 
-            this.Data = dataReader.ReadBytes(this.IsExtended ? Sector.extendedDataLength : Sector.standardDataLength);
+            this.Data = dataReader.ReadBytes(this.IsExtended ? Sector.ExtendedDataLength : Sector.StandardDataLength);
         }
 
         public int Position { get; set; }
 
         /// <summary>
-        ///     The chunk within the file that this sector contains.
+        /// The chunk within the file that this sector contains.
         /// </summary>
         public int ChunkId { get; set; }
 
         /// <summary>
-        ///     The data in this sector.
+        /// The data in this sector.
         /// </summary>
         public byte[] Data { get; private set; }
 
         /// <summary>
-        ///     The id of the file this sector contains.
+        /// The id of the file this sector contains.
         /// </summary>
         public int FileId { get; private set; }
 
         /// <summary>
-        ///     The type of file this sector contains.
+        /// The type of file this sector contains.
         /// </summary>
-        public Index Index { get; set; }
+        public CacheIndex CacheIndex { get; set; }
 
         /// <summary>
-        ///     The position of next sector.
+        /// The position of next sector.
         /// </summary>
         public int NextSectorPosition { get; set; }
 
@@ -126,7 +121,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         public bool IsExtended => Sector.GetExtended(this.FileId);
 
         /// <summary>
-        ///     Encodes this <see cref="Sector" /> into a byte array.
+        /// Encodes this <see cref="Sector" /> into a byte array.
         /// </summary>
         /// <returns></returns>
         public byte[] Encode()
@@ -145,7 +140,7 @@ namespace Villermen.RuneScapeCacheTools.Model
 
             dataWriter.WriteUInt16BigEndian((ushort)this.ChunkId);
             dataWriter.WriteUInt24BigEndian(this.NextSectorPosition);
-            dataWriter.Write((byte)this.Index);
+            dataWriter.Write((byte)this.CacheIndex);
             dataWriter.Write(this.Data);
 
             return dataStream.ToArray();
@@ -157,7 +152,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         /// This is up to the <see cref="FileStore"/>.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<Sector> FromData(byte[] data, Index index, int fileId)
+        public static IEnumerable<Sector> FromData(byte[] data, CacheIndex cacheIndex, int fileId)
         {
             var isExtended = Sector.GetExtended(fileId);
 
@@ -168,16 +163,16 @@ namespace Villermen.RuneScapeCacheTools.Model
                 var sector = new Sector
                 {
                     ChunkId = chunkId++,
-                    Index = index,
+                    CacheIndex = cacheIndex,
                     FileId = fileId
                 };
 
-                var sectorDataLength = isExtended ? Sector.extendedDataLength : Sector.standardDataLength;
+                var sectorDataLength = isExtended ? Sector.ExtendedDataLength : Sector.StandardDataLength;
                 var dataLength = Math.Min(sectorDataLength, remaining);
 
                 var sectorData = data.Skip(data.Length - remaining)
                     .Take(dataLength);
-                    
+
                 // Fill sector
                 if (dataLength < sectorDataLength)
                 {

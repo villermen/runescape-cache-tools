@@ -1,54 +1,55 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     /// A cache that stores information on its files in reference tables in index 255.
     /// </summary>
-    public abstract class ReferenceTableCache : BaseCache
+    public abstract class RuneTek5Cache : ICache
     {
-        private ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables =
-            new ConcurrentDictionary<Index, ReferenceTableFile>();
-        
-        private List<Index> _changedReferenceTableIndexes = new List<Index>();
+        private ConcurrentDictionary<CacheIndex, ReferenceTable> _cachedReferenceTables =
+            new ConcurrentDictionary<CacheIndex, ReferenceTable>();
 
-        public ReferenceTableFile GetReferenceTable(Index index, bool createIfNotFound = false)
+        private List<CacheIndex> _changedReferenceTableIndexes = new List<CacheIndex>();
+
+        public ReferenceTable GetReferenceTable(CacheIndex cacheIndex, bool createIfNotFound = false)
         {
             // Obtain the reference table either from our own cache or the actual cache
-            return this._cachedReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
+            return this._cachedReferenceTables.GetOrAdd(cacheIndex, regardlesslyDiscarded =>
             {
                 try
                 {
-                    return this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
+                    return this.GetFile(CacheIndex.ReferenceTables, (int)cacheIndex);
                 }
                 catch (FileNotFoundException) when (createIfNotFound)
                 {
-                    return new ReferenceTableFile
+                    return new ReferenceTable
                     {
                         Info = new CacheFileInfo
                         {
-                            Index = Index.ReferenceTables,
-                            FileId = (int)index
+                            CacheIndex = CacheIndex.ReferenceTables,
+                            FileId = (int)cacheIndex
                         }
                     };
                 }
             });
         }
 
-        public sealed override CacheFileInfo GetFileInfo(Index index, int fileId)
+        public sealed override CacheFileInfo GetFileInfo(CacheIndex cacheIndex, int fileId)
         {
-            if (index != Index.ReferenceTables)
+            if (cacheIndex != CacheIndex.ReferenceTables)
             {
-                return this.GetReferenceTable(index).GetFileInfo(fileId);
+                return this.GetReferenceTable(cacheIndex).GetFileInfo(fileId);
             }
 
             return new CacheFileInfo
             {
-                Index = index,
+                CacheIndex = cacheIndex,
                 FileId = fileId
                 // TODO: Compression for reference tables? Compression by default?
             };
@@ -56,17 +57,17 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         protected sealed override void PutFileInfo(CacheFileInfo fileInfo)
         {
-            // Reference tables don't need no reference tables of their own 
-            if (fileInfo.Index != Index.ReferenceTables)
+            // Reference tables don't need no reference tables of their own
+            if (fileInfo.CacheIndex != CacheIndex.ReferenceTables)
             {
-                this.GetReferenceTable(fileInfo.Index, true).SetFileInfo(fileInfo.FileId.Value, fileInfo);
-                this._changedReferenceTableIndexes.Add(fileInfo.Index);
+                this.GetReferenceTable(fileInfo.CacheIndex, true).SetFileInfo(fileInfo.FileId.Value, fileInfo);
+                this._changedReferenceTableIndexes.Add(fileInfo.CacheIndex);
             }
         }
 
-        public sealed override IEnumerable<int> GetFileIds(Index index)
+        public sealed override IEnumerable<int> GetFileIds(CacheIndex cacheIndex)
         {
-            return this.GetReferenceTable(index).FileIds;
+            return this.GetReferenceTable(cacheIndex).FileIds;
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             {
                 this.PutFile(this._cachedReferenceTables[tableIndex]);
             }
-            
+
             this._changedReferenceTableIndexes.Clear();
             this._cachedReferenceTables.Clear();
         }
@@ -86,9 +87,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public override void Dispose()
         {
             this.FlushCachedReferenceTables();
-            
+
             base.Dispose();
-            
+
             this._cachedReferenceTables = null;
             this._changedReferenceTableIndexes = null;
         }

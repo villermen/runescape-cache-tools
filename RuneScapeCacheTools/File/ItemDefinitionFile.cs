@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.File
     /// <summary>
     /// Contains the properties of an item.
     /// </summary>
-    public class ItemDefinitionFile : CacheFile
+    public class ItemDefinitionFile
     {
         public int ModelId { get; set; }
         public string Name { get; set; }

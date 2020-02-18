@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         /// Test for a file that exists, an archive file that exists and a file that doesn't exist.
         /// </summary>
         [Theory]
-        [InlineData(typeof(RuneTek5Cache))]
+        [InlineData(typeof(JavaClientCache))]
         [InlineData(typeof(FlatFileCache))]
         [InlineData(typeof(DownloaderCache))]
         public void TestGetFile(Type cacheType)
@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             var archiveFile = cache.GetFile<EntryFile>(Index.Enums, 5);
 
             // Downloader cache changes too frequently, and flatfile cache doesn't do info
-            if (cacheType == typeof(RuneTek5Cache))
+            if (cacheType == typeof(JavaClientCache))
             {
                 Assert.Equal(1495007468, archiveFile.Info.Version);
                 Assert.Equal(CompressionType.Gzip, archiveFile.Info.CompressionType);
@@ -58,9 +58,9 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         }
 
         [Theory]
-        [InlineData(typeof(RuneTek5Cache), Index.Music)]
-        [InlineData(typeof(RuneTek5Cache), Index.Enums)]
-        [InlineData(typeof(RuneTek5Cache), Index.ClientScripts)]
+        [InlineData(typeof(JavaClientCache), Index.Music)]
+        [InlineData(typeof(JavaClientCache), Index.Enums)]
+        [InlineData(typeof(JavaClientCache), Index.ClientScripts)]
         [InlineData(typeof(DownloaderCache), Index.Enums)]
         public void TestGetReferenceTableFile(Type cacheType, Index index)
         {
@@ -70,8 +70,8 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         }
 
         [Theory]
-        [InlineData(typeof(RuneTek5Cache), Index.Models, 47000)] // Gzip
-        [InlineData(typeof(RuneTek5Cache), Index.Enums, 23)] // Bzip2, entries
+        [InlineData(typeof(JavaClientCache), Index.Models, 47000)] // Gzip
+        [InlineData(typeof(JavaClientCache), Index.Enums, 23)] // Bzip2, entries
         [InlineData(typeof(FlatFileCache), Index.Enums, 23)]
         public void TestWriteBinaryFile(Type cacheType, Index index, int fileId)
         {
@@ -82,7 +82,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
             cache.PutFile(file1);
 
             // Refresh a reference table cache to make sure everything read after this point is freshly obtained
-            (cache as ReferenceTableCache)?.FlushCachedReferenceTables();
+            (cache as RuneTek5Cache)?.FlushCachedReferenceTables();
 
             var file2 = cache.GetFile<BinaryFile>(index, fileId);
 
@@ -94,7 +94,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests
         }
 
         [Theory]
-        [InlineData(typeof(RuneTek5Cache), 7)]
+        [InlineData(typeof(JavaClientCache), 7)]
         [InlineData(typeof(FlatFileCache), 7)]
         [InlineData(typeof(DownloaderCache), 42)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)

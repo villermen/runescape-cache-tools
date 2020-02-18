@@ -6,19 +6,18 @@ using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.File
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
-    ///     A master reference table holds information on the other reference tables.
-    ///     This is stored in a separate class, as the
+    /// A master reference table holds information on the other reference tables. This is stored in a separate class, as the TODO: continue this sentence
     /// </summary>
-    public class MasterReferenceTableFile : CacheFile
+    public class MasterReferenceTable
     {
-        public Dictionary<Index, ReferenceTableInfo> ReferenceTables { get; } = new Dictionary<Index, ReferenceTableInfo>();
+        public Dictionary<CacheIndex, ReferenceTableInfo> ReferenceTables { get; } = new Dictionary<CacheIndex, ReferenceTableInfo>();
 
         public byte[] RsaEncryptedWhirlpoolDigest { get; set; }
 
-        public Dictionary<Index, ReferenceTableInfo> GetAvailableReferenceTables() => this.ReferenceTables
+        public Dictionary<CacheIndex, ReferenceTableInfo> GetAvailableReferenceTables() => this.ReferenceTables
             .Where(infoPair => infoPair.Value.FileCount > 0)
             .ToDictionary(infoPair => infoPair.Key, infoPair => infoPair.Value);
 
@@ -30,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.File
 
             for (var tableId = 0; tableId < tableCount; tableId++)
             {
-                var index = (Index)tableId;
+                var index = (CacheIndex)tableId;
 
                 var table = new ReferenceTableInfo(index)
                 {
@@ -59,16 +58,16 @@ namespace Villermen.RuneScapeCacheTools.File
 
         public class ReferenceTableInfo
         {
-            public ReferenceTableInfo(Index index)
+            public ReferenceTableInfo(CacheIndex cacheIndex)
             {
-                this.Index = index;
+                this.CacheIndex = cacheIndex;
             }
 
             public int CRC { get; set; }
 
             public int FileCount { get; set; }
 
-            public Index Index { get; set; }
+            public CacheIndex CacheIndex { get; set; }
 
             public int Length { get; set; }
 

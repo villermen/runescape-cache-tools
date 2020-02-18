@@ -4,7 +4,7 @@
     /// </summary>
     /// <author>Villermen</author>
     /// <author>Pea2nuts</author>
-    public enum Index
+    public enum CacheIndex
     {
         Undefined = -1,
 

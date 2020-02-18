@@ -138,7 +138,7 @@ namespace Villermen.RuneScapeCacheTools.Tests
 
             // Download and write the files
             using (var downloader = new DownloaderCache())
-            using (var runeTek5Cache = new RuneTek5Cache("generated/runetek5", false))
+            using (var runeTek5Cache = new JavaClientCache("generated/runetek5", false))
             using (var flatFileCache = new FlatFileCache("generated/flatfile"))
             {
                 foreach (var fileTuple in files)
@@ -150,7 +150,7 @@ namespace Villermen.RuneScapeCacheTools.Tests
             }
 
             // Verify that the files are now obtainable
-            using (var freshRuneTek5Cache = new RuneTek5Cache("generated/runetek5", true))
+            using (var freshRuneTek5Cache = new JavaClientCache("generated/runetek5", true))
             using (var freshFlatFileCache = new FlatFileCache("generated/flatfile"))
             {
                 foreach (var fileTuple in files)

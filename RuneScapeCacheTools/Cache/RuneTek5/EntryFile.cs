@@ -13,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.File
     /// </summary>
     public class EntryFile : CacheFile
     {
-        private readonly SortedDictionary<int, BinaryFile> _entries = new SortedDictionary<int, BinaryFile>();
+        private readonly SortedDictionary<int, RawCacheFile> _entries = new SortedDictionary<int, RawCacheFile>();
 
         public int EntryCount => this._entries.Count;
 
@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.File
         {
             var binaryFile = this._entries[entryId];
 
-            if (typeof(T) == typeof(BinaryFile))
+            if (typeof(T) == typeof(RawCacheFile))
             {
                 return binaryFile as T;
             }
@@ -55,7 +55,7 @@ namespace Villermen.RuneScapeCacheTools.File
                 binaryFileEntry.Info = new CacheFileInfo();
             }
 
-            binaryFileEntry.Info.Index = this.Info.Index;
+            binaryFileEntry.Info.Index = this.Info.CacheIndex;
             binaryFileEntry.Info.FileId = this.Info.FileId;
             binaryFileEntry.Info.EntryId = entryId;
 
@@ -64,7 +64,7 @@ namespace Villermen.RuneScapeCacheTools.File
 
         public void AddEntry(int entryId, byte[] entryData)
         {
-            this.AddEntry(entryId, new BinaryFile
+            this.AddEntry(entryId, new RawCacheFile
             {
                 Data = entryData
             });

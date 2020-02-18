@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         [Fact]
         public void TestEntryFile()
         {
-            var binaryFile = this.Fixture.RuneTek5Cache.GetFile<BinaryFile>(Index.ItemDefinitions, 155);
+            var binaryFile = this.Fixture.JavaClientCache.GetFile<BinaryFile>(Index.ItemDefinitions, 155);
             var entryFile = new EntryFile();
             entryFile.FromBinaryFile(binaryFile);
 

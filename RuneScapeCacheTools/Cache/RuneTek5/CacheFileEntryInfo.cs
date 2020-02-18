@@ -1,7 +1,9 @@
-﻿namespace Villermen.RuneScapeCacheTools.Model
+﻿namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     /// Represents metadata of an entry within a <see cref="CacheFileInfo" />.
+    ///
+    /// TODO: Still needed because of identifiers, so add to RuneTek5CacheFileInfo again
     /// </summary>
     public class CacheFileEntryInfo
     {

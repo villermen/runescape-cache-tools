@@ -21,7 +21,7 @@ namespace Villermen.RuneScapeCacheTools.Tests.Tests.FileTypesTests
         [InlineData(Index.ItemDefinitions, 155, 104, "Attuned crystal teleport seed", 14)]
         public void TestItemDefinitionFile(Index index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
-            var itemDefinition = this.Fixture.RuneTek5Cache
+            var itemDefinition = this.Fixture.JavaClientCache
                 .GetFile<EntryFile>(index, fileId)
                 .GetEntry<ItemDefinitionFile>(entryId);
 

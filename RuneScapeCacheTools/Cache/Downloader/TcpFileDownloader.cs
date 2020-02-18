@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using log4net;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Utility
+namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     public class TcpFileDownloader : IFileDownloader, IDisposable
     {
@@ -59,8 +58,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         private bool _connected = false;
 
-        private ConcurrentDictionary<Tuple<Index, int>, FileRequest> FileRequests { get; } =
-            new ConcurrentDictionary<Tuple<Index, int>, FileRequest>();
+        private ConcurrentDictionary<Tuple<CacheIndex, int>, FileRequest> FileRequests { get; } =
+            new ConcurrentDictionary<Tuple<CacheIndex, int>, FileRequest>();
 
         public TcpFileDownloader(string contentHost = "content.runescape.com", int contentPort = 43594, string keyPage = "http://world2.runescape.com")
         {
@@ -69,12 +68,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
             this._keyPage = keyPage;
         }
 
-        public async Task<BinaryFile> DownloadFileAsync(Index index, int fileId, CacheFileInfo fileInfo = null)
+        public async Task<RawCacheFile> DownloadFileAsync(CacheIndex cacheIndex, int fileId, CacheFileInfo fileInfo = null)
         {
             // Add the request, or get an existing one
             var request = this.FileRequests.GetOrAdd(
-                new Tuple<Index, int>(index, fileId),
-                new FileRequest(index, fileId, fileInfo));
+                new Tuple<CacheIndex, int>(cacheIndex, fileId),
+                new FileRequest(cacheIndex, fileId, fileInfo));
 
             Task.Run(new Action(this.ProcessRequests));
 
@@ -218,12 +217,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         var readByteCount = 0;
 
                         // Check which file this chunk is for
-                        var index = (Index) reader.ReadByte();
+                        var index = (CacheIndex) reader.ReadByte();
                         var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
 
                         readByteCount += 5;
 
-                        var requestKey = new Tuple<Index, int>(index, fileId);
+                        var requestKey = new Tuple<CacheIndex, int>(index, fileId);
 
                         if (!this.FileRequests.ContainsKey(requestKey))
                         {
@@ -272,12 +271,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 throw new DownloaderException("File to be requested is already requested.");
             }
 
-            TcpFileDownloader.Logger.Debug($"Requesting {(int)request.Index}/{request.FileId} using TCP.");
+            TcpFileDownloader.Logger.Debug($"Requesting {(int)request.CacheIndex}/{request.FileId} using TCP.");
 
             var writer = new BinaryWriter(this._contentClient.GetStream());
 
-            writer.Write((byte)(request.Index == Index.ReferenceTables ? 1 : 0));
-            writer.Write((byte)request.Index);
+            writer.Write((byte)(request.CacheIndex == CacheIndex.ReferenceTables ? 1 : 0));
+            writer.Write((byte)request.CacheIndex);
             writer.WriteInt32BigEndian(request.FileId);
 
             request.Requested = true;
@@ -305,19 +304,19 @@ namespace Villermen.RuneScapeCacheTools.Utility
         {
             private readonly CacheFileInfo _cacheFileInfo;
             private readonly MemoryStream _dataStream = new MemoryStream();
-            private readonly TaskCompletionSource<BinaryFile> _completionSource = new TaskCompletionSource<BinaryFile>();
+            private readonly TaskCompletionSource<RawCacheFile> _completionSource = new TaskCompletionSource<RawCacheFile>();
             private int _fileSize;
 
-            public Index Index { get; }
+            public CacheIndex CacheIndex { get; }
             public int FileId { get; }
             public int RemainingLength => (int)(this._fileSize - this._dataStream.Length);
             public bool Completed { get; private set; }
             public bool Requested { get; set; }
             public bool MetaWritten { get; private set; }
 
-            public FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)
+            public FileRequest(CacheIndex cacheIndex, int fileId, CacheFileInfo cacheFileInfo)
             {
-                this.Index = index;
+                this.CacheIndex = cacheIndex;
                 this.FileId = fileId;
                 this._cacheFileInfo = cacheFileInfo;
             }
@@ -365,7 +364,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                     this.Completed = true;
 
-                    var file = new BinaryFile
+                    var file = new RawCacheFile
                     {
                         Info = this._cacheFileInfo
                     };
@@ -376,7 +375,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 }
             }
 
-            public async Task<BinaryFile> WaitForCompletionAsync()
+            public async Task<RawCacheFile> WaitForCompletionAsync()
             {
                  return await this._completionSource.Task;
             }

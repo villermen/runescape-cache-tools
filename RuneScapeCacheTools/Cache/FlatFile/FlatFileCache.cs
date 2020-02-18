@@ -9,9 +9,9 @@ using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
-namespace Villermen.RuneScapeCacheTools.Cache
+namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 {
-    public class FlatFileCache : BaseCache
+    public class FlatFileCache : ICache
     {
         private static readonly Regex FileNameRegex = new Regex(@"[/\\](\d+)(\..+)?$");
 
@@ -28,11 +28,11 @@ namespace Villermen.RuneScapeCacheTools.Cache
             set { this._baseDirectory = PathExtensions.FixDirectory(value); }
         }
 
-        public override IEnumerable<Index> GetIndexes()
+        public override IEnumerable<CacheIndex> GetIndexes()
         {
             if (!Directory.Exists(this.BaseDirectory))
             {
-                return Enumerable.Empty<Index>();
+                return Enumerable.Empty<CacheIndex>();
             }
 
             return Directory.EnumerateDirectories(this.BaseDirectory)
@@ -43,34 +43,34 @@ namespace Villermen.RuneScapeCacheTools.Cache
                     return int.TryParse(indexIdString, out value) ? value : -1;
                 })
                 .Where(indexId => indexId != -1)
-                .Cast<Index>();
+                .Cast<CacheIndex>();
         }
 
-        public override IEnumerable<int> GetFileIds(Index index)
+        public override IEnumerable<int> GetFileIds(CacheIndex cacheIndex)
         {
-            var indexDirectory = this.GetIndexDirectory(index);
+            var indexDirectory = this.GetIndexDirectory(cacheIndex);
 
             if (!Directory.Exists(indexDirectory))
             {
                 return Enumerable.Empty<int>();
             }
 
-            return Directory.EnumerateFileSystemEntries(this.GetIndexDirectory(index))
+            return Directory.EnumerateFileSystemEntries(this.GetIndexDirectory(cacheIndex))
                 .Where(fileSystemEntry =>
                     FlatFileCache.FileNameRegex.IsMatch(fileSystemEntry))
                 .Select(fileSystemEntry =>
                     int.Parse(FlatFileCache.FileNameRegex.Match(fileSystemEntry).Groups[1].Value));
         }
 
-        public override CacheFileInfo GetFileInfo(Index index, int fileId)
+        public override CacheFileInfo GetFileInfo(CacheIndex cacheIndex, int fileId)
         {
             var info = new CacheFileInfo
             {
-                Index = index,
+                CacheIndex = cacheIndex,
                 FileId = fileId
             };
 
-            var filePath = this.GetExistingFilePaths(index, fileId).FirstOrDefault();
+            var filePath = this.GetExistingFilePaths(cacheIndex, fileId).FirstOrDefault();
             if (filePath != null)
             {
                 var filePathInfo = new FileInfo(filePath);
@@ -85,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 return info;
             }
 
-            var entryPaths = this.GetExistingEntryPaths(index, fileId);
+            var entryPaths = this.GetExistingEntryPaths(cacheIndex, fileId);
             if (entryPaths.Any())
             {
                 foreach (var entryId in entryPaths.Keys)
@@ -112,15 +112,15 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.BaseDirectory = baseDirectory;
         }
 
-        protected override BinaryFile GetBinaryFile(CacheFileInfo fileInfo)
+        protected override RawCacheFile GetFile(CacheFileInfo fileInfo)
         {
             // Single file
             if (!fileInfo.UsesEntries)
             {
-                return new BinaryFile
+                return new RawCacheFile
                 {
                     Info = fileInfo,
-                    Data = System.IO.File.ReadAllBytes(this.GetExistingFilePaths(fileInfo.Index, fileInfo.FileId.Value).First())
+                    Data = System.IO.File.ReadAllBytes(this.GetExistingFilePaths(fileInfo.CacheIndex, fileInfo.FileId.Value).First())
                 };
             }
 
@@ -130,7 +130,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 Info = fileInfo
             };
 
-            foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.Index, fileInfo.FileId.Value))
+            foreach (var existingEntryPath in this.GetExistingEntryPaths(fileInfo.CacheIndex, fileInfo.FileId.Value))
             {
                 entryFile.AddEntry(existingEntryPath.Key, System.IO.File.ReadAllBytes(existingEntryPath.Value));
             }
@@ -139,7 +139,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return entryFile.ToBinaryFile();
         }
 
-        protected override void PutBinaryFile(BinaryFile file)
+        protected override void PutBinaryFile(RawCacheFile file)
         {
             // Throw an exception if the output directory is not yet set or does not exist
             if (string.IsNullOrWhiteSpace(this.BaseDirectory))
@@ -193,7 +193,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 {
                     Directory.CreateDirectory(entryDirectory);
 
-                    var entryBinaryFiles = entryFile.GetEntries<BinaryFile>().ToList();
+                    var entryBinaryFiles = entryFile.GetEntries<RawCacheFile>().ToList();
                     foreach (var entryBinaryFile in entryBinaryFiles)
                     {
                         var extension = ExtensionGuesser.GuessExtension(entryBinaryFile.Data);
@@ -212,18 +212,18 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
         }
 
-        private IEnumerable<string> GetExistingFilePaths(Index index, int fileId)
+        private IEnumerable<string> GetExistingFilePaths(CacheIndex cacheIndex, int fileId)
         {
-            return Directory.EnumerateFiles(this.GetIndexDirectory(index), $"{fileId}*")
+            return Directory.EnumerateFiles(this.GetIndexDirectory(cacheIndex), $"{fileId}*")
                 // Filter out false-positivies like 2345 when looking for 234.ext
                 .Where(matchedFilePath => Regex.IsMatch(matchedFilePath, $@"[/\\]{fileId}(\..+)?$"));
         }
 
-        private SortedDictionary<int, string> GetExistingEntryPaths(Index index, int fileId)
+        private SortedDictionary<int, string> GetExistingEntryPaths(CacheIndex cacheIndex, int fileId)
         {
             try
             {
-                var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(index, fileId))
+                var unsortedDictionary = Directory.EnumerateFiles(this.GetEntryDirectory(cacheIndex, fileId))
                     .Where(matchedFilePath => FlatFileCache.FileNameRegex.IsMatch(matchedFilePath))
                     .ToDictionary(matchedFilePath =>
                     {
@@ -235,18 +235,18 @@ namespace Villermen.RuneScapeCacheTools.Cache
             }
             catch (DirectoryNotFoundException exception)
             {
-                throw new FileNotFoundException($"Directory for entry {(int)index}/{fileId} does not exist.", exception);
+                throw new FileNotFoundException($"Directory for entry {(int)cacheIndex}/{fileId} does not exist.", exception);
             }
         }
 
-        private string GetIndexDirectory(Index index)
+        private string GetIndexDirectory(CacheIndex cacheIndex)
         {
-            return $"{this.BaseDirectory}{(int)index}/";
+            return $"{this.BaseDirectory}{(int)cacheIndex}/";
         }
 
-        private string GetEntryDirectory(Index index, int fileId)
+        private string GetEntryDirectory(CacheIndex cacheIndex, int fileId)
         {
-            return this.GetIndexDirectory(index) + fileId + "/";
+            return this.GetIndexDirectory(cacheIndex) + fileId + "/";
         }
     }
 }
