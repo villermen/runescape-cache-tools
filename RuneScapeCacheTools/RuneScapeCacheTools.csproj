@@ -95,12 +95,13 @@
     <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
     <Compile Include="Cache\RuneTek5\EntryFile.cs" />
     <Compile Include="Cache\RuneTek5\ReferenceTable.cs" />
+    <Compile Include="Cache\RuneTek5\ReferenceTableOptions.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
-    <Compile Include="Cache\RuneTek5\RuneTek5CacheFileInfo.cs" />
-    <Compile Include="Cache\RuneTek5\RuneTek5ReferenceTable.cs" />
+    <Compile Include="Cache\RuneTek5\CacheFileInfo.cs" />
     <Compile Include="Exception\DecodeException.cs" />
     <Compile Include="Exception\DownloaderException.cs" />
+    <Compile Include="Exception\EncodeException.cs" />
     <Compile Include="Exception\SoundtrackException.cs" />
     <Compile Include="Extension\BinaryStreamExtensions.cs" />
     <Compile Include="Extension\PathExtensions.cs" />
@@ -108,7 +109,6 @@
     <Compile Include="File\ItemDefinitionFile.cs" />
     <Compile Include="File\JagaFile.cs" />
     <Compile Include="Model\BaseVarType.cs" />
-    <Compile Include="Model\CacheFileOptions.cs" />
     <Compile Include="Model\CacheIndex.cs" />
     <Compile Include="Model\CompressionType.cs" />
     <Compile Include="Model\Language.cs" />

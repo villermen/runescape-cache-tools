@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.File
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     /// Contains information on a <see cref="RuneTek5CacheFile" /> file. Required to decode and encode the file.
     /// </summary>
-    public class RuneTek5CacheFileInfo
+    public class CacheFileInfo
     {
         // TODO: Only used for reference tables?
         // public CacheFileOptions Options { get; set; }
-        // public SortedDictionary<int, CacheFileEntryInfo> EntryInfo { get; set; } =
-        //     new SortedDictionary<int, CacheFileEntryInfo>();
         // public int? FileId { get; set; }
         // public CacheIndex CacheIndex { get; set; } = CacheIndex.Undefined;
 
@@ -51,9 +49,17 @@ namespace Villermen.RuneScapeCacheTools.File
         public byte[] EncryptionKey { get; set; }
 
         /// <summary>
-        /// A cache file can contain multiple entries
+        /// The entry IDs mapped to their additional info if this file contains entries.
         /// </summary>
-        public int EntryCount { get; set; } = 1;
+        public SortedDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new SortedDictionary<int, CacheFileEntryInfo>();
+
+        // TODO: Verify (again) that files without entries define 1 or 0 entries. Which could help in creating 👇
+        // TODO: HasEntries or something
+
+        /// <summary>
+        /// TODO: Find out what identifiers are actually used for.
+        /// </summary>
+        public int? Identifier { get; set; }
 
         /// <summary>
         /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.

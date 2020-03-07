@@ -1,9 +1,11 @@
 using System.Collections.Generic;
-using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
+    /// <summary>
+    /// Interface describing the absolute minimum methods a cache should support.
+    /// </summary>
     public interface ICache
     {
         /// <summary>

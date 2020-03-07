@@ -8,7 +8,6 @@ using Org.BouncyCastle.Crypto.Digests;
 using SevenZip.Compression.LZMA;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -16,7 +15,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     public class RuneTek5CacheFile : CacheFile
     {
         /// <exception cref="DecodeException"></exception>
-        public static RuneTek5CacheFile Decode(byte[] encodedData, RuneTek5CacheFileInfo info)
+        public static RuneTek5CacheFile Decode(byte[] encodedData, CacheFileInfo info)
         {
             var dataReader = new BinaryReader(new MemoryStream(encodedData));
 
@@ -46,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var dataLength = dataReader.ReadInt32BigEndian();
             var data = RuneTek5CacheFile.DecompressData(compressionType, dataReader.ReadBytes(dataLength));
 
-            // TODO: Check if uncompressed size is defined when compression type is none.
+            // TODO: I don't think UncompressedSize and CompressedSize are required to be available
             if (data.Length != info.UncompressedSize)
             {
                 throw new DecodeException(
@@ -224,31 +223,32 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
             }
 
-            throw new DecodeException($"Unknown compression type {compressionType}.");
+            throw new EncodeException($"Unknown compression type {compressionType}.");
         }
 
-        public RuneTek5CacheFileInfo Info { get; set; }
+        public CacheFileInfo Info { get; set; }
 
-        public RuneTek5CacheFile(byte[] data, RuneTek5CacheFileInfo info) : base(data)
+        public RuneTek5CacheFile(byte[] data, CacheFileInfo info) : base(data)
         {
             this.Info = info;
         }
 
         /// <summary>
-        /// Updates <see cref="Info" /> with details of encoded data.
+        /// Encodes the data of this file into a byte array using the format settings on <see cref="Info" />. Updates
+        /// <see cref="Info" /> with details of encoded data.
         /// </summary>
         /// <exception cref="DecodeException"></exception>
         public byte[] Encode()
         {
             if (this.Info == null)
             {
-                throw new DecodeException("File info must be set before encoding.");
+                throw new EncodeException("File info must be set before encoding.");
             }
 
             // Encrypt data
             if (this.Info.EncryptionKey != null)
             {
-                throw new DecodeException(
+                throw new EncodeException(
                     "XTEA encryption not supported. If you encounter this please inform me about the index and file that triggered this message."
                 );
             }
@@ -275,10 +275,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var compressedSize = (int)writer.BaseStream.Position;
 
                 // Suffix with version truncated to two bytes.
-                if (this.Info.Version != null)
-                {
-                    writer.WriteUInt16BigEndian((ushort)this.Info.Version);
-                }
+                writer.WriteUInt16BigEndian((ushort)this.Info.Version);
 
                 var result = memoryStream.ToArray();
 

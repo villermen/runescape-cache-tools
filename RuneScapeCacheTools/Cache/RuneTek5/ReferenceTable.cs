@@ -3,204 +3,206 @@ using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    /// A <see cref="ReferenceTable" /> holds metadata for all registered files in an index, such as checksums, versions
-    /// and archive members. Note that the data of registered files does not have to be present in the index for them
-    /// to be listed.
+    /// Holds metadata for all registered files in an index. Note that the data of registered files does not have to be
+    /// present in the index for the files to be listed in a <see cref="ReferenceTable" />.
     /// </summary>
+    /// <exception cref="DecodeException"></exception>
     /// <author>Graham</author>
     /// <author>`Discardedx2</author>
     /// <author>Sean</author>
     /// <author>Villermen</author>
     public class ReferenceTable
     {
-        /// <summary>
-        ///     The entries in this table.
-        /// </summary>
-        private readonly SortedDictionary<int, CacheFileInfo> _files = new SortedDictionary<int, CacheFileInfo>();
-
-        /// <summary>
-        /// Gets the ids of the files listed in this <see cref="ReferenceTable"/>.
-        /// </summary>
-        /// <returns></returns>
-        public int[] FileIds => this._files.Keys.ToArray();
-
-        /// <summary>
-        ///     The format of this table.
-        /// </summary>
-        public byte Format { get; set; } = 7;
-
-        /// <summary>
-        ///     The flags of this table.
-        /// </summary>
-        public CacheFileOptions Options { get; set; }
-
-        /// <summary>
-        ///     The version of this table.
-        /// </summary>
-        public int Version { get; set; }
-
-        /// <summary>
-        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this <see cref="ReferenceTable"/>.
-        /// </summary>
-        /// <returns></returns>
-        public CacheFileInfo GetFileInfo(int fileId)
-        {
-            if (!this._files.ContainsKey(fileId))
-            {
-                throw new FileNotFoundException($"File {fileId} does not exist in this reference table.");
-            }
-
-            return this._files[fileId].Clone();
-        }
-
-        public void SetFileInfo(int fileId, CacheFileInfo info)
-        {
-            if (this._files.ContainsKey(fileId))
-            {
-                this._files[fileId] = info;
-            }
-            else
-            {
-                this._files.Add(fileId, info);
-            }
-        }
-
-        public override void Decode(byte[] data)
+        public static ReferenceTable Decode(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
 
-            this.Format = reader.ReadByte();
-
-            // Read header
-            if (this.Format < 5 || this.Format > 7)
+            var format = reader.ReadByte();
+            if (format < 5 || format > 7)
             {
-                throw new DecodeException($"Incorrect reference table format version {this.Format}.");
+                throw new DecodeException($"Unsupported reference table format version \"{format}\".");
             }
 
-            if (this.Format >= 6)
+            int? version = null;
+            if (format >= 6)
             {
-                this.Version = reader.ReadInt32BigEndian();
+                version = reader.ReadInt32BigEndian();
             }
 
-            this.Options = (CacheFileOptions)reader.ReadByte();
+            var options = (ReferenceTableOptions)reader.ReadByte();
 
-            // Read the ids of the files (delta encoded)
-            var fileCount = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+            var fileCount = format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+            var fileInfos = new SortedDictionary<int, CacheFileInfo>();
 
-            var fileId = 0;
-            for (var fileNumber = 0; fileNumber < fileCount; fileNumber++)
+            // Read delta encoded file IDs. Create empty info objects for them.
+            var infoFileId = 0;
+            for (var i = 0; i < fileCount; i++)
             {
-                var delta = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
-                fileId += delta;
+                var delta = format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                infoFileId += delta;
 
-                this._files.Add(fileId, new CacheFileInfo
+                fileInfos.Add(infoFileId, new CacheFileInfo());
+            }
+
+            // Read file identifiers
+            if (options.HasFlag(ReferenceTableOptions.Identifiers))
+            {
+                foreach (var fileInfo in fileInfos.Values)
                 {
-                    CacheIndex = (CacheIndex)this.Info.FileId.Value,
-                    FileId = fileId
-                });
-            }
-
-            // Read the identifiers if present
-            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
-            {
-                foreach (var file in this._files.Values)
-                {
-                    file.Identifier = reader.ReadInt32BigEndian();
+                    fileInfo.Identifier = reader.ReadInt32BigEndian();
                 }
             }
 
-            // Read the CRC32 checksums
-            foreach (var file in this._files.Values)
+            // Read file CRC32 checksums
+            foreach (var fileInfo in fileInfos.Values)
             {
-                file.Crc = reader.ReadInt32BigEndian();
+                fileInfo.Crc = reader.ReadInt32BigEndian();
             }
 
-            // Read some type of hash
-            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
+            // Read file mystery hashes
+            if (options.HasFlag(ReferenceTableOptions.MysteryHashes))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in fileInfos.Values)
                 {
-                    file.MysteryHash = reader.ReadInt32BigEndian();
+                    fileInfo.MysteryHash = reader.ReadInt32BigEndian();
                 }
             }
 
-            // Read the whirlpool digests if present
-            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
+            // Read file whirlpool digests
+            if (options.HasFlag(ReferenceTableOptions.WhirlpoolDigests))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in fileInfos.Values)
                 {
-                    file.WhirlpoolDigest = reader.ReadBytes(64);
+                    fileInfo.WhirlpoolDigest = reader.ReadBytes(64);
                 }
             }
 
-            // Read the compressed and uncompressed sizes
-            if (this.Options.HasFlag(CacheFileOptions.Sizes))
+            // Read file sizes
+            if (options.HasFlag(ReferenceTableOptions.Sizes))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in fileInfos.Values)
                 {
-                    file.CompressedSize = reader.ReadInt32BigEndian();
-                    file.UncompressedSize = reader.ReadInt32BigEndian();
+                    fileInfo.CompressedSize = reader.ReadInt32BigEndian();
+                    fileInfo.UncompressedSize = reader.ReadInt32BigEndian();
                 }
             }
 
-            // Read the version numbers
-            foreach (var file in this._files.Values)
+            // Read file versions
+            foreach (var fileInfo in fileInfos.Values)
             {
-                file.Version = reader.ReadInt32BigEndian();
+                fileInfo.Version = reader.ReadInt32BigEndian();
             }
 
-            // Read the entry counts
+            // Read file entry counts
             var entryCounts = new Dictionary<int, int>();
-            foreach (var file in this._files.Values)
+            foreach (var fileId in fileInfos.Keys)
             {
-                entryCounts.Add(file.FileId.Value, this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
+                entryCounts.Add(fileId, format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian());
             }
 
-            // Read the delta encoded entry ids
+            // Read delta encoded entry IDs. Create info objects for them.
             foreach (var entryCountPair in entryCounts)
             {
-                var entryCountFileId = entryCountPair.Key;
+                var fileId = entryCountPair.Key;
                 var entryCount = entryCountPair.Value;
 
-                this._files[entryCountFileId].EntryInfo = new SortedDictionary<int, CacheFileEntryInfo>();
+                fileInfos[fileId].Entries = new SortedDictionary<int, CacheFileEntryInfo>();
 
                 var entryId = 0;
-                for (var entryNumber = 0; entryNumber < entryCount; entryNumber++)
+                for (var i = 0; i < entryCount; i++)
                 {
-                    var delta = this.Format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
+                    var delta = format >= 7 ? reader.ReadAwkwardInt() : reader.ReadUInt16BigEndian();
                     entryId += delta;
 
-                    this._files[entryCountFileId].EntryInfo[entryId] = new CacheFileEntryInfo
-                    {
-                        EntryId = entryId
-                    };
+                    fileInfos[fileId].Entries.Add(entryId, new CacheFileEntryInfo());
                 }
             }
 
-            // Read the entry identifiers if present
-            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
+            // Read the entry identifiers
+            if (options.HasFlag(ReferenceTableOptions.Identifiers))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in fileInfos.Values)
                 {
-                    foreach (var entryInfoPair in file.EntryInfo)
+                    foreach (var entryInfo in fileInfo.Entries.Values)
                     {
-                        entryInfoPair.Value.Identifier = reader.ReadInt32BigEndian();
+                        entryInfo.Identifier = reader.ReadInt32BigEndian();
                     }
                 }
             }
 
             if (reader.BaseStream.Position < reader.BaseStream.Length - 1)
             {
-                throw new DecodeException($"Input data not fully consumed while decoding reference table. {reader.BaseStream.Length - 1 - reader.BaseStream.Position} bytes remain.");
+                throw new DecodeException(
+                    $"Input data not fully consumed while decoding reference table. {reader.BaseStream.Length - 1 - reader.BaseStream.Position} bytes remain."
+                );
+            }
+
+            return new ReferenceTable
+            {
+                Format = format,
+                Version = version,
+                Options = options,
+                _fileInfos = fileInfos,
+            };
+        }
+
+        /// <summary>
+        /// The files described by this <see cref="ReferenceTable" />.
+        /// </summary>
+        private SortedDictionary<int, CacheFileInfo> _fileInfos = new SortedDictionary<int, CacheFileInfo>();
+
+        /// <summary>
+        /// Gets the IDs of the files listed in this <see cref="ReferenceTable" />.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<int> FileIds => this._fileInfos.Keys.ToArray();
+
+        /// <summary>
+        /// The format version of this table.
+        /// </summary>
+        public byte Format { get; set; } = 7;
+
+        /// <summary>
+        /// The flags of this table.
+        /// </summary>
+        public ReferenceTableOptions Options { get; set; }
+
+        /// <summary>
+        /// The version of this <see cref="ReferenceTable" />. Only available when <see cref="Format" /> >= 6.
+        /// </summary>
+        public int? Version { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="CacheFileInfo"/> for the given file in the index described by this
+        /// <see cref="ReferenceTable" />. The info will be a clone and can be freely altered.
+        /// </summary>
+        public CacheFileInfo GetFileInfo(int fileId)
+        {
+            if (!this._fileInfos.ContainsKey(fileId))
+            {
+                throw new FileNotFoundException($"File {fileId} does not exist in this reference table.");
+            }
+
+            return this._fileInfos[fileId].Clone();
+        }
+
+        public void SetFileInfo(int fileId, CacheFileInfo info)
+        {
+            if (this._fileInfos.ContainsKey(fileId))
+            {
+                this._fileInfos[fileId] = info;
+            }
+            else
+            {
+                this._fileInfos.Add(fileId, info);
             }
         }
 
-        public override byte[] Encode()
+        public byte[] Encode()
         {
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
@@ -211,18 +213,23 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             // Write version
             if (this.Format >= 6)
             {
-                writer.WriteInt32BigEndian(this.Version);
+                if (!this.Version.HasValue)
+                {
+                    throw new EncodeException("ReferenceTable version must be set if format is 6 or greater.");
+                }
+
+                writer.WriteInt32BigEndian(this.Version.Value);
             }
 
             // Write amount of files
             writer.Write((byte)this.Options);
             if (this.Format >= 7)
             {
-                writer.WriteAwkwardInt(this._files.Count);
+                writer.WriteAwkwardInt(this._fileInfos.Count);
             }
             else
             {
-                writer.WriteUInt16BigEndian((ushort)this._files.Count);
+                writer.WriteUInt16BigEndian((ushort)this._fileInfos.Count);
             }
 
             // Write delta encoded file ids
@@ -244,81 +251,108 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Write identifiers if option is set
-            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(ReferenceTableOptions.Identifiers))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in this._fileInfos.Values)
                 {
-                    writer.WriteInt32BigEndian(file.Identifier.Value);
+                    if (!fileInfo.Identifier.HasValue)
+                    {
+                        throw new EncodeException(
+                            "FileInfo must have an identifier according to ReferenceTable options."
+                        );
+                    }
+
+                    writer.WriteInt32BigEndian(fileInfo.Identifier.Value);
                 }
             }
 
             // Write CRC checksums
-            foreach (var file in this._files.Values)
+            foreach (var fileInfo in this._fileInfos.Values)
             {
-                writer.WriteInt32BigEndian(file.Crc.Value);
+                if (!fileInfo.Crc.HasValue)
+                {
+                    throw new EncodeException("FileInfo must have a CRC checksum.");
+                }
+
+                writer.WriteInt32BigEndian(fileInfo.Crc.Value);
             }
 
             // Write some type of hash
-            if (this.Options.HasFlag(CacheFileOptions.MysteryHashes))
+            if (this.Options.HasFlag(ReferenceTableOptions.MysteryHashes))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in this._fileInfos.Values)
                 {
-                    writer.WriteInt32BigEndian(file.MysteryHash.Value);
+                    if (!fileInfo.MysteryHash.HasValue)
+                    {
+                        throw new EncodeException("File must have a mystery hash according to ReferenceTable options.");
+                    }
+
+                    writer.WriteInt32BigEndian(fileInfo.MysteryHash.Value);
                 }
             }
 
             // Write the whirlpool digests if option is set
-            if (this.Options.HasFlag(CacheFileOptions.WhirlpoolDigests))
+            if (this.Options.HasFlag(ReferenceTableOptions.WhirlpoolDigests))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in this._fileInfos.Values)
                 {
                     // Do a small check to verify the size before messing the whole file up
-                    if (file.WhirlpoolDigest.Length != 64)
+                    if (fileInfo.WhirlpoolDigest.Length != 64)
                     {
-                        throw new DecodeException("File info's whirlpool digest is not 64 bytes in length.");
+                        throw new EncodeException("File info's whirlpool digest is not 64 bytes in length.");
                     }
 
-                    writer.Write(file.WhirlpoolDigest);
+                    writer.Write(fileInfo.WhirlpoolDigest);
                 }
             }
 
             // Write the compressed and uncompressed sizes if option is specified
-            if (this.Options.HasFlag(CacheFileOptions.Sizes))
+            if (this.Options.HasFlag(ReferenceTableOptions.Sizes))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in this._fileInfos.Values)
                 {
-                    writer.WriteInt32BigEndian(file.CompressedSize.GetValueOrDefault());
-                    writer.WriteInt32BigEndian(file.UncompressedSize.Value);
+                    if (!fileInfo.CompressedSize.HasValue || !fileInfo.UncompressedSize.HasValue)
+                    {
+                        throw new EncodeException("FileInfo must have sizes according to ReferenceTable options.");
+                    }
+
+                    writer.WriteInt32BigEndian(fileInfo.CompressedSize.Value);
+                    writer.WriteInt32BigEndian(fileInfo.UncompressedSize.Value);
                 }
             }
 
             // Write the version numbers
-            foreach (var file in this._files.Values)
+            foreach (var fileInfo in this._fileInfos.Values)
             {
-                writer.WriteInt32BigEndian(file.Version.Value);
+                if (!fileInfo.Version.HasValue)
+                {
+                    throw new EncodeException("FileInfo must have a version.");
+                }
+
+                writer.WriteInt32BigEndian(fileInfo.Version.Value);
             }
 
             // Write the entry counts
-            foreach (var file in this._files.Values)
+            foreach (var fileInfo in this._fileInfos.Values)
             {
                 if (this.Format >= 7)
                 {
-                    writer.WriteAwkwardInt(file.EntryInfo.Count);
+                    writer.WriteAwkwardInt(fileInfo.Entries.Count);
                 }
                 else
                 {
-                    writer.WriteUInt16BigEndian((ushort)file.EntryInfo.Count);
+                    writer.WriteUInt16BigEndian((ushort)fileInfo.Entries.Count);
                 }
             }
 
             // Write the delta encoded entry ids
-            foreach (var file in this._files.Values)
+            foreach (var fileInfo in this._fileInfos.Values)
             {
                 var previousEntryId = 0;
 
-                foreach (var entryInfoPair in file.EntryInfo)
+                foreach (var entryId in fileInfo.Entries.Keys)
                 {
-                    var delta = entryInfoPair.Key - previousEntryId;
+                    var delta = entryId - previousEntryId;
 
                     if (this.Format >= 7)
                     {
@@ -329,17 +363,24 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                         writer.WriteUInt16BigEndian((ushort)delta);
                     }
 
-                    previousEntryId = entryInfoPair.Key;
+                    previousEntryId = entryId;
                 }
             }
 
             // Write the entry identifiers if option is specified
-            if (this.Options.HasFlag(CacheFileOptions.Identifiers))
+            if (this.Options.HasFlag(ReferenceTableOptions.Identifiers))
             {
-                foreach (var file in this._files.Values)
+                foreach (var fileInfo in this._fileInfos.Values)
                 {
-                    foreach (var entryInfo in file.EntryInfo.Values)
+                    foreach (var entryInfo in fileInfo.Entries.Values)
                     {
+                        if (!entryInfo.Identifier.HasValue)
+                        {
+                            throw new EncodeException(
+                                "EntryInfo must have an identifier according to ReferenceTable options."
+                            );
+                        }
+
                         writer.WriteInt32BigEndian(entryInfo.Identifier.Value);
                     }
                 }
