@@ -5,7 +5,7 @@ using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
 
-namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
+namespace Villermen.RuneScapeCacheTools.File
 {
     /// <summary>
     /// A cache file that contains multiple files.
