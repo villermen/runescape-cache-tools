@@ -19,8 +19,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         IEnumerable<int> GetAvailableFileIds(CacheIndex index);
 
-        void WriteFile(CacheIndex index, int fileId, CacheFile file);
-
-        CacheFile ReadFile(CacheIndex index, int fileId);
+        // TODO: Not feasible because we want to write and read more specific files per cache type
+        // void WriteFile(CacheIndex index, int fileId, CacheFile file);
+        // CacheFile ReadFile(CacheIndex index, int fileId);
     }
 }

@@ -1,97 +1,97 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.File;
+using System.Linq;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
-    /// A cache that stores information on its files in reference tables in index 255.
+    /// A cache that stores information on its files in <see cref="ReferenceTable" />s in index 255.
     /// </summary>
-    public abstract class RuneTek5Cache : ICache
+    public abstract class RuneTek5Cache : ICache, IDisposable
     {
-        private ConcurrentDictionary<CacheIndex, ReferenceTable> _cachedReferenceTables =
-            new ConcurrentDictionary<CacheIndex, ReferenceTable>();
+        private readonly Dictionary<CacheIndex, ReferenceTable> _cachedReferenceTables = new Dictionary<CacheIndex, ReferenceTable>();
 
-        private List<CacheIndex> _changedReferenceTableIndexes = new List<CacheIndex>();
+        private readonly List<CacheIndex> _changedReferenceTableIndexes = new List<CacheIndex>();
 
-        public ReferenceTable GetReferenceTable(CacheIndex cacheIndex, bool createIfNotFound = false)
+        public abstract IEnumerable<CacheIndex> GetAvailableIndexes();
+
+        public ReferenceTable GetReferenceTable(CacheIndex index)
         {
             // Obtain the reference table either from our own cache or the actual cache
-            return this._cachedReferenceTables.GetOrAdd(cacheIndex, regardlesslyDiscarded =>
+            if (this._cachedReferenceTables.ContainsKey(index))
             {
-                try
-                {
-                    return this.GetFile(CacheIndex.ReferenceTables, (int)cacheIndex);
-                }
-                catch (FileNotFoundException) when (createIfNotFound)
-                {
-                    return new ReferenceTable
-                    {
-                        Info = new CacheFileInfo
-                        {
-                            CacheIndex = CacheIndex.ReferenceTables,
-                            FileId = (int)cacheIndex
-                        }
-                    };
-                }
-            });
-        }
-
-        public sealed override CacheFileInfo GetFileInfo(CacheIndex cacheIndex, int fileId)
-        {
-            if (cacheIndex != CacheIndex.ReferenceTables)
-            {
-                return this.GetReferenceTable(cacheIndex).GetFileInfo(fileId);
+                return this._cachedReferenceTables[index];
             }
 
-            return new CacheFileInfo
-            {
-                CacheIndex = cacheIndex,
-                FileId = fileId
-                // TODO: Compression for reference tables? Compression by default?
-            };
+            var referenceTableData = this.GetFileData(CacheIndex.ReferenceTables, (int)index);
+            var referenceTable = ReferenceTable.Decode(referenceTableData);
+
+            this._cachedReferenceTables.Add(index, referenceTable);
+
+            return referenceTable;
         }
 
-        protected sealed override void PutFileInfo(CacheFileInfo fileInfo)
+        public IEnumerable<int> GetAvailableFileIds(CacheIndex index)
         {
-            // Reference tables don't need no reference tables of their own
-            if (fileInfo.CacheIndex != CacheIndex.ReferenceTables)
+            return this.GetReferenceTable(index).FileIds;
+        }
+
+        public RuneTek5CacheFile GetFile(CacheIndex index, int fileId)
+        {
+            if (index == CacheIndex.ReferenceTables)
             {
-                this.GetReferenceTable(fileInfo.CacheIndex, true).SetFileInfo(fileInfo.FileId.Value, fileInfo);
-                this._changedReferenceTableIndexes.Add(fileInfo.CacheIndex);
+                throw new ArgumentException(
+                    "You can't directly retrieve files from the reference table index. Use GetReferenceTable() if you need one."
+                );
             }
+
+            if (!this.GetAvailableFileIds(index).Contains(fileId))
+            {
+                throw new ArgumentException($"File {fileId} does not exist in index {(int)index}.");
+            }
+
+            var fileInfo = this.GetReferenceTable(index).GetFileInfo(fileId);
+            var fileData = this.GetFileData(index, fileId);
+            return RuneTek5CacheFile.Decode(fileData, fileInfo);
         }
 
-        public sealed override IEnumerable<int> GetFileIds(CacheIndex cacheIndex)
+        protected abstract byte[] GetFileData(CacheIndex index, int fileId);
+
+        public void PutFile(CacheIndex index, int fileId, RuneTek5CacheFile file)
         {
-            return this.GetReferenceTable(cacheIndex).FileIds;
+            if (index == CacheIndex.ReferenceTables)
+            {
+                throw new ArgumentException("You can't manually write files to the reference table index.");
+            }
+
+            this.PutFileData(index, fileId, file.Encode());
+
+            // Update the cached reference table with file's (updated) info.
+            this.GetReferenceTable(index).SetFileInfo(fileId, file.Info);
+            this._changedReferenceTableIndexes.Add(index);
         }
+
+        protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data);
 
         /// <summary>
-        /// Writes changes made to the locally cached reference tables and clears the local cache.
+        /// Writes out changes made to the cached reference tables and clears the local cache.
         /// </summary>
         public void FlushCachedReferenceTables()
         {
             foreach (var tableIndex in this._changedReferenceTableIndexes)
             {
-                this.PutFile(this._cachedReferenceTables[tableIndex]);
+                var encodedReferenceTable = this._cachedReferenceTables[tableIndex].Encode();
+                this.PutFileData(CacheIndex.ReferenceTables, (int)tableIndex, encodedReferenceTable);
             }
 
             this._changedReferenceTableIndexes.Clear();
             this._cachedReferenceTables.Clear();
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             this.FlushCachedReferenceTables();
-
-            base.Dispose();
-
-            this._cachedReferenceTables = null;
-            this._changedReferenceTableIndexes = null;
         }
     }
 }

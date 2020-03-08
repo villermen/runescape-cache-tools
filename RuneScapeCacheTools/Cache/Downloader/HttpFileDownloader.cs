@@ -18,6 +18,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         public async Task<RawCacheFile> DownloadFileAsync(CacheIndex cacheIndex, int fileId, CacheFileInfo fileInfo)
         {
+            // TODO: Since we need info here and only here, it is probably best if we just obtain it manually in this method's body
+
             var webRequest = WebRequest.CreateHttp($"{this._baseUrl}/ms?m=0&a={(int)cacheIndex}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}");
 
             try

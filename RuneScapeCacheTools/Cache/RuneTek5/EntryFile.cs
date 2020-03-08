@@ -6,12 +6,12 @@ using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.File
+namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     /// <summary>
     /// A cache file that contains multiple files.
     /// </summary>
-    public class EntryFile : CacheFile
+    public class EntryFile
     {
         private readonly SortedDictionary<int, RawCacheFile> _entries = new SortedDictionary<int, RawCacheFile>();
 
