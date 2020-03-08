@@ -89,7 +89,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             this._cachedReferenceTables.Clear();
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             this.FlushCachedReferenceTables();
         }

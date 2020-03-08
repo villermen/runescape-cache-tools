@@ -11,10 +11,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// present in the index for the files to be listed in a <see cref="ReferenceTable" />.
     /// </summary>
     /// <exception cref="DecodeException"></exception>
-    /// <author>Graham</author>
-    /// <author>`Discardedx2</author>
-    /// <author>Sean</author>
-    /// <author>Villermen</author>
     public class ReferenceTable
     {
         public static ReferenceTable Decode(byte[] data)

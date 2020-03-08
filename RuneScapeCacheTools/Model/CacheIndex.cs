@@ -1,9 +1,5 @@
 ﻿namespace Villermen.RuneScapeCacheTools.Model
 {
-    /// <summary>
-    /// </summary>
-    /// <author>Villermen</author>
-    /// <author>Pea2nuts</author>
     public enum CacheIndex
     {
         Undefined = -1,

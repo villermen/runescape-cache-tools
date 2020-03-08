@@ -12,8 +12,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     /// Downloading uses 2 different interfaces depending on the <see cref="CacheIndex" /> of the requested file: The original
     /// TCP based interface, and a much simpler (read: better) HTTP interface.
     /// </summary>
-    /// <author>Villermen</author>
-    /// <author>Method</author>
     public class DownloaderCache : RuneTek5Cache
     {
         private static readonly CacheIndex[] IndexesUsingHttpInterface = { CacheIndex.Music };

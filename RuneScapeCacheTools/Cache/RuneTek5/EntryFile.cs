@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {

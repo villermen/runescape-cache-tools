@@ -90,8 +90,6 @@
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
     <Compile Include="Cache\FlatFile\FlatFileCache.cs" />
     <Compile Include="Cache\ICache.cs" />
-    <Compile Include="Cache\JavaClient\FileStore.cs" />
-    <Compile Include="Cache\JavaClient\IndexPointer.cs" />
     <Compile Include="Cache\JavaClient\JavaClientCache.cs" />
     <Compile Include="Cache\JavaClient\Sector.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
