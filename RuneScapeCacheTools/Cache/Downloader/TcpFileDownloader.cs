@@ -53,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// The major version is needed to correctly connect to the content server.
         /// If connection states the version is outdated, the <see cref="_contentVersionMajor" /> will be increased until it is accepted.
         /// </summary>
-        private int _contentVersionMajor = 901;
+        private int _contentVersionMajor = 913;
 
         private TcpClient _contentClient;
 
@@ -62,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         private ConcurrentDictionary<Tuple<Index, int>, FileRequest> FileRequests { get; } =
             new ConcurrentDictionary<Tuple<Index, int>, FileRequest>();
 
-        public TcpFileDownloader(string contentHost = "content.runescape.com", int contentPort = 43594, string keyPage = "http://world2.runescape.com")
+        public TcpFileDownloader(string contentHost = "content.runescape.com", int contentPort = 43594, string keyPage = "http://world21.runescape.com")
         {
             this._contentHost = contentHost;
             this._contentPort = contentPort;
