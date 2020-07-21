@@ -6,23 +6,18 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FlacLibSharp;
-using log4net;
 using NVorbis;
-using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Utility
+namespace Villermen.RuneScapeCacheTools.Audio
 {
     /// <summary>
     /// Contains tools for obtaining and combining soundtracks from the cache.
     /// </summary>
     public class SoundtrackExtractor
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(SoundtrackExtractor));
-
         private string _temporaryDirectory;
 
         /// <summary>
@@ -30,8 +25,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// </summary>
         public string TemporaryDirectory
         {
-            get { return this._temporaryDirectory; }
-            set { this._temporaryDirectory = PathExtensions.FixDirectory(value); }
+            get => this._temporaryDirectory;
+            set => this._temporaryDirectory = PathExtensions.FixDirectory(value);
         }
 
         /// <summary>
@@ -39,8 +34,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// </summary>
         public string OutputDirectory
         {
-            get { return this._outputDirectory; }
-            set { this._outputDirectory = PathExtensions.FixDirectory(value); }
+            get => this._outputDirectory;
+            set => this._outputDirectory = PathExtensions.FixDirectory(value);
         }
 
         /// <summary>

@@ -1,17 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
-using System.Text;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
+using Villermen.RuneScapeCacheTools.Utility;
 
-namespace Villermen.RuneScapeCacheTools.File
+namespace Villermen.RuneScapeCacheTools.Audio
 {
     /// <summary>
     /// A file that serves as a map to stitch audio chunks together in the right order while also containing the first chunk.
     /// </summary>
     public class JagaFile
     {
-        public static byte[] MagicNumber = Encoding.ASCII.GetBytes("JAGA");
+        public static readonly byte[] MagicNumber = { 0x4a, 0x41, 0x47, 0x41 };
 
         public int ChunkCount { get; set; }
 
@@ -64,7 +64,7 @@ namespace Villermen.RuneScapeCacheTools.File
 
         public override byte[] Encode()
         {
-            throw new System.NotImplementedException("Encoding of JAGA files is not yet implemented.");
+            throw new NotImplementedException("Encoding of JAGA files is not yet implemented.");
         }
 
         public class AudioChunkDescriptor

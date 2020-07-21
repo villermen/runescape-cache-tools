@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Villermen.RuneScapeCacheTools.Extension
+namespace Villermen.RuneScapeCacheTools.Utility
 {
     public static class BinaryStreamExtensions
     {

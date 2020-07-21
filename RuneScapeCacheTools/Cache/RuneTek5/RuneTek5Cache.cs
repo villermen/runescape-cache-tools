@@ -39,6 +39,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public RuneTek5CacheFile GetFile(CacheIndex index, int fileId)
         {
+            var fileInfo = this.GetFileInfo(index, fileId);
+            var fileData = this.GetFileData(index, fileId);
+            return RuneTek5CacheFile.Decode(fileData, fileInfo);
+        }
+
+        protected CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
+        {
             if (index == CacheIndex.ReferenceTables)
             {
                 throw new ArgumentException(
@@ -51,9 +58,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 throw new ArgumentException($"File {fileId} does not exist in index {(int)index}.");
             }
 
-            var fileInfo = this.GetReferenceTable(index).GetFileInfo(fileId);
-            var fileData = this.GetFileData(index, fileId);
-            return RuneTek5CacheFile.Decode(fileData, fileInfo);
+            return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
         protected abstract byte[] GetFileData(CacheIndex index, int fileId);

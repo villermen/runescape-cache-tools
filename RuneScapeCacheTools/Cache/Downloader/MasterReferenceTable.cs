@@ -1,79 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
     /// <summary>
-    /// A master reference table holds information on the other reference tables. This is stored in a separate class, as the TODO: continue this sentence
+    /// A master reference table holds information on the other reference tables. As far as I know this concept only
+    /// exists for the downloader.
     /// </summary>
     public class MasterReferenceTable
     {
-        public Dictionary<CacheIndex, ReferenceTableInfo> ReferenceTables { get; } = new Dictionary<CacheIndex, ReferenceTableInfo>();
-
-        public byte[] RsaEncryptedWhirlpoolDigest { get; set; }
-
-        public Dictionary<CacheIndex, ReferenceTableInfo> GetAvailableReferenceTables() => this.ReferenceTables
-            .Where(infoPair => infoPair.Value.FileCount > 0)
-            .ToDictionary(infoPair => infoPair.Key, infoPair => infoPair.Value);
-
-        public override void Decode(byte[] data)
+        public static MasterReferenceTable Decode(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));
 
-            var tableCount = reader.ReadByte();
+            var referenceTableInfos = new Dictionary<CacheIndex, ReferenceTableInfo>();
 
+            var tableCount = reader.ReadByte();
             for (var tableId = 0; tableId < tableCount; tableId++)
             {
                 var index = (CacheIndex)tableId;
 
-                var table = new ReferenceTableInfo(index)
+                var table = new ReferenceTableInfo
                 {
-                    CRC = reader.ReadInt32BigEndian(),
+                    Crc = reader.ReadInt32BigEndian(),
                     Version = reader.ReadInt32BigEndian(),
                     FileCount = reader.ReadInt32BigEndian(),
                     Length = reader.ReadInt32BigEndian(),
                     WhirlpoolDigest = reader.ReadBytes(64)
                 };
 
-                this.ReferenceTables.Add(index, table);
+                referenceTableInfos.Add(index, table);
             }
 
-            this.RsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+            var rsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
 
             if (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 throw new DecodeException($"Not all bytes read while decoding master reference table. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
             }
-        }
 
-        public override byte[] Encode()
-        {
-            throw new NotImplementedException("Encoding of master reference table is not implemented. AFAIK it's a downloader only thing.");
-        }
-
-        public class ReferenceTableInfo
-        {
-            public ReferenceTableInfo(CacheIndex cacheIndex)
+            return new MasterReferenceTable
             {
-                this.CacheIndex = cacheIndex;
-            }
-
-            public int CRC { get; set; }
-
-            public int FileCount { get; set; }
-
-            public CacheIndex CacheIndex { get; set; }
-
-            public int Length { get; set; }
-
-            public int Version { get; set; }
-
-            public byte[] WhirlpoolDigest { get; set; }
+                ReferenceTableInfos = referenceTableInfos,
+                RsaEncryptedWhirlpoolDigest = rsaEncryptedWhirlpoolDigest,
+            };
         }
+
+        public Dictionary<CacheIndex, ReferenceTableInfo> ReferenceTableInfos { get; private set; } = new Dictionary<CacheIndex, ReferenceTableInfo>();
+
+        /// <summary>
+        /// I don't know what this is used for either but we don't need to verify or generate it ourselves anyway.
+        /// </summary>
+        public byte[] RsaEncryptedWhirlpoolDigest { get; set; }
+
+        /// <summary>
+        /// Returns indexes that have reference tables available (have at least one file stored in them).
+        /// </summary>
+        public IEnumerable<CacheIndex> AvailableReferenceTables => this.ReferenceTableInfos
+            .Where(infoPair => infoPair.Value.FileCount > 0)
+            .Select(infoPair => infoPair.Key);
     }
 }

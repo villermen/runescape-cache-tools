@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Audio;
 
 namespace Villermen.RuneScapeCacheTools.Utility
 {
@@ -11,7 +12,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
     {
         private static readonly Dictionary<string, byte[][]> KnownMagicNumbers = new Dictionary<string, byte[][]> {
             {"ogg", new [] { new byte[] { 0x4f, 0x67, 0x67, 0x53 }}}, // OggS
-            {"jaga", new [] { new byte[] { 0x4a, 0x41, 0x47, 0x41 }}}, // JAGA
+            {"jaga", new [] { JagaFile.MagicNumber }},
             {"png", new [] { new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }}}, //0x89504e47 + .PNG
             {"gif", new [] { new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 }, new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 }}}, // GIF87a / GIF89a
             {"bmp", new [] { new byte[] { 0x42, 0x4d }}}, // BM
@@ -25,6 +26,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
             {"wav", new [] { new byte[] { 0x52, 0x49, 0x46, 0x46 }}}, // RIFF - Same as above.
             {"tar", new [] { new byte[] { 0x75, 0x73, 0x74, 0x61, 0x72 }}}, // ustar - Same as above.
             {"7z", new [] { new byte[] { 0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c }}}, // 0x377abcaf271c
+
+            // TODO: Add .entries (we need to use info for that)
         };
 
         public static string? GuessExtension(byte[] fileData)

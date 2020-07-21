@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -10,9 +10,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// Holds metadata for all registered files in an index. Note that the data of registered files does not have to be
     /// present in the index for the files to be listed in a <see cref="ReferenceTable" />.
     /// </summary>
-    /// <exception cref="DecodeException"></exception>
     public class ReferenceTable
     {
+        /// <exception cref="DecodeException"></exception>
         public static ReferenceTable Decode(byte[] data)
         {
             var reader = new BinaryReader(new MemoryStream(data));

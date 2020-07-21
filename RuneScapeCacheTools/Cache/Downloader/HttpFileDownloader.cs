@@ -1,64 +1,65 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
-using System.Threading.Tasks;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    public class HttpFileDownloader : IFileDownloader
+    public class HttpFileDownloader
     {
-        private readonly string _baseUrl;
-
-        public HttpFileDownloader(string baseUrl = "http://content.runescape.com")
+        public byte[] DownloadFileData(CacheIndex index, int fileId, CacheFileInfo fileInfo)
         {
-            this._baseUrl = baseUrl;
-        }
+            if (!fileInfo.Crc.HasValue)
+            {
+                throw new ArgumentException("File CRC must be set when requesting HTTP files.");
+            }
 
-        public async Task<RawCacheFile> DownloadFileAsync(CacheIndex cacheIndex, int fileId, CacheFileInfo fileInfo)
-        {
-            // TODO: Since we need info here and only here, it is probably best if we just obtain it manually in this method's body
+            if (!fileInfo.Version.HasValue)
+            {
+                throw new ArgumentException("File version must be set when requesting HTTP files.");
+            }
 
-            var webRequest = WebRequest.CreateHttp($"{this._baseUrl}/ms?m=0&a={(int)cacheIndex}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}");
+            if (!fileInfo.CompressedSize.HasValue)
+            {
+                throw new ArgumentException("File compressed size must be set when requesting HTTP files.");
+            }
+
+            var contentServerHostname = ClientDetails.GetContentServerHostname();
+            var webRequest = WebRequest.CreateHttp(
+                $"https://{contentServerHostname}/ms?m=0&a={(int)index}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}"
+            );
 
             try
             {
-                using (var response = (HttpWebResponse)await webRequest.GetResponseAsync())
+                using var response = (HttpWebResponse)webRequest.GetResponse();
+                if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
-                    }
-
-                    if (response.ContentLength != fileInfo.CompressedSize)
-                    {
-                        throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize}.");
-                    }
-
-                    var dataStream = new MemoryStream();
-                    var dataWriter = new BinaryWriter(dataStream);
-
-                    var responseReader = new BinaryReader(response.GetResponseStream());
-                    dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
-
-                    // Append version
-                    dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
-
-                    var file = new RawCacheFile
-                    {
-                        Info = fileInfo
-                    };
-
-                    file.Decode(dataStream.ToArray());
-
-                    return file;
+                    throw new DownloaderException($"HTTP interface responded with status code: {response.StatusCode}.");
                 }
+
+                if (response.ContentLength != fileInfo.CompressedSize)
+                {
+                    throw new DownloaderException($"Downloaded file size {response.ContentLength} does not match expected {fileInfo.CompressedSize}.");
+                }
+
+                var dataStream = new MemoryStream();
+                var dataWriter = new BinaryWriter(dataStream);
+
+                var responseReader = new BinaryReader(response.GetResponseStream());
+                dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
+
+                // Append version (it always exists for HTTP files).
+                dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
+
+                return dataStream.ToArray();
             }
             catch (WebException exception)
             {
                 throw new DownloaderException(
-                    $"Could not download {(int)cacheIndex}/{fileId} due to a request error.",
+                    $"Could not download {(int)index}/{fileId} via HTTP due to a request error.",
                     exception
                 );
             }

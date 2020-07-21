@@ -7,8 +7,7 @@ using ICSharpCode.SharpZipLib.GZip;
 using Org.BouncyCastle.Crypto.Digests;
 using SevenZip.Compression.LZMA;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
-using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
@@ -121,64 +120,54 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 return compressedData;
             }
 
-            using (var dataReader = new BinaryReader(new MemoryStream(compressedData)))
+            using var dataReader = new BinaryReader(new MemoryStream(compressedData));
+            var uncompressedSize = dataReader.ReadInt32BigEndian();
+
+            if (compressionType == CompressionType.Bzip2)
             {
-                var uncompressedSize = dataReader.ReadInt32BigEndian();
+                // Add the required bzip2 magic number as it is missing from the cache for whatever reason.
+                using var bzip2FixedStream = new MemoryStream((int)(4 + dataReader.BaseStream.Length - dataReader.BaseStream.Position));
+                bzip2FixedStream.WriteByte((byte)'B');
+                bzip2FixedStream.WriteByte((byte)'Z');
+                bzip2FixedStream.WriteByte((byte)'h');
+                bzip2FixedStream.WriteByte((byte)'1');
+                dataReader.BaseStream.CopyTo(bzip2FixedStream);
+                bzip2FixedStream.Position = 0;
 
-                if (compressionType == CompressionType.Bzip2)
-                {
-                    // Add the required bzip2 magic number as it is missing from the cache for whatever reason.
-                    using (var bzip2FixedStream = new MemoryStream((int)(4 + dataReader.BaseStream.Length - dataReader.BaseStream.Position)))
-                    {
-                        bzip2FixedStream.WriteByte((byte)'B');
-                        bzip2FixedStream.WriteByte((byte)'Z');
-                        bzip2FixedStream.WriteByte((byte)'h');
-                        bzip2FixedStream.WriteByte((byte)'1');
-                        dataReader.BaseStream.CopyTo(bzip2FixedStream);
-                        bzip2FixedStream.Position = 0;
-
-                        using (var bzip2InputStream = new BZip2InputStream(bzip2FixedStream))
-                        {
-                            // Decompress the data and resize the resulting array to the bytes actually read.
-                            var result = new byte[uncompressedSize];
-                            var readBytes = bzip2InputStream.Read(result, 0, uncompressedSize);
-                            Array.Resize(ref result, readBytes);
-                            return result;
-                        }
-                    }
-                }
-
-                if (compressionType == CompressionType.Gzip)
-                {
-                    using (var gzipStream = new GZipInputStream(dataReader.BaseStream))
-                    {
-                        // Decompress the data and resize the resulting array to the bytes actually read.
-                        var result = new byte[uncompressedSize];
-                        var readBytes = gzipStream.Read(result, 0, uncompressedSize);
-                        Array.Resize(ref result, readBytes);
-                        return result;
-                    }
-                }
-
-                if (compressionType == CompressionType.Lzma)
-                {
-                    using (var outputStream = new MemoryStream(uncompressedSize))
-                    {
-                        var lzmaDecoder = new Decoder();
-                        lzmaDecoder.Code(
-                            dataReader.BaseStream,
-                            outputStream,
-                            dataReader.BaseStream.Length - dataReader.BaseStream.Position,
-                            -1,
-                            null
-                        );
-
-                        return outputStream.ToArray();
-                    }
-                }
-
-                throw new DecodeException($"Unknown compression type {compressionType}.");
+                using var bzip2InputStream = new BZip2InputStream(bzip2FixedStream);
+                // Decompress the data and resize the resulting array to the bytes actually read.
+                var result = new byte[uncompressedSize];
+                var readBytes = bzip2InputStream.Read(result, 0, uncompressedSize);
+                Array.Resize(ref result, readBytes);
+                return result;
             }
+
+            if (compressionType == CompressionType.Gzip)
+            {
+                using var gzipStream = new GZipInputStream(dataReader.BaseStream);
+                // Decompress the data and resize the resulting array to the bytes actually read.
+                var result = new byte[uncompressedSize];
+                var readBytes = gzipStream.Read(result, 0, uncompressedSize);
+                Array.Resize(ref result, readBytes);
+                return result;
+            }
+
+            if (compressionType == CompressionType.Lzma)
+            {
+                using var outputStream = new MemoryStream(uncompressedSize);
+                var lzmaDecoder = new Decoder();
+                lzmaDecoder.Code(
+                    dataReader.BaseStream,
+                    outputStream,
+                    dataReader.BaseStream.Length - dataReader.BaseStream.Position,
+                    -1,
+                    null
+                );
+
+                return outputStream.ToArray();
+            }
+
+            throw new DecodeException($"Unknown compression type {compressionType}.");
         }
 
         private static byte[] CompressData(CompressionType compressionType, byte[] data)
@@ -275,7 +264,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 var compressedSize = (int)writer.BaseStream.Position;
 
                 // Suffix with version truncated to two bytes.
-                writer.WriteUInt16BigEndian((ushort)this.Info.Version);
+                if (this.Info.Version.HasValue)
+                {
+                    writer.WriteUInt16BigEndian((ushort)this.Info.Version);
+                }
 
                 var result = memoryStream.ToArray();
 

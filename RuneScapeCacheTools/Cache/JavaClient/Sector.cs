@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Extension;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.JavaClient
 {
     /// <summary>
     /// Represents a sector in the data file, containing some metadata and the actual data contained in the sector.
     /// </summary>
-    internal class Sector
+    public class Sector
     {
         /// <summary>
         /// The total size of a sector in bytes.

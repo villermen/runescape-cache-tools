@@ -62,10 +62,6 @@
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="log4net, Version=2.0.7.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.7\lib\net45-full\log4net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
       <Private>True</Private>
@@ -75,19 +71,19 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio\JagaFile.cs" />
+    <Compile Include="Audio\SoundtrackExtractor.cs" />
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
+    <Compile Include="Cache\Downloader\HandshakeResponse.cs" />
     <Compile Include="Cache\Downloader\HttpFileDownloader.cs" />
-    <Compile Include="Cache\Downloader\IFileDownloader.cs" />
     <Compile Include="Cache\Downloader\MasterReferenceTable.cs" />
+    <Compile Include="Cache\Downloader\ReferenceTableInfo.cs" />
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
+    <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
     <Compile Include="Cache\FlatFile\FlatFileCache.cs" />
     <Compile Include="Cache\ICache.cs" />
     <Compile Include="Cache\JavaClient\JavaClientCache.cs" />
@@ -99,28 +95,31 @@
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileInfo.cs" />
+    <Compile Include="Exception\ClientDetailsException.cs" />
     <Compile Include="Exception\DecodeException.cs" />
     <Compile Include="Exception\DownloaderException.cs" />
     <Compile Include="Exception\EncodeException.cs" />
     <Compile Include="Exception\SoundtrackException.cs" />
-    <Compile Include="Extension\BinaryStreamExtensions.cs" />
-    <Compile Include="Extension\PathExtensions.cs" />
     <Compile Include="File\EntryFile.cs" />
     <Compile Include="File\EnumFile.cs" />
     <Compile Include="File\ItemDefinitionFile.cs" />
-    <Compile Include="File\JagaFile.cs" />
     <Compile Include="Model\BaseVarType.cs" />
     <Compile Include="Model\CacheIndex.cs" />
     <Compile Include="Model\Language.cs" />
     <Compile Include="Model\ScriptVarType.cs" />
     <Compile Include="Model\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utility\BinaryStreamExtensions.cs" />
+    <Compile Include="Utility\ClientDetails.cs" />
     <Compile Include="Utility\ExtensionGuesser.cs" />
     <Compile Include="Utility\Formatter.cs" />
-    <Compile Include="Utility\SoundtrackExtractor.cs" />
+    <Compile Include="Utility\PathExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extension" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
