@@ -50,7 +50,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 var responseReader = new BinaryReader(response.GetResponseStream());
                 dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
 
-                // Append version (it always exists for HTTP files).
+                // Append truncated version (will be used by RuneTek5CacheFile in validation).
                 dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
 
                 return dataStream.ToArray();

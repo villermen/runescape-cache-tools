@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
@@ -71,6 +72,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     this.Connect();
                 }
 
+                Log.Debug("Starting TCP response processor...");
+
                 while (this._fileRequests.Any())
                 {
                     // Request all unrequested files
@@ -99,8 +102,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         var fileId = reader.ReadInt32BigEndian() & 0x7fffffff; // TODO: ReadUInt32BigEndian()?
 
                         readByteCount += 5;
-
-                        var requestKey = new Tuple<CacheIndex, int>(index, fileId);
 
                         var request = this._fileRequests.First(req => req.Index == index && req.FileId == fileId);
 
@@ -131,10 +132,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     }
                     else
                     {
-                        // We're waiting for bytes to arrive so we're not in a hurry right now.
+                        // We're waiting for bytes to arrive so let's give other threads some stage time.
                         Thread.Sleep(0);
                     }
                 }
+
+                Log.Debug("TCP request processor finished.");
             }
         }
 
@@ -158,13 +161,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 var handshakeWriter = new BinaryWriter(this._contentClient.GetStream());
                 var handshakeReader = new BinaryReader(this._contentClient.GetStream());
 
-                var handshakeLength = (byte) (9 + ClientDetails.GetContentServerTcpHandshakeKey().Length + 1);
+                var handshakeKey = ClientDetails.GetContentServerTcpHandshakeKey();
+
+                Log.Debug($"Attempting to connect to TCP content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}...");
+
+                var handshakeLength = (byte) (9 + handshakeKey.Length + 1);
 
                 handshakeWriter.Write(TcpFileDownloader.HandshakeType);
                 handshakeWriter.Write(handshakeLength);
                 handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item1);
                 handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item2);
-                handshakeWriter.WriteNullTerminatedString(ClientDetails.GetContentServerTcpHandshakeKey());
+                handshakeWriter.WriteNullTerminatedString(handshakeKey);
                 handshakeWriter.Write((byte)Language.English);
                 handshakeWriter.Flush();
 
@@ -196,6 +203,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             // Send the initial connection status and login packets to the server. I don't know what the individual
             // writes mean but they do the trick.
+            Log.Debug("Sending initial connection status and login packets...");
             var writer = new BinaryWriter(this._contentClient.GetStream());
             writer.Write((byte)6);
             writer.WriteUInt24BigEndian(4);
@@ -207,6 +215,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             writer.Flush();
 
             this._connected = true;
+            Log.Information($"Successfully onnected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
         }
 
         public void Dispose()

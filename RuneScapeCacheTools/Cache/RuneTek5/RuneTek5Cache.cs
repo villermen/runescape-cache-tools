@@ -24,8 +24,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 return this._cachedReferenceTables[index];
             }
 
-            var referenceTableData = this.GetFileData(CacheIndex.ReferenceTables, (int)index);
-            var referenceTable = ReferenceTable.Decode(referenceTableData);
+            var referenceTableFile = this.GetFile(CacheIndex.ReferenceTables, (int)index);
+            var referenceTable = ReferenceTable.Decode(referenceTableFile.Data);
 
             this._cachedReferenceTables.Add(index, referenceTable);
 
@@ -46,11 +46,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
         public CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
         {
+            // Return empty info for reference tables themselves.
             if (index == CacheIndex.ReferenceTables)
             {
-                throw new ArgumentException(
-                    "You can't directly retrieve files from the reference table index. Use GetReferenceTable() if you need one."
-                );
+                return new CacheFileInfo();
             }
 
             if (!this.GetAvailableFileIds(index).Contains(fileId))

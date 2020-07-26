@@ -42,11 +42,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 return this._cachedMasterReferenceTable;
             }
 
-            var masterReferenceTableData = this.GetFileData(
-                CacheIndex.ReferenceTables,
-                (int)CacheIndex.ReferenceTables
-            );
-            this._cachedMasterReferenceTable = MasterReferenceTable.Decode(masterReferenceTableData);
+            var masterReferenceTableFile = this.GetFile(CacheIndex.ReferenceTables, (int)CacheIndex.ReferenceTables);
+            this._cachedMasterReferenceTable = MasterReferenceTable.Decode(masterReferenceTableFile.Data);
             return this._cachedMasterReferenceTable;
         }
 

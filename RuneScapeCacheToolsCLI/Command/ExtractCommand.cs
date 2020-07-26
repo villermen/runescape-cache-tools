@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 
@@ -28,29 +31,37 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             var sourceCache = this.ArgumentParser.SourceCache;
             var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory ?? "files");
 
-            var indexes = this.ArgumentParser.FileFilter.Item1.Count > 0
+            var indexes = this.ArgumentParser.FileFilter.Item1.Length > 0
                 ? this.ArgumentParser.FileFilter.Item1
                 : sourceCache.GetAvailableIndexes();
 
             foreach (var index in indexes)
             {
-                var files = this.ArgumentParser.FileFilter.Item2.Count > 0
+                var files = this.ArgumentParser.FileFilter.Item2.Length > 0
                     ? this.ArgumentParser.FileFilter.Item2
                     : sourceCache.GetAvailableFileIds(index);
 
-                Parallel.ForEach(
-                    files,
-                    new ParallelOptions
-                    {
-                        // Not putting a limit here overloads the downloader when used.
-                        MaxDegreeOfParallelism = 10,
-                    },
-                    (fileId) =>
-                    {
-                        var file = sourceCache.GetFile(index, fileId);
-                        outputCache.PutFile(index, fileId, file);
-                    }
-                );
+                try
+                {
+                    Parallel.ForEach(
+                        files,
+                        new ParallelOptions
+                        {
+                            // Not putting a limit here overloads the downloader when used.
+                            MaxDegreeOfParallelism = 10,
+                        },
+                        (fileId) =>
+                        {
+                            var file = sourceCache.GetFile(index, fileId);
+                            outputCache.PutFile(index, fileId, file);
+                        }
+                    );
+                }
+                catch (AggregateException exception)
+                {
+                    // Report with correct stack trace.
+                    ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+                }
             }
 
             return 0;

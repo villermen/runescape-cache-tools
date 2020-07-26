@@ -5,6 +5,7 @@ using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksums;
 using ICSharpCode.SharpZipLib.GZip;
 using Org.BouncyCastle.Crypto.Digests;
+using Serilog;
 using SevenZip.Compression.LZMA;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -41,11 +42,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 // dataReader = new BinaryReader(new MemoryStream(decrypted));
             }
 
-            var dataLength = dataReader.ReadInt32BigEndian();
-            var data = RuneTek5CacheFile.DecompressData(compressionType, dataReader.ReadBytes(dataLength));
+            var compressedLength = dataReader.ReadInt32BigEndian();
+            var data = RuneTek5CacheFile.DecompressData(compressionType, dataReader.ReadBytes(compressedLength));
 
             // TODO: I don't think UncompressedSize and CompressedSize are required to be available
-            if (data.Length != info.UncompressedSize)
+            // TODO: Sometimes this differs 5 (compressiontype + length?) but sometimes it doesn't. Figure out why.
+            if (info.UncompressedSize != null && data.Length != info.UncompressedSize && data.Length + 5 != info.UncompressedSize)
             {
                 throw new DecodeException(
                     $"Uncompressed size ({data.Length}) does not match expected ({info.UncompressedSize})."
@@ -53,8 +55,9 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             }
 
             // Note that version is excluded from compressed size.
+            // TODO: Sometimes this differs 4 but sometimes it doesn't. Figure out why.
             var compressedSize = (int)dataReader.BaseStream.Position;
-            if (compressedSize != info.CompressedSize)
+            if (info.CompressedSize != null && compressedSize != info.CompressedSize && compressedSize+ 4 != info.CompressedSize)
             {
                 throw new DecodeException(
                     $"Compressed size ({compressedSize}) does not equal expected ({info.CompressedSize})."
@@ -106,7 +109,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
             {
-                throw new DecodeException($"Input data not fully consumed while decoding binary file. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
+                // TODO: Convert to exception again once I figure out why this is.
+                Log.Warning($"Input data not fully consumed while decoding RuneTek5CacheFile. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
             }
 
             return new RuneTek5CacheFile(data, info);
