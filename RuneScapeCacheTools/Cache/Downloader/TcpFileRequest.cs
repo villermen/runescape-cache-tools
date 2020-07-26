@@ -66,19 +66,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             if (this.RemainingLength == 0)
             {
-                // Append file version if possible
-                if (this._cacheFileInfo?.Version != null)
-                {
-                    var writer = new BinaryWriter(this._dataStream);
-                    writer.WriteUInt16BigEndian((ushort)this._cacheFileInfo.Version);
-                }
+                // TODO: Append file version if possible?
+                // if (this._cacheFileInfo?.Version != null)
+                // {
+                //     var writer = new BinaryWriter(this._dataStream);
+                //     writer.WriteUInt16BigEndian((ushort)this._cacheFileInfo.Version);
+                // }
 
                 this.Completed = true;
-
-                var file = new RawCacheFile
-                {
-                    Info = this._cacheFileInfo
-                };
 
                 this._completionSource.SetResult(this._dataStream.ToArray());
             }

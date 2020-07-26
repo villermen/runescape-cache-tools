@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -32,14 +29,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
          * content server.
          */
         private const int LoadingRequirements = 27;
-
-        /// <summary>
-        /// The current build number is needed to correctly connect to the content server. This is not readily available
-        /// so we start from a known number and increase it every time the server gives an "outdated" response.
-        ///
-        /// TODO: Can we be smart about this and skip ahead? Do we get a different response when the major version is too high? Or can we somehow obtain it from another place? The client must know when to update itself doesn't it?
-        /// </summary>
-        private static readonly Tuple<int, int> StartBuildNumber = new Tuple<int, int>(911, 1);
 
         /// <summary>
         /// Only one processor may be running at a time.
@@ -138,7 +127,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         if (request.Completed)
                         {
                             this._fileRequests.Remove(request);
-                            this._fileRequests.NotifyYaddaOrSomething();
                         }
                     }
                     else
@@ -157,24 +145,26 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 throw new DownloaderException("Tried to connect while already connected.");
             }
 
-            var key = this.GetKey();
-
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
+            var currentBuildNumber = ClientDetails.GetBuildNumber();
             var connected = false;
             while (!connected)
             {
-                this._contentClient = new TcpClient(this._contentHost, this._contentPort);
+                this._contentClient = new TcpClient(
+                    ClientDetails.GetContentServerHostname(),
+                    ClientDetails.GetContentServerTcpPort()
+                );
 
                 var handshakeWriter = new BinaryWriter(this._contentClient.GetStream());
                 var handshakeReader = new BinaryReader(this._contentClient.GetStream());
 
-                var handshakeLength = (byte) (9 + key.Length + 1);
+                var handshakeLength = (byte) (9 + ClientDetails.GetContentServerTcpHandshakeKey().Length + 1);
 
                 handshakeWriter.Write(TcpFileDownloader.HandshakeType);
                 handshakeWriter.Write(handshakeLength);
-                handshakeWriter.WriteInt32BigEndian(this._contentVersionMajor);
-                handshakeWriter.WriteInt32BigEndian(TcpFileDownloader.ContentVersionMinor);
-                handshakeWriter.WriteNullTerminatedString(key);
+                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item1);
+                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item2);
+                handshakeWriter.WriteNullTerminatedString(ClientDetails.GetContentServerTcpHandshakeKey());
                 handshakeWriter.Write((byte)Language.English);
                 handshakeWriter.Flush();
 
@@ -184,12 +174,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case HandshakeResponse.Success:
                         connected = true;
+                        ClientDetails.SetBuildNumber(currentBuildNumber);
                         break;
 
                     case HandshakeResponse.Outdated:
                         this._contentClient.Dispose();
                         this._contentClient = null;
-                        this._contentVersionMajor++;
+                        currentBuildNumber = new Tuple<int, int>(currentBuildNumber.Item1 + 1, 1);
                         break;
 
                     default:
@@ -203,17 +194,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             var contentReader = new BinaryReader(this._contentClient.GetStream());
             contentReader.ReadBytes(TcpFileDownloader.LoadingRequirements * 4);
 
-            // Send the initial connection status and login packets to the server.
-            TcpFileDownloader.Logger.Debug("Sending initial connection status and login packets.");
-
+            // Send the initial connection status and login packets to the server. I don't know what the individual
+            // writes mean but they do the trick.
             var writer = new BinaryWriter(this._contentClient.GetStream());
-
-            // I don't know what exactly, but this is how it's done
             writer.Write((byte)6);
             writer.WriteUInt24BigEndian(4);
             writer.WriteInt16BigEndian(0);
             writer.Flush();
-
             writer.Write((byte)3);
             writer.WriteUInt24BigEndian(0);
             writer.WriteInt16BigEndian(0);

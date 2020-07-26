@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Audio;
+using Villermen.RuneScapeCacheTools.File;
 
 namespace Villermen.RuneScapeCacheTools.Utility
 {

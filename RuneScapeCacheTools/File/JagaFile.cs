@@ -4,7 +4,7 @@ using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;
 
-namespace Villermen.RuneScapeCacheTools.Audio
+namespace Villermen.RuneScapeCacheTools.File
 {
     /// <summary>
     /// A file that serves as a map to stitch audio chunks together in the right order while also containing the first chunk.
@@ -30,8 +30,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         public int UnknownInteger3 { get; set; }
 
-        public override void Decode(byte[] data)
+        public static JagaFile Decode(byte[] data)
         {
+            var jagaFile = new JagaFile();
             var reader = new BinaryReader(new MemoryStream(data));
 
             // Verify magic number
@@ -40,31 +41,28 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 throw new DecodeException("JAGA magic number incorrect");
             }
 
-            this.UnknownInteger1 = reader.ReadInt32BigEndian();
-            this.UnknownInteger2 = reader.ReadInt32BigEndian();
-            this.SampleFrequency = reader.ReadInt32BigEndian();
-            this.UnknownInteger3 = reader.ReadInt32BigEndian();
-            this.ChunkCount = reader.ReadInt32BigEndian();
+            jagaFile.UnknownInteger1 = reader.ReadInt32BigEndian();
+            jagaFile.UnknownInteger2 = reader.ReadInt32BigEndian();
+            jagaFile.SampleFrequency = reader.ReadInt32BigEndian();
+            jagaFile.UnknownInteger3 = reader.ReadInt32BigEndian();
+            jagaFile.ChunkCount = reader.ReadInt32BigEndian();
 
-            this.ChunkDescriptors = new AudioChunkDescriptor[this.ChunkCount];
+            jagaFile.ChunkDescriptors = new AudioChunkDescriptor[jagaFile.ChunkCount];
 
-            var position = (int)reader.BaseStream.Position + this.ChunkCount * 8;
-            for (var chunkIndex = 0; chunkIndex < this.ChunkCount; chunkIndex++)
+            var position = (int)reader.BaseStream.Position + jagaFile.ChunkCount * 8;
+            for (var chunkIndex = 0; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
             {
-                this.ChunkDescriptors[chunkIndex] = new AudioChunkDescriptor(position, reader.ReadInt32BigEndian(),
+                jagaFile.ChunkDescriptors[chunkIndex] = new AudioChunkDescriptor(position, reader.ReadInt32BigEndian(),
                     reader.ReadInt32BigEndian());
 
-                position += this.ChunkDescriptors[chunkIndex].Length;
+                position += jagaFile.ChunkDescriptors[chunkIndex].Length;
             }
 
             // The rest of the file is the first chunk
             var containedChunkStartPosition = reader.BaseStream.Position;
-            this.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
-        }
+            jagaFile.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
 
-        public override byte[] Encode()
-        {
-            throw new NotImplementedException("Encoding of JAGA files is not yet implemented.");
+            return jagaFile;
         }
 
         public class AudioChunkDescriptor

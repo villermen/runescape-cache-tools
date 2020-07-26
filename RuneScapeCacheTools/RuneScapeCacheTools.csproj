@@ -74,8 +74,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audio\JagaFile.cs" />
-    <Compile Include="Audio\SoundtrackExtractor.cs" />
     <Compile Include="Cache\CacheFile.cs" />
     <Compile Include="Cache\Downloader\DownloaderCache.cs" />
     <Compile Include="Cache\Downloader\HandshakeResponse.cs" />
@@ -103,6 +101,7 @@
     <Compile Include="File\EntryFile.cs" />
     <Compile Include="File\EnumFile.cs" />
     <Compile Include="File\ItemDefinitionFile.cs" />
+    <Compile Include="File\JagaFile.cs" />
     <Compile Include="Model\BaseVarType.cs" />
     <Compile Include="Model\CacheIndex.cs" />
     <Compile Include="Model\Language.cs" />
@@ -114,12 +113,10 @@
     <Compile Include="Utility\ExtensionGuesser.cs" />
     <Compile Include="Utility\Formatter.cs" />
     <Compile Include="Utility\PathExtensions.cs" />
+    <Compile Include="Utility\SoundtrackExtractor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extension" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

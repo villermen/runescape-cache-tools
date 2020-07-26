@@ -44,7 +44,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             return RuneTek5CacheFile.Decode(fileData, fileInfo);
         }
 
-        protected CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
+        public CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
         {
             if (index == CacheIndex.ReferenceTables)
             {

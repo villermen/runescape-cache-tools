@@ -7,11 +7,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using FlacLibSharp;
 using NVorbis;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.Audio
+namespace Villermen.RuneScapeCacheTools.Utility
 {
     /// <summary>
     /// Contains tools for obtaining and combining soundtracks from the cache.
@@ -45,14 +46,14 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
         private string _outputDirectory;
 
-        public SoundtrackExtractor(BaseCache cache, string outputDirectory)
+        public SoundtrackExtractor(RuneTek5Cache cache, string outputDirectory)
         {
             this.Cache = cache;
             this.TemporaryDirectory = Path.GetTempPath() + "rsct";
             this.OutputDirectory = outputDirectory;
         }
 
-        public BaseCache Cache { get; set; }
+        public RuneTek5Cache Cache { get; set; }
 
         /// <summary>
         ///     Combines and exports the soundtracks from the audio chunks in archive 40 into full soundtrack files.
@@ -76,8 +77,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
             Directory.CreateDirectory(this.OutputDirectory);
             Directory.CreateDirectory(this.TemporaryDirectory);
-
-            SoundtrackExtractor.Logger.Info("Done obtaining soundtrack names and file ids.");
 
             if (nameFilters.Length > 0)
             {
@@ -114,14 +113,11 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                                 if (existingVersion == jagaFileInfo.Version)
                                 {
-                                    var logMethod = nameFilters.Length > 0 ? (Action<string>)SoundtrackExtractor.Logger.Info : SoundtrackExtractor.Logger.Debug;
-
-                                    logMethod($"Skipped {outputFilename} because it already exists and version is unchanged.");
                                     return;
                                 }
                             }
 
-                            var jagaFile = this.Cache.GetFile<JagaFile>(CacheIndex.Music, trackNamePair.Key);
+                            var jagaFile = JagaFile.Decode(this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key).Data);
 
                             // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
                             var randomTemporaryFilenames = this.GetRandomTemporaryFilenames(jagaFile.ChunkCount);
@@ -131,7 +127,7 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                             for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                             {
-                                System.IO.File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile<RawCacheFile>(CacheIndex.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
+                                System.IO.File.WriteAllBytes(randomTemporaryFilenames[chunkIndex], this.Cache.GetFile(CacheIndex.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId).Data);
                             }
 
                             // Delete existing file in case combiner application doesn't do overwriting properly
@@ -163,8 +159,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
                                 }
                             };
 
-                            SoundtrackExtractor.Logger.Debug("sox " + soxArguments);
-
                             combineProcess.Start();
 
 #if DEBUG
@@ -190,12 +184,9 @@ namespace Villermen.RuneScapeCacheTools.Audio
                             {
                                 throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                             }
-
-                            SoundtrackExtractor.Logger.Info($"Combined {outputFilename}.");
                         }
                         catch (FileNotFoundException)
                         {
-                            SoundtrackExtractor.Logger.Info($"Skipped {outputFilename} because of incomplete data.");
                         }
                     });
             }
@@ -208,8 +199,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
 
                 throw ex.InnerException;
             }
-
-            SoundtrackExtractor.Logger.Info("Done combining soundtracks.");
         }
 
         /// <summary>
@@ -221,12 +210,12 @@ namespace Villermen.RuneScapeCacheTools.Audio
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
 
-            var enumEntries = this.Cache.GetFile<EntryFile>(CacheIndex.Enums, 5);
+            var enumEntryFile = EntryFile.Decode(this.Cache.GetFile(CacheIndex.Enums, 5));
 
             // int track id : string track name
-            var trackNames = enumEntries.GetEntry<EnumFile>(65);
+            var trackNames = EnumFile.Decode(enumEntryFile.Entries[65]);
             // int track id : int jaga file id
-            var jagaFileIds = enumEntries.GetEntry<EnumFile>(71);
+            var jagaFileIds = EnumFile.Decode(enumEntryFile.Entries[71]);
 
             // Result is sorted on key to let duplicate renaming be as consistent as possible
             var result = new SortedDictionary<int, string>();
@@ -279,7 +268,6 @@ namespace Villermen.RuneScapeCacheTools.Audio
                 {
                     if (validName && trackName != result[jagaFileId])
                     {
-                        SoundtrackExtractor.Logger.Warn($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}");
                         result[jagaFileId] = trackName;
                     }
 

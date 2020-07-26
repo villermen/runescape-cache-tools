@@ -89,464 +89,462 @@ namespace Villermen.RuneScapeCacheTools.File
         public bool UnknownSwitch2 { get; set; }
         public Dictionary<PropertyKey, object> Properties { get; set; } = new Dictionary<PropertyKey, object>();
 
-        public override void Decode(byte[] data)
+        public static ItemDefinitionFile Decode(byte[] data)
         {
-            using (var reader = new BinaryReader(new MemoryStream(data)))
+            var file = new ItemDefinitionFile();
+
+            using var reader = new BinaryReader(new MemoryStream(data));
+
+            Opcode opcode;
+            do
             {
-                Opcode opcode;
-                do
+                opcode = (Opcode)reader.ReadByte();
+
+                switch (opcode)
                 {
-                    opcode = (Opcode)reader.ReadByte();
+                    case Opcode.End:
+                        break;
 
-                    switch (opcode)
-                    {
-                        case Opcode.End:
-                            break;
+                    case Opcode.ModelId:
+                        file.ModelId = reader.ReadAwkwardInt();
+                        break;
 
-                        case Opcode.ModelId:
-                            this.ModelId = reader.ReadAwkwardInt();
-                            break;
+                    case Opcode.Name:
+                        file.Name = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.Name:
-                            this.Name = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.ModelZoom:
+                        file.ModelZoom = reader.ReadUInt16BigEndian();
+                        break;
 
-                        case Opcode.ModelZoom:
-                            this.ModelZoom = reader.ReadUInt16BigEndian();
-                            break;
+                    case Opcode.ModelRotation1:
+                        file.ModelRotation1 = reader.ReadUInt16BigEndian();
+                        break;
 
-                        case Opcode.ModelRotation1:
-                            this.ModelRotation1 = reader.ReadUInt16BigEndian();
-                            break;
+                    case Opcode.ModelRotation2:
+                        file.ModelRotation2 = reader.ReadUInt16BigEndian();
+                        break;
 
-                        case Opcode.ModelRotation2:
-                            this.ModelRotation2 = reader.ReadUInt16BigEndian();
-                            break;
+                    case Opcode.ModelOffset1:
+                        file.ModelOffset1 = reader.ReadInt16BigEndian();
+                        break;
 
-                        case Opcode.ModelOffset1:
-                            this.ModelOffset1 = reader.ReadInt16BigEndian();
-                            break;
+                    case Opcode.ModelOffset2:
+                        file.ModelOffset2 = reader.ReadInt16BigEndian();
+                        break;
 
-                        case Opcode.ModelOffset2:
-                            this.ModelOffset2 = reader.ReadInt16BigEndian();
-                            break;
+                    case Opcode.Stackable:
+                        file.Stackable = true;
+                        break;
 
-                        case Opcode.Stackable:
-                            this.Stackable = true;
-                            break;
+                    case Opcode.Value:
+                        file.Value = reader.ReadInt32BigEndian();
+                        break;
 
-                        case Opcode.Value:
-                            this.Value = reader.ReadInt32BigEndian();
-                            break;
+                    case Opcode.EquipSlotId:
+                        file.EquipSlotId = reader.ReadByte();
+                        break;
 
-                        case Opcode.EquipSlotId:
-                            this.EquipSlotId = reader.ReadByte();
-                            break;
+                    case Opcode.EquipId:
+                        file.EquipId = reader.ReadByte();
+                        break;
 
-                        case Opcode.EquipId:
-                            this.EquipId = reader.ReadByte();
-                            break;
+                    case Opcode.MembersOnly:
+                        file.MembersOnly = true;
+                        break;
 
-                        case Opcode.MembersOnly:
-                            this.MembersOnly = true;
-                            break;
+                    case Opcode.UnknownShort1:
+                        file.UnknownShort1 = reader.ReadUInt16BigEndian();
+                        break;
 
-                        case Opcode.UnknownShort1:
-                            this.UnknownShort1 = reader.ReadUInt16BigEndian();
-                            break;
+                    case Opcode.MaleEquip1:
+                        file.MaleEquip1 = reader.ReadAwkwardInt();
+                        break;
 
-                        case Opcode.MaleEquip1:
-                            this.MaleEquip1 = reader.ReadAwkwardInt();
-                            break;
+                    case Opcode.MaleEquip2:
+                        file.MaleEquip2 = reader.ReadAwkwardInt();
+                        break;
 
-                        case Opcode.MaleEquip2:
-                            this.MaleEquip2 = reader.ReadAwkwardInt();
-                            break;
+                    case Opcode.FemaleEquip1:
+                        file.FemaleEquip1 = reader.ReadAwkwardInt();
+                        break;
 
-                        case Opcode.FemaleEquip1:
-                            this.FemaleEquip1 = reader.ReadAwkwardInt();
-                            break;
+                    case Opcode.FemaleEquip2:
+                        file.FemaleEquip2 = reader.ReadAwkwardInt();
+                        break;
 
-                        case Opcode.FemaleEquip2:
-                            this.FemaleEquip2 = reader.ReadAwkwardInt();
-                            break;
+                    case Opcode.UnknownByte1:
+                        file.UnknownByte1 = reader.ReadByte();
+                        break;
 
-                        case Opcode.UnknownByte1:
-                            this.UnknownByte1 = reader.ReadByte();
-                            break;
+                    case Opcode.GroundOption1:
+                        file.GroundOptions[0] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.GroundOption1:
-                            this.GroundOptions[0] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.GroundOption2:
+                        file.GroundOptions[1] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.GroundOption2:
-                            this.GroundOptions[1] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.GroundOption3:
+                        file.GroundOptions[2] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.GroundOption3:
-                            this.GroundOptions[2] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.GroundOption4:
+                        file.GroundOptions[3] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.GroundOption4:
-                            this.GroundOptions[3] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.GroundOption5:
+                        file.GroundOptions[4] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.GroundOption5:
-                            this.GroundOptions[4] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.InventoryOption1:
+                        file.InventoryOptions[0] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.InventoryOption1:
-                            this.InventoryOptions[0] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.InventoryOption2:
+                        file.InventoryOptions[1] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.InventoryOption2:
-                            this.InventoryOptions[1] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.InventoryOption3:
+                        file.InventoryOptions[2] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.InventoryOption3:
-                            this.InventoryOptions[2] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.InventoryOption4:
+                        file.InventoryOptions[3] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.InventoryOption4:
-                            this.InventoryOptions[3] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.InventoryOption5:
+                        file.InventoryOptions[4] = reader.ReadNullTerminatedString();
+                        break;
 
-                        case Opcode.InventoryOption5:
-                            this.InventoryOptions[4] = reader.ReadNullTerminatedString();
-                            break;
+                    case Opcode.ModelColors:
+                        var modelColorCount = reader.ReadByte();
+                        file.OriginalModelColors = new ushort[modelColorCount];
+                        file.ModifiedModelColors = new ushort[modelColorCount];
+                        for (var i = 0; i < modelColorCount; i++)
+                        {
+                            file.OriginalModelColors[i] = reader.ReadUInt16BigEndian();
+                            file.ModifiedModelColors[i] = reader.ReadUInt16BigEndian();
+                        }
+                        break;
 
-                        case Opcode.ModelColors:
-                            var modelColorCount = reader.ReadByte();
-                            this.OriginalModelColors = new ushort[modelColorCount];
-                            this.ModifiedModelColors = new ushort[modelColorCount];
-                            for (var i = 0; i < modelColorCount; i++)
+                    case Opcode.TextureColors:
+                        var textureColorCount = reader.ReadByte();
+                        file.OriginalTextureColors = new ushort[textureColorCount];
+                        file.ModifiedTextureColors = new ushort[textureColorCount];
+                        for (var i = 0; i < textureColorCount; i++)
+                        {
+                            file.OriginalTextureColors[i] = reader.ReadUInt16BigEndian();
+                            file.ModifiedTextureColors[i] = reader.ReadUInt16BigEndian();
+                        }
+                        break;
+
+                    case Opcode.UnknownByteArray1:
+                        var unknownByteArray1Length = reader.ReadByte();
+                        file.UnknownByteArray1 = new byte[unknownByteArray1Length];
+                        for (var i = 0; i < unknownByteArray1Length; i++)
+                        {
+                            file.UnknownByteArray1[i] = reader.ReadByte();
+                        }
+                        break;
+
+                    case Opcode.UnknownInt1:
+                        file.UnknownInt1 = reader.ReadUInt32BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort2:
+                        file.UnknownShort2 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort3:
+                        file.UnknownShort3 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.Unnoted:
+                        file.Unnoted = true;
+                        break;
+
+                    case Opcode.ColorEquip1:
+                        file.ColorEquip1 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.ColorEquip2:
+                        file.ColorEquip2 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.UnknownAwkwardInt1:
+                        file.UnknownAwkwardInt1 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.UnknownAwkwardInt2:
+                        file.UnknownAwkwardInt2 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.UnknownAwkwardInt3:
+                        file.UnknownAwkwardInt3 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.UnknownAwkwardInt4:
+                        file.UnknownAwkwardInt4 = reader.ReadAwkwardInt();
+                        break;
+
+                    case Opcode.UnknownShort4:
+                        file.UnknownShort4 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort5:
+                        file.UnknownShort5 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownByte2:
+                        file.UnknownByte2 = reader.ReadByte();
+                        break;
+
+                    case Opcode.NoteId:
+                        file.NoteId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.NoteTemplateId:
+                        file.NoteTemplateId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.Stack1:
+                        file.Stacks[0] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack2:
+                        file.Stacks[1] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack3:
+                        file.Stacks[2] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack4:
+                        file.Stacks[3] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack5:
+                        file.Stacks[4] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack6:
+                        file.Stacks[5] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack7:
+                        file.Stacks[6] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack8:
+                        file.Stacks[7] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack9:
+                        file.Stacks[8] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.Stack10:
+                        file.Stacks[9] = new Tuple<ushort, ushort>(
+                            reader.ReadUInt16BigEndian(),
+                            reader.ReadUInt16BigEndian());
+                        break;
+
+                    case Opcode.UnknownShort6:
+                        file.UnknownShort6 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort7:
+                        file.UnknownShort7 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort8:
+                        file.UnknownShort8 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownByte3:
+                        file.UnknownByte3 = reader.ReadByte();
+                        break;
+
+                    case Opcode.UnknownByte4:
+                        file.UnknownByte4 = reader.ReadByte();
+                        break;
+
+                    case Opcode.TeamId:
+                        file.TeamId = reader.ReadByte();
+                        break;
+
+                    case Opcode.LendId:
+                        file.LendId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.LendTemplateId:
+                        file.LendTemplateId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte1:
+                        file.UnknownTribyte1 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte2:
+                        file.UnknownTribyte2 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte3:
+                        file.UnknownTribyte3 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte4:
+                        file.UnknownTribyte4 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte5:
+                        file.UnknownTribyte5 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownTribyte6:
+                        file.UnknownTribyte6 = reader.ReadUInt24BigEndian();
+                        break;
+
+                    case Opcode.UnknownShortArray1:
+                        var unknownShortArray1Length = reader.ReadByte();
+                        file.UnknownShortArray1 = new ushort[unknownShortArray1Length];
+                        for (var i = 0; i < unknownShortArray1Length; i++)
+                        {
+                            file.UnknownShortArray1[i] = reader.ReadUInt16BigEndian();
+                        }
+                        break;
+
+                    case Opcode.UnknownByte5:
+                        file.UnknownByte5 = reader.ReadByte();
+                        break;
+
+                    case Opcode.BindId:
+                        file.BindId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.BindTemplateId:
+                        file.BindTemplateId = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort9:
+                        file.UnknownShort9 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort10:
+                        file.UnknownShort10 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort11:
+                        file.UnknownShort11 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort12:
+                        file.UnknownShort12 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort13:
+                        file.UnknownShort13 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort14:
+                        file.UnknownShort14 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort15:
+                        file.UnknownShort15 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort16:
+                        file.UnknownShort16 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort17:
+                        file.UnknownShort17 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort18:
+                        file.UnknownShort18 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.Is25Gp:
+                        file.Is25Gp = true;
+                        break;
+
+                    case Opcode.UnknownShort19:
+                        file.UnknownShort19 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.UnknownShort20:
+                        file.UnknownShort20 = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.ShardAmount:
+                        file.ShardAmount = reader.ReadUInt16BigEndian();
+                        break;
+
+                    case Opcode.ShardName:
+                        file.ShardName = reader.ReadNullTerminatedString();
+                        break;
+
+                    case Opcode.UnknownSwitch2:
+                        file.UnknownSwitch2 = true;
+                        break;
+
+                    case Opcode.Properties:
+                        var propertyCount = reader.ReadByte();
+
+                        for (var i = 0; i < propertyCount; i++)
+                        {
+                            var valueIsString = reader.ReadByte() != 0;
+                            var key = reader.ReadUInt24BigEndian();
+
+                            var value = valueIsString
+                                ? (object)reader.ReadNullTerminatedString()
+                                : reader.ReadInt32BigEndian();
+
+                            if (!file.Properties.ContainsKey((PropertyKey)key))
                             {
-                                this.OriginalModelColors[i] = reader.ReadUInt16BigEndian();
-                                this.ModifiedModelColors[i] = reader.ReadUInt16BigEndian();
+                                file.Properties.Add((PropertyKey)key, value);
                             }
-                            break;
-
-                        case Opcode.TextureColors:
-                            var textureColorCount = reader.ReadByte();
-                            this.OriginalTextureColors = new ushort[textureColorCount];
-                            this.ModifiedTextureColors = new ushort[textureColorCount];
-                            for (var i = 0; i < textureColorCount; i++)
+                            else
                             {
-                                this.OriginalTextureColors[i] = reader.ReadUInt16BigEndian();
-                                this.ModifiedTextureColors[i] = reader.ReadUInt16BigEndian();
+                                // Duplicate properties are probably caused by improper tooling at Jagex HQ
+                                file.Properties[(PropertyKey)key] = value;
                             }
-                            break;
-
-                        case Opcode.UnknownByteArray1:
-                            var unknownByteArray1Length = reader.ReadByte();
-                            this.UnknownByteArray1 = new byte[unknownByteArray1Length];
-                            for (var i = 0; i < unknownByteArray1Length; i++)
-                            {
-                                this.UnknownByteArray1[i] = reader.ReadByte();
-                            }
-                            break;
-
-                        case Opcode.UnknownInt1:
-                            this.UnknownInt1 = reader.ReadUInt32BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort2:
-                            this.UnknownShort2 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort3:
-                            this.UnknownShort3 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.Unnoted:
-                            this.Unnoted = true;
-                            break;
-
-                        case Opcode.ColorEquip1:
-                            this.ColorEquip1 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.ColorEquip2:
-                            this.ColorEquip2 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.UnknownAwkwardInt1:
-                            this.UnknownAwkwardInt1 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.UnknownAwkwardInt2:
-                            this.UnknownAwkwardInt2 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.UnknownAwkwardInt3:
-                            this.UnknownAwkwardInt3 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.UnknownAwkwardInt4:
-                            this.UnknownAwkwardInt4 = reader.ReadAwkwardInt();
-                            break;
-
-                        case Opcode.UnknownShort4:
-                            this.UnknownShort4 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort5:
-                            this.UnknownShort5 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownByte2:
-                            this.UnknownByte2 = reader.ReadByte();
-                            break;
-
-                        case Opcode.NoteId:
-                            this.NoteId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.NoteTemplateId:
-                            this.NoteTemplateId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.Stack1:
-                            this.Stacks[0] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack2:
-                            this.Stacks[1] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack3:
-                            this.Stacks[2] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack4:
-                            this.Stacks[3] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack5:
-                            this.Stacks[4] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack6:
-                            this.Stacks[5] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack7:
-                            this.Stacks[6] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack8:
-                            this.Stacks[7] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack9:
-                            this.Stacks[8] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.Stack10:
-                            this.Stacks[9] = new Tuple<ushort, ushort>(
-                                reader.ReadUInt16BigEndian(),
-                                reader.ReadUInt16BigEndian());
-                            break;
-
-                        case Opcode.UnknownShort6:
-                            this.UnknownShort6 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort7:
-                            this.UnknownShort7 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort8:
-                            this.UnknownShort8 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownByte3:
-                            this.UnknownByte3 = reader.ReadByte();
-                            break;
-
-                        case Opcode.UnknownByte4:
-                            this.UnknownByte4 = reader.ReadByte();
-                            break;
-
-                        case Opcode.TeamId:
-                            this.TeamId = reader.ReadByte();
-                            break;
-
-                        case Opcode.LendId:
-                            this.LendId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.LendTemplateId:
-                            this.LendTemplateId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte1:
-                            this.UnknownTribyte1 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte2:
-                            this.UnknownTribyte2 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte3:
-                            this.UnknownTribyte3 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte4:
-                            this.UnknownTribyte4 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte5:
-                            this.UnknownTribyte5 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownTribyte6:
-                            this.UnknownTribyte6 = reader.ReadUInt24BigEndian();
-                            break;
-
-                        case Opcode.UnknownShortArray1:
-                            var unknownShortArray1Length = reader.ReadByte();
-                            this.UnknownShortArray1 = new ushort[unknownShortArray1Length];
-                            for (var i = 0; i < unknownShortArray1Length; i++)
-                            {
-                                this.UnknownShortArray1[i] = reader.ReadUInt16BigEndian();
-                            }
-                            break;
-
-                        case Opcode.UnknownByte5:
-                            this.UnknownByte5 = reader.ReadByte();
-                            break;
-
-                        case Opcode.BindId:
-                            this.BindId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.BindTemplateId:
-                            this.BindTemplateId = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort9:
-                            this.UnknownShort9 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort10:
-                            this.UnknownShort10 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort11:
-                            this.UnknownShort11 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort12:
-                            this.UnknownShort12 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort13:
-                            this.UnknownShort13 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort14:
-                            this.UnknownShort14 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort15:
-                            this.UnknownShort15 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort16:
-                            this.UnknownShort16 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort17:
-                            this.UnknownShort17 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort18:
-                            this.UnknownShort18 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.Is25Gp:
-                            this.Is25Gp = true;
-                            break;
-
-                        case Opcode.UnknownShort19:
-                            this.UnknownShort19 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.UnknownShort20:
-                            this.UnknownShort20 = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.ShardAmount:
-                            this.ShardAmount = reader.ReadUInt16BigEndian();
-                            break;
-
-                        case Opcode.ShardName:
-                            this.ShardName = reader.ReadNullTerminatedString();
-                            break;
-
-                        case Opcode.UnknownSwitch2:
-                            this.UnknownSwitch2 = true;
-                            break;
-
-                        case Opcode.Properties:
-                            var propertyCount = reader.ReadByte();
-
-                            for (var i = 0; i < propertyCount; i++)
-                            {
-                                var valueIsString = reader.ReadByte() != 0;
-                                var key = reader.ReadUInt24BigEndian();
-
-                                var value = valueIsString
-                                    ? (object)reader.ReadNullTerminatedString()
-                                    : reader.ReadInt32BigEndian();
-
-                                if (!this.Properties.ContainsKey((PropertyKey)key))
-                                {
-                                    this.Properties.Add((PropertyKey)key, value);
-                                }
-                                else
-                                {
-                                    // Duplicate properties are probably caused by improper tooling at Jagex HQ
-                                    this.Properties[(PropertyKey)key] = value;
-                                }
-                            }
-                            break;
-
-                        default:
-                            throw new DecodeException($"Unknown opcode {opcode}.");
-                    }
-                }
-                while (opcode != Opcode.End);
-
-                if (reader.BaseStream.Position < reader.BaseStream.Length)
-                {
-                    throw new DecodeException($"Data remaining after decoding item definition. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
+                        }
+                        break;
+
+                    default:
+                        throw new DecodeException($"Unknown opcode {opcode}.");
                 }
             }
-        }
+            while (opcode != Opcode.End);
 
-        public override byte[] Encode()
-        {
-            throw new NotImplementedException();
+            if (reader.BaseStream.Position < reader.BaseStream.Length)
+            {
+                throw new DecodeException($"Data remaining after decoding item definition. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
+            }
+
+            return file;
         }
 
         public Dictionary<string, string> GetFields()

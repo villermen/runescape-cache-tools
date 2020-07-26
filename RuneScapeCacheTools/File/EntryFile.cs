@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;
 
@@ -12,64 +13,9 @@ namespace Villermen.RuneScapeCacheTools.File
     /// </summary>
     public class EntryFile
     {
-        private readonly SortedDictionary<int, RawCacheFile> _entries = new SortedDictionary<int, RawCacheFile>();
+        public readonly SortedDictionary<int, byte[]> Entries = new SortedDictionary<int, byte[]>();
 
-        public int EntryCount => this._entries.Count;
-
-        public bool Empty => !this._entries.Any();
-
-        public bool HasEntry(int entryId) => this._entries.ContainsKey(entryId);
-
-        public T GetEntry<T>(int entryId) where T : CacheFile
-        {
-            var binaryFile = this._entries[entryId];
-
-            if (typeof(T) == typeof(RawCacheFile))
-            {
-                return binaryFile as T;
-            }
-
-            var file = Activator.CreateInstance<T>();
-            file.FromBinaryFile(binaryFile);
-
-            return file;
-        }
-
-        public IEnumerable<T> GetEntries<T>() where T : CacheFile
-        {
-            return this._entries.Keys.Select(this.GetEntry<T>);
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="entryId"></param>
-        /// <param name="entry"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        public void AddEntry(int entryId, CacheFile entry)
-        {
-            var binaryFileEntry = entry.ToBinaryFile();
-
-            if (binaryFileEntry.Info == null)
-            {
-                binaryFileEntry.Info = new CacheFileInfo();
-            }
-
-            binaryFileEntry.Info.Index = this.Info.CacheIndex;
-            binaryFileEntry.Info.FileId = this.Info.FileId;
-            binaryFileEntry.Info.EntryId = entryId;
-
-            this._entries.Add(entryId, binaryFileEntry);
-        }
-
-        public void AddEntry(int entryId, byte[] entryData)
-        {
-            this.AddEntry(entryId, new RawCacheFile
-            {
-                Data = entryData
-            });
-        }
-
-        public override void Decode(byte[] data)
+        public static EntryFile Decode(RuneTek5CacheFile file)
         {
             /*
              * Format visualization:
@@ -82,9 +28,9 @@ namespace Villermen.RuneScapeCacheTools.File
              * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
              */
 
-            var entriesData = new byte[this.Info.EntryInfo.Count][];
+            var entriesData = new byte[file.Info.Entries.Count][];
 
-            var reader = new BinaryReader(new MemoryStream(data));
+            var reader = new BinaryReader(new MemoryStream(file.Data));
 
             reader.BaseStream.Position = reader.BaseStream.Length - 1;
             var amountOfChunks = reader.ReadByte();
@@ -95,15 +41,15 @@ namespace Villermen.RuneScapeCacheTools.File
             }
 
             // Read the sizes of the child entries and individual chunks
-            var sizesStartPosition = reader.BaseStream.Length - 1 - amountOfChunks * this.Info.EntryInfo.Count * 4;
+            var sizesStartPosition = reader.BaseStream.Length - 1 - amountOfChunks * file.Info.Entries.Count * 4;
             reader.BaseStream.Position = sizesStartPosition;
 
-            var chunkEntrySizes = new int[amountOfChunks, this.Info.EntryInfo.Count];
+            var chunkEntrySizes = new int[amountOfChunks, file.Info.Entries.Count];
 
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
                 var chunkSize = 0;
-                for (var entryIndex = 0; entryIndex < this.Info.EntryInfo.Count; entryIndex++)
+                for (var entryIndex = 0; entryIndex < file.Info.Entries.Count; entryIndex++)
                 {
                     // Read the delta encoded chunk length
                     var delta = reader.ReadInt32BigEndian();
@@ -118,7 +64,7 @@ namespace Villermen.RuneScapeCacheTools.File
             reader.BaseStream.Position = 0;
             for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
             {
-                for (var entryIndex = 0; entryIndex < this.Info.EntryInfo.Count; entryIndex++)
+                for (var entryIndex = 0; entryIndex < file.Info.Entries.Count; entryIndex++)
                 {
                     // Read the bytes of the entry into the archive entries
                     var entrySize = chunkEntrySizes[chunkId, entryIndex];
@@ -134,27 +80,31 @@ namespace Villermen.RuneScapeCacheTools.File
                 }
             }
 
-            // Convert to binary files and store with the right id
-            var entryIds = this.Info.EntryInfo.Keys.ToArray();
-            for (var entryIndex = 0; entryIndex < entriesData.Length; entryIndex++)
-            {
-                this.AddEntry(entryIds[entryIndex], entriesData[entryIndex]);
-            }
-
             if (reader.BaseStream.Position != sizesStartPosition)
             {
                 throw new DecodeException($"Not all data or too much data was read while constructing entry file. {sizesStartPosition - reader.BaseStream.Position} bytes remain.");
             }
+
+            // Create file and add the entries.
+            var entryFile = new EntryFile();
+            var entryIds = file.Info.Entries.Keys.ToArray();
+            for (var entryIndex = 0; entryIndex < entriesData.Length; entryIndex++)
+            {
+                entryFile.Entries.Add(entryIds[entryIndex], entriesData[entryIndex]);
+            }
+
+            return entryFile;
         }
 
-        public override byte[] Encode()
+        // TODO: Encode to RuneTek5File with info instead? Or allow passing of info that will have entry info filled out?
+        public byte[] Encode()
         {
             var memoryStream = new MemoryStream();
             var writer = new BinaryWriter(memoryStream);
 
-            foreach (var entry in this._entries.Values)
+            foreach (var entryData in this.Entries.Values)
             {
-                writer.Write(entry.Data);
+                writer.Write(entryData);
             }
 
             // Split entries into multiple chunks TODO: when to split?
@@ -164,9 +114,9 @@ namespace Villermen.RuneScapeCacheTools.File
             {
                 // Write delta encoded entry sizes
                 var previousEntrySize = 0;
-                foreach(var entry in this._entries.Values)
+                foreach (var entryData in this.Entries.Values)
                 {
-                    var entrySize = entry.Data.Length;
+                    var entrySize = entryData.Length;
 
                     var delta = entrySize - previousEntrySize;
 

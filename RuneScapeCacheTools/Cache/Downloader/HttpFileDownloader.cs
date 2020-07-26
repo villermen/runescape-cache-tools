@@ -27,9 +27,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 throw new ArgumentException("File compressed size must be set when requesting HTTP files.");
             }
 
-            var contentServerHostname = ClientDetails.GetContentServerHostname();
             var webRequest = WebRequest.CreateHttp(
-                $"https://{contentServerHostname}/ms?m=0&a={(int)index}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}"
+                $"https://{ClientDetails.GetContentServerHostname()}/ms?m=0&a={(int)index}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}"
             );
 
             try

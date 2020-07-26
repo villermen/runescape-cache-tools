@@ -37,8 +37,10 @@ namespace Villermen.RuneScapeCacheTools.File
             return this.GetEnumerator();
         }
 
-        public override void Decode(byte[] data)
+        public static EnumFile Decode(byte[] data)
         {
+            var file = new EnumFile();
+
             var dataReader = new BinaryReader(new MemoryStream(data));
             var ended = false;
 
@@ -49,25 +51,25 @@ namespace Villermen.RuneScapeCacheTools.File
                 switch (opcode)
                 {
                     case Opcode.CharKeyType:
-                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        file.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case Opcode.CharValueType:
-                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
+                        file.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardChar());
                         break;
 
                     case Opcode.DefaultString:
-                        this.DefaultString = dataReader.ReadNullTerminatedString();
+                        file.DefaultString = dataReader.ReadNullTerminatedString();
                         break;
 
                     case Opcode.DefaultInteger:
-                        this.DefaultInteger = dataReader.ReadInt32BigEndian();
+                        file.DefaultInteger = dataReader.ReadInt32BigEndian();
                         break;
 
                     case Opcode.StringDataDictionary:
                     case Opcode.IntegerDataDictionary:
                         var count = dataReader.ReadUInt16BigEndian();
-                        this.Values = new Dictionary<int, object>(count);
+                        file.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
@@ -83,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.File
                                 value = dataReader.ReadInt32BigEndian();
                             }
 
-                            this.Values[key] = value;
+                            file.Values[key] = value;
                         }
                         break;
 
@@ -91,28 +93,28 @@ namespace Villermen.RuneScapeCacheTools.File
                     case Opcode.IntegerDataArray:
                         var max = dataReader.ReadUInt16BigEndian();
                         count = dataReader.ReadUInt16BigEndian();
-                        this.Values = new Dictionary<int, object>(count);
+                        file.Values = new Dictionary<int, object>(count);
 
                         for (var i = 0; i < count; i++)
                         {
                             var key = dataReader.ReadUInt16BigEndian();
                             if (opcode == Opcode.StringDataArray)
                             {
-                                this.Values[key] = dataReader.ReadNullTerminatedString();
+                                file.Values[key] = dataReader.ReadNullTerminatedString();
                             }
                             else
                             {
-                                this.Values[key] = dataReader.ReadInt32BigEndian();
+                                file.Values[key] = dataReader.ReadInt32BigEndian();
                             }
                         }
                         break;
 
                     case Opcode.ByteKeyType:
-                        this.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
+                        file.KeyType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case Opcode.ByteValueType:
-                        this.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
+                        file.ValueType = ScriptVarType.FromValue(dataReader.ReadAwkwardShort());
                         break;
 
                     case Opcode.End:
@@ -124,17 +126,17 @@ namespace Villermen.RuneScapeCacheTools.File
                 }
             }
 
-            if (this.KeyType == null)
+            if (file.KeyType == null)
             {
                 throw new DecodeException("Enum data does not contain a key type.");
             }
 
-            if (this.ValueType == null)
+            if (file.ValueType == null)
             {
                 throw new DecodeException("Enum data does not contain a value type.");
             }
 
-            if (this.Values == null)
+            if (file.Values == null)
             {
                 throw new DecodeException("Enum does not contain any values.");
             }
@@ -143,11 +145,8 @@ namespace Villermen.RuneScapeCacheTools.File
             {
                 throw new DecodeException($"Input data not fully consumed while decoding enum file. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
             }
-        }
 
-        public override byte[] Encode()
-        {
-            throw new NotImplementedException("Encoding of enum files is not yet implemented.");
+            return file;
         }
 
         public enum Opcode
