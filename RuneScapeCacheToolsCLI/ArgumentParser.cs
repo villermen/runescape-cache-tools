@@ -25,9 +25,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public bool Flac { get; private set; }
 
-        public ICache<RuneTek5CacheFile> SourceCache { get; private set; }
+        public ICache<RuneTek5CacheFile>? SourceCache { get; private set; }
 
-        public FlatFileCache ExportCache { get; private set; }
+        public string? OutputDirectory { get; private set; }
 
         public Tuple<IList<CacheIndex>, IList<int>> FileFilter { get; private set; } = new Tuple<IList<CacheIndex>, IList<int>>(
             new List<CacheIndex>(),
@@ -97,10 +97,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     );
                     break;
 
-                case ParserOption.ExportDirectory:
-                    this._optionSet.Add("output=", "Store files in this directory.", (value) => {
-                        this.ExportCache = new FlatFileCache(value);
-                    });
+                case ParserOption.OutputDirectory:
+                    this._optionSet.Add(
+                        "output=",
+                        "Extract files to this directory.",
+                        (value) => this.OutputDirectory = value
+                    );
                     break;
 
                 // More complex options start here
@@ -113,20 +115,29 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     });
                     break;
 
-                case ParserOption.SourceCache:
+                case ParserOption.Java:
                     this._optionSet.Add(
-                        "source=",
-                        "Where to obtain (cache) files from. Pass \"download\" to download from Jagex's servers instead of using existing cache files.",
-                        (value) => {
-                            if (value == "download")
-                            {
-                                return;
-                            }
-
-                            this.SourceCache = new JavaClientCache(value);
-                        }
+                        "java:",
+                        "Obtain cache files from the Java client. Pass a directory to use a directory different from the default.",
+                        (value) => this.SetSourceCache(new JavaClientCache(value))
                     );
                     break;
+
+                case ParserOption.Download:
+                    this._optionSet.Add(
+                        "download",
+                        "Obtain cache files directly from Jagex's servers.",
+                        (value) => this.SetSourceCache(new DownloaderCache())
+                    );
+                    break;
+
+                // case ParserOption.Nxt:
+                //     this._optionSet.Add(
+                //         "nxt:",
+                //         "Obtain cache files from the NXT client. Pass a directory to use a directory different from the default.",
+                //         (value) => this.SetSourceCache(new NxtClientCache(value))
+                //     );
+                //     break;
 
                 case ParserOption.FileFilter:
                     this._optionSet.Add(
@@ -166,19 +177,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public IList<string> ParseArguments(IEnumerable<string> arguments)
         {
-            var unparsedArguments = this._optionSet.Parse(arguments);
-
-            // Complex default values for configured options
-            if (this._configuredOptions.Contains(ParserOption.SourceCache) && this.SourceCache == null)
-            {
-                this.SourceCache = new DownloaderCache();
-            }
-            if (this._configuredOptions.Contains(ParserOption.ExportDirectory) && this.ExportCache == null)
-            {
-                this.ExportCache = new FlatFileCache("files/");
-            }
-
-            return unparsedArguments;
+            return this._optionSet.Parse(arguments);
         }
 
         public string GetDescription()
@@ -213,6 +212,16 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             // Filter duplicates
             return result.Distinct();
+        }
+
+        private void SetSourceCache(ICache<RuneTek5CacheFile> sourceCache)
+        {
+            if (this.SourceCache != null)
+            {
+                throw new ArgumentException("Source cache is already defined. Make sure to use only one source argument.");
+            }
+
+            this.SourceCache = sourceCache;
         }
     }
 }

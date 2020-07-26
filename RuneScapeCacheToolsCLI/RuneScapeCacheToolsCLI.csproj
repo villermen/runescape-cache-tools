@@ -82,7 +82,7 @@
   <ItemGroup>
     <Compile Include="ParserOption.cs" />
     <Compile Include="ArgumentParser.cs" />
-    <Compile Include="Command\ExportCommand.cs" />
+    <Compile Include="Command\ExtractCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
     <Compile Include="Command\HelpCommand.cs" />
     <Compile Include="Program.cs" />

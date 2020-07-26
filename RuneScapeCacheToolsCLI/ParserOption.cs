@@ -8,10 +8,11 @@ namespace Villermen.RuneScapeCacheTools.CLI
         Help,
         OverwriteFiles,
         OverWriteAudio,
-        SourceCache,
+        Java,
+        Download,
         FileFilter,
         SoundtrackFilter,
         Flac,
-        ExportDirectory,
+        OutputDirectory,
     }
 }

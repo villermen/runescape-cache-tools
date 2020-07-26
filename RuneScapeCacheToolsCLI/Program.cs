@@ -14,8 +14,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
         public static readonly IDictionary<string, string> Commands = new ReadOnlyDictionary<string, string>(
             new Dictionary<string, string>
             {
-                {"export", "Extract cache files from various sources into an easily explorable directory structure."},
-                // {"import", "Insert exported files into a cache in Jagex's format."},
+                {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
                 {"soundtrack", "Combine the in-game listed soundtrack."},
                 {"audio", "Combine arbitrary audio files from the cache."},
             }
@@ -49,8 +48,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                 switch (commandArgument)
                 {
-                    case "export":
-                        command = new ExportCommand(argumentParser);
+                    case "extract":
+                        command = new ExtractCommand(argumentParser);
                         break;
 
                     // case "audio":
@@ -61,7 +60,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     //     break;
 
                     default:
-                        // Should not happen because of ealier Program.Commands check
+                        // Should not happen because of earlier Program.Commands check
                         throw new InvalidOperationException("Command argument was unhandled.");
                 }
 
