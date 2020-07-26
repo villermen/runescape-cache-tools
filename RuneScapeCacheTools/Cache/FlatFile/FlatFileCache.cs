@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
     /// <summary>
     /// A cache that manages files in a simple directory and file structure.
     /// </summary>
-    public class FlatFileCache : ICache
+    public class FlatFileCache : ICache<CacheFile>
     {
         /// <summary>
         /// The base directory where all files will be stored in/retrieved from.

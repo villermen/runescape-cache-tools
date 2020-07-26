@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// <summary>
     /// A cache that stores information on its files in <see cref="ReferenceTable" />s in index 255.
     /// </summary>
-    public abstract class RuneTek5Cache : ICache, IDisposable
+    public abstract class RuneTek5Cache : ICache<RuneTek5CacheFile>, IDisposable
     {
         private readonly Dictionary<CacheIndex, ReferenceTable> _cachedReferenceTables = new Dictionary<CacheIndex, ReferenceTable>();
 

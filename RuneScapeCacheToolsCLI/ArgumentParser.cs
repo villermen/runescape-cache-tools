@@ -7,6 +7,10 @@ using log4net.Core;
 using log4net.Repository.Hierarchy;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache;
+using Villermen.RuneScapeCacheTools.Cache.Downloader;
+using Villermen.RuneScapeCacheTools.Cache.FlatFile;
+using Villermen.RuneScapeCacheTools.Cache.JavaClient;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -21,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public bool Flac { get; private set; }
 
-        public BaseCache SourceCache { get; private set; }
+        public ICache<RuneTek5CacheFile> SourceCache { get; private set; }
 
         public FlatFileCache ExportCache { get; private set; }
 

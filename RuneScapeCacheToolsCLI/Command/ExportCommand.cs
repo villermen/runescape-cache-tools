@@ -23,13 +23,13 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
             var indexes = this.ArgumentParser.FileFilter.Item1.Count > 0
                 ? this.ArgumentParser.FileFilter.Item1
-                : sourceCache.GetIndexes();
+                : sourceCache.GetAvailableIndexes();
 
             foreach (var index in indexes)
             {
                 var files = this.ArgumentParser.FileFilter.Item2.Count > 0
                     ? this.ArgumentParser.FileFilter.Item2
-                    : sourceCache.GetFileIds(index);
+                    : sourceCache.GetAvailableFileIds(index);
 
                 Parallel.ForEach(
                     files,
@@ -38,8 +38,10 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                         // Not putting a limit here overloads the downloader when used.
                         MaxDegreeOfParallelism = 10,
                     },
-                    (fileId) => {
-                        sourceCache.CopyFile(index, fileId, exportCache);
+                    (fileId) =>
+                    {
+                        var file = sourceCache.GetFile(index, fileId);
+                        exportCache.PutFile(index, fileId, file);
                     }
                 );
             }

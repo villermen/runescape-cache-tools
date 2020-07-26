@@ -6,7 +6,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// <summary>
     /// Interface describing the absolute minimum methods a cache should support.
     /// </summary>
-    public interface ICache
+    public interface ICache<TFile> where TFile : CacheFile
     {
         /// <summary>
         /// Returns the indexes available in the cache.
@@ -19,8 +19,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         IEnumerable<int> GetAvailableFileIds(CacheIndex index);
 
-        // TODO: Not feasible because we want to write and read more specific files per cache type
-        // void WriteFile(CacheIndex index, int fileId, CacheFile file);
-        // CacheFile ReadFile(CacheIndex index, int fileId);
+        TFile GetFile(CacheIndex index, int fileId);
+
+        void PutFile(CacheIndex index, int fileId, TFile file);
     }
 }
