@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using log4net;
-using log4net.Core;
-using log4net.Repository.Hierarchy;
 using NDesk.Options;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
@@ -39,6 +39,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
         private readonly IList<ParserOption> _configuredOptions = new List<ParserOption>();
 
         private readonly OptionSet _optionSet = new OptionSet();
+
+        private readonly LoggingLevelSwitch _loggingLevelSwitch;
+
+        public ArgumentParser(LoggingLevelSwitch loggingLevelSwitch)
+        {
+            this._loggingLevelSwitch = loggingLevelSwitch;
+
+            this.Add(ParserOption.Help, ParserOption.Verbose);
+        }
 
         public void Add(ParserOption parserOption)
         {
@@ -97,11 +106,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 // More complex options start here
                 case ParserOption.Verbose:
                     // Applicationwide arguments
-                    this._optionSet.Add("verbose|v", "Increase amount of log messages.", (value) => {
-                        // Lower log output level
-                        ((Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
-                        ((Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
-
+                    this._optionSet.Add("verbose|v", "Increase amount of log messages.", (value) =>
+                    {
+                        this._loggingLevelSwitch.MinimumLevel = LogEventLevel.Debug;
                         this.Verbose = true;
                     });
                     break;

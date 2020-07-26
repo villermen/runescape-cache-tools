@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
@@ -82,6 +83,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             // Clean existing files (to make sure no variants with different extensions exist).
             foreach (var existingFilePath in this.GetExistingFilePaths(index, fileId))
             {
+                Log.Debug($"Deleting existing {existingFilePath}.");
                 System.IO.File.Delete(existingFilePath);
             }
 
@@ -90,6 +92,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
 
             var filePath = $"{indexDirectory}{fileId}{extension}";
             System.IO.File.WriteAllBytes(filePath, file.Data);
+
+            Log.Information($"Wrote {(int)index}/{fileId}.");
         }
 
         private IEnumerable<string> GetExistingFilePaths(CacheIndex cacheIndex, int fileId)

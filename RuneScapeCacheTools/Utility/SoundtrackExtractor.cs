@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FlacLibSharp;
 using NVorbis;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
@@ -75,6 +76,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
             var outputExtension = lossless ? "flac" : "ogg";
             var compressionQuality = lossless ? 8 : 6;
 
+            Log.Information("Obtained soundtrack names and file IDs.");
+
             Directory.CreateDirectory(this.OutputDirectory);
             Directory.CreateDirectory(this.TemporaryDirectory);
 
@@ -113,6 +116,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                                 if (existingVersion == jagaFileInfo.Version)
                                 {
+                                    Log.Debug($"Skipped {outputFilename} because it already exists with the same version.");
+
                                     return;
                                 }
                             }
@@ -159,6 +164,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
                                 }
                             };
 
+                            Log.Debug("Running sox " + soxArguments);
+
                             combineProcess.Start();
 
 #if DEBUG
@@ -166,7 +173,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                             {
                                 if (!string.IsNullOrEmpty(args.Data))
                                 {
-                                    SoundtrackExtractor.Logger.Debug($"[SoX] {args.Data}");
+                                    Log.Debug($"[SoX] {args.Data}");
                                 }
                             };
                             combineProcess.BeginErrorReadLine();
@@ -184,9 +191,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
                             {
                                 throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {outputFilename}.");
                             }
+
+                            Log.Information($"Combined {outputFilename}.");
                         }
                         catch (FileNotFoundException)
                         {
+                            Log.Information($"Skipped {outputFilename} because of incomplete data.");
                         }
                     });
             }
@@ -199,6 +209,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 throw ex.InnerException;
             }
+
+            Log.Information("Done combining soundtracks.");
         }
 
         /// <summary>
@@ -268,6 +280,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 {
                     if (validName && trackName != result[jagaFileId])
                     {
+                        Log.Warning($"A soundtrack name pointing to the same file has already been added, overwriting {result[jagaFileId]} with {trackName}.");
+
                         result[jagaFileId] = trackName;
                     }
 

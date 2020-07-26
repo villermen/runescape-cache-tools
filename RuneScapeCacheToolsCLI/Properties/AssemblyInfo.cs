@@ -37,5 +37,3 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("3.1")]
 [assembly: AssemblyFileVersion("3.1")]
-
-[assembly: log4net.Config.XmlConfigurator(Watch = true)]

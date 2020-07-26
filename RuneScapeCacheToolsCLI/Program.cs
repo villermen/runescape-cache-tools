@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using log4net;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Villermen.RuneScapeCacheTools.CLI.Command;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -20,30 +21,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
             }
         );
 
-		/// <summary>
-		/// Even when not used, this needs to be here to initialize the logging system.
-		/// </summary>
-		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
-
         private static int Main(string[] arguments)
         {
-            var returnCode = Program.Run(arguments);
+            // Configure logging.
+            var loggingLevelSwitch = new LoggingLevelSwitch();
+            loggingLevelSwitch.MinimumLevel = LogEventLevel.Information;
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(loggingLevelSwitch)
+                .WriteTo.Console()
+                .CreateLogger();
 
-            // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
-            // Delete log file if it is still empty when done
-            LogManager.GetRepository().ResetConfiguration();
-            var logFile = new FileInfo("rsct.log");
-            if (logFile.Exists && logFile.Length == 0)
-            {
-                logFile.Delete();
-            }
-
-            return returnCode;
-        }
-
-	    private static int Run(string[] arguments)
-	    {
-            var argumentParser = new ArgumentParser();
+            var argumentParser = new ArgumentParser(loggingLevelSwitch);
 
             // Handle all exceptions by showing them in the console
             try
@@ -56,8 +44,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                 var commandArgument = arguments[0];
                 var otherArguments = arguments.Skip(1);
-
-                argumentParser.Add(ParserOption.Help, ParserOption.Verbose);
 
                 BaseCommand command;
 
@@ -102,7 +88,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             }
             catch (System.Exception exception)
             {
-                Console.WriteLine(argumentParser.Verbose ? exception.ToString() : exception.Message);
+                Log.Fatal(exception.Message + "\n" + exception.StackTrace);
                 return 2;
             }
         }
