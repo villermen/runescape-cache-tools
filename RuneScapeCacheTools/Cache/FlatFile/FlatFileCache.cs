@@ -93,7 +93,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             var filePath = $"{indexDirectory}{fileId}{extension}";
             System.IO.File.WriteAllBytes(filePath, file.Data);
 
-            Log.Information($"Wrote {(int)index}/{fileId}.");
+            Log.Information($"Wrote {(int)index}/{fileId}{extension}.");
         }
 
         private IEnumerable<string> GetExistingFilePaths(CacheIndex cacheIndex, int fileId)

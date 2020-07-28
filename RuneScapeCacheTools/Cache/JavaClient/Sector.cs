@@ -114,7 +114,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.JavaClient
                 throw new DecodeException($"Expected sector for index {(int)expectedIndex}, got {(int)actualIndex}.");
             }
 
-            var payload = dataReader.ReadBytes(extended ? Sector.ExtendedDataLength : Sector.StandardDataLength);
+            var payload = dataReader.ReadBytesExactly(extended ? Sector.ExtendedDataLength : Sector.StandardDataLength);
 
             return new Sector
             {

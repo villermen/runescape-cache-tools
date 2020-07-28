@@ -123,7 +123,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                             remainingBlockLength = request.RemainingLength;
                         }
 
-                        request.WriteContent(reader.ReadBytes(remainingBlockLength));
+                        request.WriteContent(reader.ReadBytesExactly(remainingBlockLength));
 
                         if (request.Completed)
                         {
@@ -137,6 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     }
                 }
 
+                // TODO: Keep running for up to X (1?) seconds after being idle instead of finishing the queue.
                 Log.Debug("TCP request processor finished.");
             }
         }
@@ -199,7 +200,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             // Required loading element sizes.
             var contentReader = new BinaryReader(this._contentClient.GetStream());
-            contentReader.ReadBytes(TcpFileDownloader.LoadingRequirements * 4);
+            contentReader.ReadBytesExactly(TcpFileDownloader.LoadingRequirements * 4);
 
             // Send the initial connection status and login packets to the server. I don't know what the individual
             // writes mean but they do the trick.

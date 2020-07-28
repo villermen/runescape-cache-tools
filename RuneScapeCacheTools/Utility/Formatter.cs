@@ -61,5 +61,10 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             throw new ArgumentException("Could not convert value to string representation");
         }
+
+        public static string BytesToHexString(byte[] bytes)
+        {
+            return BitConverter.ToString(bytes).Replace("-"," ");
+        }
     }
 }

@@ -14,16 +14,15 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 {
     public class RuneTek5CacheFile : CacheFile
     {
+        /// <summary>
+        /// Decode the cache file's encrypted/compressed data. The available properties in the passed
+        /// <see cref="CacheFileInfo" /> will be used to validate the retrieved data.
+        /// </summary>
         /// <exception cref="DecodeException"></exception>
         public static RuneTek5CacheFile Decode(byte[] encodedData, CacheFileInfo info)
         {
-            var dataReader = new BinaryReader(new MemoryStream(encodedData));
-
-            var compressionType = (CompressionType)dataReader.ReadByte();
-            if (!Enum.IsDefined(typeof(CompressionType), compressionType))
-            {
-                throw new DecodeException($"Unknown compression type {compressionType}.");
-            }
+            using var dataStream = new MemoryStream(encodedData);
+            using var dataReader = new BinaryReader(dataStream);
 
             // Decrypt the data if a key is given
             if (info.EncryptionKey != null)
@@ -32,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     "XTEA encryption not supported. If you encounter this please inform me about the index and file that triggered this message."
                 );
 
-                // var totalLength = dataReader.BaseStream.Position + dataLength;
+                // var totalLength = dataStream.Position + dataLength;
                 //
                 // var xtea = new XteaEngine();
                 // xtea.Init(false, new KeyParameter(info.EncryptionKey));
@@ -42,38 +41,51 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 // dataReader = new BinaryReader(new MemoryStream(decrypted));
             }
 
-            var compressedLength = dataReader.ReadInt32BigEndian();
-            var data = RuneTek5CacheFile.DecompressData(compressionType, dataReader.ReadBytes(compressedLength));
+            // Decompress data
+            var compressionType = (CompressionType)dataReader.ReadByte();
+            var compressedSize = dataReader.ReadInt32BigEndian();
 
-            // TODO: I don't think UncompressedSize and CompressedSize are required to be available
-            // TODO: Sometimes this differs 5 (compressiontype + length?) but sometimes it doesn't. Figure out why.
-            if (info.UncompressedSize != null && data.Length != info.UncompressedSize && data.Length + 5 != info.UncompressedSize)
+            int uncompressedSize;
+            byte[] data;
+            if (compressionType == CompressionType.None)
             {
-                throw new DecodeException(
-                    $"Uncompressed size ({data.Length}) does not match expected ({info.UncompressedSize})."
-                );
+                data = dataReader.ReadBytesExactly(compressedSize);
+
+                // Uncompressed size includes meta bytes after this point.
+                uncompressedSize = (int)dataStream.Position;
+            }
+            else
+            {
+                uncompressedSize = dataReader.ReadInt32BigEndian();
+                data = RuneTek5CacheFile.DecompressData(compressionType, dataReader.ReadBytesExactly(compressedSize), uncompressedSize);
             }
 
-            // Note that version is excluded from compressed size.
-            // TODO: Sometimes this differs 4 but sometimes it doesn't. Figure out why.
-            var compressedSize = (int)dataReader.BaseStream.Position;
-            if (info.CompressedSize != null && compressedSize != info.CompressedSize && compressedSize+ 4 != info.CompressedSize)
+            // Compressed size includes meta bytes after this point.
+            compressedSize = (int)dataStream.Position;
+
+            // Verify compressed size. Info's compressed size includes meta bytes.
+            if (info.CompressedSize != null && compressedSize != info.CompressedSize)
             {
                 throw new DecodeException(
                     $"Compressed size ({compressedSize}) does not equal expected ({info.CompressedSize})."
                 );
             }
 
-            // Read and verify the version of the file.
-            // TODO: Is version optional?: && dataReader.BaseStream.Length - dataReader.BaseStream.Position >= 2
-            if (info.Version != null)
+            // Verify uncompressed size. Info's uncompressed size includes meta bytes
+            if (info.UncompressedSize != null && uncompressedSize != info.UncompressedSize)
+            {
+                throw new DecodeException(
+                    $"Uncompressed size ({data.Length}) does not match expected ({info.UncompressedSize})."
+                );
+            }
+
+            // Read and verify the truncated version of the file when it is appended to the file's data.
+            if (dataStream.Length - dataStream.Position == 2)
             {
                 var version = dataReader.ReadUInt16BigEndian();
-                // The version is truncated to 2 bytes, so only the least significant 2 bytes are compared.
-                var truncatedInfoVersion = (int)(ushort)info.Version;
-                if (version != truncatedInfoVersion)
+                if (info.Version != null && version != (ushort)info.Version)
                 {
-                    throw new DecodeException($"Obtained version {version} did not match expected {truncatedInfoVersion}.");
+                    throw new DecodeException($"Appended version ({version}) does not match expected ({(ushort)info.Version}).");
                 }
             }
 
@@ -107,35 +119,30 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 }
             }
 
-            if (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
+            if (dataStream.Position < dataStream.Length)
             {
-                // TODO: Convert to exception again once I figure out why this is.
-                Log.Warning($"Input data not fully consumed while decoding RuneTek5CacheFile. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
+                throw new DecodeException(
+                    $"Input data not fully consumed while decoding RuneTek5CacheFile. {dataStream.Length - dataStream.Position} bytes remain."
+                );
             }
 
             return new RuneTek5CacheFile(data, info);
         }
 
-        private static byte[] DecompressData(CompressionType compressionType, byte[] compressedData)
+        private static byte[] DecompressData(CompressionType compressionType, byte[] compressedData, int uncompressedSize)
         {
-            // No compression used, return the input
-            if (compressionType == CompressionType.None)
-            {
-                return compressedData;
-            }
-
-            using var dataReader = new BinaryReader(new MemoryStream(compressedData));
-            var uncompressedSize = dataReader.ReadInt32BigEndian();
+            using var compressedDataStream = new MemoryStream(compressedData);
+            using var compressedDataReader = new BinaryReader(compressedDataStream);
 
             if (compressionType == CompressionType.Bzip2)
             {
                 // Add the required bzip2 magic number as it is missing from the cache for whatever reason.
-                using var bzip2FixedStream = new MemoryStream((int)(4 + dataReader.BaseStream.Length - dataReader.BaseStream.Position));
+                using var bzip2FixedStream = new MemoryStream((int)(4 + compressedDataStream.Length - compressedDataStream.Position));
                 bzip2FixedStream.WriteByte((byte)'B');
                 bzip2FixedStream.WriteByte((byte)'Z');
                 bzip2FixedStream.WriteByte((byte)'h');
                 bzip2FixedStream.WriteByte((byte)'1');
-                dataReader.BaseStream.CopyTo(bzip2FixedStream);
+                compressedDataStream.CopyTo(bzip2FixedStream);
                 bzip2FixedStream.Position = 0;
 
                 using var bzip2InputStream = new BZip2InputStream(bzip2FixedStream);
@@ -148,7 +155,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (compressionType == CompressionType.Gzip)
             {
-                using var gzipStream = new GZipInputStream(dataReader.BaseStream);
+                using var gzipStream = new GZipInputStream(compressedDataStream);
                 // Decompress the data and resize the resulting array to the bytes actually read.
                 var result = new byte[uncompressedSize];
                 var readBytes = gzipStream.Read(result, 0, uncompressedSize);
@@ -160,11 +167,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 using var outputStream = new MemoryStream(uncompressedSize);
                 var lzmaDecoder = new Decoder();
+                lzmaDecoder.SetDecoderProperties(compressedDataReader.ReadBytesExactly(5));
                 lzmaDecoder.Code(
-                    dataReader.BaseStream,
+                    compressedDataStream,
                     outputStream,
-                    dataReader.BaseStream.Length - dataReader.BaseStream.Position,
-                    -1,
+                    compressedDataStream.Length - compressedDataStream.Position,
+                    uncompressedSize,
                     null
                 );
 
@@ -233,6 +241,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// <exception cref="DecodeException"></exception>
         public byte[] Encode()
         {
+            throw new NotImplementedException("Encoding files is currently not fully working.");
+
             if (this.Info == null)
             {
                 throw new EncodeException("File info must be set before encoding.");

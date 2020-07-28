@@ -68,7 +68,7 @@ namespace Villermen.RuneScapeCacheTools.File
                 {
                     // Read the bytes of the entry into the archive entries
                     var entrySize = chunkEntrySizes[chunkId, entryIndex];
-                    var entryData = reader.ReadBytes(entrySize);
+                    var entryData = reader.ReadBytesExactly(entrySize);
 
                     if (entryData.Length != entrySize)
                     {

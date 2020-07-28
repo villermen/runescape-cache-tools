@@ -30,13 +30,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     Version = reader.ReadInt32BigEndian(),
                     FileCount = reader.ReadInt32BigEndian(),
                     Length = reader.ReadInt32BigEndian(),
-                    WhirlpoolDigest = reader.ReadBytes(64)
+                    WhirlpoolDigest = reader.ReadBytesExactly(64)
                 };
 
                 referenceTableInfos.Add(index, table);
             }
 
-            var rsaEncryptedWhirlpoolDigest = reader.ReadBytes(512);
+            var rsaEncryptedWhirlpoolDigest = reader.ReadBytesExactly(512);
 
             if (reader.BaseStream.Position < reader.BaseStream.Length)
             {

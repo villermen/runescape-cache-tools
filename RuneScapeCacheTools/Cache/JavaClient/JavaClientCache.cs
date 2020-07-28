@@ -151,7 +151,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.JavaClient
             {
                 dataReader.BaseStream.Position = dataPosition;
 
-                var sectorBytes = dataReader.ReadBytes(Sector.Size);
+                var sectorBytes = dataReader.ReadBytesExactly(Sector.Size);
 
                 if (sectorBytes.Length != Sector.Size)
                 {

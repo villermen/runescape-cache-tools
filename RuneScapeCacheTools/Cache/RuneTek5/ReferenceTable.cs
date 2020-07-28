@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;
 
@@ -73,7 +74,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             {
                 foreach (var fileInfo in fileInfos.Values)
                 {
-                    fileInfo.WhirlpoolDigest = reader.ReadBytes(64);
+                    fileInfo.WhirlpoolDigest = reader.ReadBytesExactly(64);
                 }
             }
 
@@ -132,9 +133,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
 
             if (reader.BaseStream.Position < reader.BaseStream.Length - 1)
             {
-                throw new DecodeException(
-                    $"Input data not fully consumed while decoding reference table. {reader.BaseStream.Length - 1 - reader.BaseStream.Position} bytes remain."
-                );
+                // TODO: Convert to exception again once I figure out why this is.
+                Log.Warning($"Input data not fully consumed while decoding reference table. {reader.BaseStream.Length - 1 - reader.BaseStream.Position} bytes remain.");
             }
 
             return new ReferenceTable

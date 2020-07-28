@@ -36,7 +36,7 @@ namespace Villermen.RuneScapeCacheTools.File
             var reader = new BinaryReader(new MemoryStream(data));
 
             // Verify magic number
-            if (!reader.ReadBytes(4).SequenceEqual(JagaFile.MagicNumber))
+            if (!reader.ReadBytesExactly(4).SequenceEqual(JagaFile.MagicNumber))
             {
                 throw new DecodeException("JAGA magic number incorrect");
             }
@@ -60,7 +60,7 @@ namespace Villermen.RuneScapeCacheTools.File
 
             // The rest of the file is the first chunk
             var containedChunkStartPosition = reader.BaseStream.Position;
-            jagaFile.ContainedChunkData = reader.ReadBytes((int)(reader.BaseStream.Length - containedChunkStartPosition));
+            jagaFile.ContainedChunkData = reader.ReadBytesExactly((int)(reader.BaseStream.Length - containedChunkStartPosition));
 
             return jagaFile;
         }

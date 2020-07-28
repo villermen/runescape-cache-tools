@@ -48,10 +48,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 var dataWriter = new BinaryWriter(dataStream);
 
                 var responseReader = new BinaryReader(response.GetResponseStream());
-                dataWriter.Write(responseReader.ReadBytes((int)response.ContentLength));
-
-                // Append truncated version (will be used by RuneTek5CacheFile in validation).
-                dataWriter.WriteUInt16BigEndian((ushort)fileInfo.Version);
+                dataWriter.Write(responseReader.ReadBytesExactly((int)response.ContentLength));
 
                 return dataStream.ToArray();
             }

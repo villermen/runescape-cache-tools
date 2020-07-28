@@ -48,7 +48,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                         new ParallelOptions
                         {
                             // Not putting a limit here overloads the downloader when used.
-                            MaxDegreeOfParallelism = 10,
+                            MaxDegreeOfParallelism = 1, // TODO: Set back to 10 after downloader is made to work with it again.
                         },
                         (fileId) =>
                         {
