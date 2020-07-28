@@ -4,6 +4,8 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
+using Villermen.RuneScapeCacheTools.File;
+using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
@@ -28,7 +30,13 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
         public override int Run()
         {
-            var sourceCache = this.ArgumentParser.SourceCache;
+            using var sourceCache = this.ArgumentParser.SourceCache;
+            if (sourceCache == null)
+            {
+                Console.WriteLine("No cache source specified.");
+                return 2;
+            }
+
             var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory ?? "files");
 
             var indexes = this.ArgumentParser.FileFilter.Item1.Length > 0

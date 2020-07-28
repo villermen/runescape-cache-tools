@@ -23,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public bool Flac { get; private set; }
 
-        public ICache<RuneTek5CacheFile>? SourceCache { get; private set; }
+        public RuneTek5Cache? SourceCache { get; private set; }
 
         public string? OutputDirectory { get; private set; }
 
@@ -221,7 +221,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             return result.Distinct();
         }
 
-        private void SetSourceCache(ICache<RuneTek5CacheFile> sourceCache)
+        private void SetSourceCache(RuneTek5Cache sourceCache)
         {
             if (this.SourceCache != null)
             {

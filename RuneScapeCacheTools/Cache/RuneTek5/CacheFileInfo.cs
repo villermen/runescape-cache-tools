@@ -60,6 +60,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
         /// </summary>
         public SortedDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new SortedDictionary<int, CacheFileEntryInfo>();
 
+        public bool HasEntries => this.Entries.Count > 1;
+
         /// <summary>
         /// Creates a new <see cref="CacheFileInfo"/> with the same values as this one.
         /// </summary>

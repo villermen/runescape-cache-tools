@@ -2,9 +2,8 @@
 using System.IO;
 using System.Linq;
 using RuneScapeCacheToolsTests.Fixtures;
-using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
 using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.File;
 using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Tests.Tests

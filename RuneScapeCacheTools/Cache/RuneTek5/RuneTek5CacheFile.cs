@@ -5,7 +5,6 @@ using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Checksums;
 using ICSharpCode.SharpZipLib.GZip;
 using Org.BouncyCastle.Crypto.Digests;
-using Serilog;
 using SevenZip.Compression.LZMA;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;

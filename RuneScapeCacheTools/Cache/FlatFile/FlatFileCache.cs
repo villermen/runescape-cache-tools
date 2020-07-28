@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Serilog;
+using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
@@ -87,7 +88,16 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
                 System.IO.File.Delete(existingFilePath);
             }
 
-            var extension = ExtensionGuesser.GuessExtension(file.Data);
+            string? extension;
+            if (file is RuneTek5CacheFile rt5File && rt5File.Info.HasEntries)
+            {
+                // TODO: Add an option to extract entries individually (which generates tons of files but is more useful).
+                extension = "entries";
+            }
+            else
+            {
+                extension = ExtensionGuesser.GuessExtension(file.Data);
+            }
             extension = extension != null ? $".{extension}" : "";
 
             var filePath = $"{indexDirectory}{fileId}{extension}";

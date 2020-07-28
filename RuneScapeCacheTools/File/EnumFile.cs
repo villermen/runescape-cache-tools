@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Villermen.RuneScapeCacheTools.Exception;
@@ -41,10 +40,11 @@ namespace Villermen.RuneScapeCacheTools.File
         {
             var file = new EnumFile();
 
-            var dataReader = new BinaryReader(new MemoryStream(data));
+            using var dataStream = new MemoryStream(data);
+            using var dataReader = new BinaryReader(dataStream);
             var ended = false;
 
-            while ((dataReader.BaseStream.Position < dataReader.BaseStream.Length) && !ended)
+            while (dataStream.Position < dataStream.Length && !ended)
             {
                 var opcode = (Opcode)dataReader.ReadByte();
 
@@ -141,9 +141,9 @@ namespace Villermen.RuneScapeCacheTools.File
                 throw new DecodeException("Enum does not contain any values.");
             }
 
-            if (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
+            if (dataStream.Position < dataStream.Length)
             {
-                throw new DecodeException($"Input data not fully consumed while decoding enum file. {dataReader.BaseStream.Length - dataReader.BaseStream.Position} bytes remain.");
+                throw new DecodeException($"Input data not fully consumed while decoding enum file. {dataStream.Length - dataStream.Position} bytes remain.");
             }
 
             return file;
