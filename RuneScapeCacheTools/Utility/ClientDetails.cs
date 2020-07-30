@@ -20,6 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// need.
         /// </summary>
         private const string AppletUrl = "https://world21.runescape.com/j0";
+        // TODO: Use https://world21.runescape.com/jav_config.ws for this.
 
         private const string ContentServerHostname = "content.runescape.com";
 

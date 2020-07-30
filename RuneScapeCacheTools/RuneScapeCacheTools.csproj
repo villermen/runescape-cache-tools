@@ -114,7 +114,9 @@
     <Compile Include="File\EnumFile.cs" />
     <Compile Include="File\ItemDefinitionFile.cs" />
     <Compile Include="File\JagaFile.cs" />
+    <Compile Include="File\NxtModelFile.cs" />
     <Compile Include="Model\BaseVarType.cs" />
+    <Compile Include="Model\CacheArchive.cs" />
     <Compile Include="Model\CacheIndex.cs" />
     <Compile Include="Model\Language.cs" />
     <Compile Include="Model\ScriptVarType.cs" />
