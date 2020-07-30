@@ -1,15 +1,12 @@
-using System;
-
 namespace Villermen.RuneScapeCacheTools.CLI
 {
-    public enum ParserOption
+    public enum CommonArgument
     {
         Verbose,
         Help,
-        OverwriteFiles,
-        OverWriteAudio,
-        Java,
-        Download,
+        Overwrite,
+        SourceJava,
+        SourceDownload,
         FileFilter,
         SoundtrackFilter,
         Flac,

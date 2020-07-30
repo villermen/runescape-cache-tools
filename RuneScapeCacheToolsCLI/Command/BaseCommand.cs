@@ -9,9 +9,15 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
         protected BaseCommand(ArgumentParser argumentParser)
         {
             this.ArgumentParser = argumentParser;
+
+            this.ArgumentParser.AddCommon(CommonArgument.Help);
+            this.ArgumentParser.AddCommon(CommonArgument.Verbose);
         }
 
-        public abstract IList<string> Configure(IEnumerable<string> arguments);
+        public IList<string> Configure(IEnumerable<string> arguments)
+        {
+            return this.ArgumentParser.ParseArguments(arguments);
+        }
 
         public abstract int Run();
     }

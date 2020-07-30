@@ -1,32 +1,21 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class HelpCommand : BaseCommand
     {
-        private readonly string _command;
+        private readonly string? _command;
 
-        public HelpCommand(string command, ArgumentParser argumentParser) : base (argumentParser)
+        public HelpCommand(ArgumentParser argumentParser, string? command) : base (argumentParser)
         {
-            if (command == null ^ argumentParser == null)
-            {
-                throw new ArgumentException("ArgumentParser must be passed if command is passed and vice versa.");
-            }
-
             if (command != null && !Program.Commands.ContainsKey(command))
             {
                 throw new ArgumentException("Passed command must be valid.");
             }
 
             this._command = command;
-        }
-
-        public override IList<string> Configure(IEnumerable<string> arguments)
-        {
-            // Help command does not configure anything as it could use the already configured passed ArgumentParser
-            return new List<string>();
         }
 
         public override int Run()
@@ -39,25 +28,34 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
             Console.WriteLine(description);
             Console.WriteLine();
-            Console.WriteLine($"Usage: {name} {this._command ?? "[command]"} [...options]");
 
-            // Show help for passed command
-            if (this._command != null)
+            if (this._command == null)
             {
-                Console.WriteLine(Program.Commands[this._command]);
+                // Show generic help.
+                Console.WriteLine($"Usage: {name} [command] [...options]");
+
+                // Show help for all available commands.
                 Console.WriteLine();
-                Console.WriteLine(this.ArgumentParser.GetDescription());
+                foreach (var pair in Program.Commands)
+                {
+                    Console.WriteLine("      " + pair.Key.PadRight(23) + pair.Value);
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Run {name} [command] --help for available options for a command.");
                 return 1;
             }
 
-            // Show help for available commands
-            Console.WriteLine();
-            foreach (var pair in Program.Commands)
+            // Show help for specific command.
+            var positionalHelp = "";
+            if (this.ArgumentParser.PositionalArgumentNames.Any())
             {
-                Console.WriteLine("      " + pair.Key.PadRight(23) + pair.Value);
+                positionalHelp = $"[{String.Join("] [", this.ArgumentParser.PositionalArgumentNames)}]";
             }
+
+            Console.WriteLine($"Usage: {name} {this._command} [...options] {positionalHelp}");
+            Console.WriteLine(Program.Commands[this._command]);
             Console.WriteLine();
-            Console.WriteLine($"Run {name} help [command] --help for available options for a command.");
+            Console.WriteLine(this.ArgumentParser.GetDescription());
 
             return 1;
         }

@@ -5,7 +5,6 @@ using System.Linq;
 using NDesk.Options;
 using Serilog.Core;
 using Serilog.Events;
-using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.JavaClient;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
@@ -25,7 +24,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public RuneTek5Cache? SourceCache { get; private set; }
 
-        public string? OutputDirectory { get; private set; }
+        public string OutputDirectory { get; private set; } = "files";
 
         public Tuple<CacheIndex[], int[]> FileFilter { get; private set; } = new Tuple<CacheIndex[], int[]>(
             new CacheIndex[0],
@@ -34,48 +33,44 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         public string[] SoundtrackFilter { get; private set; } = {};
 
-        private readonly IList<ParserOption> _configuredOptions = new List<ParserOption>();
+        public IEnumerable<string> PositionalArgumentNames => this._positionalArguments.Select(argument => argument.Item1);
+
+        private readonly IList<CommonArgument> _commonArguments = new List<CommonArgument>();
 
         private readonly OptionSet _optionSet = new OptionSet();
+
+        private readonly IList<Tuple<string, string, Action<string>>> _positionalArguments = new List<Tuple<string, string, Action<string>>>();
 
         private readonly LoggingLevelSwitch _loggingLevelSwitch;
 
         public ArgumentParser(LoggingLevelSwitch loggingLevelSwitch)
         {
             this._loggingLevelSwitch = loggingLevelSwitch;
-
-            this.Add(ParserOption.Help, ParserOption.Verbose);
         }
 
-        public void Add(ParserOption parserOption)
+        public void AddCommon(CommonArgument commonArgument)
         {
-            if (this._configuredOptions.Contains(parserOption))
+            if (this._commonArguments.Contains(commonArgument))
             {
                 return;
             }
 
-            switch (parserOption)
+            switch (commonArgument)
             {
                 // Simple options
-                case ParserOption.Help:
+                case CommonArgument.Help:
                     this._optionSet.Add("help|version|?", "Show this message.", (value) => {
                         this.Help = true;
                     });
                     break;
 
-                case ParserOption.OverwriteFiles:
+                case CommonArgument.Overwrite:
                     this._optionSet.Add("overwrite", "Overwrite files if they already exist.", (value) => {
                         this.Overwrite = true;
                     });
                     break;
 
-                case ParserOption.OverWriteAudio:
-                    this._optionSet.Add("overwrite", "Overwrite tracks if they already exist.", (value) => {
-                        this.Overwrite = true;
-                    });
-                    break;
-
-                case ParserOption.Flac:
+                case CommonArgument.Flac:
                     this._optionSet.Add(
                         "flac",
                         "Use FLAC format instead of original OGG for a (tiny) quality improvement.",
@@ -85,7 +80,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     );
                     break;
 
-                case ParserOption.SoundtrackFilter:
+                case CommonArgument.SoundtrackFilter:
                     this._optionSet.Add(
                         "filter=|f",
                         "Process only tracks containing any ofthe given comma-separated names. E.g., \"scape,dark\".",
@@ -95,7 +90,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     );
                     break;
 
-                case ParserOption.OutputDirectory:
+                case CommonArgument.OutputDirectory:
                     this._optionSet.Add(
                         "output=",
                         "Extract files to this directory.",
@@ -104,7 +99,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 // More complex options start here
-                case ParserOption.Verbose:
+                case CommonArgument.Verbose:
                     // Applicationwide arguments
                     this._optionSet.Add("verbose|v", "Increase amount of log messages.", (value) =>
                     {
@@ -113,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     });
                     break;
 
-                case ParserOption.Java:
+                case CommonArgument.SourceJava:
                     this._optionSet.Add(
                         "java:",
                         "Obtain cache files from the Java client. Pass a directory to use a directory different from the default.",
@@ -121,7 +116,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     );
                     break;
 
-                case ParserOption.Download:
+                case CommonArgument.SourceDownload:
                     this._optionSet.Add(
                         "download",
                         "Obtain cache files directly from Jagex's servers.",
@@ -137,7 +132,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 //     );
                 //     break;
 
-                case ParserOption.FileFilter:
+                case CommonArgument.FileFilter:
                     this._optionSet.Add(
                         "filter=|f",
                         "Process only files matching the given pattern. E.g., \"40-42/\" for all files in indexes 40 through 42 or \"5/1,10\" for files 1 and 10 from index 5.",
@@ -146,28 +141,56 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(parserOption), parserOption, null);
+                    throw new ArgumentOutOfRangeException(nameof(commonArgument), commonArgument, null);
             }
 
-            this._configuredOptions.Add(parserOption);
+            this._commonArguments.Add(commonArgument);
         }
 
-        public void Add(params ParserOption[] parserOptions)
+        public void AddPositional(string name, string description, Action<string> action)
         {
-            foreach (var parserOption in parserOptions)
-            {
-                this.Add(parserOption);
-            }
+            this._positionalArguments.Add(new Tuple<string, string, Action<string>>(name, description, action));
         }
 
         public IList<string> ParseArguments(IEnumerable<string> arguments)
         {
-            return this._optionSet.Parse(arguments);
+            var unparsedArguments1 = this._optionSet.Parse(arguments);
+            var unparsedArguments2 = new List<string>();
+
+            // Parse positional arguments.
+            var positionalArgumentIndex = 0;
+            foreach (var unparsedArgument in unparsedArguments1)
+            {
+                if (unparsedArgument.StartsWith("-"))
+                {
+                    unparsedArguments2.Add(unparsedArgument);
+                    continue;
+                }
+
+                this._positionalArguments[positionalArgumentIndex++].Item3(unparsedArgument);
+            }
+
+            if (positionalArgumentIndex < this._positionalArguments.Count - 1)
+            {
+                throw new ArgumentException($"Missing required positionial argument \"{this._positionalArguments[positionalArgumentIndex].Item1}\".");
+            }
+
+            return unparsedArguments2;
         }
 
         public string GetDescription()
         {
             var buffer = new StringWriter();
+            if (this._positionalArguments.Any())
+            {
+                foreach (var positionalArgument in this._positionalArguments)
+                {
+                    buffer.WriteLine($"      {positionalArgument.Item1.PadRight(23)}{positionalArgument.Item2}");
+                    // TODO: Line splitting?
+                }
+                buffer.WriteLine();
+            }
+
             this._optionSet.WriteOptionDescriptions(buffer);
             return buffer.ToString();
         }

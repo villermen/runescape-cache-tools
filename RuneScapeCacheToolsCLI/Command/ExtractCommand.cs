@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
-using Villermen.RuneScapeCacheTools.File;
-using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
@@ -13,19 +9,11 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
     {
         public ExtractCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-        }
-
-        public override IList<string> Configure(IEnumerable<string> arguments)
-        {
-            this.ArgumentParser.Add(
-                ParserOption.FileFilter,
-                ParserOption.Java,
-                ParserOption.Download,
-                ParserOption.OverwriteFiles,
-                ParserOption.OutputDirectory
-            );
-
-            return this.ArgumentParser.ParseArguments(arguments);
+            this.ArgumentParser.AddCommon(CommonArgument.FileFilter);
+            this.ArgumentParser.AddCommon(CommonArgument.SourceJava);
+            this.ArgumentParser.AddCommon(CommonArgument.SourceDownload);
+            this.ArgumentParser.AddCommon(CommonArgument.Overwrite);
+            this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
         }
 
         public override int Run()
@@ -37,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 return 2;
             }
 
-            var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory ?? "files");
+            var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory);
 
             var indexes = this.ArgumentParser.FileFilter.Item1.Length > 0
                 ? this.ArgumentParser.FileFilter.Item1

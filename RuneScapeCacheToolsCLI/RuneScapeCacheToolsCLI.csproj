@@ -80,7 +80,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ParserOption.cs" />
+    <Compile Include="Command\InfoCommand.cs" />
+    <Compile Include="CommonArgument.cs" />
     <Compile Include="ArgumentParser.cs" />
     <Compile Include="Command\ExtractCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
