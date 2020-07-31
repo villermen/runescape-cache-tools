@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Villermen.RuneScapeCacheTools.CLI.Argument;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
@@ -9,9 +10,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
         protected BaseCommand(ArgumentParser argumentParser)
         {
             this.ArgumentParser = argumentParser;
-
-            this.ArgumentParser.AddCommon(CommonArgument.Help);
-            this.ArgumentParser.AddCommon(CommonArgument.Verbose);
         }
 
         public IList<string> Configure(IEnumerable<string> arguments)

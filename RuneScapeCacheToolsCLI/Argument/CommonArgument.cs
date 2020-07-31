@@ -1,9 +1,7 @@
-namespace Villermen.RuneScapeCacheTools.CLI
+namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public enum CommonArgument
     {
-        Verbose,
-        Help,
         Overwrite,
         SourceJava,
         SourceDownload,

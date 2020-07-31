@@ -5,6 +5,7 @@ using System.Linq;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Villermen.RuneScapeCacheTools.CLI.Argument;
 using Villermen.RuneScapeCacheTools.CLI.Command;
 
 namespace Villermen.RuneScapeCacheTools.CLI
@@ -16,8 +17,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
             {
                 {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
                 {"info", "Obtain information about a stored cache index."},
-                // {"soundtrack", "Combine the in-game listed soundtrack."},
-                // {"audio", "Combine arbitrary audio files from the cache."},
             }
         );
 
@@ -33,20 +32,17 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 .WriteTo.Console()
                 .CreateLogger();
 
+            var showHelp = false;
+            var argumentParser = new ArgumentParser();
+            argumentParser.Add("help|version|?", "Show this message.", (value) => { showHelp = true; });
+            argumentParser.Add("verbose|v", "Increase amount of log messages.", (value) => loggingLevelSwitch.MinimumLevel = LogEventLevel.Debug);
+
             // Handle all exceptions by showing them in the console
             try
             {
-                var argumentParser = new ArgumentParser(loggingLevelSwitch);
+                var commandArgument = arguments.Length > 0 ? arguments[0] : "help";
 
-                // Show help on modules
-                if (arguments.Length == 0 || arguments[0] == "help" || !Program.Commands.ContainsKey(arguments[0]))
-                {
-                    return new HelpCommand(argumentParser, null).Run();
-                }
-
-                var commandArgument = arguments[0];
-
-                BaseCommand command;
+                BaseCommand? command = null;
                 switch (commandArgument)
                 {
                     case "extract":
@@ -56,27 +52,21 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     case "info":
                         command = new InfoCommand(argumentParser);
                         break;
-
-                    // case "audio":
-                    //     // command = new AudioCommand();
-                    //     break;
-                    //
-                    // case "soundtrack":
-                    //     break;
-
-                    default:
-                        // Should not happen because of earlier Program.Commands check
-                        throw new InvalidOperationException("Command argument was unhandled.");
                 }
 
-                var unparsedArguments = command.Configure(arguments.Skip(1));
+                IList<string> unparsedArguments = new List<string>();
+                if (command != null)
+                {
+                    unparsedArguments = command.Configure(arguments.Skip(1));
+                }
 
-                // We don't care about the command if help was requested
-                if (argumentParser.Help)
+                // Can be true because of switch or because of --help argument. ArgumentParser is configured for the
+                // other command so we can list command-specific help.
+                if (command == null || showHelp)
                 {
                     command = new HelpCommand(argumentParser, commandArgument);
                 }
-                else if (unparsedArguments.Count > 0)
+                else if (unparsedArguments.Any())
                 {
                     // Do not accept invalid arguments because they usually indicate faulty usage
                     foreach (var unparsedArgument in unparsedArguments)

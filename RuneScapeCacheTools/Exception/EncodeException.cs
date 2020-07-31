@@ -3,7 +3,7 @@
 namespace Villermen.RuneScapeCacheTools.Exception
 {
     [Serializable]
-    public class EncodeException : System.Exception
+    public class EncodeException : CacheException
     {
         public EncodeException()
         {

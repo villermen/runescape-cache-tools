@@ -3,7 +3,7 @@
 namespace Villermen.RuneScapeCacheTools.Exception
 {
     [Serializable]
-    public class ClientDetailsException : System.Exception
+    public class ClientDetailsException : CacheException
     {
         public ClientDetailsException()
         {

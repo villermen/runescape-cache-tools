@@ -105,6 +105,7 @@
     <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
     <Compile Include="Cache\RuneTek5\RuneTek5CacheFile.cs" />
     <Compile Include="Cache\RuneTek5\CacheFileInfo.cs" />
+    <Compile Include="Exception\CacheException.cs" />
     <Compile Include="Exception\ClientDetailsException.cs" />
     <Compile Include="Exception\DecodeException.cs" />
     <Compile Include="Exception\DownloaderException.cs" />

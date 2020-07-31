@@ -3,21 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NDesk.Options;
-using Serilog.Core;
-using Serilog.Events;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Cache.JavaClient;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Model;
 
-namespace Villermen.RuneScapeCacheTools.CLI
+namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public class ArgumentParser
     {
-        public bool Verbose { get; private set; }
-
-        public bool Help { get; private set; }
-
         public bool Overwrite { get; private set; }
 
         public bool Flac { get; private set; }
@@ -41,11 +35,9 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
         private readonly IList<Tuple<string, string, Action<string>>> _positionalArguments = new List<Tuple<string, string, Action<string>>>();
 
-        private readonly LoggingLevelSwitch _loggingLevelSwitch;
-
-        public ArgumentParser(LoggingLevelSwitch loggingLevelSwitch)
+        public void Add(string prototype, string description, Action<string> action)
         {
-            this._loggingLevelSwitch = loggingLevelSwitch;
+            this._optionSet.Add(prototype, description, action);
         }
 
         public void AddCommon(CommonArgument commonArgument)
@@ -57,21 +49,14 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             switch (commonArgument)
             {
-                // Simple options
-                case CommonArgument.Help:
-                    this._optionSet.Add("help|version|?", "Show this message.", (value) => {
-                        this.Help = true;
-                    });
-                    break;
-
                 case CommonArgument.Overwrite:
-                    this._optionSet.Add("overwrite", "Overwrite files if they already exist.", (value) => {
+                    this.Add("overwrite", "Overwrite files if they already exist.", (value) => {
                         this.Overwrite = true;
                     });
                     break;
 
                 case CommonArgument.Flac:
-                    this._optionSet.Add(
+                    this.Add(
                         "flac",
                         "Use FLAC format instead of original OGG for a (tiny) quality improvement.",
                         (value) => {
@@ -81,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 case CommonArgument.SoundtrackFilter:
-                    this._optionSet.Add(
+                    this.Add(
                         "filter=|f",
                         "Process only tracks containing any ofthe given comma-separated names. E.g., \"scape,dark\".",
                         (value) => {
@@ -91,25 +76,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 case CommonArgument.OutputDirectory:
-                    this._optionSet.Add(
+                    this.Add(
                         "output=",
                         "Extract files to this directory.",
                         (value) => this.OutputDirectory = value
                     );
                     break;
 
-                // More complex options start here
-                case CommonArgument.Verbose:
-                    // Applicationwide arguments
-                    this._optionSet.Add("verbose|v", "Increase amount of log messages.", (value) =>
-                    {
-                        this._loggingLevelSwitch.MinimumLevel = LogEventLevel.Debug;
-                        this.Verbose = true;
-                    });
-                    break;
-
                 case CommonArgument.SourceJava:
-                    this._optionSet.Add(
+                    this.Add(
                         "java:",
                         "Obtain cache files from the Java client. Pass a directory to use a directory different from the default.",
                         (value) => this.SetSourceCache(new JavaClientCache(value))
@@ -117,7 +92,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 case CommonArgument.SourceDownload:
-                    this._optionSet.Add(
+                    this.Add(
                         "download",
                         "Obtain cache files directly from Jagex's servers.",
                         (value) => this.SetSourceCache(new DownloaderCache())
@@ -125,7 +100,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     break;
 
                 // case ParserOption.Nxt:
-                //     this._optionSet.Add(
+                //     this.Add(
                 //         "nxt:",
                 //         "Obtain cache files from the NXT client. Pass a directory to use a directory different from the default.",
                 //         (value) => this.SetSourceCache(new NxtClientCache(value))
@@ -133,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 //     break;
 
                 case CommonArgument.FileFilter:
-                    this._optionSet.Add(
+                    this.Add(
                         "filter=|f",
                         "Process only files matching the given pattern. E.g., \"40-42/\" for all files in indexes 40 through 42 or \"5/1,10\" for files 1 and 10 from index 5.",
                         (value) => this.FileFilter = ArgumentParser.ParseFileFilter(value)

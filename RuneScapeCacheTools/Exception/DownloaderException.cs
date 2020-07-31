@@ -3,7 +3,7 @@ using System;
 namespace Villermen.RuneScapeCacheTools.Exception
 {
     [Serializable]
-    public class DownloaderException : System.Exception
+    public class DownloaderException : CacheException
     {
         public DownloaderException()
         {

@@ -1,36 +1,43 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Villermen.RuneScapeCacheTools.CLI.Argument;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class HelpCommand : BaseCommand
     {
-        private readonly string? _command;
+        private readonly string _commandArgument;
 
-        public HelpCommand(ArgumentParser argumentParser, string? command) : base (argumentParser)
+        public HelpCommand(ArgumentParser argumentParser, string commandArgument) : base (argumentParser)
         {
-            if (command != null && !Program.Commands.ContainsKey(command))
-            {
-                throw new ArgumentException("Passed command must be valid.");
-            }
-
-            this._command = command;
+            this._commandArgument = commandArgument;
         }
 
         public override int Run()
         {
             var assembly = Assembly.GetExecutingAssembly();
             var name = assembly.GetName().Name;
-            var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
-            var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
 
-            Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
-            Console.WriteLine(description);
-            Console.WriteLine();
-
-            if (this._command == null)
+            if (!Program.Commands.ContainsKey(this._commandArgument))
             {
+                if (this._commandArgument == "help")
+                {
+                    // Show program info.
+                    var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
+                    var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
+                    Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
+                    Console.WriteLine(description);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    // Show invalid command message.
+                    Console.WriteLine($"Invalid command \"{this._commandArgument}\".");
+                    Console.WriteLine();
+                }
+
                 // Show generic help.
                 Console.WriteLine($"Usage: {name} [command] [...options]");
 
@@ -49,11 +56,11 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             var positionalHelp = "";
             if (this.ArgumentParser.PositionalArgumentNames.Any())
             {
-                positionalHelp = $"[{String.Join("] [", this.ArgumentParser.PositionalArgumentNames)}]";
+                positionalHelp = $"[{string.Join("] [", this.ArgumentParser.PositionalArgumentNames)}]";
             }
 
-            Console.WriteLine($"Usage: {name} {this._command} [...options] {positionalHelp}");
-            Console.WriteLine(Program.Commands[this._command]);
+            Console.WriteLine($"Usage: {name} {this._commandArgument} [...options] {positionalHelp}");
+            Console.WriteLine(Program.Commands[this._commandArgument]);
             Console.WriteLine();
             Console.WriteLine(this.ArgumentParser.GetDescription());
 

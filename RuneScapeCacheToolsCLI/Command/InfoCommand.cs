@@ -1,5 +1,7 @@
 using System;
+using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.CLI.Argument;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
@@ -31,7 +33,11 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 return 2;
             }
 
-            throw new NotImplementedException();
+            var referenceTable = sourceCache.GetReferenceTable(this._index.Value);
+
+            // TODO: List info
+
+            return 0;
         }
     }
 }
