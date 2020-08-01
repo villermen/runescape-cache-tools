@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NDesk.Options;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
-using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.JavaClient;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Argument
@@ -15,7 +14,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
     {
         public bool Flac { get; private set; }
 
-        public RuneTek5Cache? SourceCache { get; private set; }
+        public ReferenceTableCache? SourceCache { get; private set; }
 
         public Tuple<CacheIndex[], int[]> FileFilter { get; private set; } = new Tuple<CacheIndex[], int[]>(
             new CacheIndex[0],
@@ -205,7 +204,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             return result.Distinct();
         }
 
-        private void SetSourceCache(RuneTek5Cache sourceCache)
+        private void SetSourceCache(ReferenceTableCache sourceCache)
         {
             if (this.SourceCache != null)
             {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using FlacLibSharp;
 using NVorbis;
 using Serilog;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
@@ -47,14 +47,14 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         private string _outputDirectory;
 
-        public SoundtrackExtractor(RuneTek5Cache cache, string outputDirectory)
+        public SoundtrackExtractor(ReferenceTableCache cache, string outputDirectory)
         {
             this.Cache = cache;
             this.TemporaryDirectory = Path.GetTempPath() + "rsct";
             this.OutputDirectory = outputDirectory;
         }
 
-        public RuneTek5Cache Cache { get; set; }
+        public ReferenceTableCache Cache { get; set; }
 
         /// <summary>
         ///     Combines and exports the soundtracks from the audio chunks in archive 40 into full soundtrack files.
@@ -194,7 +194,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                             Log.Information($"Combined {outputFilename}.");
                         }
-                        catch (FileNotFoundException)
+                        catch (CacheFileNotFoundException)
                         {
                             Log.Information($"Skipped {outputFilename} because of incomplete data.");
                         }
@@ -204,7 +204,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
             {
                 if (ex.InnerException is Win32Exception)
                 {
-                    throw new FileNotFoundException("Could not find or run SoX. Is it installed or added to the PATH?", ex.InnerException);
+                    throw new CacheException("Could not find or run SoX. Is it installed or added to the PATH?", ex.InnerException);
                 }
 
                 throw ex.InnerException;

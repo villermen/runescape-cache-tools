@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.CLI.Argument;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command

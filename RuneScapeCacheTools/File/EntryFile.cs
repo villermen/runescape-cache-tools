@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Utility;
 
@@ -15,7 +15,7 @@ namespace Villermen.RuneScapeCacheTools.File
     {
         public readonly SortedDictionary<int, byte[]> Entries = new SortedDictionary<int, byte[]>();
 
-        public static EntryFile Decode(RuneTek5CacheFile file)
+        public static EntryFile Decode(CacheFile file)
         {
             /*
              * Format visualization:
