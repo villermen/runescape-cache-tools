@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.CLI.Argument;
@@ -10,10 +9,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
     {
         public ExtractCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-            this.ArgumentParser.AddCommon(CommonArgument.FileFilter);
             this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
-            this.ArgumentParser.AddCommon(CommonArgument.Overwrite);
-            this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
+            this.ArgumentParser.AddCommon(CommonArgument.FileFilter);
+            this.ArgumentParser.AddCommon(CommonArgument.OutputCache);
         }
 
         public override int Run()
@@ -25,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 return 2;
             }
 
-            var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory);
+            var outputCache = this.ArgumentParser.GetOutputCache();
 
             var indexes = this.ArgumentParser.FileFilter.Item1.Length > 0
                 ? this.ArgumentParser.FileFilter.Item1
@@ -37,27 +35,11 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                     ? this.ArgumentParser.FileFilter.Item2
                     : sourceCache.GetAvailableFileIds(index);
 
-                try
+                Parallel.ForEach(files, (fileId) =>
                 {
-                    Parallel.ForEach(
-                        files,
-                        new ParallelOptions
-                        {
-                            // Not putting a limit here overloads the downloader when used.
-                            MaxDegreeOfParallelism = 1, // TODO: Set back to 10 after downloader is made to work with it again.
-                        },
-                        (fileId) =>
-                        {
-                            var file = sourceCache.GetFile(index, fileId);
-                            outputCache.PutFile(index, fileId, file);
-                        }
-                    );
-                }
-                catch (AggregateException exception)
-                {
-                    // Report with correct stack trace.
-                    ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
-                }
+                    var file = sourceCache.GetFile(index, fileId);
+                    outputCache.PutFile(index, fileId, file);
+                });
             }
 
             return 0;

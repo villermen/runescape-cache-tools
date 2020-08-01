@@ -7,6 +7,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
         FileFilter,
         SoundtrackFilter,
         Flac,
-        OutputDirectory,
+        OutputCache,
     }
 }

@@ -1,9 +1,5 @@
 using System.IO;
 using System.Threading.Tasks;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Model;
-using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
@@ -12,76 +8,46 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     /// </summary>
     public class TcpFileRequest
     {
-        public CacheIndex Index { get; }
+        public BinaryWriter DataWriter { get; }
+        public int RemainingSize { get; set; }
 
-        public int FileId { get; }
-
-        public int RemainingLength => (int)(this._fileSize - this._dataStream.Length);
-
-        public bool Completed { get; private set; }
-        public bool Requested { get; set; }
         public bool MetaWritten { get; private set; }
+        public long? RequestedAtMilliseconds { get; private set; }
+        public bool Requested => this.RequestedAtMilliseconds != null;
 
-        private readonly MemoryStream _dataStream = new MemoryStream();
+        private readonly MemoryStream _dataStream;
         private readonly TaskCompletionSource<byte[]> _completionSource = new TaskCompletionSource<byte[]>();
-        private int _fileSize;
 
-        public TcpFileRequest(CacheIndex index, int fileId)
+        public TcpFileRequest()
         {
-            this.Index = index;
-            this.FileId = fileId;
+            this._dataStream = new MemoryStream();
+            this.DataWriter = new BinaryWriter(this._dataStream);
         }
 
-        public void WriteMeta(CompressionType compressionType, int length)
+        public void MarkRequested(long milliseconds)
         {
-            if (this._dataStream.Length != 0)
-            {
-                throw new DownloaderException("File metadata must be written before anything else.");
-            }
+            this.RequestedAtMilliseconds = milliseconds;
+        }
 
-            var writer = new BinaryWriter(this._dataStream);
-            writer.Write((byte)compressionType);
-            writer.WriteInt32BigEndian(length);
-
-            this._fileSize = 5 + (compressionType != CompressionType.None ? 4 : 0) + length;
-
+        public void MarkMetaWritten()
+        {
             this.MetaWritten = true;
         }
 
-        // TODO: Change Get and Put to byte arrays?
-
-        public void WriteContent(byte[] data)
+        public void MarkCompleted()
         {
-            if (!this.MetaWritten)
-            {
-                throw new DownloaderException("File content must be written after metadata");
-            }
+            this._completionSource.SetResult(this._dataStream.ToArray());
+            this.DataWriter.Dispose();
+        }
 
-            if (data.Length > this.RemainingLength)
-            {
-                throw new DownloaderException("Tried to write more bytes than were remaining in the file.");
-            }
-
-            this._dataStream.Write(data, 0, data.Length);
-
-            if (this.RemainingLength == 0)
-            {
-                // TODO: Append file version if possible?
-                // if (this._cacheFileInfo?.Version != null)
-                // {
-                //     var writer = new BinaryWriter(this._dataStream);
-                //     writer.WriteUInt16BigEndian((ushort)this._cacheFileInfo.Version);
-                // }
-
-                this.Completed = true;
-
-                this._completionSource.SetResult(this._dataStream.ToArray());
-            }
+        public void MarkFailed(System.Exception exception)
+        {
+            this._completionSource.SetException(exception);
         }
 
         public async Task<byte[]> WaitForCompletionAsync()
         {
-             return await this._completionSource.Task;
+            return await this._completionSource.Task;
         }
     }
 }

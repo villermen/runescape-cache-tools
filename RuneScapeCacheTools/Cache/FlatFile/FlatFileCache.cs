@@ -20,6 +20,11 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
         /// </summary>
         public string BaseDirectory { get; }
 
+        /// <summary>
+        /// Whether to delete existing files before writing new ones.
+        /// </summary>
+        public bool OverwriteFiles { get; set; } = true;
+
         public FlatFileCache(string baseDirectory)
         {
             this.BaseDirectory = PathExtensions.FixDirectory(baseDirectory);
@@ -84,6 +89,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.FlatFile
             // Clean existing files (to make sure no variants with different extensions exist).
             foreach (var existingFilePath in this.GetExistingFilePaths(index, fileId))
             {
+                if (!this.OverwriteFiles)
+                {
+                    Log.Debug($"{(int)index}/{fileId} already exists.");
+                    return;
+                }
+
                 Log.Debug($"Deleting existing {existingFilePath}.");
                 System.IO.File.Delete(existingFilePath);
             }

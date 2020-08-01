@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
+using Villermen.RuneScapeCacheTools.Cache.FlatFile;
 using Villermen.RuneScapeCacheTools.Cache.JavaClient;
 using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
 using Villermen.RuneScapeCacheTools.Model;
@@ -12,13 +13,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public class ArgumentParser
     {
-        public bool Overwrite { get; private set; }
-
         public bool Flac { get; private set; }
 
         public RuneTek5Cache? SourceCache { get; private set; }
-
-        public string OutputDirectory { get; private set; } = "files";
 
         public Tuple<CacheIndex[], int[]> FileFilter { get; private set; } = new Tuple<CacheIndex[], int[]>(
             new CacheIndex[0],
@@ -35,6 +32,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
         private readonly IList<Tuple<string, string, Action<string>>> _positionalArguments = new List<Tuple<string, string, Action<string>>>();
 
+        private string _outputDirectory = "files";
+        private bool _overwriteFiles = false;
+
         public void Add(string prototype, string description, Action<string> action)
         {
             this._optionSet.Add(prototype, description, action);
@@ -49,12 +49,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
             switch (commonArgument)
             {
-                case CommonArgument.Overwrite:
-                    this.Add("overwrite", "Overwrite files if they already exist.", (value) => {
-                        this.Overwrite = true;
-                    });
-                    break;
-
                 case CommonArgument.Flac:
                     this.Add(
                         "flac",
@@ -75,12 +69,15 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                     );
                     break;
 
-                case CommonArgument.OutputDirectory:
+                case CommonArgument.OutputCache:
                     this.Add(
                         "output=",
                         "Extract files to this directory.",
-                        (value) => this.OutputDirectory = value
+                        (value) => this._outputDirectory = value
                     );
+                    this.Add("overwrite", "Overwrite files if they already exist.", (value) => {
+                        this._overwriteFiles = true;
+                    });
                     break;
 
                 case CommonArgument.SourceCache:
@@ -216,6 +213,14 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             }
 
             this.SourceCache = sourceCache;
+        }
+
+        public FlatFileCache GetOutputCache()
+        {
+            return new FlatFileCache(this._outputDirectory)
+            {
+                OverwriteFiles = this._overwriteFiles,
+            };
         }
     }
 }

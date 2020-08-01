@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Serilog;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
     /// </summary>
     public abstract class RuneTek5Cache : ICache<RuneTek5CacheFile>, IDisposable
     {
-        private readonly Dictionary<CacheIndex, ReferenceTable> _cachedReferenceTables = new Dictionary<CacheIndex, ReferenceTable>();
+        private readonly ConcurrentDictionary<CacheIndex, ReferenceTable> _cachedReferenceTables = new ConcurrentDictionary<CacheIndex, ReferenceTable>();
 
         private readonly List<CacheIndex> _changedReferenceTableIndexes = new List<CacheIndex>();
 
@@ -28,7 +28,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
             var referenceTableFile = this.GetFile(CacheIndex.ReferenceTables, (int)index);
             var referenceTable = ReferenceTable.Decode(referenceTableFile.Data);
 
-            this._cachedReferenceTables.Add(index, referenceTable);
+            referenceTable = this._cachedReferenceTables.GetOrAdd(index, referenceTable);
 
             return referenceTable;
         }

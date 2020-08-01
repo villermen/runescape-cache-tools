@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -81,6 +82,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
             }
             catch (System.Exception exception)
             {
+                // Use first exception in aggregate for easier debugging.
+                if (exception is AggregateException && exception.InnerException != null)
+                {
+                    exception = exception.InnerException;
+                }
+
                 Log.Fatal(exception.Message + "\n" + exception.StackTrace);
                 return 2;
             }
