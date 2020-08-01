@@ -53,7 +53,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 var referenceTable = sourceCache.GetReferenceTable(index);
 
                 var versionAsTime = "";
-                if (referenceTable.Version != null)
+                if (referenceTable.Version != null && referenceTable.Version.Value > 946684800)
                 {
                     var formattedTime = DateTimeOffset.FromUnixTimeSeconds(referenceTable.Version.Value).ToString("u");
                     versionAsTime = $" ({formattedTime})";
@@ -87,7 +87,13 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
             if (file.Info.Version != null)
             {
-                Console.WriteLine($"Version: {file.Info.Version}");
+                var versionAsTime = "";
+                if (file.Info.Version.Value > 946684800)
+                {
+                    var formattedTime = DateTimeOffset.FromUnixTimeSeconds(file.Info.Version.Value).ToString("u");
+                    versionAsTime = $" ({formattedTime})";
+                }
+                Console.WriteLine($"Version: {file.Info.Version}{versionAsTime}");
             }
             if (file.Info.Crc != null)
             {
