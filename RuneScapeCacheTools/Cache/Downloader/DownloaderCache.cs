@@ -10,6 +10,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
     /// The <see cref="DownloaderCache" /> provides the means to download current cache files from the runescape
     /// servers. Downloading uses 2 different interfaces depending on the <see cref="CacheIndex" /> of the requested
     /// file: The original TCP based interface and a newer HTTP interface.
+    ///
+    /// TODO: Add 10s timeout to file retrieval =)
     /// </summary>
     public class DownloaderCache : RuneTek5Cache
     {

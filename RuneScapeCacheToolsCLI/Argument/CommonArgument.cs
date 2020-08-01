@@ -3,8 +3,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
     public enum CommonArgument
     {
         Overwrite,
-        SourceJava,
-        SourceDownload,
+        SourceCache,
         FileFilter,
         SoundtrackFilter,
         Flac,

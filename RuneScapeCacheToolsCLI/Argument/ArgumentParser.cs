@@ -83,29 +83,18 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                     );
                     break;
 
-                case CommonArgument.SourceJava:
+                case CommonArgument.SourceCache:
                     this.Add(
                         "java:",
                         "Obtain cache files from the Java client. Pass a directory to use a directory different from the default.",
                         (value) => this.SetSourceCache(new JavaClientCache(value))
                     );
-                    break;
-
-                case CommonArgument.SourceDownload:
                     this.Add(
                         "download",
                         "Obtain cache files directly from Jagex's servers.",
                         (value) => this.SetSourceCache(new DownloaderCache())
                     );
                     break;
-
-                // case ParserOption.Nxt:
-                //     this.Add(
-                //         "nxt:",
-                //         "Obtain cache files from the NXT client. Pass a directory to use a directory different from the default.",
-                //         (value) => this.SetSourceCache(new NxtClientCache(value))
-                //     );
-                //     break;
 
                 case CommonArgument.FileFilter:
                     this.Add(
@@ -170,7 +159,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             return buffer.ToString();
         }
 
-        private static Tuple<CacheIndex[], int[]> ParseFileFilter(string fileFilter)
+        public static Tuple<CacheIndex[], int[]> ParseFileFilter(string fileFilter)
         {
             var parts = fileFilter.Split('/');
             if (parts.Length < 1 || parts.Length > 2)
@@ -186,7 +175,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             return new Tuple<CacheIndex[], int[]>(indexes, files);
         }
 
-        private static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
+        public static IEnumerable<int> ExpandIntegerRangeString(string integerRangeString)
         {
             var rangeStringParts = integerRangeString.Split(',', ';');
             var result = new List<int>();

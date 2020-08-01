@@ -216,7 +216,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             writer.Flush();
 
             this._connected = true;
-            Log.Information($"Successfully onnected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
+            Log.Debug($"Successfully connected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
         }
 
         public void Dispose()

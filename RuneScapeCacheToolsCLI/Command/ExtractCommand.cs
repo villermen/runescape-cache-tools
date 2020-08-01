@@ -11,8 +11,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
         public ExtractCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
             this.ArgumentParser.AddCommon(CommonArgument.FileFilter);
-            this.ArgumentParser.AddCommon(CommonArgument.SourceJava);
-            this.ArgumentParser.AddCommon(CommonArgument.SourceDownload);
+            this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
             this.ArgumentParser.AddCommon(CommonArgument.Overwrite);
             this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
         }

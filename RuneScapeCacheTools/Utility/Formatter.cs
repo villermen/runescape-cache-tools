@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -29,8 +30,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 return "";
             }
 
-            var enumerable = value as IEnumerable;
-            if (enumerable != null)
+            if (value is IEnumerable enumerable)
             {
                 return "[" + string.Join(",", enumerable.Cast<object>().Select(Formatter.GetValueRepresentation)) + "]";
             }
@@ -62,9 +62,22 @@ namespace Villermen.RuneScapeCacheTools.Utility
             throw new ArgumentException("Could not convert value to string representation");
         }
 
-        public static string BytesToHexString(byte[] bytes)
+        public static string BytesToHexString(IEnumerable<byte> bytes)
         {
-            return BitConverter.ToString(bytes).Replace("-"," ");
+            return BitConverter.ToString(bytes.ToArray()).Replace("-"," ");
+        }
+
+        /// <summary>
+        /// Returns a textual representation of the given bytes. Non-printable characters are replaced with dots like
+        /// hex editors do.
+        /// </summary>
+        public static string BytesToAnsiString(IEnumerable<byte> bytes)
+        {
+            var mappedChars = System.Text.Encoding.Default.GetString(bytes.ToArray())
+                .Select((ch) => char.IsControl(ch) ? '.' : ch)
+                .ToArray();
+
+            return new string(mappedChars);
         }
     }
 }
