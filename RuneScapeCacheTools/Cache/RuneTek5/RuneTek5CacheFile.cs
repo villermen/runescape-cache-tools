@@ -78,44 +78,38 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                 );
             }
 
-            // Read and verify the truncated version of the file when it is appended to the file's data.
+            // Read and verify the truncated version of the file when it is appended to the file's data. This is not
+            // stored on the info because it is truncated.
             if (dataStream.Length - dataStream.Position == 2)
             {
-                var version = dataReader.ReadUInt16BigEndian();
-                if (info.Version != null && version != (ushort)info.Version)
+                var truncatedVersion = dataReader.ReadUInt16BigEndian();
+                if (info.Version != null && truncatedVersion != (ushort)info.Version)
                 {
-                    throw new DecodeException($"Appended version ({version}) does not match expected ({(ushort)info.Version}).");
+                    throw new DecodeException($"Appended version ({truncatedVersion}) does not match expected ({(ushort)info.Version}).");
                 }
             }
 
             // Calculate and verify CRC.
-            if (info.Crc != null)
-            {
-                var crcHasher = new Crc32();
-                // CRC excludes the appended version.
-                crcHasher.Update(encodedData, 0, compressedSize);
-                // Note that there is no way to distinguish between an unset CRC and one that is zero.
-                var crc = (int)crcHasher.Value;
+            var crcHasher = new Crc32();
+            // CRC excludes the appended version.
+            crcHasher.Update(encodedData, 0, compressedSize);
+            // Note that there is no way to distinguish between an unset CRC and one that is zero.
+            var crc = (int)crcHasher.Value;
 
-                if (crc != info.Crc)
-                {
-                    throw new DecodeException($"Calculated checksum (0x{crc:X}) did not match expected (0x{info.Crc:X}).");
-                }
+            if (info.Crc != null && crc != info.Crc)
+            {
+                throw new DecodeException($"Calculated checksum ({crc}) did not match expected ({info.Crc}).");
             }
 
             // Calculate and verify whirlpool digest.
-            if (info.WhirlpoolDigest != null)
+            var whirlpoolHasher = new WhirlpoolDigest();
+            whirlpoolHasher.BlockUpdate(encodedData, 0, compressedSize);
+            var whirlpoolDigest = new byte[whirlpoolHasher.GetDigestSize()];
+            whirlpoolHasher.DoFinal(whirlpoolDigest, 0);
+
+            if (info.WhirlpoolDigest != null && !whirlpoolDigest.SequenceEqual(info.WhirlpoolDigest) )
             {
-                var whirlpoolHasher = new WhirlpoolDigest();
-                whirlpoolHasher.BlockUpdate(encodedData, 0, compressedSize);
-
-                var whirlpoolDigest = new byte[whirlpoolHasher.GetDigestSize()];
-                whirlpoolHasher.DoFinal(whirlpoolDigest, 0);
-
-                if (!whirlpoolDigest.SequenceEqual(info.WhirlpoolDigest))
-                {
-                    throw new DecodeException("Calculated whirlpool digest did not match expected.");
-                }
+                throw new DecodeException("Calculated whirlpool digest did not match expected.");
             }
 
             if (dataStream.Position < dataStream.Length)
@@ -124,6 +118,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.RuneTek5
                     $"Input data not fully consumed while decoding RuneTek5CacheFile. {dataStream.Length - dataStream.Position} bytes remain."
                 );
             }
+
+            // Update info with obtained details.
+            info.CompressionType = compressionType;
+            info.CompressedSize = compressedSize;
+            info.UncompressedSize = uncompressedSize;
+            info.Crc = crc;
 
             return new RuneTek5CacheFile(data, info);
         }
