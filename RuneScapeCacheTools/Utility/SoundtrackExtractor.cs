@@ -314,30 +314,19 @@ namespace Villermen.RuneScapeCacheTools.Utility
         {
             if (path.EndsWith(".ogg"))
             {
-                using (var vorbisReader = new VorbisReader(path))
+                using var vorbisReader = new VorbisReader(path);
+
+                if (!string.IsNullOrEmpty(vorbisReader.Tags.Version))
                 {
-                    foreach (var comment in vorbisReader.Comments)
-                    {
-                        if (!comment.StartsWith("VERSION=", true, null))
-                        {
-                            continue;
-                        }
-
-                        var value = comment.Split('=')[1];
-                        var version = int.Parse(value);
-
-                        return version;
-                    }
+                    return int.Parse(vorbisReader.Tags.Version);
                 }
             }
             else if (path.EndsWith(".flac"))
             {
-                using (var flacFile = new FlacFile(path))
+                using var flacFile = new FlacFile(path);
+                if (flacFile.VorbisComment.ContainsField("VERSION"))
                 {
-                    if (flacFile.VorbisComment.ContainsField("VERSION"))
-                    {
-                        return int.Parse(flacFile.VorbisComment["VERSION"].Value);
-                    }
+                    return int.Parse(flacFile.VorbisComment["VERSION"].Value);
                 }
             }
 
