@@ -13,9 +13,10 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public abstract class ReferenceTableCache : ICache
     {
+        /// <summary>
+        /// Reference tables are kept in memory so they don't have to be obtained again for every file.
+        /// </summary>
         private readonly ConcurrentDictionary<CacheIndex, ReferenceTableFile> _cachedReferenceTables = new ConcurrentDictionary<CacheIndex, ReferenceTableFile>();
-
-        private readonly List<CacheIndex> _changedReferenceTableIndexes = new List<CacheIndex>();
 
         public abstract IEnumerable<CacheIndex> GetAvailableIndexes();
 
@@ -80,31 +81,21 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             this.PutFileData(index, fileId, file.Encode());
 
-            // Update the cached reference table with file's (updated) info.
-            this.GetReferenceTable(index, true).SetFileInfo(fileId, file.Info);
-            this._changedReferenceTableIndexes.Add(index);
+            // Write updated reference table.
+            var referenceTable = this.GetReferenceTable(index, true);
+            referenceTable.SetFileInfo(fileId, file.Info);
+            var referenceTableFile = new CacheFile(referenceTable.Encode());
+            referenceTableFile.Info.CompressionType = CompressionType.Bzip2;
+            this.PutFileData(CacheIndex.ReferenceTables, (int)index, referenceTableFile.Encode());
         }
 
         protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data);
 
-        /// <summary>
-        /// Writes out changes made to the cached reference tables and clears the local cache.
-        /// </summary>
-        public void FlushCachedReferenceTables()
+        public void ClearCachedReferenceTables()
         {
-            foreach (var tableIndex in this._changedReferenceTableIndexes)
-            {
-                var cacheFile = new CacheFile(this._cachedReferenceTables[tableIndex].Encode());
-                this.PutFileData(CacheIndex.ReferenceTables, (int)tableIndex, cacheFile.Encode());
-            }
-
-            this._changedReferenceTableIndexes.Clear();
             this._cachedReferenceTables.Clear();
         }
 
-        public virtual void Dispose()
-        {
-            this.FlushCachedReferenceTables();
-        }
+        public abstract void Dispose();
     }
 }

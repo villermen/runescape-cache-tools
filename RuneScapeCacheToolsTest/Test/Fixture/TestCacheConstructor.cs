@@ -12,9 +12,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
         /// <summary>
         /// Downloads and stores files necessary to perform all tests.
         /// </summary>
-        [Fact(
-            // Skip = "Only run manually to construct a new test cache"
-        )]
+        [Fact(Skip = "Only run manually to construct a new test cache")]
         public void ConstructTestCache()
         {
             var files = new List<Tuple<CacheIndex, int>>
@@ -130,29 +128,39 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
                 Directory.Delete("generated", true);
             }
 
+            var expectedFileSizes = new Queue<int>();
+
             // Download and write the files.
             {
                 using var downloaderCache = new DownloaderCache();
-                using var javaCache = new JavaClientCache("generated/java", false);
                 using var flatFileCache = new FlatFileCache("generated/file");
+                using var javaCache = new JavaClientCache("generated/java", false);
 
                 foreach (var fileTuple in files)
                 {
                     var file = downloaderCache.GetFile(fileTuple.Item1, fileTuple.Item2);
-                    javaCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
+
                     flatFileCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
+                    javaCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
+
+                    expectedFileSizes.Enqueue(file.Data.Length);
                 }
             }
 
-            // Verify that the files are now obtainable.
+            // Verify that the files are now obtainable and unchanged.
             {
-                using var javaCache = new JavaClientCache("generated/java");
                 using var flatFileCache = new FlatFileCache("generated/file");
+                using var javaCache = new JavaClientCache("generated/java");
 
                 foreach (var fileTuple in files)
                 {
-                    javaCache.GetFile(fileTuple.Item1, fileTuple.Item2);
-                    flatFileCache.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    var expectedFileSize = expectedFileSizes.Dequeue();
+
+                    var flatFile = flatFileCache.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    Assert.Equal(expectedFileSize, flatFile.Data.Length);
+
+                    var javaFile = javaCache.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    Assert.Equal(expectedFileSize, javaFile.Data.Length);
                 }
             }
         }

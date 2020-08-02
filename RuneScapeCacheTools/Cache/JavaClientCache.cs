@@ -56,7 +56,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public override void Dispose()
         {
-            base.Dispose();
             this.CloseStreams();
         }
 
@@ -75,106 +74,6 @@ namespace Villermen.RuneScapeCacheTools.Cache
         }
 
         protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
-        {
-            this.PutFileSectors(index, fileId, data);
-        }
-
-        /// <exception cref="IOException"></exception>
-        private void OpenStreams()
-        {
-            var fileAccess = (this.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite);
-            var dataFileMode = (this.ReadOnly ? FileMode.Open : FileMode.OpenOrCreate);
-            var dataFilePath = Path.Combine(this.CacheDirectory, "main_file_cache.dat2");
-
-            this._dataStream = System.IO.File.Open(dataFilePath, dataFileMode, fileAccess);
-
-            // Open existing index files.
-            for (var indexId = 0; indexId <= 255; indexId++)
-            {
-                var indexFile = Path.Combine(this.CacheDirectory, "main_file_cache.idx" + indexId);
-
-                if (!System.IO.File.Exists(indexFile))
-                {
-                    continue;
-                }
-
-                this._indexStreams.Add((CacheIndex)indexId, System.IO.File.Open(indexFile, FileMode.Open, fileAccess));
-            }
-        }
-
-        private void CloseStreams()
-        {
-            this._dataStream.Close();
-            this._dataStream = null;
-
-            foreach (var indexStream in this._indexStreams.Values)
-            {
-                indexStream.Close();
-            }
-            this._indexStreams.Clear();
-        }
-
-        /// <summary>
-        /// Reads the sectors that make up the requested file.
-        /// </summary>
-        /// <param name="filesize">Contains the size of the file contained in the sectors</param>
-        private IEnumerable<Sector> GetFileSectors(CacheIndex index, int fileId, out int filesize)
-        {
-            if (!this._indexStreams.ContainsKey(index))
-            {
-                throw new CacheFileNotFoundException($"Cannot read from index {(int)index} as it does not exist.");
-            }
-
-            var indexReader = new BinaryReader(this._indexStreams[index]);
-            var indexPosition = (long)fileId * JavaClientCache.IndexPointerSize;
-            if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
-            {
-                throw new CacheFileNotFoundException($"File {fileId} is outside of index {(int)index}'s file bounds.");
-            }
-
-            var sectors = new List<Sector>();
-            indexReader.BaseStream.Position = indexPosition;
-
-            filesize = indexReader.ReadUInt24BigEndian();
-            var firstSectorPosition = indexReader.ReadUInt24BigEndian();
-            if (filesize <= 0)
-            {
-                throw new CacheFileNotFoundException(
-                    $"File {fileId} in index {(int)index} has no size meaning it is not stored in the cache."
-                );
-            }
-
-            var chunkId = 0;
-            var remaining = filesize;
-            var dataReader = new BinaryReader(this._dataStream);
-            var dataPosition = (long)firstSectorPosition * Sector.Size;
-            do
-            {
-                dataReader.BaseStream.Position = dataPosition;
-
-                var sectorBytes = dataReader.ReadBytesExactly(Sector.Size);
-
-                if (sectorBytes.Length != Sector.Size)
-                {
-                    throw new CacheException($"One of {index}/{fileId}'s sectors could not be fully read.");
-                }
-
-                var sector = Sector.Decode((int)(dataPosition / Sector.Size), sectorBytes, index, fileId, chunkId++);
-
-                var bytesRead = Math.Min(sector.Payload.Length, remaining);
-
-                remaining -= bytesRead;
-
-                dataPosition = (long)sector.NextSectorPosition.Value * Sector.Size;
-
-                sectors.Add(sector);
-            }
-            while (remaining > 0);
-
-            return sectors;
-        }
-
-        private void PutFileSectors(CacheIndex index, int fileId, byte[] data)
         {
             if (this.ReadOnly)
             {
@@ -246,6 +145,95 @@ namespace Villermen.RuneScapeCacheTools.Cache
             indexWriter.BaseStream.Position = pointerPosition;
             indexWriter.WriteUInt24BigEndian(data.Length);
             indexWriter.WriteUInt24BigEndian(sectors[0].Position);
+        }
+
+        /// <exception cref="IOException"></exception>
+        private void OpenStreams()
+        {
+            var fileAccess = (this.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite);
+            var dataFileMode = (this.ReadOnly ? FileMode.Open : FileMode.OpenOrCreate);
+            var dataFilePath = Path.Combine(this.CacheDirectory, "main_file_cache.dat2");
+
+            this._dataStream = System.IO.File.Open(dataFilePath, dataFileMode, fileAccess);
+
+            // Open existing index files.
+            for (var indexId = 0; indexId <= 255; indexId++)
+            {
+                var indexFile = Path.Combine(this.CacheDirectory, "main_file_cache.idx" + indexId);
+
+                if (!System.IO.File.Exists(indexFile))
+                {
+                    continue;
+                }
+
+                this._indexStreams.Add((CacheIndex)indexId, System.IO.File.Open(indexFile, FileMode.Open, fileAccess));
+            }
+        }
+
+        private void CloseStreams()
+        {
+            this._dataStream.Close();
+            this._dataStream = null;
+
+            foreach (var indexStream in this._indexStreams.Values)
+            {
+                indexStream.Close();
+            }
+            this._indexStreams.Clear();
+        }
+
+        /// <summary>
+        /// Reads the sectors that make up the requested file.
+        /// </summary>
+        /// <param name="filesize">Contains the size of the file contained in the sectors</param>
+        private IEnumerable<Sector> GetFileSectors(CacheIndex index, int fileId, out int filesize)
+        {
+            if (!this._indexStreams.ContainsKey(index))
+            {
+                throw new CacheFileNotFoundException($"Cannot read from index {(int)index} as it does not exist.");
+            }
+
+            var indexReader = new BinaryReader(this._indexStreams[index]);
+            var indexPosition = (long)fileId * JavaClientCache.IndexPointerSize;
+            if (indexPosition < 0 || indexPosition >= indexReader.BaseStream.Length)
+            {
+                throw new CacheFileNotFoundException($"File {fileId} is outside of index {(int)index}'s file bounds.");
+            }
+
+            var sectors = new List<Sector>();
+            indexReader.BaseStream.Position = indexPosition;
+
+            filesize = indexReader.ReadUInt24BigEndian();
+            var firstSectorPosition = indexReader.ReadUInt24BigEndian();
+            if (filesize <= 0)
+            {
+                throw new CacheFileNotFoundException(
+                    $"File {fileId} in index {(int)index} has no size meaning it is not stored in the cache."
+                );
+            }
+
+            var chunkId = 0;
+            var remaining = filesize;
+            var dataReader = new BinaryReader(this._dataStream);
+            var sectorPosition = firstSectorPosition;
+            do
+            {
+                dataReader.BaseStream.Position = sectorPosition * Sector.Size;
+
+                var sectorBytes = dataReader.ReadBytesExactly(Sector.Size);
+                var sector = Sector.Decode(sectorPosition, sectorBytes, index, fileId, chunkId++);
+
+                var bytesRead = Math.Min(sector.Payload.Length, remaining);
+
+                remaining -= bytesRead;
+
+                sectors.Add(sector);
+
+                sectorPosition = sector.NextSectorPosition.Value;
+            }
+            while (remaining > 0);
+
+            return sectors;
         }
     }
 }

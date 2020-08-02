@@ -174,8 +174,8 @@ namespace Villermen.RuneScapeCacheTools.Cache.JavaClient
         /// </summary>
         public byte[] Encode()
         {
-            var dataStream = new MemoryStream(new byte[Sector.Size]);
-            var dataWriter = new BinaryWriter(dataStream);
+            using var dataStream = new MemoryStream(new byte[Sector.Size]);
+            using var dataWriter = new BinaryWriter(dataStream);
 
             if (this.Extended)
             {

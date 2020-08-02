@@ -78,7 +78,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             cache.PutFile(index, fileId, file1);
 
             // Refresh a reference table cache to make sure everything read after this point is freshly obtained
-            (cache as ReferenceTableCache)?.FlushCachedReferenceTables();
+            (cache as ReferenceTableCache)?.ClearCachedReferenceTables();
 
             var file2 = cache.GetFile(index, fileId);
 

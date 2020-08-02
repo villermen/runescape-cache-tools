@@ -145,8 +145,6 @@ namespace Villermen.RuneScapeCacheTools.File
                 compressedDataStream.CopyTo(bzip2InputStream);
                 bzip2InputStream.Position = 0;
 
-                var sdjfojd = bzip2InputStream.ToArray();
-
                 using var outputStream = new MemoryStream();
                 BZip2.Decompress(bzip2InputStream, outputStream, true);
                 return outputStream.ToArray();
@@ -189,11 +187,8 @@ namespace Villermen.RuneScapeCacheTools.File
             if (compressionType == CompressionType.Bzip2)
             {
                 using var outputStream = new MemoryStream();
-                BZip2.Compress(new MemoryStream(data), outputStream, true, 9);
-
-                var sdajofdas = outputStream.ToArray();
-
-                // Remove BZh1.
+                BZip2.Compress(new MemoryStream(data), outputStream, true, 1);
+                // Remove BZh1 (note that 1 is the block size/compression level).
                 return outputStream.ToArray().Skip(4).ToArray();
             }
 
