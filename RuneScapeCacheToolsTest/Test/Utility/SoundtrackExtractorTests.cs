@@ -2,20 +2,16 @@
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Test.Fixture;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Villermen.RuneScapeCacheTools.Test.Utility
 {
     [Collection(TestCacheCollection.Name)]
     public class SoundtrackExtractorTests
     {
-        private ITestOutputHelper Output { get; }
-
         private TestCacheFixture Fixture { get; }
 
-        public SoundtrackExtractorTests(ITestOutputHelper output, TestCacheFixture fixture)
+        public SoundtrackExtractorTests(TestCacheFixture fixture)
         {
-            this.Output = output;
             this.Fixture = fixture;
         }
 
@@ -55,8 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
         [InlineData("Black Zabeth LIVE!", "Black Zabeth LIVE!.ogg", 15, false)] // Fixing invalid filenames (Actual name is "Black Zabeth: LIVE!" which is invalid on Windows)
         public void TestExtract(string trackName, string expectedFilename, int expectedVersion, bool lossless)
         {
-            var startTime = DateTime.UtcNow;
-            this.Fixture.SoundtrackExtractor.Extract(true, lossless, false, trackName);
+            this.Fixture.SoundtrackExtractor.ExtractSoundtrack(true, lossless, false, new [] { trackName });
 
             var expectedOutputPath = $"soundtrack/{expectedFilename}";
 
@@ -64,8 +59,12 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
             Assert.True(System.IO.File.Exists(expectedOutputPath), $"{expectedFilename} should've been created during extraction.");
 
             // Verify that it has been created during this test
-            var modifiedTime = System.IO.File.GetLastWriteTimeUtc(expectedOutputPath);
-            Assert.True(modifiedTime >= startTime, $"{expectedFilename}'s modified time was not updated during extraction (so probably was not extracted).");
+            var writeTime = DateTimeOffset.UtcNow;
+            DateTimeOffset modifiedTime = System.IO.File.GetLastAccessTimeUtc(expectedOutputPath);
+            Assert.False(
+                modifiedTime.ToUnixTimeSeconds() < writeTime.ToUnixTimeSeconds(),
+                $"{expectedFilename}'s modified time ({modifiedTime:u}) was less than writing time ({writeTime:u})."
+            );
 
             var version = this.Fixture.SoundtrackExtractor.GetVersionFromExportedTrackFile($"soundtrack/{expectedFilename}");
 

@@ -28,13 +28,13 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             if (sourceCache == null)
             {
                 Console.WriteLine("No cache source specified.");
-                return 2;
+                return Program.ExitCodeInvalidArgument;
             }
 
             if (this.ArgumentParser.FileFilter == null || this.ArgumentParser.FileFilter.Item1.Length == 0)
             {
                 Console.WriteLine("No files to extract specified.");
-                return 2;
+                return Program.ExitCodeInvalidArgument;
             }
 
             using var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory ?? "files")
@@ -59,7 +59,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 });
             }
 
-            return 0;
+            return Program.ExitCodeOk;
         }
     }
 }

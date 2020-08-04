@@ -4,8 +4,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
     {
         SourceCache,
         Files,
-        SoundtrackFilter,
-        Flac,
         OutputDirectory,
     }
 }

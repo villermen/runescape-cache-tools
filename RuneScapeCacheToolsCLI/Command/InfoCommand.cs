@@ -21,17 +21,17 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             if (sourceCache == null)
             {
                 Console.WriteLine("No cache source specified.");
-                return 2;
+                return Program.ExitCodeInvalidArgument;
             }
             if (this.ArgumentParser.FileFilter == null || this.ArgumentParser.FileFilter.Item1.Length == 0)
             {
                 Console.WriteLine("No index/file(s) specified.");
-                return 2;
+                return Program.ExitCodeInvalidArgument;
             }
             if (this.ArgumentParser.FileFilter.Item1.Length > 1)
             {
                 Console.WriteLine("Multiple indexes specified.");
-                return 2;
+                return Program.ExitCodeInvalidArgument;
             }
 
             var index = this.ArgumentParser.FileFilter.Item1[0];
@@ -66,7 +66,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                     Console.WriteLine($"Last files: {string.Join(", ", lastFileIds)}");
                 }
 
-                return 0;
+                return Program.ExitCodeOk;
             }
 
             // File information
@@ -141,7 +141,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 // TODO: Dive further into separate entries (like first and last bytes and size)?
             }
 
-            return 0;
+            return Program.ExitCodeOk;
         }
     }
 }

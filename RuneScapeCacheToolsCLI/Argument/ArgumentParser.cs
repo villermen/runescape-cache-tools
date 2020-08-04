@@ -11,13 +11,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public class ArgumentParser
     {
-        public bool Flac { get; private set; }
-
         public ReferenceTableCache? SourceCache { get; private set; }
 
         public Tuple<CacheIndex[], int[]>? FileFilter { get; private set; }
-
-        public string[] SoundtrackFilter { get; private set; } = {};
 
         public string[] UnparsedArguments { get; private set; } = new string[0];
 
@@ -45,26 +41,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
             switch (commonArgument)
             {
-                case CommonArgument.Flac:
-                    this.Add(
-                        "flac",
-                        "Use FLAC format instead of original OGG for a (tiny) quality improvement.",
-                        (value) => {
-                            this.Flac = true;
-                        }
-                    );
-                    break;
-
-                case CommonArgument.SoundtrackFilter:
-                    this.Add(
-                        "filter=|f",
-                        "Process only tracks containing any of the given comma-separated names. E.g., \"scape,dark\".",
-                        (value) => {
-                            this.SoundtrackFilter = value.Split(',');
-                        }
-                    );
-                    break;
-
                 case CommonArgument.OutputDirectory:
                     this.Add(
                         "output=",
@@ -132,6 +108,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             var buffer = new StringWriter();
             if (this._positionalArguments.Any())
             {
+                buffer.WriteLine("Arguments:");
                 var splitRegex = new Regex(@"^(.{0,50})(?:[ $](.{1,48}))*$");
                 foreach (var positionalArgument in this._positionalArguments)
                 {
@@ -151,8 +128,12 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                 }
             }
 
-            buffer.WriteLine("Options:");
-            this._optionSet.WriteOptionDescriptions(buffer);
+            if (this._optionSet.Any())
+            {
+                buffer.WriteLine("Options:");
+                this._optionSet.WriteOptionDescriptions(buffer);
+            }
+
             return buffer.ToString();
         }
 

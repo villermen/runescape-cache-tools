@@ -21,6 +21,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             new Dictionary<string, string>
             {
                 {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
+                {"audio", "Extract and combine the game's soundtrack."},
                 {"info", "Obtain information about a stored cache index or its files."},
             }
         );
@@ -45,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             // Handle all exceptions by showing them in the console
             try
             {
-                var commandArgument = arguments.Length > 0 ? arguments[0] : null;
+                var commandArgument = arguments.Length > 0 ? arguments[0] : "help";
 
                 BaseCommand? command = null;
                 switch (commandArgument)
@@ -58,7 +59,10 @@ namespace Villermen.RuneScapeCacheTools.CLI
                         command = new InfoCommand(argumentParser);
                         break;
 
-                    case null:
+                    case "audio":
+                        command = new AudioCommand(argumentParser);
+                        break;
+
                     case "help":
                     case "--help":
                         commandArgument = "help";
@@ -111,7 +115,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 }
 
                 Log.Fatal(exception.Message + "\n" + exception.StackTrace);
-                return 2;
+                return Program.ExitCodeError;
             }
         }
 
@@ -161,7 +165,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
             Console.WriteLine($"Usage: {name} {commandArgument} [...options] {positionalHelp}");
             Console.WriteLine(Program.Commands[commandArgument]);
-            Console.WriteLine("Arguments:");
             Console.WriteLine(argumentParser.GetDescription());
         }
 	}
