@@ -12,9 +12,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             this.ArgumentParser = argumentParser;
         }
 
-        public IList<string> Configure(IEnumerable<string> arguments)
+        public void Configure(IEnumerable<string> arguments)
         {
-            return this.ArgumentParser.ParseArguments(arguments);
+            this.ArgumentParser.ParseArguments(arguments);
         }
 
         public abstract int Run();

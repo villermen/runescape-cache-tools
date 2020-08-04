@@ -87,7 +87,6 @@
     <Compile Include="Command\InfoCommand.cs" />
     <Compile Include="Command\ExtractCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
-    <Compile Include="Command\HelpCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

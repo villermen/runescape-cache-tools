@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NDesk.Options;
 using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.Downloader;
-using Villermen.RuneScapeCacheTools.Cache.JavaClient;
 using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Argument
@@ -16,23 +15,21 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
         public ReferenceTableCache? SourceCache { get; private set; }
 
-        public Tuple<CacheIndex[], int[]> FileFilter { get; private set; } = new Tuple<CacheIndex[], int[]>(
-            new CacheIndex[0],
-            new int[0]
-        );
+        public Tuple<CacheIndex[], int[]>? FileFilter { get; private set; }
 
         public string[] SoundtrackFilter { get; private set; } = {};
 
+        public string[] UnparsedArguments { get; private set; } = new string[0];
+
         public IEnumerable<string> PositionalArgumentNames => this._positionalArguments.Select(argument => argument.Item1);
+
+        public string? OutputDirectory { get; private set; }
 
         private readonly IList<CommonArgument> _commonArguments = new List<CommonArgument>();
 
         private readonly OptionSet _optionSet = new OptionSet();
 
         private readonly IList<Tuple<string, string, Action<string>>> _positionalArguments = new List<Tuple<string, string, Action<string>>>();
-
-        private string _outputDirectory = "files";
-        private bool _overwriteFiles = false;
 
         public void Add(string prototype, string description, Action<string> action)
         {
@@ -61,22 +58,19 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                 case CommonArgument.SoundtrackFilter:
                     this.Add(
                         "filter=|f",
-                        "Process only tracks containing any ofthe given comma-separated names. E.g., \"scape,dark\".",
+                        "Process only tracks containing any of the given comma-separated names. E.g., \"scape,dark\".",
                         (value) => {
                             this.SoundtrackFilter = value.Split(',');
                         }
                     );
                     break;
 
-                case CommonArgument.OutputCache:
+                case CommonArgument.OutputDirectory:
                     this.Add(
                         "output=",
-                        "Extract files to this directory.",
-                        (value) => this._outputDirectory = value
+                        "Write to this directory.",
+                        (value) => this.OutputDirectory = value
                     );
-                    this.Add("overwrite", "Overwrite files if they already exist.", (value) => {
-                        this._overwriteFiles = true;
-                    });
                     break;
 
                 case CommonArgument.SourceCache:
@@ -92,10 +86,10 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                     );
                     break;
 
-                case CommonArgument.FileFilter:
-                    this.Add(
-                        "filter=|f",
-                        "Process only files matching the given pattern. E.g., \"40-42/\" for all files in indexes 40 through 42 or \"5/1,10\" for files 1 and 10 from index 5.",
+                case CommonArgument.Files:
+                    this.AddPositional(
+                        "files",
+                        "Index(es)/file(s) to process. E.g., \"15\", \"15/12\" or \"15,40/1-100\".",
                         (value) => this.FileFilter = ArgumentParser.ParseFileFilter(value)
                     );
                     break;
@@ -112,7 +106,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             this._positionalArguments.Add(new Tuple<string, string, Action<string>>(name, description, action));
         }
 
-        public IList<string> ParseArguments(IEnumerable<string> arguments)
+        public void ParseArguments(IEnumerable<string> arguments)
         {
             var unparsedArguments1 = this._optionSet.Parse(arguments);
             var unparsedArguments2 = new List<string>();
@@ -130,12 +124,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                 this._positionalArguments[positionalArgumentIndex++].Item3(unparsedArgument);
             }
 
-            if (positionalArgumentIndex < this._positionalArguments.Count - 1)
-            {
-                throw new ArgumentException($"Missing required positionial argument \"{this._positionalArguments[positionalArgumentIndex].Item1}\".");
-            }
-
-            return unparsedArguments2;
+            this.UnparsedArguments = unparsedArguments2.ToArray();
         }
 
         public string GetDescription()
@@ -143,14 +132,26 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             var buffer = new StringWriter();
             if (this._positionalArguments.Any())
             {
+                var splitRegex = new Regex(@"^(.{0,50})(?:[ $](.{1,48}))*$");
                 foreach (var positionalArgument in this._positionalArguments)
                 {
-                    buffer.WriteLine($"      {positionalArgument.Item1.PadRight(23)}{positionalArgument.Item2}");
-                    // TODO: Line splitting?
+                    var match = splitRegex.Match(positionalArgument.Item2);
+                    if (!match.Success)
+                    {
+                        throw new System.Exception("Please inform me that I don't know how to do regex.");
+                    }
+
+                    var splitDescription = match.Groups[1].Value;
+                    foreach (var capture in match.Groups[2].Captures)
+                    {
+                        splitDescription += $"\n                               {capture}";
+                    }
+
+                    buffer.WriteLine($"      {positionalArgument.Item1.PadRight(23)}{splitDescription}");
                 }
-                buffer.WriteLine();
             }
 
+            buffer.WriteLine("Options:");
             this._optionSet.WriteOptionDescriptions(buffer);
             return buffer.ToString();
         }
@@ -212,14 +213,6 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
             }
 
             this.SourceCache = sourceCache;
-        }
-
-        public FlatFileCache GetOutputCache()
-        {
-            return new FlatFileCache(this._outputDirectory)
-            {
-                OverwriteFiles = this._overwriteFiles,
-            };
         }
     }
 }

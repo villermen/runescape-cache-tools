@@ -9,13 +9,10 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class InfoCommand : BaseCommand
     {
-        private Tuple<CacheIndex[], int[]>? _fileFilter;
-
         public InfoCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
             this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
-            this.ArgumentParser.AddCommon(CommonArgument.FileFilter);
-            this.ArgumentParser.AddPositional("index", "The index/file to list information of, like \"15\" or \"15/12\".", (value) => this._fileFilter = ArgumentParser.ParseFileFilter(value));
+            this.ArgumentParser.AddCommon(CommonArgument.Files);
         }
 
         public override int Run()
@@ -26,19 +23,19 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 Console.WriteLine("No cache source specified.");
                 return 2;
             }
-            if (this._fileFilter == null || this._fileFilter.Item1.Length == 0)
+            if (this.ArgumentParser.FileFilter == null || this.ArgumentParser.FileFilter.Item1.Length == 0)
             {
-                Console.WriteLine("No index/file specified.");
+                Console.WriteLine("No index/file(s) specified.");
                 return 2;
             }
-            if (this._fileFilter.Item1.Length > 1)
+            if (this.ArgumentParser.FileFilter.Item1.Length > 1)
             {
                 Console.WriteLine("Multiple indexes specified.");
                 return 2;
             }
 
-            var index = this._fileFilter.Item1[0];
-            var fileIds = this._fileFilter.Item2;
+            var index = this.ArgumentParser.FileFilter.Item1[0];
+            var fileIds = this.ArgumentParser.FileFilter.Item2;
 
             // Index information
             if (fileIds.Length == 0)

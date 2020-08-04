@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -12,11 +13,15 @@ namespace Villermen.RuneScapeCacheTools.CLI
 {
     public class Program
     {
+        public const int ExitCodeOk = 0;
+        public const int ExitCodeError = 1;
+        public const int ExitCodeInvalidArgument = 2;
+
         public static readonly IDictionary<string, string> Commands = new ReadOnlyDictionary<string, string>(
             new Dictionary<string, string>
             {
                 {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
-                {"info", "Obtain information about a stored cache index."},
+                {"info", "Obtain information about a stored cache index or its files."},
             }
         );
 
@@ -40,7 +45,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             // Handle all exceptions by showing them in the console
             try
             {
-                var commandArgument = arguments.Length > 0 ? arguments[0] : "help";
+                var commandArgument = arguments.Length > 0 ? arguments[0] : null;
 
                 BaseCommand? command = null;
                 switch (commandArgument)
@@ -52,32 +57,50 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     case "info":
                         command = new InfoCommand(argumentParser);
                         break;
+
+                    case null:
+                    case "help":
+                    case "--help":
+                        commandArgument = "help";
+                        break;
                 }
 
-                IList<string> unparsedArguments = new List<string>();
-                if (command != null)
+                if (command == null)
                 {
-                    unparsedArguments = command.Configure(arguments.Skip(1));
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return commandArgument == "help" ? Program.ExitCodeOk : Program.ExitCodeInvalidArgument;
                 }
 
-                // Can be true because of switch or because of --help argument. ArgumentParser is configured for the
-                // other command so we can list command-specific help.
-                if (command == null || showHelp)
+                command.Configure(arguments.Skip(1));
+
+                // Show help, now with configured argument parser for command-specific help.
+                if (showHelp)
                 {
-                    command = new HelpCommand(argumentParser, commandArgument);
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return Program.ExitCodeOk;
                 }
-                else if (unparsedArguments.Any())
+
+                if (argumentParser.UnparsedArguments.Any())
                 {
                     // Do not accept invalid arguments because they usually indicate faulty usage
-                    foreach (var unparsedArgument in unparsedArguments)
+                    foreach (var unparsedArgument in argumentParser.UnparsedArguments)
                     {
                         Console.WriteLine($"Unknown argument \"{unparsedArgument}\".");
                     }
 
-                    return 1;
+                    Console.WriteLine();
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return Program.ExitCodeInvalidArgument;
                 }
 
-                return command.Run();
+                var exitCode = command.Run();
+                if (exitCode == Program.ExitCodeInvalidArgument)
+                {
+                    Console.WriteLine();
+                    Program.ShowHelp(argumentParser, commandArgument);
+                }
+
+                return exitCode;
             }
             catch (System.Exception exception)
             {
@@ -90,6 +113,56 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 Log.Fatal(exception.Message + "\n" + exception.StackTrace);
                 return 2;
             }
+        }
+
+        private static void ShowHelp(ArgumentParser argumentParser, string commandArgument)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var name = assembly.GetName().Name;
+
+            if (!Program.Commands.ContainsKey(commandArgument))
+            {
+                if (commandArgument == "help")
+                {
+                    // Show program info.
+                    var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
+                    var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
+                    Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
+                    Console.WriteLine(description);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    // Show invalid command message.
+                    Console.WriteLine($"Invalid command \"{commandArgument}\".");
+                    Console.WriteLine();
+                }
+
+                // Show generic help.
+                Console.WriteLine($"Usage: {name} [command] [...options]");
+
+                // Show help for all available commands.
+                foreach (var pair in Program.Commands)
+                {
+                    Console.WriteLine($"      {pair.Key.PadRight(23)}{pair.Value}");
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Run {name} [command] --help for available options for a command.");
+                return;
+            }
+
+            // Show help for specific command.
+            var positionalHelp = "";
+            if (argumentParser.PositionalArgumentNames.Any())
+            {
+                positionalHelp = $"[{string.Join("] [", argumentParser.PositionalArgumentNames)}]";
+            }
+
+            Console.WriteLine($"Usage: {name} {commandArgument} [...options] {positionalHelp}");
+            Console.WriteLine(Program.Commands[commandArgument]);
+            Console.WriteLine("Arguments:");
+            Console.WriteLine(argumentParser.GetDescription());
         }
 	}
 }

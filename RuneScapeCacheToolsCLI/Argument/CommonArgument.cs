@@ -2,11 +2,10 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public enum CommonArgument
     {
-        Overwrite,
         SourceCache,
-        FileFilter,
+        Files,
         SoundtrackFilter,
         Flac,
-        OutputCache,
+        OutputDirectory,
     }
 }
