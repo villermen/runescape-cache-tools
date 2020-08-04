@@ -122,7 +122,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
         private static void ShowHelp(ArgumentParser argumentParser, string commandArgument)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var name = assembly.GetName().Name;
 
             if (!Program.Commands.ContainsKey(commandArgument))
             {
@@ -144,7 +143,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 }
 
                 // Show generic help.
-                Console.WriteLine($"Usage: {name} [command] [...options]");
+                Console.WriteLine("Usage: rsct.exe [command] [...options]");
 
                 // Show help for all available commands.
                 foreach (var pair in Program.Commands)
@@ -152,7 +151,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                     Console.WriteLine($"      {pair.Key.PadRight(23)}{pair.Value}");
                 }
                 Console.WriteLine();
-                Console.WriteLine($"Run {name} [command] --help for available options for a command.");
+                Console.WriteLine("Run rsct.exe [command] --help for available options for a command.");
                 return;
             }
 
@@ -163,7 +162,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 positionalHelp = $"[{string.Join("] [", argumentParser.PositionalArgumentNames)}]";
             }
 
-            Console.WriteLine($"Usage: {name} {commandArgument} [...options] {positionalHelp}");
+            Console.WriteLine($"Usage: rsct.exe {commandArgument} [...options] {positionalHelp}");
             Console.WriteLine(Program.Commands[commandArgument]);
             Console.WriteLine(argumentParser.GetDescription());
         }
