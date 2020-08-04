@@ -47,9 +47,6 @@ namespace Villermen.RuneScapeCacheTools.Model
         /// </summary>
         public byte[] EncryptionKey { get; set; }
 
-        // TODO: Verify (again) that files without entries define 1 or 0 entries. Which could help in creating 👇
-        // TODO: HasEntries or something
-
         /// <summary>
         /// TODO: Find out what identifiers are actually used for.
         /// </summary>

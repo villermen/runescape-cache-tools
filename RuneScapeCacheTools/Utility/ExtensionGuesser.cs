@@ -26,8 +26,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
             {"wav", new [] { new byte[] { 0x52, 0x49, 0x46, 0x46 }}}, // RIFF - Same as above.
             {"tar", new [] { new byte[] { 0x75, 0x73, 0x74, 0x61, 0x72 }}}, // ustar - Same as above.
             {"7z", new [] { new byte[] { 0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c }}}, // 0x377abcaf271c
-
-            // TODO: Add .entries (we need to use info for that)
         };
 
         public static string? GuessExtension(byte[] fileData)
