@@ -1,109 +1,231 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
-using log4net;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
-using Villermen.RuneScapeCacheTools.Exceptions;
-using Villermen.RuneScapeCacheTools.Extensions;
+using Serilog;
+using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 {
-    public class TcpFileDownloader : IFileDownloader, IDisposable
+    public class TcpFileDownloader : IDisposable
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(TcpFileDownloader));
+        /// <summary>
+        /// The amount of bytes the content server sends us each time.
+        /// </summary>
+        private const int BlockSize = 102400;
 
         /// <summary>
-        /// The minor version is needed to correctly connect to the content server.
-        /// This seems to always be 1.
+        /// Required to correctly connect to the content server.
         /// </summary>
-        private const int ContentVersionMinor = 1;
+        private const byte HandshakeType = 15;
 
-        private const Language Language = Cache.Language.English;
-
-        private const int BlockLength = 102400;
-
-        /// <summary>
-        ///  The handshake type is needed to correctly connect to the content server.
-        /// </summary>
-        private const byte HandshakeType  = 15;
-
+        /**
+         * No idea what these are for but this is the amount of integers read out directly after connecting to the
+         * content server.
+         */
         private const int LoadingRequirements = 27;
 
         /// <summary>
-        /// The regex used to obtain the content server handshake key from the set <see cref="_keyPage" />.
-        /// The first capture group needs to result in the key.
+        /// Only one processor may be running at a time.
         /// </summary>
-        private static readonly Regex KeyFilter = new Regex(@"<param\s+name=""\-?\d+""\s+value=""([^""]{32})""");
-
-        private readonly string _contentHost;
-
-        private readonly int _contentPort;
-
-        private readonly string _keyPage;
-
         private readonly object _processorLock = new object();
-
-        /// <summary>
-        /// The major version is needed to correctly connect to the content server.
-        /// If connection states the version is outdated, the <see cref="_contentVersionMajor" /> will be increased until it is accepted.
-        /// </summary>
-        private int _contentVersionMajor = 913;
 
         private TcpClient _contentClient;
 
         private bool _connected = false;
 
-        private ConcurrentDictionary<Tuple<Index, int>, FileRequest> FileRequests { get; } =
-            new ConcurrentDictionary<Tuple<Index, int>, FileRequest>();
+        private readonly ConcurrentDictionary<Tuple<CacheIndex, int>, TcpFileRequest> _fileRequests = new ConcurrentDictionary<Tuple<CacheIndex, int>, TcpFileRequest>();
 
-        public TcpFileDownloader(string contentHost = "content.runescape.com", int contentPort = 43594, string keyPage = "http://world21.runescape.com")
-        {
-            this._contentHost = contentHost;
-            this._contentPort = contentPort;
-            this._keyPage = keyPage;
-        }
-
-        public async Task<BinaryFile> DownloadFileAsync(Index index, int fileId, CacheFileInfo fileInfo = null)
+        public byte[] DownloadFileData(CacheIndex index, int fileId)
         {
             // Add the request, or get an existing one
-            var request = this.FileRequests.GetOrAdd(
-                new Tuple<Index, int>(index, fileId),
-                new FileRequest(index, fileId, fileInfo));
+            var requestKey = new Tuple<CacheIndex, int>(index, fileId);
+            var request = this._fileRequests.GetOrAdd(requestKey, tuple => new TcpFileRequest());
 
-            Task.Run(new Action(this.ProcessRequests));
+            Task.Run(this.ProcessRequests);
 
-            return await request.WaitForCompletionAsync();
+            return request.WaitForCompletionAsync().Result;
         }
 
-        private string GetKey()
+        /// <summary>
+        /// Requests all files to be requested and processes
+        /// </summary>
+        private void ProcessRequests()
         {
-            var request = WebRequest.CreateHttp(this._keyPage);
-            using (var response = request.GetResponse())
+            // We simply exit when no lock can be obtained instead of queueing additional processors for every request.
+            // Race conditions are highly unlikely here because the processor will remain active for a while after all
+            // requests are completed.
+            if (!Monitor.TryEnter(this._processorLock))
             {
-                var responseStream = response.GetResponseStream();
+                return;
+            }
 
-                if (responseStream == null)
+            try
+            {
+                if (!this._connected)
                 {
-                    throw new DownloaderException($"No handshake key could be obtained from \"{this._keyPage}\".");
+                    this.Connect();
                 }
 
-                var reader = new StreamReader(responseStream);
-                var responseString = reader.ReadToEnd();
+                Log.Debug("Starting TCP response processor...");
 
-                var key = TcpFileDownloader.KeyFilter.Match(responseString).Groups[1].Value;
-
-                if (string.IsNullOrWhiteSpace(key))
+                if (this._contentClient.Available > 0)
                 {
-                    throw new DownloaderException("Obtained TCP handshake key is empty.");
+                    throw new DownloaderException(
+                        "Started TCP response processor with data already available. Previous one probably didn't fully finish."
+                    );
                 }
 
-                return key;
+                // Keep running for up to 3 seconds after finishing for new requests to arrive.
+                var stopwatch = Stopwatch.StartNew();
+                var lastPendingMilliseconds = 0L;
+                while (stopwatch.ElapsedMilliseconds < lastPendingMilliseconds + 3000)
+                {
+                    // Request unrequested files.
+                    var pendingFileRequests = 0;
+                    foreach (var requestPair in this._fileRequests)
+                    {
+                        // Limit amount of pending file requests because we can actually overload the content server.
+                        pendingFileRequests++;
+                        if (pendingFileRequests > 10)
+                        {
+                            break;
+                        }
+
+                        if (requestPair.Value.Requested)
+                        {
+                            continue;
+                        }
+
+                        // Request the file.
+                        var writer = new BinaryWriter(this._contentClient.GetStream());
+
+                        writer.Write((byte)(requestPair.Key.Item1 == CacheIndex.ReferenceTables ? 1 : 0));
+                        writer.Write((byte)requestPair.Key.Item1);
+                        writer.WriteInt32BigEndian(requestPair.Key.Item2);
+
+                        requestPair.Value.MarkRequested(stopwatch.ElapsedMilliseconds);
+                    }
+
+                    // Read one block (we want to prioritize sending the requests so we wait less).
+                    if (this._contentClient.Available >= 5)
+                    {
+                        var reader = new BinaryReader(this._contentClient.GetStream());
+
+                        var positionInBlock = 0;
+
+                        // Check which file this chunk is for
+                        var index = (CacheIndex)reader.ReadByte();
+                        positionInBlock += 1;
+                        var awkwardFileId = reader.ReadUInt32BigEndian();
+                        positionInBlock += 4;
+                        // First bit seems to be a flag that is 0 for reference tables and 1 for regular files.
+                        // var regularFile = awkwardFileId >> 31;
+                        var fileId = (int)(awkwardFileId & 0x7fffffff);
+
+                        var requestKey = new Tuple<CacheIndex, int>(index, fileId);
+
+                        if (!this._fileRequests.ContainsKey(requestKey))
+                        {
+                            throw new DownloaderException($"Retrieved data for file {(int)requestKey.Item1}/{requestKey.Item2} which wasn't requested.");
+                        }
+
+                        var fileRequest = this._fileRequests[requestKey];
+
+                        // The first part of the file contains the size information. We need to write it but also know
+                        // it here to determine the remaining size.
+                        if (!fileRequest.MetaWritten)
+                        {
+                            // This mimicks the logic in RuneTek5CacheFile.
+                            var compressionType = (CompressionType)reader.ReadByte();
+                            fileRequest.DataWriter.Write((byte)compressionType);
+                            positionInBlock += 1;
+                            var compressedSize = reader.ReadInt32BigEndian();
+                            fileRequest.DataWriter.WriteInt32BigEndian(compressedSize);
+                            positionInBlock += 4;
+                            if (compressionType != CompressionType.None)
+                            {
+                                fileRequest.DataWriter.WriteInt32BigEndian(reader.ReadInt32BigEndian());
+                                positionInBlock += 4;
+                            }
+
+                            fileRequest.RemainingSize = compressedSize;
+                            fileRequest.MarkMetaWritten();
+                        }
+
+                        var remainingBlockSize = TcpFileDownloader.BlockSize - positionInBlock;
+
+                        // If the file data can not fill the block the block will be smaller.
+                        if (remainingBlockSize > fileRequest.RemainingSize)
+                        {
+                            remainingBlockSize = fileRequest.RemainingSize;
+                        }
+
+                        fileRequest.DataWriter.Write(reader.ReadBytesExactly(remainingBlockSize));
+                        fileRequest.RemainingSize -= remainingBlockSize;
+
+                        if (fileRequest.RemainingSize <= 0)
+                        {
+                            // Remove _before_ completing so that we complete a request even if it is added right here.
+                            if (!this._fileRequests.TryRemove(requestKey, out var removedRequest))
+                            {
+                                // Should not be possible because we have a lock.
+                                throw new DownloaderException("Could not remove file request.");
+                            }
+
+                            removedRequest.MarkCompleted();
+                        }
+                    }
+
+                    // Handle individual file timeout.
+                    foreach (var requestPair in this._fileRequests)
+                    {
+                        var fileRequest = requestPair.Value;
+
+                        if (fileRequest.RequestedAtMilliseconds < stopwatch.ElapsedMilliseconds - 10000)
+                        {
+                            fileRequest.MarkFailed(new DownloaderException(
+                                $"File request for {(int)requestPair.Key.Item1}/{requestPair.Key.Item2} timed out after 10 seconds."
+                            ));
+
+                            if (!this._fileRequests.TryRemove(requestPair.Key, out _))
+                            {
+                                // Should not be possible because we have a lock.
+                                throw new DownloaderException("Could not remove file request.");
+                            }
+                        }
+                    }
+
+                    // Done at end of loop so that server slowness can't break this loop.
+                    if (pendingFileRequests > 0)
+                    {
+                        lastPendingMilliseconds = stopwatch.ElapsedMilliseconds;
+                    }
+                }
+
+                stopwatch.Stop();
+
+                Log.Debug("TCP request processor finished.");
+            }
+            catch (System.Exception exception)
+            {
+                // We blindly launch this task so exceptions are silently discarded. Fail every pending file request
+                // with the exception so it will be handled where it matters.
+                foreach (var requestPair in this._fileRequests)
+                {
+                    requestPair.Value.MarkFailed(exception);
+                }
+
+                Log.Debug("TCP request processor failed.");
+            }
+            finally
+            {
+                Monitor.Exit(this._processorLock);
             }
         }
 
@@ -114,27 +236,31 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 throw new DownloaderException("Tried to connect while already connected.");
             }
 
-            TcpFileDownloader.Logger.Debug("Connecting to content server with TCP.");
-
-            var key = this.GetKey();
-
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
+            var currentBuildNumber = ClientDetails.GetBuildNumber();
             var connected = false;
             while (!connected)
             {
-                this._contentClient = new TcpClient(this._contentHost, this._contentPort);
+                this._contentClient = new TcpClient(
+                    ClientDetails.GetContentServerHostname(),
+                    ClientDetails.GetContentServerTcpPort()
+                );
 
                 var handshakeWriter = new BinaryWriter(this._contentClient.GetStream());
                 var handshakeReader = new BinaryReader(this._contentClient.GetStream());
 
-                var handshakeLength = (byte) (9 + key.Length + 1);
+                var handshakeKey = ClientDetails.GetContentServerTcpHandshakeKey();
+
+                Log.Debug($"Attempting to connect to TCP content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}...");
+
+                var handshakeLength = (byte) (9 + handshakeKey.Length + 1);
 
                 handshakeWriter.Write(TcpFileDownloader.HandshakeType);
                 handshakeWriter.Write(handshakeLength);
-                handshakeWriter.WriteInt32BigEndian(this._contentVersionMajor);
-                handshakeWriter.WriteInt32BigEndian(TcpFileDownloader.ContentVersionMinor);
-                handshakeWriter.WriteNullTerminatedString(key);
-                handshakeWriter.Write((byte)TcpFileDownloader.Language);
+                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item1);
+                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item2);
+                handshakeWriter.WriteNullTerminatedString(handshakeKey);
+                handshakeWriter.Write((byte)Language.English);
                 handshakeWriter.Flush();
 
                 var response = (HandshakeResponse)handshakeReader.ReadByte();
@@ -143,14 +269,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case HandshakeResponse.Success:
                         connected = true;
-                        TcpFileDownloader.Logger.Info($"Successfully connected to content server with major version {this._contentVersionMajor}.");
+                        ClientDetails.SetBuildNumber(currentBuildNumber);
                         break;
 
                     case HandshakeResponse.Outdated:
                         this._contentClient.Dispose();
                         this._contentClient = null;
-                        TcpFileDownloader.Logger.Info($"Requested connection used outdated version {this._contentVersionMajor}. Retrying with higher major version.");
-                        this._contentVersionMajor++;
+                        currentBuildNumber = new Tuple<int, int>(currentBuildNumber.Item1 + 1, 1);
                         break;
 
                     default:
@@ -160,21 +285,20 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 }
             }
 
-            // Required loading element sizes. They are unnsed by this tool and I have no idea what they are for. So yeah...
+            Log.Debug($"Successfully connected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
+
+            // Required loading element sizes.
             var contentReader = new BinaryReader(this._contentClient.GetStream());
-            contentReader.ReadBytes(TcpFileDownloader.LoadingRequirements * 4);
+            contentReader.ReadBytesExactly(TcpFileDownloader.LoadingRequirements * 4);
 
-            // Send the initial connection status and login packets to the server.
-            TcpFileDownloader.Logger.Debug("Sending initial connection status and login packets.");
-
+            // Send the initial connection status and login packets to the server. I don't know what the individual
+            // writes mean but they do the trick.
+            Log.Debug("Sending initial connection status and login packets...");
             var writer = new BinaryWriter(this._contentClient.GetStream());
-
-            // I don't know what exactly, but this is how it's done
             writer.Write((byte)6);
             writer.WriteUInt24BigEndian(4);
             writer.WriteInt16BigEndian(0);
             writer.Flush();
-
             writer.Write((byte)3);
             writer.WriteUInt24BigEndian(0);
             writer.WriteInt16BigEndian(0);
@@ -183,202 +307,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             this._connected = true;
         }
 
-        private void ProcessRequests()
-        {
-            lock (this._processorLock)
-            {
-                // Check if still needed after lock is obtained
-                if (!this.FileRequests.Any())
-                {
-                    return;
-                }
-
-                if (!this._connected)
-                {
-                    this.Connect();
-                }
-
-                TcpFileDownloader.Logger.Debug("Starting TCP response processor.");
-
-                while (this.FileRequests.Any())
-                {
-                    // Request all unrequested files
-                    foreach (var requestPair in this.FileRequests.Where(request => !request.Value.Requested))
-                    {
-                        this.RequestFile(requestPair.Value);
-
-                        // TODO: Limit to x amount of pending requests
-                    }
-
-                    // Read one chunk
-                    if (this._contentClient.Available >= 5)
-                    {
-                        var reader = new BinaryReader(this._contentClient.GetStream());
-
-                        var readByteCount = 0;
-
-                        // Check which file this chunk is for
-                        var index = (Index) reader.ReadByte();
-                        var fileId = reader.ReadInt32BigEndian() & 0x7fffffff;
-
-                        readByteCount += 5;
-
-                        var requestKey = new Tuple<Index, int>(index, fileId);
-
-                        if (!this.FileRequests.ContainsKey(requestKey))
-                        {
-                            throw new DownloaderException("Invalid response received (maybe not all data was consumed by the previous operation?");
-                        }
-
-                        var request = this.FileRequests[requestKey];
-
-                        // The first part of the file always contains the filesize, which we need to know, but is also part of the file
-                        if (!request.MetaWritten)
-                        {
-                            var compressionType = (CompressionType) reader.ReadByte();
-                            var length = reader.ReadInt32BigEndian();
-
-                            readByteCount += 5;
-
-                            request.WriteMeta(compressionType, length);
-                        }
-
-                        var remainingBlockLength = TcpFileDownloader.BlockLength - readByteCount;
-
-                        if (remainingBlockLength > request.RemainingLength)
-                        {
-                            remainingBlockLength = request.RemainingLength;
-                        }
-
-                        request.WriteContent(reader.ReadBytes(remainingBlockLength));
-
-                        if (request.Completed)
-                        {
-                            // The request got completed, remove it from the list of pending requests
-                            FileRequest removedRequest;
-                            this.FileRequests.TryRemove(requestKey, out removedRequest);
-                        }
-                    }
-                }
-
-                TcpFileDownloader.Logger.Debug("TCP request processor finished.");
-            }
-        }
-
-        private void RequestFile(FileRequest request)
-        {
-            if (request.Requested)
-            {
-                throw new DownloaderException("File to be requested is already requested.");
-            }
-
-            TcpFileDownloader.Logger.Debug($"Requesting {(int)request.Index}/{request.FileId} using TCP.");
-
-            var writer = new BinaryWriter(this._contentClient.GetStream());
-
-            writer.Write((byte)(request.Index == Index.ReferenceTables ? 1 : 0));
-            writer.Write((byte)request.Index);
-            writer.WriteInt32BigEndian(request.FileId);
-
-            request.Requested = true;
-        }
-
         public void Dispose()
         {
             if (this._contentClient != null)
             {
                 this._contentClient.Dispose();
                 this._contentClient = null;
-            }
-        }
-
-        private enum HandshakeResponse
-        {
-            Undefined = -1,
-
-            Success = 0,
-            Outdated = 6,
-            InvalidKey = 48
-        }
-
-        private class FileRequest
-        {
-            private readonly CacheFileInfo _cacheFileInfo;
-            private readonly MemoryStream _dataStream = new MemoryStream();
-            private readonly TaskCompletionSource<BinaryFile> _completionSource = new TaskCompletionSource<BinaryFile>();
-            private int _fileSize;
-
-            public Index Index { get; }
-            public int FileId { get; }
-            public int RemainingLength => (int)(this._fileSize - this._dataStream.Length);
-            public bool Completed { get; private set; }
-            public bool Requested { get; set; }
-            public bool MetaWritten { get; private set; }
-
-            public FileRequest(Index index, int fileId, CacheFileInfo cacheFileInfo)
-            {
-                this.Index = index;
-                this.FileId = fileId;
-                this._cacheFileInfo = cacheFileInfo;
-            }
-
-            public void WriteMeta(CompressionType compressionType, int length)
-            {
-                if (this._dataStream.Length != 0)
-                {
-                    throw new DownloaderException("File metadata must be written before anything else.");
-                }
-
-                var writer = new BinaryWriter(this._dataStream);
-                writer.Write((byte)compressionType);
-                writer.WriteInt32BigEndian(length);
-
-                this._fileSize = 5 + (compressionType != CompressionType.None ? 4 : 0) + length;
-
-                this.MetaWritten = true;
-            }
-
-            // TODO: Change Get and Put to byte arrays?
-
-            public void WriteContent(byte[] data)
-            {
-                if (!this.MetaWritten)
-                {
-                    throw new DownloaderException("File content must be written after metadata");
-                }
-
-                if (data.Length > this.RemainingLength)
-                {
-                    throw new DownloaderException("Tried to write more bytes than were remaining in the file.");
-                }
-
-                this._dataStream.Write(data, 0, data.Length);
-
-                if (this.RemainingLength == 0)
-                {
-                    // Append file version if possible
-                    if (this._cacheFileInfo?.Version != null)
-                    {
-                        var writer = new BinaryWriter(this._dataStream);
-                        writer.WriteUInt16BigEndian((ushort)this._cacheFileInfo.Version);
-                    }
-
-                    this.Completed = true;
-
-                    var file = new BinaryFile
-                    {
-                        Info = this._cacheFileInfo
-                    };
-
-                    file.Decode(this._dataStream.ToArray());
-
-                    this._completionSource.SetResult(file);
-                }
-            }
-
-            public async Task<BinaryFile> WaitForCompletionAsync()
-            {
-                 return await this._completionSource.Task;
             }
         }
     }

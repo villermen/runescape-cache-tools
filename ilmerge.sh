@@ -1,0 +1,1 @@
+./packages/ILMerge.*/tools/net452/ILMerge.exe /out:RuneScapeCacheToolsCLI/bin/Release/rsct-merged.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll

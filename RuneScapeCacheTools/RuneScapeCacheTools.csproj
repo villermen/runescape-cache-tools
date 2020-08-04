@@ -14,6 +14,8 @@
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -48,78 +50,107 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.6.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.6.1\lib\BouncyCastle.Crypto.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FlacLibSharp, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FlacLibSharp.2.0.0\lib\20\FlacLibSharp.dll</HintPath>
+    <Reference Include="FlacLibSharp, Version=3.2.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\FlacLibSharp.3.2.0\lib\net20\FlacLibSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.2.0.246, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
+      <HintPath>..\packages\SharpZipLib.1.2.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="log4net, Version=2.0.7.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.7\lib\net45-full\log4net.dll</HintPath>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="mscorlib" />
+    <Reference Include="NVorbis, Version=0.10.0.3, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\NVorbis.0.10.1\lib\net45\NVorbis.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10">
+      <HintPath>..\packages\Serilog.2.9.0\lib\net46\Serilog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SevenZip, Version=9.20.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LZMA-SDK.9.20\lib\net20\SevenZip.dll</HintPath>
+    <Reference Include="SevenZip, Version=19.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\LZMA-SDK.19.0.0\lib\net20\SevenZip.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache\BaseVarType.cs" />
-    <Compile Include="Cache\CacheFile.cs" />
-    <Compile Include="Cache\CacheFileInfo.cs" />
+    <Compile Include="Cache\DownloaderCache.cs" />
+    <Compile Include="Cache\Downloader\HandshakeResponse.cs" />
     <Compile Include="Cache\Downloader\HttpFileDownloader.cs" />
-    <Compile Include="Cache\Downloader\IFileDownloader.cs" />
     <Compile Include="Cache\Downloader\TcpFileDownloader.cs" />
-    <Compile Include="Cache\FileTypes\BinaryFile.cs" />
-    <Compile Include="Cache\FileTypes\EntryFile.cs" />
-    <Compile Include="Cache\FileTypes\EnumFile.cs" />
-    <Compile Include="Cache\FileTypes\ItemDefinitionFile.cs" />
-    <Compile Include="Cache\Downloader\DownloaderCache.cs" />
-    <Compile Include="Cache\FileTypes\JagaFile.cs" />
-    <Compile Include="Cache\FileTypes\MasterReferenceTableFile.cs" />
-    <Compile Include="Cache\FileTypes\ReferenceTableFile.cs" />
-    <Compile Include="Cache\FlatFile\FlatFileCache.cs" />
-    <Compile Include="Cache\Index.cs" />
-    <Compile Include="Cache\Language.cs" />
+    <Compile Include="Cache\Downloader\TcpFileRequest.cs" />
+    <Compile Include="Cache\FlatFileCache.cs" />
+    <Compile Include="Cache\ICache.cs" />
+    <Compile Include="Cache\JavaClientCache.cs" />
+    <Compile Include="Cache\JavaClient\Sector.cs" />
     <Compile Include="Cache\ReferenceTableCache.cs" />
-    <Compile Include="Cache\RuneTek5\CacheFileOptions.cs" />
-    <Compile Include="Cache\RuneTek5\CompressionType.cs" />
-    <Compile Include="Cache\RuneTek5\CacheFileEntryInfo.cs" />
-    <Compile Include="Cache\RuneTek5\Sector.cs" />
-    <Compile Include="Cache\CacheBase.cs" />
-    <Compile Include="Cache\RuneTek5\RuneTek5Cache.cs" />
-    <Compile Include="Cache\ScriptVarType.cs" />
-    <Compile Include="Cache\RuneTek5\FileStore.cs" />
-    <Compile Include="Cache\RuneTek5\IndexPointer.cs" />
-    <Compile Include="Cache\ExtensionGuesser.cs" />
-    <Compile Include="Cache\Vector3.cs" />
-    <Compile Include="Exceptions\DecodeException.cs" />
-    <Compile Include="Exceptions\DownloaderException.cs" />
-    <Compile Include="Exceptions\SoundtrackException.cs" />
-    <Compile Include="Extensions\BinaryStreamExtensions.cs" />
-    <Compile Include="Extensions\Formatter.cs" />
-    <Compile Include="Extensions\PathExtensions.cs" />
+    <Compile Include="Exception\CacheException.cs" />
+    <Compile Include="Exception\CacheFileNotFoundException.cs" />
+    <Compile Include="Exception\ClientDetailsException.cs" />
+    <Compile Include="Exception\DecodeException.cs" />
+    <Compile Include="Exception\DownloaderException.cs" />
+    <Compile Include="Exception\EncodeException.cs" />
+    <Compile Include="Exception\SoundtrackException.cs" />
+    <Compile Include="File\CacheFile.cs" />
+    <Compile Include="File\EntryFile.cs" />
+    <Compile Include="File\EnumFile.cs" />
+    <Compile Include="File\ItemDefinitionFile.cs" />
+    <Compile Include="File\JagaFile.cs" />
+    <Compile Include="File\MasterReferenceTableFile.cs" />
+    <Compile Include="File\NxtModelFile.cs" />
+    <Compile Include="File\ReferenceTableFile.cs" />
+    <Compile Include="Model\BaseVarType.cs" />
+    <Compile Include="Model\CacheArchive.cs" />
+    <Compile Include="Model\CacheFileEntryInfo.cs" />
+    <Compile Include="Model\CacheFileInfo.cs" />
+    <Compile Include="Model\CacheIndex.cs" />
+    <Compile Include="Model\CompressionType.cs" />
+    <Compile Include="Model\Language.cs" />
+    <Compile Include="Model\ReferenceTableInfo.cs" />
+    <Compile Include="Model\ReferenceTableOptions.cs" />
+    <Compile Include="Model\ScriptVarType.cs" />
+    <Compile Include="Model\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Soundtrack.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Cache\RuneTek7\" />
+    <Compile Include="Utility\BinaryStreamExtensions.cs" />
+    <Compile Include="Utility\ClientDetails.cs" />
+    <Compile Include="Utility\ExtensionGuesser.cs" />
+    <Compile Include="Utility\Formatter.cs" />
+    <Compile Include="Utility\PathExtensions.cs" />
+    <Compile Include="Utility\SoundtrackExtractor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,182 +1,170 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using log4net;
-using log4net.Core;
-using Villermen.RuneScapeCacheTools.Cache;
-using Villermen.RuneScapeCacheTools.Cache.Downloader;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
-using Villermen.RuneScapeCacheTools.Cache.FlatFile;
-using Villermen.RuneScapeCacheTools.Cache.RuneTek5;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Villermen.RuneScapeCacheTools.CLI.Argument;
+using Villermen.RuneScapeCacheTools.CLI.Command;
 
 namespace Villermen.RuneScapeCacheTools.CLI
 {
     public class Program
     {
-		/// <summary>
-		/// Even when not used, this needs to be here to initialize the logging system.
-		/// </summary>
-		private static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
+        public const int ExitCodeOk = 0;
+        public const int ExitCodeError = 1;
+        public const int ExitCodeInvalidArgument = 2;
 
-	    private readonly string[] _arguments;
-		private readonly ArgumentParser _argumentParser = new ArgumentParser();
-		private CacheBase _cache;
+        public static readonly IDictionary<string, string> Commands = new ReadOnlyDictionary<string, string>(
+            new Dictionary<string, string>
+            {
+                {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
+                {"audio", "Extract and combine the game's soundtrack."},
+                {"info", "Obtain information about a stored cache index or its files."},
+            }
+        );
 
-	    private static int Main(string[] arguments)
-	    {
-#if DEBUG
-		    Console.WriteLine();
-		    Console.WriteLine("RSCT DEVELOPMENT BUILD");
-		    Console.WriteLine();
+        private static int Main(string[] arguments)
+        {
+            // Configure logging.
+            var loggingLevelSwitch = new LoggingLevelSwitch
+            {
+                MinimumLevel = LogEventLevel.Information
+            };
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(loggingLevelSwitch)
+                .WriteTo.Console()
+                .CreateLogger();
 
-		    // Set log4net log level to debug
-		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = Level.Debug;
-		    ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
-#endif
+            var showHelp = false;
+            var argumentParser = new ArgumentParser();
+            argumentParser.Add("help|version|?", "Show this message.", (value) => { showHelp = true; });
+            argumentParser.Add("verbose|v", "Increase amount of log messages.", (value) => loggingLevelSwitch.MinimumLevel = LogEventLevel.Debug);
 
-		    var returnCode = new Program(arguments).Run();
+            // Handle all exceptions by showing them in the console
+            try
+            {
+                var commandArgument = arguments.Length > 0 ? arguments[0] : "help";
 
-		    // Following code replaces hundred lines of code I would have had to write to accomplish the same with log4net...
-		    // Delete log file if it is still empty when done
-		    LogManager.GetRepository().ResetConfiguration();
-		    var logFile = new FileInfo("rsct.log");
-		    if (logFile.Exists && logFile.Length == 0)
-		    {
-			    logFile.Delete();
-		    }
+                BaseCommand? command = null;
+                switch (commandArgument)
+                {
+                    case "extract":
+                        command = new ExtractCommand(argumentParser);
+                        break;
 
-#if DEBUG
-		    Console.ReadLine();
-#endif
+                    case "info":
+                        command = new InfoCommand(argumentParser);
+                        break;
 
-		    return returnCode;
+                    case "audio":
+                        command = new AudioCommand(argumentParser);
+                        break;
+
+                    case "help":
+                    case "--help":
+                        commandArgument = "help";
+                        break;
+                }
+
+                if (command == null)
+                {
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return commandArgument == "help" ? Program.ExitCodeOk : Program.ExitCodeInvalidArgument;
+                }
+
+                command.Configure(arguments.Skip(1));
+
+                // Show help, now with configured argument parser for command-specific help.
+                if (showHelp)
+                {
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return Program.ExitCodeOk;
+                }
+
+                if (argumentParser.UnparsedArguments.Any())
+                {
+                    // Do not accept invalid arguments because they usually indicate faulty usage
+                    foreach (var unparsedArgument in argumentParser.UnparsedArguments)
+                    {
+                        Console.WriteLine($"Unknown argument \"{unparsedArgument}\".");
+                    }
+
+                    Console.WriteLine();
+                    Program.ShowHelp(argumentParser, commandArgument);
+                    return Program.ExitCodeInvalidArgument;
+                }
+
+                var exitCode = command.Run();
+                if (exitCode == Program.ExitCodeInvalidArgument)
+                {
+                    Console.WriteLine();
+                    Program.ShowHelp(argumentParser, commandArgument);
+                }
+
+                return exitCode;
+            }
+            catch (System.Exception exception)
+            {
+                // Use first exception in aggregates for easier debugging.
+                while (exception is AggregateException && exception.InnerException != null)
+                {
+                    exception = exception.InnerException;
+                }
+
+                Log.Fatal(exception.Message + "\n" + exception.StackTrace);
+                return Program.ExitCodeError;
+            }
         }
 
-	    private Program(string[] arguments)
-	    {
-	        this._arguments = arguments;
-	    }
+        private static void ShowHelp(ArgumentParser argumentParser, string commandArgument)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
 
-	    private int Run()
-	    {
-	        return this.Configure()
-	            ? this.Execute()
-	            : 1;
-	    }
-
-		private bool Configure()
-		{
-			this._argumentParser.Parse(this._arguments);
-
-			if (this._argumentParser.UnparsedArguments.Count > 0)
-			{
-				foreach (var unparsedArgument in this._argumentParser.UnparsedArguments)
-				{
-					Console.WriteLine($"Unknown argument \"{unparsedArgument}\".");
-				}
-
-			    Console.WriteLine();
-			}
-
-			if (this._argumentParser.NoActions)
-			{
-				Console.WriteLine("No actions specified.");
-				Console.WriteLine("Use either the extract or soundtrack options to actually do something.");
-				Console.WriteLine();
-			}
-
-			if (this._argumentParser.TooManyActions)
-			{
-				Console.WriteLine("Too many actions specified.");
-				Console.WriteLine("Use either the extract or soundtrack option, but not both at the same time.");
-				Console.WriteLine();
-			}
-
-		    if (this._argumentParser.ShowHelp)
+            if (!Program.Commands.ContainsKey(commandArgument))
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var name = assembly.GetName().Name;
-                var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
-                var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+                if (commandArgument == "help")
+                {
+                    // Show program info.
+                    var version = $"{assembly.GetName().Version.Major}.{assembly.GetName().Version.Minor}";
+                    var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
 
-                Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
-                Console.WriteLine(description);
+                    Console.WriteLine($"Viller's RuneScape Cache Tools v{version}.");
+                    Console.WriteLine(description);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    // Show invalid command message.
+                    Console.WriteLine($"Invalid command \"{commandArgument}\".");
+                    Console.WriteLine();
+                }
+
+                // Show generic help.
+                Console.WriteLine("Usage: rsct.exe [command] [...options]");
+
+                // Show help for all available commands.
+                foreach (var pair in Program.Commands)
+                {
+                    Console.WriteLine($"      {pair.Key.PadRight(23)}{pair.Value}");
+                }
                 Console.WriteLine();
-                Console.WriteLine($"Usage: {name} [OPTION]...");
-		        this._argumentParser.WriteOptionDescriptions(Console.Out);
-		    }
-
-		    return this._argumentParser.CanExecute;
-		}
-
-		private int Execute()
-		{
-            this._cache = this._argumentParser.Download ? (CacheBase)new DownloaderCache() : new RuneTek5Cache(this._argumentParser.CacheDirectory, true);
-
-            // Perform the specified actions
-            if (this._argumentParser.DoExtract)
-            {
-                this.Extract();
+                Console.WriteLine("Run rsct.exe [command] --help for available options for a command.");
+                return;
             }
 
-            if (this._argumentParser.DoSoundtrackCombine)
+            // Show help for specific command.
+            var positionalHelp = "";
+            if (argumentParser.PositionalArgumentNames.Any())
             {
-                this.CombineSoundtrack();
+                positionalHelp = $"[{string.Join("] [", argumentParser.PositionalArgumentNames)}]";
             }
 
-			return 0;
-		}
-
-		private void Extract()
-		{
-			var outputCache = new FlatFileCache(this._argumentParser.OutputDirectory + "files/");
-
-//            // Display progress at bottom of console without creating a new row
-//            var progress = new ExtendedProgress();
-//            progress.ProgressChanged += (p, message) =>
-//            {
-//                Console.Write($"Extraction progress: {Math.Round(progress.Percentage)}% ({progress.Current}/{progress.Total})\r");
-//            };
-
-			if (this._argumentParser.Indexes == null && this._argumentParser.FileIds != null)
-			{
-				throw new ArgumentException("If you specify files to extract you must also explicitly specify indexes to extract.");
-			}
-
-            foreach (var index in this._argumentParser.Indexes ?? this._cache.GetIndexes())
-            {
-                // Create a list of files to be extracted (requested if overwriting, missing if not)
-                var requestedFileIds = this._argumentParser.FileIds ?? this._cache.GetFileIds(index);
-                var existingFileIds = outputCache.GetFileIds(index).ToList();
-
-                var fileIds = this._argumentParser.Overwrite
-                    ? requestedFileIds
-                    : requestedFileIds.Where(fileId => !existingFileIds.Contains(fileId));
-
-                Parallel.ForEach(
-                    fileIds,
-                    new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = 10,
-                    },
-                    fileId => { this._cache.CopyFile(index, fileId, outputCache); }
-                );
-			}
-		}
-
-		private void CombineSoundtrack()
-		{
-			var soundtrack = new Soundtrack(this._cache, this._argumentParser.OutputDirectory + "soundtrack/");
-
-			if (this._argumentParser.TemporaryDirectory != null)
-			{
-				soundtrack.TemporaryDirectory = this._argumentParser.TemporaryDirectory;
-			}
-
-			soundtrack.Extract(this._argumentParser.Overwrite, this._argumentParser.Lossless,
-				this._argumentParser.IncludeUnnamedSoundtracks, this._argumentParser.SoundtrackNameFilter?.ToArray() ?? new string[0]);
-		}
+            Console.WriteLine($"Usage: rsct.exe {commandArgument} [...options] {positionalHelp}");
+            Console.WriteLine(Program.Commands[commandArgument]);
+            Console.WriteLine(argumentParser.GetDescription());
+        }
 	}
 }

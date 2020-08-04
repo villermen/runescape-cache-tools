@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Villermen")]
 [assembly: AssemblyProduct("RuneScapeCacheToolsCLI")]
-[assembly: AssemblyCopyright("Copyright © 2019")]
+[assembly: AssemblyCopyright("Copyright © 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -35,7 +35,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("3.1")]
-[assembly: AssemblyFileVersion("3.1")]
-
-[assembly: log4net.Config.XmlConfigurator(Watch = true)]
+[assembly: AssemblyVersion("4.0")]
+[assembly: AssemblyFileVersion("4.0")]

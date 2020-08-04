@@ -1,95 +1,101 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using Villermen.RuneScapeCacheTools.Cache.FileTypes;
+using System.Linq;
+using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.File;
+using Villermen.RuneScapeCacheTools.Model;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
-    /// A cache that stores information on its files in reference tables in index 255.
+    /// A cache that stores information on its files in <see cref="ReferenceTableFile" />s in index 255.
     /// </summary>
-    public abstract class ReferenceTableCache : CacheBase
+    public abstract class ReferenceTableCache : ICache
     {
-        private ConcurrentDictionary<Index, ReferenceTableFile> _cachedReferenceTables =
-            new ConcurrentDictionary<Index, ReferenceTableFile>();
-        
-        private List<Index> _changedReferenceTableIndexes = new List<Index>();
+        /// <summary>
+        /// Reference tables are kept in memory so they don't have to be obtained again for every file.
+        /// </summary>
+        private readonly ConcurrentDictionary<CacheIndex, ReferenceTableFile> _cachedReferenceTables = new ConcurrentDictionary<CacheIndex, ReferenceTableFile>();
 
-        public ReferenceTableFile GetReferenceTable(Index index, bool createIfNotFound = false)
+        public abstract IEnumerable<CacheIndex> GetAvailableIndexes();
+
+        public ReferenceTableFile GetReferenceTable(CacheIndex index, bool createIfNotFound = false)
         {
             // Obtain the reference table either from our own cache or the actual cache
-            return this._cachedReferenceTables.GetOrAdd(index, regardlesslyDiscarded =>
+            if (this._cachedReferenceTables.ContainsKey(index))
+            {
+                return this._cachedReferenceTables[index];
+            }
+
+            return this._cachedReferenceTables.GetOrAdd(index, _ =>
             {
                 try
                 {
-                    return this.GetFile<ReferenceTableFile>(Index.ReferenceTables, (int)index);
+                    var file = this.GetFile(CacheIndex.ReferenceTables, (int)index);
+                    return ReferenceTableFile.Decode(file.Data);
                 }
-                catch (FileNotFoundException) when (createIfNotFound)
+                catch (CacheFileNotFoundException) when (createIfNotFound)
                 {
-                    return new ReferenceTableFile
-                    {
-                        Info = new CacheFileInfo
-                        {
-                            Index = Index.ReferenceTables,
-                            FileId = (int)index
-                        }
-                    };
+                    return new ReferenceTableFile();
                 }
             });
         }
 
-        public sealed override CacheFileInfo GetFileInfo(Index index, int fileId)
-        {
-            if (index != Index.ReferenceTables)
-            {
-                return this.GetReferenceTable(index).GetFileInfo(fileId);
-            }
-
-            return new CacheFileInfo
-            {
-                Index = index,
-                FileId = fileId
-                // TODO: Compression for reference tables? Compression by default?
-            };
-        }
-
-        protected sealed override void PutFileInfo(CacheFileInfo fileInfo)
-        {
-            // Reference tables don't need no reference tables of their own 
-            if (fileInfo.Index != Index.ReferenceTables)
-            {
-                this.GetReferenceTable(fileInfo.Index, true).SetFileInfo(fileInfo.FileId.Value, fileInfo);
-                this._changedReferenceTableIndexes.Add(fileInfo.Index);
-            }
-        }
-
-        public sealed override IEnumerable<int> GetFileIds(Index index)
+        public IEnumerable<int> GetAvailableFileIds(CacheIndex index)
         {
             return this.GetReferenceTable(index).FileIds;
         }
 
-        /// <summary>
-        /// Writes changes made to the locally cached reference tables and clears the local cache.
-        /// </summary>
-        public void FlushCachedReferenceTables()
+        public CacheFile GetFile(CacheIndex index, int fileId)
         {
-            foreach (var tableIndex in this._changedReferenceTableIndexes)
+            var fileInfo = this.GetFileInfo(index, fileId);
+            var fileData = this.GetFileData(index, fileId);
+            return CacheFile.Decode(fileData, fileInfo);
+        }
+
+        public CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
+        {
+            // Return empty info for reference tables themselves.
+            if (index == CacheIndex.ReferenceTables)
             {
-                this.PutFile(this._cachedReferenceTables[tableIndex]);
+                return new CacheFileInfo();
             }
-            
-            this._changedReferenceTableIndexes.Clear();
+
+            if (!this.GetAvailableFileIds(index).Contains(fileId))
+            {
+                throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist.");
+            }
+
+            return this.GetReferenceTable(index).GetFileInfo(fileId);
+        }
+
+        protected abstract byte[] GetFileData(CacheIndex index, int fileId);
+
+        public void PutFile(CacheIndex index, int fileId, CacheFile file)
+        {
+            if (index == CacheIndex.ReferenceTables)
+            {
+                throw new ArgumentException("Manually writing files to the reference table index is not allowed.");
+            }
+
+            this.PutFileData(index, fileId, file.Encode());
+
+            // Write updated reference table.
+            var referenceTable = this.GetReferenceTable(index, true);
+            referenceTable.SetFileInfo(fileId, file.Info);
+            var referenceTableFile = new CacheFile(referenceTable.Encode());
+            referenceTableFile.Info.CompressionType = CompressionType.Bzip2;
+            this.PutFileData(CacheIndex.ReferenceTables, (int)index, referenceTableFile.Encode());
+        }
+
+        protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data);
+
+        public void ClearCachedReferenceTables()
+        {
             this._cachedReferenceTables.Clear();
         }
 
-        public override void Dispose()
-        {
-            this.FlushCachedReferenceTables();
-            
-            base.Dispose();
-            
-            this._cachedReferenceTables = null;
-            this._changedReferenceTableIndexes = null;
-        }
+        public abstract void Dispose();
     }
 }
