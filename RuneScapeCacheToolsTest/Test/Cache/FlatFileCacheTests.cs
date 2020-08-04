@@ -14,75 +14,54 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
     {
         private readonly TestCacheFixture _fixture;
 
-        private readonly ITestOutputHelper _output;
-
         private readonly FlatFileCache _outputFlatFileCache;
 
-        public FlatFileCacheTests(TestCacheFixture fixture, ITestOutputHelper output)
+        public FlatFileCacheTests(TestCacheFixture fixture)
         {
             this._fixture = fixture;
-            this._output = output;
             this._outputFlatFileCache = new FlatFileCache("output");
         }
 
         [Theory]
         [InlineData(CacheIndex.ClientScripts, 3)]
-        public void TestPutFile(CacheIndex index, int fileId)
+        public void TestPutAndGetFile(CacheIndex index, int fileId)
         {
             var expectedFilePath = $"output/{(int)index}/{fileId}";
 
-            var startTime = DateTime.UtcNow - TimeSpan.FromSeconds(1);
-
-            this._outputFlatFileCache.PutFile(
-                index,
-                fileId,
-                this._fixture.FlatFileCache.GetFile(index, fileId)
+            // Read file from fixture and put it into our own cache.
+            var file1 = this._fixture.FlatFileCache.GetFile(index, fileId);
+            this._outputFlatFileCache.PutFile(index, fileId, file1);
+            Assert.True(
+                System.IO.File.Exists(expectedFilePath),
+                $"File was not extracted, or not extracted to {expectedFilePath}."
             );
 
-            Assert.True(System.IO.File.Exists(expectedFilePath), $"File was not extracted, or not extracted to {expectedFilePath}.");
-
-            var modifiedTime = System.IO.File.GetLastAccessTimeUtc(expectedFilePath);
-
-            Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
-        }
-
-        [Theory(Skip = "Entries are no longer split out by default.")]
-        [InlineData(CacheIndex.Enums, 5, 65)]
-        public void TestFileWithEntries(CacheIndex index, int fileId, int entryId)
-        {
-            var expectedFilePath = $"output/{(int)index}/{fileId}/{entryId}";
-
-            var file = EntryFile.DecodeFromCacheFile(this._fixture.FlatFileCache.GetFile(index, fileId));
-            this._outputFlatFileCache.PutFile(index, fileId, file.EncodeToCacheFile());
-
-            FlatFileCacheTests.AssertFileExistsAndModified(expectedFilePath);
-
-            // Readback
-            // TODO: Won't work because info is discarded in flatfile.
-            var readFile = EntryFile.DecodeFromCacheFile(this._outputFlatFileCache.GetFile(index, fileId));
-
-            Assert.Equal(file.Entries.Count, readFile.Entries.Count);
-            Assert.Equal(
-                file.Entries[entryId].Length,
-                readFile.Entries[entryId].Length
+            // Ensure that the file was modified by this test as it could just be a leftover from last test.
+            var writeTime = DateTimeOffset.UtcNow;
+            DateTimeOffset modifiedTime = System.IO.File.GetLastAccessTimeUtc(expectedFilePath);
+            Assert.False(
+                modifiedTime.ToUnixTimeSeconds() < writeTime.ToUnixTimeSeconds(),
+                $"File modified time ({modifiedTime:u}) was less than writing time ({writeTime:u})."
             );
+
+            var file2 = this._outputFlatFileCache.GetFile(index, fileId);
+            Assert.Equal(file1.Data, file2.Data);
         }
 
         [Theory]
-        [InlineData(CacheIndex.LoadingSprites, 30556)]
-        public void TestFileWithExtension(CacheIndex index, int fileId)
+        [InlineData(CacheIndex.LoadingSprites, 30462, ".jpg")]
+        [InlineData(CacheIndex.Enums, 5, ".entries")]
+        public void TestFileWithExtension(CacheIndex index, int fileId, string expectedExtension)
         {
-            var file = this._fixture.FlatFileCache.GetFile(index, fileId);
+            // We use JavaClientCache to source the file because FlatFileCache doesn't preserve entry information.
+            var file = this._fixture.JavaClientCache.GetFile(index, fileId);
             this._outputFlatFileCache.PutFile(index, fileId, file);
 
-            // Verify that the .jpg extension was added
-            var expectedFilePath = $"output/{(int)CacheIndex.LoadingSprites}/30556.jpg";
+            var expectedFilePath = $"output/{(int)index}/{fileId}{expectedExtension}";
             FlatFileCacheTests.AssertFileExistsAndModified(expectedFilePath);
 
-            // Readback
             var readFile = this._outputFlatFileCache.GetFile(index, fileId);
-
-            Assert.Equal(file.Data.Length, readFile.Data.Length);
+            Assert.Equal(file.Data, readFile.Data);
         }
 
         private static void AssertFileExistsAndModified(string filePath)

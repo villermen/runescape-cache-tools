@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Serilog;
+using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -63,9 +64,18 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public CacheFile GetFile(CacheIndex index, int fileId)
         {
-            // This might match more than one file (e.g., one with a different extension). Just take the first one.
-            var path = this.GetExistingFilePaths(index, fileId).First();
-            return new CacheFile(System.IO.File.ReadAllBytes(path));
+            var paths = this.GetExistingFilePaths(index, fileId).ToArray();
+
+            if (paths.Length == 0)
+            {
+                throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist.");
+            }
+            if (paths.Length > 1)
+            {
+                Log.Warning($"Multiple valid files where found for {(int)index}/{fileId}. Returning the first one.");
+            }
+
+            return new CacheFile(System.IO.File.ReadAllBytes(paths[0]));
         }
 
         public void PutFile(CacheIndex index, int fileId, CacheFile file)

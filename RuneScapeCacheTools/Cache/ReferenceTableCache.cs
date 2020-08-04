@@ -64,7 +64,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             if (!this.GetAvailableFileIds(index).Contains(fileId))
             {
-                throw new ArgumentException($"File {fileId} does not exist in index {(int)index}.");
+                throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist.");
             }
 
             return this.GetReferenceTable(index).GetFileInfo(fileId);
@@ -76,7 +76,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             if (index == CacheIndex.ReferenceTables)
             {
-                throw new ArgumentException("You can't manually write files to the reference table index.");
+                throw new ArgumentException("Manually writing files to the reference table index is not allowed.");
             }
 
             this.PutFileData(index, fileId, file.Encode());

@@ -8,9 +8,8 @@ using Villermen.RuneScapeCacheTools.Model;
 namespace Villermen.RuneScapeCacheTools.Cache
 {
     /// <summary>
-    /// The <see cref="DownloaderCache" /> provides the means to download current cache files from the runescape
-    /// servers. Downloading uses 2 different interfaces depending on the <see cref="CacheIndex" /> of the requested
-    /// file: The original TCP based interface and a newer HTTP interface.
+    /// Downloads current cache files from RuneScape's content servers. This class is thread-safe to quickly process
+    /// files in parallel.
     /// </summary>
     public class DownloaderCache : ReferenceTableCache
     {

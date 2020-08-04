@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Test.Fixture;
 using Xunit;

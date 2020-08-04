@@ -20,7 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         }
 
         /// <summary>
-        /// Test for a file that exists, an archive file that exists and a file that doesn't exist.
+        /// Test for a file that exists, an entry file that exists and a file that doesn't exist.
         /// </summary>
         [Theory]
         [InlineData(typeof(JavaClientCache))]
@@ -37,7 +37,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.True(entryCacheFile.Data.Length > 0);
 
             // FlatFileCache doesn't do info (yet?).
-            if (cacheType == typeof(FlatFileCache))
+            if (cacheType != typeof(FlatFileCache))
             {
                 var entryFile = EntryFile.DecodeFromCacheFile(entryCacheFile);
             }

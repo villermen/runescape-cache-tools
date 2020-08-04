@@ -51,7 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public override IEnumerable<CacheIndex> GetAvailableIndexes()
         {
-            return this._indexStreams.Keys;
+            return this._indexStreams.Keys.Where(index => index != CacheIndex.ReferenceTables);
         }
 
         public override void Dispose()
