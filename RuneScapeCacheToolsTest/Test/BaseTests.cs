@@ -15,7 +15,7 @@ namespace Villermen.RuneScapeCacheTools.Test
             Assert.True(System.IO.File.Exists(filePath));
 
             DateTimeOffset modifiedTime = System.IO.File.GetLastAccessTimeUtc(filePath);
-            Assert.True(
+            Assert.False(
                 modifiedTime.ToUnixTimeSeconds() < this._startTime.ToUnixTimeSeconds(),
                 $"File modified time ({modifiedTime:u}) was less than test start time ({this._startTime:u})."
             );
