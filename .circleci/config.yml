@@ -23,7 +23,7 @@ jobs:
 
             - run:
                 name: Test
-                command: mono --debug packages/xunit.runner.console.*/tools/xunit.console.exe RuneScapeCacheToolsTest/bin/Release/RuneScapeCacheToolsTest.dll
+                command: mono --debug packages/xunit.runner.console.*/tools/net461/xunit.console.exe RuneScapeCacheToolsTest/bin/Release/RuneScapeCacheToolsTest.dll
 
             - run:
                 name: Merge assemblies
