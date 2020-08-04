@@ -123,23 +123,26 @@ namespace Villermen.RuneScapeCacheTools.Utility
             {
                 var jagaFile = JagaFile.Decode(cacheFile.Data);
 
-                // Obtain names for the temporary files. We can't use the id as filename, because we are going full parallel.
-                var chunkFilenames = this.GetTemporaryFilenames(jagaFile.ChunkCount);
+                // Obtain random paths for chunk files. We can't use the IDs because we are going full parallel.
+                var chunkPaths = this.GetTemporaryFilenames(jagaFile.ChunkCount);
 
                 // Write out the files
-                System.IO.File.WriteAllBytes(chunkFilenames[0], jagaFile.ContainedChunkData);
+                System.IO.File.WriteAllBytes(chunkPaths[0], jagaFile.ContainedChunkData);
                 for (var chunkIndex = 1; chunkIndex < jagaFile.ChunkCount; chunkIndex++)
                 {
                     var chunkFile = this.Cache.GetFile(CacheIndex.Music, jagaFile.ChunkDescriptors[chunkIndex].FileId);
-                    System.IO.File.WriteAllBytes(chunkFilenames[chunkIndex], chunkFile.Data);
+                    System.IO.File.WriteAllBytes(chunkPaths[chunkIndex], chunkFile.Data);
                 }
 
-                // Delete existing file in case combiner application doesn't do overwriting properly
-                System.IO.File.Delete(outputPath);
+                // Delete existing file in case combiner application doesn't do overwriting properly.
+
+                // We write to a temporary file and then move it to the output path to be sure the file is fully
+                // processed first.
+                var temporaryOutputPath = this.GetTemporaryFilenames(1)[0];
 
                 // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
                 var soxArguments = new List<string>();
-                foreach (var chunkFilename in chunkFilenames)
+                foreach (var chunkFilename in chunkPaths)
                 {
                     soxArguments.Add($"\"{chunkFilename}\"");
                 }
@@ -150,7 +153,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 soxArguments.Add("--add-comment \"COMMENT=Extracted by Viller's RuneScape Cache Tools\"");
                 soxArguments.Add("--add-comment \"COPYRIGHT=Jagex Ltd.\"");
                 soxArguments.Add($"-C {compressionQuality}");
-                soxArguments.Add($"\"{outputPath}\"");
+                soxArguments.Add($"\"{temporaryOutputPath}\"");
 
                 // Combine the chunks.
                 var combineProcess = new Process
@@ -180,10 +183,14 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 combineProcess.WaitForExit();
 
-                // Remove temporary files
-                foreach (var randomTemporaryFilename in chunkFilenames)
+                // Move output to correct path.
+                System.IO.File.Delete(outputPath);
+                System.IO.File.Move(temporaryOutputPath, outputPath);
+
+                // Remove temporary files.
+                foreach (var temporaryFilename in chunkPaths)
                 {
-                    System.IO.File.Delete(randomTemporaryFilename);
+                    System.IO.File.Delete(temporaryFilename);
                 }
 
                 if (combineProcess.ExitCode != 0)
