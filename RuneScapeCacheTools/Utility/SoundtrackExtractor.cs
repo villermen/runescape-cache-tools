@@ -137,7 +137,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 // We write to a temporary file and then move it to the output path to be sure the file is fully
                 // processed first.
-                var temporaryOutputPath = this.GetTemporaryFilenames(1)[0];
+                var temporaryOutputPath = this.GetTemporaryFilenames(1)[0] + (lossless ? ".flac" : ".ogg");
 
                 // Create argument to supply to SoX (http://sox.sourceforge.net/sox.html)
                 var soxArguments = new List<string>();
@@ -326,7 +326,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
             else if (path.EndsWith(".flac"))
             {
                 using var flacFile = new FlacFile(path);
-                if (flacFile.VorbisComment.ContainsField("VERSION"))
+                if (flacFile.VorbisComment != null && flacFile.VorbisComment.ContainsField("VERSION"))
                 {
                     return int.Parse(flacFile.VorbisComment["VERSION"].Value);
                 }
