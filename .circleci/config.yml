@@ -24,12 +24,3 @@ jobs:
             - run:
                 name: Test
                 command: mono --debug packages/xunit.runner.console.*/tools/net461/xunit.console.exe RuneScapeCacheToolsTest/bin/Release/RuneScapeCacheToolsTest.dll
-
-            - run:
-                name: Merge assemblies
-                command: |
-                    nuget install ILRepack -OutputDirectory packages &&
-                    mono packages/ILRepack.*/tools/ILRepack.exe /out:artifacts/rsct.exe RuneScapeCacheToolsCLI/bin/Release/rsct.exe RuneScapeCacheToolsCLI/bin/Release/*.dll
-
-            - store_artifacts:
-                path: artifacts/
