@@ -5,6 +5,8 @@ namespace Villermen.RuneScapeCacheTools.Exception
     [Serializable]
     public class SoundtrackException : CacheException
     {
+        public bool IsSoxError = false;
+
         public SoundtrackException()
         {
         }

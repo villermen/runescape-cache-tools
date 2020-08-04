@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.CLI.Argument;
+using Villermen.RuneScapeCacheTools.Exception;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
@@ -42,23 +44,29 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 OverwriteFiles = !this._preserve,
             };
 
-            var indexes = this.ArgumentParser.FileFilter.Item1.Length > 0
-                ? this.ArgumentParser.FileFilter.Item1
-                : sourceCache.GetAvailableIndexes();
-
-            foreach (var index in indexes)
+            foreach (var index in this.ArgumentParser.FileFilter.Item1)
             {
-                var files = this.ArgumentParser.FileFilter.Item2.Length > 0
+                var fileIds = this.ArgumentParser.FileFilter.Item2.Length > 0
                     ? this.ArgumentParser.FileFilter.Item2
                     : sourceCache.GetAvailableFileIds(index);
 
-                Parallel.ForEach(files, (fileId) =>
+                Parallel.ForEach(fileIds, (fileId) =>
                 {
-                    var file = sourceCache.GetFile(index, fileId);
-                    outputCache.PutFile(index, fileId, file);
+                    try
+                    {
+                        var file = sourceCache.GetFile(index, fileId);
+                        outputCache.PutFile(index, fileId, file);
+
+                        Log.Information($"File {(int)index}/{fileId}: Extracted.");
+                    }
+                    catch (CacheFileNotFoundException exception)
+                    {
+                        Log.Information($"File {(int)index}/{fileId}: {exception.Message}");
+                    }
                 });
             }
 
+            Console.WriteLine("Extraction completed.");
             return Program.ExitCodeOk;
         }
     }

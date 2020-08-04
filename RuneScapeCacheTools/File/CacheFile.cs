@@ -56,12 +56,6 @@ namespace Villermen.RuneScapeCacheTools.File
 
             var data = CacheFile.DecompressData(compressionType, dataReader.ReadBytesExactly(compressedSize), uncompressedSize);
 
-            if (compressionType == CompressionType.None)
-            {
-                // Uncompressed size includes meta bytes for info when not using compression.
-                uncompressedSize = (int)dataStream.Position;
-            }
-
             // Compressed size includes meta bytes for info.
             compressedSize = (int)dataStream.Position;
 
@@ -73,12 +67,20 @@ namespace Villermen.RuneScapeCacheTools.File
                 );
             }
 
-            // Verify uncompressed size. Info's uncompressed size includes meta bytes
+            // Verify uncompressed size.
             if (info.UncompressedSize != null && uncompressedSize != info.UncompressedSize)
             {
-                throw new DecodeException(
-                    $"Uncompressed size ({data.Length}) does not match expected ({info.UncompressedSize})."
-                );
+                // Some uncompressed files _do_ seem to include meta bytes into the uncompressed size. Allow for now.
+                // TODO: Figure out when uncompressed size includes the meta bytes. Is this only true for audio files?
+                var message = $"Uncompressed size ({uncompressedSize}) does not equal expected ({info.UncompressedSize}).";
+                if (compressionType == CompressionType.None && uncompressedSize + 5 == info.UncompressedSize)
+                {
+                    Log.Debug(message + " (allowed)");
+                }
+                else
+                {
+                    throw new DecodeException(message);
+                }
             }
 
             // Calculate and verify CRC.

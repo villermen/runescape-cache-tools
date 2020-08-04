@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FlacLibSharp;
 using NVorbis;
@@ -75,9 +76,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             Log.Information("Obtained soundtrack names and file IDs.");
 
-            Directory.CreateDirectory(this.OutputDirectory);
-            Directory.CreateDirectory(this.TemporaryDirectory);
-
             if (trackNameFilters.Length > 0)
             {
                 trackNames = trackNames.Where(trackNamePair => trackNameFilters.Any(nameFilter =>
@@ -99,8 +97,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 var jagaCacheFile = this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key);
                 this.ExtractIfJagaFile(jagaCacheFile, trackNamePair.Value, overwrite, lossless);
             });
-
-            Log.Information("Done combining soundtracks.");
         }
 
         public void ExtractIfJagaFile(CacheFile cacheFile, string trackName, bool overwrite = false, bool lossless = false)
@@ -121,6 +117,9 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             try
             {
+                Directory.CreateDirectory(this.OutputDirectory);
+                Directory.CreateDirectory(this.TemporaryDirectory);
+
                 var jagaFile = JagaFile.Decode(cacheFile.Data);
 
                 // Obtain random paths for chunk files. We can't use the IDs because we are going full parallel.
@@ -168,7 +167,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                     }
                 };
 
-                Log.Debug("Running sox " + soxArguments);
+                Log.Debug($"Running sox with {soxArguments.Count} chunks.");
 
                 combineProcess.Start();
 
@@ -183,10 +182,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 combineProcess.WaitForExit();
 
-                // Move output to correct path.
-                System.IO.File.Delete(outputPath);
-                System.IO.File.Move(temporaryOutputPath, outputPath);
-
                 // Remove temporary files.
                 foreach (var temporaryFilename in chunkPaths)
                 {
@@ -195,8 +190,15 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 if (combineProcess.ExitCode != 0)
                 {
-                    throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {trackName}.");
+                    throw new SoundtrackException($"SoX returned with error code {combineProcess.ExitCode} for {trackName}.")
+                    {
+                        IsSoxError = true
+                    };
                 }
+
+                // Move output to correct path.
+                System.IO.File.Delete(outputPath);
+                System.IO.File.Move(temporaryOutputPath, outputPath);
 
                 Log.Information($"Combined {trackName}.");
             }

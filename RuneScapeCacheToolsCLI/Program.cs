@@ -108,8 +108,8 @@ namespace Villermen.RuneScapeCacheTools.CLI
             }
             catch (System.Exception exception)
             {
-                // Use first exception in aggregate for easier debugging.
-                if (exception is AggregateException && exception.InnerException != null)
+                // Use first exception in aggregates for easier debugging.
+                while (exception is AggregateException && exception.InnerException != null)
                 {
                     exception = exception.InnerException;
                 }
