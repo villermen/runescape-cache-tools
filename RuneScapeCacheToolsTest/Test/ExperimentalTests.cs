@@ -32,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Test
                 {
                     try
                     {
-                        var entryFile = EntryFile.Decode(this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId));
+                        var entryFile = EntryFile.DecodeFromCacheFile(this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId));
 
                         foreach (var entry in entryFile.Entries.Values)
                         {

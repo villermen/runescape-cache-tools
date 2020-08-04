@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.File
@@ -15,121 +15,140 @@ namespace Villermen.RuneScapeCacheTools.File
     {
         public readonly SortedDictionary<int, byte[]> Entries = new SortedDictionary<int, byte[]>();
 
-        public static EntryFile Decode(CacheFile file)
+        /// <exception cref="DecodeException"></exception>
+        public static EntryFile DecodeFromCacheFile(CacheFile cacheFile)
+        {
+            if (!cacheFile.Info.HasEntries)
+            {
+                throw new DecodeException("Passed CacheFile does not have entries to decode.");
+            }
+
+            return EntryFile.Decode(cacheFile.Data, cacheFile.Info.Entries.Keys.ToArray());
+        }
+
+        /// <exception cref="DecodeException"></exception>
+        public static EntryFile Decode(byte[] data, int[] entryIds)
         {
             /*
-             * Format visualization:
-             * chunk1 data:                      [entry1chunk1][entry2chunk1]
-             * chunk2 data:                      [entry1chunk2][entry2chunk2]
-             * delta-encoded chunk1 entry sizes: [entry1chunk1size][entry2chunk1size]
-             * delta-encoded chunk2 entry sizes: [entry1chunk2size][entry2chunk2size]
-             *                                   [chunkamount (2)]
+             * Format visualization (e = entry, c = chunk):
+             * Chunk data: [e1c1][e2c1][e3c1] [e1c2][e2c2][e3c1]
+             * Delta-encoded chunk sizes: [e1c1][e2c1][e3c1] [e1c2][e2c2][e3c2]
+             * [amountOfChunks]
              *
-             * Add entry1chunk2 to entry1chunk1 and voilà, unnecessarily complex bullshit solved.
+             * I have no idea why it works back to front either =S
              */
 
-            var entriesData = new byte[file.Info.Entries.Count][];
+            using var dataStream = new MemoryStream(data, false);
+            using var dataReader = new BinaryReader(dataStream);
 
-            var reader = new BinaryReader(new MemoryStream(file.Data));
+            var amountOfEntries = entryIds.Length;
 
-            reader.BaseStream.Position = reader.BaseStream.Length - 1;
-            var amountOfChunks = reader.ReadByte();
-
+            // Read the amount of chunks.
+            dataStream.Position = dataStream.Length - 1;
+            var amountOfChunks = dataReader.ReadByte();
             if (amountOfChunks == 0)
             {
-                throw new DecodeException("Entry file contains no chunks.");
+                throw new DecodeException("Entry file contains no chunks = no entries.");
             }
 
-            // Read the sizes of the child entries and individual chunks
-            var sizesStartPosition = reader.BaseStream.Length - 1 - amountOfChunks * file.Info.Entries.Count * 4;
-            reader.BaseStream.Position = sizesStartPosition;
+            // Read the delta-encoded chunk sizes.
+            var sizesStartPosition = dataStream.Length - 1 - 4 * amountOfChunks * amountOfEntries;
+            dataStream.Position = sizesStartPosition;
 
-            var chunkEntrySizes = new int[amountOfChunks, file.Info.Entries.Count];
-
-            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            var entryChunkSizes = new int[amountOfEntries, amountOfChunks];
+            for (var chunkIndex = 0; chunkIndex < amountOfChunks; chunkIndex++)
             {
                 var chunkSize = 0;
-                for (var entryIndex = 0; entryIndex < file.Info.Entries.Count; entryIndex++)
+                for (var entryIndex = 0; entryIndex < amountOfEntries; entryIndex++)
                 {
-                    // Read the delta encoded chunk length
-                    var delta = reader.ReadInt32BigEndian();
+                    var delta = dataReader.ReadInt32BigEndian();
                     chunkSize += delta;
-
-                    // Store the size of this entry in this chunk
-                    chunkEntrySizes[chunkId, entryIndex] = chunkSize;
+                    entryChunkSizes[entryIndex, chunkIndex] = chunkSize;
                 }
             }
 
-            // Read the data
-            reader.BaseStream.Position = 0;
-            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            // Read the entry data.
+            var entryData = new byte[amountOfEntries][];
+            dataStream.Position = 0;
+            for (var chunkIndex = 0; chunkIndex < amountOfChunks; chunkIndex++)
             {
-                for (var entryIndex = 0; entryIndex < file.Info.Entries.Count; entryIndex++)
+                for (var entryIndex = 0; entryIndex < amountOfEntries; entryIndex++)
                 {
-                    // Read the bytes of the entry into the archive entries
-                    var entrySize = chunkEntrySizes[chunkId, entryIndex];
-                    var entryData = reader.ReadBytesExactly(entrySize);
+                    // Read the chunk data.
+                    var entrySize = entryChunkSizes[entryIndex, chunkIndex];
+                    var chunkData = dataReader.ReadBytesExactly(entrySize);
 
-                    if (entryData.Length != entrySize)
-                    {
-                        throw new EndOfStreamException("End of file reached while reading the archive.");
-                    }
-
-                    // Put or append the entry data to the result
-                    entriesData[entryIndex] = chunkId == 0 ? entryData : entriesData[entryIndex].Concat(entryData).ToArray();
+                    // Add the chunk data to the entry data.
+                    entryData[entryIndex] = chunkIndex == 0 ? chunkData : entryData[entryIndex].Concat(chunkData).ToArray();
                 }
             }
 
-            if (reader.BaseStream.Position != sizesStartPosition)
+            if (dataStream.Position != sizesStartPosition)
             {
-                throw new DecodeException($"Not all data or too much data was read while constructing entry file. {sizesStartPosition - reader.BaseStream.Position} bytes remain.");
+                throw new DecodeException(
+                    $"Not all or too much data was consumed while constructing entry file. {sizesStartPosition - dataStream.Position} bytes remain."
+                );
             }
 
             // Create file and add the entries.
             var entryFile = new EntryFile();
-            var entryIds = file.Info.Entries.Keys.ToArray();
-            for (var entryIndex = 0; entryIndex < entriesData.Length; entryIndex++)
+            for (var entryIndex = 0; entryIndex < amountOfEntries; entryIndex++)
             {
-                entryFile.Entries.Add(entryIds[entryIndex], entriesData[entryIndex]);
+                entryFile.Entries.Add(entryIds[entryIndex], entryData[entryIndex]);
             }
 
             return entryFile;
         }
 
-        // TODO: Encode to RuneTek5File with info instead? Or allow passing of info that will have entry info filled out?
-        public byte[] Encode()
+        public byte[] Encode(out int[] entryIds)
         {
-            var memoryStream = new MemoryStream();
-            var writer = new BinaryWriter(memoryStream);
+            using var dataStream = new MemoryStream();
+            using var dataWriter = new BinaryWriter(dataStream);
 
+            // I don't know why splitting into chunks is necessary/desired so I just use one. This also happens to
+            // greatly simplify this logic.
             foreach (var entryData in this.Entries.Values)
             {
-                writer.Write(entryData);
+                dataWriter.Write(entryData);
             }
 
-            // Split entries into multiple chunks TODO: when to split?
-            byte amountOfChunks = 1;
-
-            for (var chunkId = 0; chunkId < amountOfChunks; chunkId++)
+            // Write delta encoded entry sizes.
+            var previousEntrySize = 0;
+            foreach (var entryData in this.Entries.Values)
             {
-                // Write delta encoded entry sizes
-                var previousEntrySize = 0;
-                foreach (var entryData in this.Entries.Values)
-                {
-                    var entrySize = entryData.Length;
+                var entrySize = entryData.Length;
+                var delta = entrySize - previousEntrySize;
 
-                    var delta = entrySize - previousEntrySize;
+                dataWriter.WriteInt32BigEndian(delta);
 
-                    writer.WriteInt32BigEndian(delta);
-
-                    previousEntrySize = entrySize;
-                }
+                previousEntrySize = entrySize;
             }
 
-            // Finish of with the amount of chunks
-            writer.Write(amountOfChunks);
+            // Write amount of chunks.
+            dataWriter.Write((byte)1);
 
-            return memoryStream.ToArray();
+            // Technically you could obtain the entry IDs by doing this yourself but this is more explicit.
+            entryIds = this.Entries.Keys.ToArray();
+
+            return dataStream.ToArray();
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="CacheFile" /> with the encoded entry data and entry info set.
+        /// </summary>
+        public CacheFile EncodeToCacheFile()
+        {
+            var data = this.Encode(out var entryIds);
+            return new CacheFile(data)
+            {
+                Info =
+                {
+                    Entries = new SortedDictionary<int, CacheFileEntryInfo>(entryIds.ToDictionary(
+                        elementId => elementId,
+                        entryId => new CacheFileEntryInfo()
+                    ))
+                }
+            };
         }
     }
 }

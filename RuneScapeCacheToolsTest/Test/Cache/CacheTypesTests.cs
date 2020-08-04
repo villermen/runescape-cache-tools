@@ -30,22 +30,17 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         {
             var cache = this._fixture.GetCache(cacheType);
 
-            var scriptFileData = cache.GetFile(CacheIndex.ClientScripts, 3).Data;
+            var scriptFile = cache.GetFile(CacheIndex.ClientScripts, 3);
+            Assert.True(scriptFile.Data.Length > 0);
 
-            Assert.True(scriptFileData.Length > 0, "File's data is empty.");
+            var entryCacheFile = cache.GetFile(CacheIndex.Enums, 5);
+            Assert.True(entryCacheFile.Data.Length > 0);
 
-            var encodedEntryFile = cache.GetFile(CacheIndex.Enums, 5);
-
-            // Downloader cache changes too frequently, and flatfile cache doesn't do info
-            if (cacheType == typeof(JavaClientCache))
+            // FlatFileCache doesn't do info (yet?).
+            if (cacheType == typeof(FlatFileCache))
             {
-                Assert.Equal(1495007468, encodedEntryFile.Info.Version);
-                Assert.Equal(CompressionType.Gzip, encodedEntryFile.Info.CompressionType);
+                var entryFile = EntryFile.DecodeFromCacheFile(entryCacheFile);
             }
-
-            var entryFile = EntryFile.Decode(encodedEntryFile);
-            var entry = entryFile.Entries[255];
-            Assert.True(entry.Length > 0, "Archive entry's data is empty.");
 
             Assert.Throws<CacheFileNotFoundException>(() =>
             {

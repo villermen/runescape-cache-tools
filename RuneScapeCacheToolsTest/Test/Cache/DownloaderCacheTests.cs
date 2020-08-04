@@ -17,14 +17,6 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         }
 
         [Fact]
-        public void TestGetFileWithEntries()
-        {
-            var entryFile = EntryFile.Decode(this.Fixture.DownloaderCache.GetFile(CacheIndex.Enums, 5));
-
-            Assert.Equal(249, entryFile.Entries.Count);
-        }
-
-        [Fact]
         public void TestDownloadReferenceTable()
         {
             this.Fixture.DownloaderCache.GetReferenceTable(CacheIndex.ClientScripts);

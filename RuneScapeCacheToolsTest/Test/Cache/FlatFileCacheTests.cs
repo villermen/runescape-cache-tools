@@ -46,19 +46,20 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.True(startTime <= modifiedTime, $"Starting time of test ({startTime}) was not earlier or equal to extracted file modified time ({modifiedTime}).");
         }
 
-        [Theory]
+        [Theory(Skip = "Entries are no longer split out by default.")]
         [InlineData(CacheIndex.Enums, 5, 65)]
         public void TestFileWithEntries(CacheIndex index, int fileId, int entryId)
         {
             var expectedFilePath = $"output/{(int)index}/{fileId}/{entryId}";
 
-            var file = EntryFile.Decode(this._fixture.FlatFileCache.GetFile(index, fileId));
-            this._outputFlatFileCache.PutFile(index, fileId, new CacheFile(file.Encode()));
+            var file = EntryFile.DecodeFromCacheFile(this._fixture.FlatFileCache.GetFile(index, fileId));
+            this._outputFlatFileCache.PutFile(index, fileId, file.EncodeToCacheFile());
 
             FlatFileCacheTests.AssertFileExistsAndModified(expectedFilePath);
 
             // Readback
-            var readFile = EntryFile.Decode(this._outputFlatFileCache.GetFile(index, fileId));
+            // TODO: Won't work because info is discarded in flatfile.
+            var readFile = EntryFile.DecodeFromCacheFile(this._outputFlatFileCache.GetFile(index, fileId));
 
             Assert.Equal(file.Entries.Count, readFile.Entries.Count);
             Assert.Equal(

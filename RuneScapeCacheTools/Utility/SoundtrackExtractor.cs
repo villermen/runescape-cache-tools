@@ -222,7 +222,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
 
-            var enumEntryFile = EntryFile.Decode(this.Cache.GetFile(CacheIndex.Enums, 5));
+            var enumEntryFile = EntryFile.DecodeFromCacheFile(this.Cache.GetFile(CacheIndex.Enums, 5));
 
             // int track id : string track name
             var trackNames = EnumFile.Decode(enumEntryFile.Entries[65]);
