@@ -6,7 +6,7 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.File
 {
     [Collection(TestCacheCollection.Name)]
-    public class JagaFileTests
+    public class JagaFileTests : BaseTests
     {
         private TestCacheFixture Fixture { get; }
 

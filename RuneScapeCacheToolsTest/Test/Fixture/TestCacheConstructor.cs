@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test.Fixture
 {
-    public class TestCacheConstructor
+    public class TestCacheConstructor : BaseTests
     {
         /// <summary>
         /// Downloads and stores files necessary to perform all tests.

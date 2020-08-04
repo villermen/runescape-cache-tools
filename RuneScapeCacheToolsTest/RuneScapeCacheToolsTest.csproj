@@ -68,11 +68,12 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Test\Cache\CacheTypesTests.cs" />
-    <Compile Include="Test\Cache\DownloaderCacheTests.cs" />
-    <Compile Include="Test\Cache\FlatFileCacheTests.cs" />
-    <Compile Include="Test\File\CacheFileTests.cs" />
-    <Compile Include="Test\File\EntryFileTests.cs" />
+    <Compile Include="Test\BaseTests.cs" />
+    <Compile Include="Test\Cache\CacheTypes.cs" />
+    <Compile Include="Test\Cache\DownloaderCache.cs" />
+    <Compile Include="Test\Cache\FlatFileCache.cs" />
+    <Compile Include="Test\File\CacheFile.cs" />
+    <Compile Include="Test\File\EntryFile.cs" />
     <Compile Include="Test\File\ItemDefinitionFileTests.cs" />
     <Compile Include="Test\File\JagaFileTests.cs" />
     <Compile Include="Test\File\ReferenceTableFileTests.cs" />

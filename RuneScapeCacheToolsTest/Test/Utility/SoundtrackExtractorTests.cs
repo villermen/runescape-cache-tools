@@ -6,7 +6,7 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.Utility
 {
     [Collection(TestCacheCollection.Name)]
-    public class SoundtrackExtractorTests
+    public class SoundtrackExtractorTests : BaseTests
     {
         private TestCacheFixture Fixture { get; }
 
@@ -55,16 +55,8 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
 
             var expectedOutputPath = $"soundtrack/{expectedFilename}";
 
-            // Verify that Soundscape.ogg has been created
-            Assert.True(System.IO.File.Exists(expectedOutputPath), $"{expectedFilename} should've been created during extraction.");
-
             // Verify that it has been created during this test
-            var writeTime = DateTimeOffset.UtcNow;
-            DateTimeOffset modifiedTime = System.IO.File.GetLastAccessTimeUtc(expectedOutputPath);
-            Assert.False(
-                modifiedTime.ToUnixTimeSeconds() < writeTime.ToUnixTimeSeconds(),
-                $"{expectedFilename}'s modified time ({modifiedTime:u}) was less than writing time ({writeTime:u})."
-            );
+            this.AssertFileExistsAndModified(expectedOutputPath);
 
             var version = this.Fixture.SoundtrackExtractor.GetVersionFromExportedTrackFile($"soundtrack/{expectedFilename}");
 

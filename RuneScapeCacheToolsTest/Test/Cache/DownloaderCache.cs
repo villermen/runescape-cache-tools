@@ -6,11 +6,11 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.Cache
 {
     [Collection(TestCacheCollection.Name)]
-    public class DownloaderCacheTests
+    public class DownloaderCache : BaseTests
     {
         private TestCacheFixture Fixture { get; }
 
-        public DownloaderCacheTests(TestCacheFixture fixture)
+        public DownloaderCache(TestCacheFixture fixture)
         {
             this.Fixture = fixture;
         }

@@ -10,11 +10,11 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.Cache
 {
     [Collection(TestCacheCollection.Name)]
-    public class CacheTypesTests
+    public class CacheTypes : BaseTests
     {
         private readonly TestCacheFixture _fixture;
 
-        public CacheTypesTests(TestCacheFixture fixture)
+        public CacheTypes(TestCacheFixture fixture)
         {
             this._fixture = fixture;
         }
@@ -24,8 +24,8 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         /// </summary>
         [Theory]
         [InlineData(typeof(JavaClientCache))]
-        [InlineData(typeof(FlatFileCache))]
-        [InlineData(typeof(DownloaderCache))]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.FlatFileCache))]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.DownloaderCache))]
         public void TestGetFile(Type cacheType)
         {
             var cache = this._fixture.GetCache(cacheType);
@@ -37,7 +37,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.True(entryCacheFile.Data.Length > 0);
 
             // FlatFileCache doesn't do info (yet?).
-            if (cacheType != typeof(FlatFileCache))
+            if (cacheType != typeof(RuneScapeCacheTools.Cache.FlatFileCache))
             {
                 var entryFile = EntryFile.DecodeFromCacheFile(entryCacheFile);
             }
@@ -52,7 +52,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [InlineData(typeof(JavaClientCache), CacheIndex.Music)]
         [InlineData(typeof(JavaClientCache), CacheIndex.Enums)]
         [InlineData(typeof(JavaClientCache), CacheIndex.ClientScripts)]
-        [InlineData(typeof(DownloaderCache), CacheIndex.Enums)]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.DownloaderCache), CacheIndex.Enums)]
         public void TestGetReferenceTableFile(Type cacheType, CacheIndex index)
         {
             var cache = this._fixture.GetCache(cacheType);
@@ -63,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [Theory]
         [InlineData(typeof(JavaClientCache), CacheIndex.Models, 47000)] // Gzip
         [InlineData(typeof(JavaClientCache), CacheIndex.Enums, 23)] // Bzip2, entries
-        [InlineData(typeof(FlatFileCache), CacheIndex.Enums, 23)]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.FlatFileCache), CacheIndex.Enums, 23)]
         public void TestWriteBinaryFile(Type cacheType, CacheIndex index, int fileId)
         {
             var cache = this._fixture.GetCache(cacheType);
@@ -86,8 +86,8 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
 
         [Theory]
         [InlineData(typeof(JavaClientCache), 7)]
-        [InlineData(typeof(FlatFileCache), 7)]
-        [InlineData(typeof(DownloaderCache), 42)]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.FlatFileCache), 7)]
+        [InlineData(typeof(RuneScapeCacheTools.Cache.DownloaderCache), 42)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.GetCache(cacheType).GetAvailableIndexes();

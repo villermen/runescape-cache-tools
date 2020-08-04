@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test.Utility
 {
-    public class FormatterTests
+    public class FormatterTests : BaseTests
     {
         public static IEnumerable<object[]> TestResultData = new[]
         {

@@ -7,7 +7,7 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.File
 {
     [Collection(TestCacheCollection.Name)]
-    public class ReferenceTableFileTests
+    public class ReferenceTableFileTests : BaseTests
     {
         private readonly TestCacheFixture _fixture;
 

@@ -10,7 +10,7 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test
 {
     [Collection(TestCacheCollection.Name)]
-    public class ExperimentalTests
+    public class ExperimentalTests : BaseTests
     {
         private TestCacheFixture Fixture { get; }
 

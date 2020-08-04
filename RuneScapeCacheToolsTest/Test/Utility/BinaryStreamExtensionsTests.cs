@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test.Utility
 {
-    public class BinaryStreamExtensionsTests
+    public class BinaryStreamExtensionsTests : BaseTests
     {
         [Fact]
         public void TestRead()

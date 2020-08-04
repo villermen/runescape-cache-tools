@@ -6,7 +6,7 @@ using Xunit;
 namespace Villermen.RuneScapeCacheTools.Test.File
 {
     [Collection(TestCacheCollection.Name)]
-    public class ItemDefinitionFileTests
+    public class ItemDefinitionFileTests : BaseTests
     {
         private TestCacheFixture Fixture { get; }
 
@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Test.File
         public void TestItemDefinitionFile(CacheIndex index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
             var itemDefinitionFile = ItemDefinitionFile.Decode(
-                EntryFile.DecodeFromCacheFile(this.Fixture.JavaClientCache.GetFile(index, fileId)).Entries[entryId]
+                RuneScapeCacheTools.File.EntryFile.DecodeFromCacheFile(this.Fixture.JavaClientCache.GetFile(index, fileId)).Entries[entryId]
             );
 
             Assert.Equal(expectedName, itemDefinitionFile.Name);
