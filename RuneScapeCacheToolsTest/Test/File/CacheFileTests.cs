@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test.File
 {
-    public class CacheFile : BaseTests
+    public class CacheFileTests : BaseTests
     {
         [Theory]
         [InlineData(CompressionType.None)]
