@@ -70,7 +70,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
-        protected abstract byte[] GetFileData(CacheIndex index, int fileId);
+        public abstract byte[] GetFileData(CacheIndex index, int fileId);
 
         public void PutFile(CacheIndex index, int fileId, CacheFile file)
         {

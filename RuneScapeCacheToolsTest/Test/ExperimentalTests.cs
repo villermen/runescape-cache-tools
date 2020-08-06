@@ -95,5 +95,14 @@ namespace Villermen.RuneScapeCacheTools.Test
                 }
             }
         }
+
+        [Fact(
+            Skip = "Only enable when needed."
+        )]
+        public void TestExtractUndecodedFile()
+        {
+            var data = this.Fixture.DownloaderCache.GetFileData(CacheIndex.Music, 1);
+            System.IO.File.WriteAllBytes("undecodedfile", data);
+        }
     }
 }

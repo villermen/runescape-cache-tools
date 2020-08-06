@@ -47,7 +47,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this._cachedMasterReferenceTable;
         }
 
-        protected override byte[] GetFileData(CacheIndex index, int fileId)
+        public override byte[] GetFileData(CacheIndex index, int fileId)
         {
             if (DownloaderCache.HttpInterfaceIndexes.Contains(index))
             {

@@ -65,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.CloseStreams();
         }
 
-        protected override byte[] GetFileData(CacheIndex index, int fileId)
+        public override byte[] GetFileData(CacheIndex index, int fileId)
         {
             // Read the sectors and take their payload data up to the size of the contained file.
             return this
