@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
@@ -103,6 +104,12 @@ namespace Villermen.RuneScapeCacheTools.Test
         {
             var data = this.Fixture.DownloaderCache.GetFileData(CacheIndex.Music, 1);
             System.IO.File.WriteAllBytes("undecodedfile", data);
+        }
+
+        [Fact]
+        public void TextNxt()
+        {
+            using var cache = new NxtClientCache();
         }
     }
 }
