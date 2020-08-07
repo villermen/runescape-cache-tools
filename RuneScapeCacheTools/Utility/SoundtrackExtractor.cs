@@ -69,7 +69,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// <param name="trackNameFilters">
         /// When passed, only soundtrack names that contain one of the given case-insensitive strings will be extracted.
         /// </param>
-        public void ExtractSoundtrack(bool overwrite, bool lossless, bool includeUnnamed, string[] trackNameFilters)
+        /// <param name="parallelism">Maximum amount of jobs to run at once.</param>
+        public void ExtractSoundtrack(bool overwrite, bool lossless, bool includeUnnamed, string[] trackNameFilters, int parallelism)
         {
             IEnumerable<KeyValuePair<int, string>> trackNames = this.GetTrackNames(includeUnnamed);
 
@@ -90,12 +91,19 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 return this.IsExtractionRequired(outputPath, fileInfo.Version, overwrite);
             });
 
-            Parallel.ForEach(trackNames, trackNamePair =>
-            {
-                Log.Information($"Combining {trackNamePair.Value}...");
-                var jagaCacheFile = this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key);
-                this.ExtractIfJagaFile(jagaCacheFile, trackNamePair.Value, overwrite, lossless);
-            });
+            Parallel.ForEach(
+                trackNames,
+                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = parallelism,
+                },
+                trackNamePair =>
+                {
+                    Log.Information($"Combining {trackNamePair.Value}...");
+                    var jagaCacheFile = this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key);
+                    this.ExtractIfJagaFile(jagaCacheFile, trackNamePair.Value, overwrite, lossless);
+                }
+            );
         }
 
         public void ExtractIfJagaFile(CacheFile cacheFile, string trackName, bool overwrite = false, bool lossless = false)

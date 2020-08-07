@@ -51,7 +51,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
         [InlineData("Black Zabeth LIVE!", "Black Zabeth LIVE!.ogg", 15, false)] // Fixing invalid filenames (Actual name is "Black Zabeth: LIVE!" which is invalid on Windows)
         public void TestExtract(string trackName, string expectedFilename, int expectedVersion, bool lossless)
         {
-            this.Fixture.SoundtrackExtractor.ExtractSoundtrack(true, lossless, false, new [] { trackName });
+            this.Fixture.SoundtrackExtractor.ExtractSoundtrack(true, lossless, false, new [] { trackName }, 1);
 
             var expectedOutputPath = $"soundtrack/{expectedFilename}";
 

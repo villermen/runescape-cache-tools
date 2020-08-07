@@ -10,6 +10,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class AudioCommand : BaseCommand
     {
+        /// <summary>Limits the amount of SoX instances to not fry your PC.</summary>
+        private const int Parallelism = 10;
+
         private bool _lossless = false;
         private string[] _trackNameFilters = {};
         private bool _overwrite = false;
@@ -67,7 +70,8 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                     this._overwrite,
                     this._lossless,
                     this._includeUnnamed,
-                    this._trackNameFilters
+                    this._trackNameFilters,
+                    AudioCommand.Parallelism
                 );
                 Console.WriteLine("Done combining soundtracks.");
                 return Program.ExitCodeOk;
@@ -85,23 +89,30 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                     ? this._scrapeFiles.Item2
                     : sourceCache.GetAvailableFileIds(index);
 
-                Parallel.ForEach(fileIds, fileId =>
-                {
-                    try
+                Parallel.ForEach(
+                    fileIds,
+                    new ParallelOptions
                     {
-                        var file = sourceCache.GetFile(index, fileId);
-                        soundtrackExtractor.ExtractIfJagaFile(file, $"{(int)index}-{fileId}", this._overwrite, this._lossless);
-                    }
-                    catch (SoundtrackException exception)
+                        MaxDegreeOfParallelism = AudioCommand.Parallelism,
+                    },
+                    fileId =>
                     {
-                        if (!exception.IsSoxError)
+                        try
                         {
-                            throw;
+                            var file = sourceCache.GetFile(index, fileId);
+                            soundtrackExtractor.ExtractIfJagaFile(file, $"{(int)index}-{fileId}", this._overwrite, this._lossless);
                         }
+                        catch (SoundtrackException exception)
+                        {
+                            if (!exception.IsSoxError)
+                            {
+                                throw;
+                            }
 
-                        Log.Information($"Failed to combine {(int)index}/{fileId}: {exception.Message}");
+                            Log.Information($"Failed to combine {(int)index}/{fileId}: {exception.Message}");
+                        }
                     }
-                });
+                );
             }
 
             Console.WriteLine("Done scraping audio.");
