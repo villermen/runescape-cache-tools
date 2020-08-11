@@ -230,13 +230,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
         public SortedDictionary<int, string> GetTrackNames(bool includeUnnamed = false)
         {
             // Read out the two enums that, when combined, make up the awesome lookup table
-
-            var enumEntryFile = EntryFile.DecodeFromCacheFile(this.Cache.GetFile(CacheIndex.Enums, 5));
+            var enumFile = this.Cache.GetFile(CacheIndex.Enums, 5);
 
             // int track id : string track name
-            var trackNames = EnumFile.Decode(enumEntryFile.Entries[65]);
+            var trackNames = EnumFile.Decode(enumFile.Entries[65]);
             // int track id : int jaga file id
-            var jagaFileIds = EnumFile.Decode(enumEntryFile.Entries[71]);
+            var jagaFileIds = EnumFile.Decode(enumFile.Entries[71]);
 
             // Result is sorted on key to let duplicate renaming be as consistent as possible
             var result = new SortedDictionary<int, string>();

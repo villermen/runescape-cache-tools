@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Test.Fixture;
+using Villermen.RuneScapeCacheTools.Utility;
 using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test
@@ -97,19 +99,17 @@ namespace Villermen.RuneScapeCacheTools.Test
             }
         }
 
-        [Fact(
-            Skip = "Only enable when needed."
-        )]
-        public void TestExtractUndecodedFile()
-        {
-            var data = this.Fixture.DownloaderCache.GetFileData(CacheIndex.Music, 1);
-            System.IO.File.WriteAllBytes("undecodedfile", data);
-        }
-
         [Fact]
         public void TextNxt()
         {
-            using var cache = new NxtClientCache();
+            using var cache = new DownloaderCache();
+            var whatKindaDataAreYou = cache.GetFile(CacheIndex.Enums, 5);
+
+            System.IO.File.WriteAllBytes("17-5.javaentries", whatKindaDataAreYou.Data);
+
+            // Entries seem to be different for NXT.
+            var entryFile = EntryFile.DecodeFromCacheFile(whatKindaDataAreYou);
+            var enumFile = EnumFile.Decode(entryFile.Entries[65]);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="cacheDirectory"></param>
         /// <param name="readOnly"></param>
-        public JavaClientCache(string? cacheDirectory = null, bool readOnly = true)
+        public JavaClientCache(string? cacheDirectory = null, bool readOnly = true) : base(new RuneTek5CacheFileDecoder())
         {
             this.CacheDirectory = PathExtensions.FixDirectory(cacheDirectory ?? JavaClientCache.DefaultCacheDirectory);
             this.ReadOnly = readOnly;

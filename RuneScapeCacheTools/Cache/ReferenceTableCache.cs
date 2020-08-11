@@ -5,6 +5,7 @@ using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -13,6 +14,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
     /// </summary>
     public abstract class ReferenceTableCache : ICache
     {
+        private readonly ICacheFileDecoder _cacheFileDecoder;
+
+        protected ReferenceTableCache(ICacheFileDecoder cacheFileDecoder)
+        {
+            this._cacheFileDecoder = cacheFileDecoder;
+        }
+
         /// <summary>
         /// Reference tables are kept in memory so they don't have to be obtained again for every file.
         /// </summary>
@@ -51,7 +59,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
         {
             var fileInfo = this.GetFileInfo(index, fileId);
             var fileData = this.GetFileData(index, fileId);
-            return CacheFile.Decode(fileData, fileInfo);
+
+            return this._cacheFileDecoder.DecodeFile(fileData, fileInfo);
         }
 
         public CacheFileInfo GetFileInfo(CacheIndex index, int fileId)
@@ -79,14 +88,13 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 throw new ArgumentException("Manually writing files to the reference table index is not allowed.");
             }
 
-            this.PutFileData(index, fileId, file.Encode());
+            this.PutFileData(index, fileId, this._cacheFileDecoder.EncodeFile(file));
 
             // Write updated reference table.
             var referenceTable = this.GetReferenceTable(index, true);
             referenceTable.SetFileInfo(fileId, file.Info);
             var referenceTableFile = new CacheFile(referenceTable.Encode());
-            referenceTableFile.Info.CompressionType = CompressionType.Bzip2;
-            this.PutFileData(CacheIndex.ReferenceTables, (int)index, referenceTableFile.Encode());
+            this.PutFileData(CacheIndex.ReferenceTables, (int)index, this._cacheFileDecoder.EncodeFile(referenceTableFile));
         }
 
         protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data);

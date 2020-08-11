@@ -4,6 +4,7 @@ using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
+using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.Cache
 {
@@ -24,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         private readonly HttpFileDownloader _httpFileDownloader;
 
-        public DownloaderCache()
+        public DownloaderCache() : base(new RuneTek5CacheFileDecoder())
         {
             this._tcpFileDownloader = new TcpFileDownloader();
             this._httpFileDownloader = new HttpFileDownloader();
