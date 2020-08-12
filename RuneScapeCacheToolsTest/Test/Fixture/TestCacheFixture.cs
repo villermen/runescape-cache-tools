@@ -20,8 +20,6 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
 
         public TestCacheFixture()
         {
-            SQLitePCL.Batteries.Init();
-
             this.JavaClientCache = new JavaClientCache("testcache/java", false);
             this.Caches[typeof(JavaClientCache)] = this.JavaClientCache;
 
