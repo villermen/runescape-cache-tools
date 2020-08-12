@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.Sqlite;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -87,7 +88,16 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 }
                 if (info?.Crc != null && crc != info.Crc)
                 {
-                    throw new DecodeException($"Retrieved CRC ({crc}) does not match expected ({info.Crc}).");
+                    // They actually mess around with the CRC =S
+                    var message = $"Retrieved CRC ({crc}) does not match expected ({info.Crc}).";
+                    if (crc - 1 == info.Crc)
+                    {
+                        Log.Debug(message + " (allowed)");
+                    }
+                    else
+                    {
+                        throw new DecodeException(message);
+                    }
                 }
 
                 return data;
