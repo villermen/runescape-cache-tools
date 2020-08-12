@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Exception;
@@ -20,9 +20,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public bool ReadOnly { get; }
 
-        private object _ioLock = new object();
+        private readonly object _ioLock = new object();
 
-        private readonly Dictionary<CacheIndex, SQLiteConnection> _connections = new Dictionary<CacheIndex, SQLiteConnection>();
+        private readonly Dictionary<CacheIndex, SqliteConnection> _connections = new Dictionary<CacheIndex, SqliteConnection>();
 
         public NxtClientCache(string? cacheDirectory = null, bool readOnly = true) : base(new RuneTek7CacheFileDecoder())
         {
@@ -54,26 +54,29 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 fileId = 1;
             }
 
-            if (!this._connections.Keys.Contains(index))
+            lock (this._ioLock)
             {
-                throw new CacheFileNotFoundException($"Index {(int)index} is not available.");
+                if (!this._connections.Keys.Contains(index))
+                {
+                    throw new CacheFileNotFoundException($"Index {(int)index} is not available.");
+                }
+
+                var connection = this._connections[index];
+
+                using var command = connection.CreateCommand();
+                command.CommandText = $"SELECT DATA FROM {dbTable} WHERE KEY = @fileId";
+                command.Parameters.AddWithValue("fileId", fileId);
+
+                var data = (byte[]?)command.ExecuteScalar();
+                if (data == null)
+                {
+                    throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist in the cache.");
+                }
+
+                // TODO: We can verify the checksum/version here, or maybe allow overriding GetFile() to put it in the info.
+
+                return data;
             }
-
-            var connection = this._connections[index];
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT DATA FROM {dbTable} WHERE KEY = @fileId";
-            command.Parameters.AddWithValue("fileId", fileId);
-
-            var data = (byte[]?)command.ExecuteScalar();
-            if (data == null)
-            {
-                throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist in the cache.");
-            }
-
-            // TODO: We can verify the checksum/version here, or maybe allow overriding GetFile() to put it in the info.
-
-            return data;
         }
 
         protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
@@ -91,22 +94,25 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 fileId = 1;
             }
 
-            if (!this._connections.Keys.Contains(index))
+            lock (this._ioLock)
             {
-                this.OpenConnection(index, true);
+                if (!this._connections.Keys.Contains(index))
+                {
+                    this.OpenConnection(index, true);
+                }
+
+                var connection = this._connections[index];
+
+                using var command = connection.CreateCommand();
+                command.CommandText = $"INSERT OR REPLACE INTO {dbTable} (KEY, DATA, VERSION, CRC) VALUES (@key, @data, @version, @crc)";
+                command.Parameters.AddWithValue("key", fileId);
+                command.Parameters.AddWithValue("data", data);
+                command.Parameters.AddWithValue("version", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                command.Parameters.AddWithValue("crc", -1);
+                command.ExecuteNonQuery();
+
+                // TODO: Use actual version and CRC.
             }
-
-            var connection = this._connections[index];
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"INSERT OR REPLACE INTO {dbTable} (KEY, DATA, VERSION, CRC) VALUES (@key, @data, @version, @crc)";
-            command.Parameters.AddWithValue("key", fileId);
-            command.Parameters.AddWithValue("data", data);
-            command.Parameters.AddWithValue("version", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            command.Parameters.AddWithValue("crc", -1);
-            command.ExecuteNonQuery();
-
-            // TODO: Use actual version and CRC.
         }
 
         private void OpenConnections()
@@ -132,13 +138,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 createTables = true;
             }
 
-            var connection = new SQLiteConnection(
-                new SQLiteConnectionStringBuilder
-                {
-                    DataSource = indexPath,
-                    ReadOnly = this.ReadOnly,
-                }.ToString()
-            );
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = indexPath,
+                Mode = this.ReadOnly ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWriteCreate,
+            };
+            var connection = new SqliteConnection(connectionStringBuilder.ConnectionString);
             connection.Open();
 
             if (createTables)
