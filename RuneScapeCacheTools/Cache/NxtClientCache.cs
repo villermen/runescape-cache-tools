@@ -26,6 +26,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         public NxtClientCache(string? cacheDirectory = null, bool readOnly = true) : base(new RuneTek7CacheFileDecoder())
         {
+            // Configure SQLite provider for NXT operations.
+            SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_sqlite3());
+
             this.CacheDirectory = PathExtensions.FixDirectory(cacheDirectory ?? NxtClientCache.DefaultCacheDirectory);
             this.ReadOnly = readOnly;
 

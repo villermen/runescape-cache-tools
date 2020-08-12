@@ -38,9 +38,6 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 .WriteTo.Console()
                 .CreateLogger();
 
-            // Set SQLite provider for NXT operations.
-            SQLitePCL.Batteries.Init();
-
             var showHelp = false;
             var argumentParser = new ArgumentParser();
             argumentParser.Add("help|version|?", "Show this message.", (value) => { showHelp = true; });
