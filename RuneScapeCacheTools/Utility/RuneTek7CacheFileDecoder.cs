@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -21,9 +20,9 @@ namespace Villermen.RuneScapeCacheTools.Utility
             // Decode zlib wrapper.
             byte[] data;
             if (
-                encodedData.Length >= 4 &&
                 // Not sure if the final 0x01 has a special meaning and can be different.
-                encodedDataReader.ReadBytesExactly(4).SequenceEqual(new byte[] { 0x5A, 0x4C, 0x42, 0x01 })
+                encodedData.Length >= 4 &&
+                encodedDataReader.ReadBytesExactly(4).SequenceEqual(new byte[] { (byte)'Z', (byte)'L', (byte)'B', 0x01 })
             )
             {
                 var uncompressedSize = encodedDataReader.ReadInt32BigEndian();
@@ -63,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
             return decompressionReader.ReadBytesExactly(uncompressedSize);
         }
 
-        public override SortedDictionary<int, byte[]> DecodeEntries(byte[] data, int[] entryIds)
+        public new SortedDictionary<int, byte[]> DecodeEntries(byte[] data, int[] entryIds)
         {
             /*
              * Format visualization (e = entry, c = chunk):
@@ -138,14 +137,85 @@ namespace Villermen.RuneScapeCacheTools.Utility
             return entries;
         }
 
-        public override byte[] EncodeFile(CacheFile file)
+        public override byte[] EncodeFile(CacheFile file, CacheFileInfo? info)
         {
-            throw new NotImplementedException();
+            var data = file.HasEntries ? this.EncodeEntries(file.Entries, info) : file.Data;
+
+            var compressionType = info?.CompressionType ?? CompressionType.Zlib;
+            if (compressionType == CompressionType.Zlib)
+            {
+                using var encodedDataStream = new MemoryStream();
+                using var encodedDataWriter = new BinaryWriter(encodedDataStream);
+
+                encodedDataWriter.Write((byte)'Z');
+                encodedDataWriter.Write((byte)'L');
+                encodedDataWriter.Write((byte)'B');
+                encodedDataWriter.Write((byte)0x01);
+                encodedDataWriter.WriteInt32BigEndian(data.Length);
+                encodedDataWriter.Write((byte)0x78);
+                encodedDataWriter.Write((byte)0x9C);
+
+                using (var compressionStream = new DeflateStream(encodedDataStream, CompressionMode.Compress))
+                using (var compressionWriter = new BinaryWriter(compressionStream))
+                {
+                    compressionWriter.Write(data);
+                }
+
+                // Info is not changed for zlib because info does not describe zlib data.
+
+                return encodedDataStream.ToArray();
+            }
+
+            return this.EncodeData(data, info);
         }
 
-        public override byte[] EncodeEntries(SortedDictionary<int, byte[]> entries, CacheFileInfo info)
+        public new byte[] EncodeEntries(Dictionary<int, byte[]> entries, CacheFileInfo? info)
         {
-            throw new NotImplementedException();
+            // Sort entries (encodes more efficiently).
+            entries = entries.OrderBy(entryPair => entryPair.Key).ToDictionary(
+                entryPair => entryPair.Key,
+                entryPair => entryPair.Value
+            );
+
+            using var dataStream = new MemoryStream();
+            using var dataWriter = new BinaryWriter(dataStream);
+
+            // Write amount of chunks.
+            dataWriter.Write((byte)1);
+
+            // Write header size.
+            var headerSize = 1 + 4 + entries.Count * 4;
+            dataWriter.WriteInt32BigEndian(headerSize);
+
+            // Write delta-difference encoded entry sizes.
+            var previousEntrySize = headerSize;
+            foreach (var entryData in entries.Values)
+            {
+                var entrySize = entryData.Length;
+                var delta = previousEntrySize + entrySize;
+
+                dataWriter.WriteInt32BigEndian(delta);
+
+                previousEntrySize = entrySize;
+            }
+
+            // I don't know why splitting into chunks is necessary/desired so I just use one. This also happens to
+            // greatly simplify this logic.
+            foreach (var entryData in entries.Values)
+            {
+                dataWriter.Write(entryData);
+            }
+
+            // Update info.
+            if (info != null)
+            {
+                info.Entries = entries.Keys.ToDictionary(
+                    entryId => entryId,
+                    entryId => new CacheFileEntryInfo()
+                );
+            }
+
+            return dataStream.ToArray();
         }
     }
 }

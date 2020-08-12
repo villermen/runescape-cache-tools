@@ -12,7 +12,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         /// <summary>
         /// The type of compression used to store this file in the cache.
         /// </summary>
-        public CompressionType CompressionType { get; set; } = CompressionType.None;
+        public CompressionType? CompressionType { get; set; }
 
         /// <summary>
         /// The compressed size of this entry in bytes.
@@ -55,7 +55,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         /// <summary>
         /// The entry IDs mapped to their additional info if this file contains entries.
         /// </summary>
-        public SortedDictionary<int, CacheFileEntryInfo> Entries { get; set; } = new SortedDictionary<int, CacheFileEntryInfo>();
+        public Dictionary<int, CacheFileEntryInfo> Entries { get; set; } = new Dictionary<int, CacheFileEntryInfo>();
 
         public bool HasEntries => this.Entries.Count > 1;
 
@@ -75,10 +75,10 @@ namespace Villermen.RuneScapeCacheTools.Model
                 UncompressedSize = this.UncompressedSize,
                 WhirlpoolDigest = this.WhirlpoolDigest,
                 EncryptionKey = this.EncryptionKey,
-                Entries = new SortedDictionary<int, CacheFileEntryInfo>(this.Entries.ToDictionary(
+                Entries = this.Entries.ToDictionary(
                     entryInfoPair => entryInfoPair.Key,
                     entryInfoPair => entryInfoPair.Value.Clone()
-                )),
+                ),
             };
         }
     }

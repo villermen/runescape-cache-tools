@@ -13,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.File
     {
         public readonly CacheFileInfo Info;
 
-        public readonly SortedDictionary<int, byte[]> Entries = new SortedDictionary<int, byte[]>();
+        public readonly Dictionary<int, byte[]> Entries = new Dictionary<int, byte[]>();
 
         public bool HasEntries => this.Entries.Count > 1;
 
@@ -30,13 +30,18 @@ namespace Villermen.RuneScapeCacheTools.File
                     return this.Entries[0];
                 }
 
-                return new RuneTek5CacheFileDecoder().EncodeEntries(this.Entries, this.Info);
+                return new RuneTek5CacheFileDecoder().EncodeEntries(this.Entries, null);
             }
             set
             {
                 this.Entries.Clear();
                 this.Entries[0] = value;
             }
+        }
+
+        public CacheFile()
+        {
+            this.Info = new CacheFileInfo();
         }
 
         public CacheFile(byte[] data, CacheFileInfo? info = null)

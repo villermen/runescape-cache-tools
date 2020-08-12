@@ -96,8 +96,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             // Calculate and verify CRC.
             var crcHasher = new Crc32();
-            // CRC excludes the appended version.
-            crcHasher.Update(encodedData.Take(compressedSize).ToArray());
+            crcHasher.Update(encodedData);
             // Note that there is no way to distinguish between an unset CRC and one that is zero.
             var crc = (int)crcHasher.Value;
 
@@ -129,11 +128,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
             info.CompressedSize = compressedSize;
             info.UncompressedSize = uncompressedSize;
             info.Crc = crc;
+            info.WhirlpoolDigest = whirlpoolDigest;
 
             return data;
         }
 
-        public virtual SortedDictionary<int, byte[]> DecodeEntries(byte[] data, int[] entryIds)
+        public Dictionary<int, byte[]> DecodeEntries(byte[] data, int[] entryIds)
         {
             /*
              * Format visualization (e = entry, c = chunk):
@@ -197,7 +197,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
             }
 
             // Combine entry keys and values.
-            var entries = new SortedDictionary<int, byte[]>();
+            var entries = new Dictionary<int, byte[]>();
             for (var entryIndex = 0; entryIndex < amountOfEntries; entryIndex++)
             {
                 entries.Add(entryIds[entryIndex], entryData[entryIndex]);
@@ -257,41 +257,42 @@ namespace Villermen.RuneScapeCacheTools.Utility
             throw new DecodeException($"Unknown compression type {compressionType}.");
         }
 
-        public virtual byte[] EncodeFile(CacheFile file)
+        public virtual byte[] EncodeFile(CacheFile file, CacheFileInfo? info)
         {
-            // Encrypt data
-            if (file.Info.EncryptionKey != null)
+            var data = file.HasEntries ? this.EncodeEntries(file.Entries, info) : file.Data;
+            return this.EncodeData(data, info);
+        }
+
+        protected byte[] EncodeData(byte[] data, CacheFileInfo? info)
+        {
+            // Encrypt data.
+            if (info?.EncryptionKey != null)
             {
                 throw new EncodeException(
                     "XTEA encryption not supported. If you encounter this please inform me about the index and file that triggered this message."
                 );
             }
 
-            // Encode entries
-            if (file.HasEntries)
-            {
-                this.EncodeEntries(file.Entries, file.Info);
-            }
-
-            // Compression
-            var uncompressedSize = file.Data.Length;
-            var compressedData = this.CompressData(file.Info.CompressionType, file.Data);
+            // Compression.
+            var compressionType = info?.CompressionType ?? CompressionType.Bzip2;
+            var uncompressedSize = data.Length;
+            var compressedData = this.CompressData(compressionType, data);
 
             using var dataStream = new MemoryStream();
             using var dataWriter = new BinaryWriter(dataStream);
 
-            dataWriter.Write((byte)file.Info.CompressionType);
+            dataWriter.Write((byte)compressionType);
             dataWriter.WriteInt32BigEndian(compressedData.Length);
 
             // Add uncompressed size if compression is used.
-            if (file.Info.CompressionType != CompressionType.None)
+            if (compressionType != CompressionType.None)
             {
                 dataWriter.WriteInt32BigEndian(uncompressedSize);
             }
 
             dataWriter.Write(compressedData);
 
-            if (file.Info.CompressionType == CompressionType.None)
+            if (compressionType == CompressionType.None)
             {
                 // Uncompressed size includes meta bytes for info when not using compression.
                 uncompressedSize = (int)dataStream.Position;
@@ -314,10 +315,14 @@ namespace Villermen.RuneScapeCacheTools.Utility
             whirlpoolHasher.DoFinal(whirlpoolDigest, 0);
 
             // Update file info.
-            file.Info.CompressedSize = compressedSize;
-            file.Info.UncompressedSize = uncompressedSize;
-            file.Info.Crc = crc;
-            file.Info.WhirlpoolDigest = whirlpoolDigest;
+            if (info != null)
+            {
+                info.CompressionType = compressionType;
+                info.CompressedSize = compressedSize;
+                info.UncompressedSize = uncompressedSize;
+                info.Crc = crc;
+                info.WhirlpoolDigest = whirlpoolDigest;
+            }
 
             return result;
         }
@@ -352,8 +357,14 @@ namespace Villermen.RuneScapeCacheTools.Utility
             throw new EncodeException($"Unknown compression type {compressionType}.");
         }
 
-        public virtual byte[] EncodeEntries(SortedDictionary<int, byte[]> entries, CacheFileInfo info)
+        public byte[] EncodeEntries(Dictionary<int, byte[]> entries, CacheFileInfo? info)
         {
+            // Sort entries (encodes more efficiently).
+            entries = entries.OrderBy(entryPair => entryPair.Key).ToDictionary(
+                entryPair => entryPair.Key,
+                entryPair => entryPair.Value
+            );
+
             using var dataStream = new MemoryStream();
             using var dataWriter = new BinaryWriter(dataStream);
 
@@ -380,10 +391,13 @@ namespace Villermen.RuneScapeCacheTools.Utility
             dataWriter.Write((byte)1);
 
             // Update info.
-            info.Entries = new SortedDictionary<int, CacheFileEntryInfo>(entries.Keys.ToDictionary(
-                entryId => entryId,
-                entryId => new CacheFileEntryInfo()
-            ));
+            if (info != null)
+            {
+                info.Entries = entries.Keys.ToDictionary(
+                    entryId => entryId,
+                    entryId => new CacheFileEntryInfo()
+                );
+            }
 
             return dataStream.ToArray();
         }

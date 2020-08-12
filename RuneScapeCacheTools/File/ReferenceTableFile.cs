@@ -108,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.File
                 var fileId = entryCountPair.Key;
                 var entryCount = entryCountPair.Value;
 
-                fileInfos[fileId].Entries = new SortedDictionary<int, CacheFileEntryInfo>();
+                fileInfos[fileId].Entries = new Dictionary<int, CacheFileEntryInfo>();
 
                 var entryId = 0;
                 for (var i = 0; i < entryCount; i++)

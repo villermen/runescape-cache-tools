@@ -35,7 +35,7 @@ namespace Villermen.RuneScapeCacheTools.Test
                 {
                     try
                     {
-                        var entryFile = EntryFile.DecodeFromCacheFile(this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId));
+                        var entryFile = this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId);
 
                         foreach (var entry in entryFile.Entries.Values)
                         {
@@ -97,19 +97,6 @@ namespace Villermen.RuneScapeCacheTools.Test
                     csvWriter.WriteLine(line);
                 }
             }
-        }
-
-        [Fact]
-        public void TextNxt()
-        {
-            using var cache = new DownloaderCache();
-            var whatKindaDataAreYou = cache.GetFile(CacheIndex.Enums, 5);
-
-            System.IO.File.WriteAllBytes("17-5.javaentries", whatKindaDataAreYou.Data);
-
-            // Entries seem to be different for NXT.
-            var entryFile = EntryFile.DecodeFromCacheFile(whatKindaDataAreYou);
-            var enumFile = EnumFile.Decode(entryFile.Entries[65]);
         }
     }
 }

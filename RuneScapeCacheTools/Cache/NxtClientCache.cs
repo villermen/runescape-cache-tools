@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
@@ -63,7 +62,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             var connection = this._connections[index];
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT data FROM {dbTable} WHERE key = @fileId";
+            command.CommandText = $"SELECT DATA FROM {dbTable} WHERE KEY = @fileId";
             command.Parameters.AddWithValue("fileId", fileId);
 
             var data = (byte[]?)command.ExecuteScalar();
@@ -79,31 +78,80 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
         {
-            throw new NotImplementedException();
+            if (this.ReadOnly)
+            {
+                throw new CacheException("Can't write data in readonly mode.");
+            }
+
+            var dbTable = "cache";
+            if (index == CacheIndex.ReferenceTables)
+            {
+                index = (CacheIndex)fileId;
+                dbTable = "cache_index";
+                fileId = 1;
+            }
+
+            if (!this._connections.Keys.Contains(index))
+            {
+                this.OpenConnection(index, true);
+            }
+
+            var connection = this._connections[index];
+
+            using var command = connection.CreateCommand();
+            command.CommandText = $"INSERT OR REPLACE INTO {dbTable} (KEY, DATA, VERSION, CRC) VALUES (@key, @data, @version, @crc)";
+            command.Parameters.AddWithValue("key", fileId);
+            command.Parameters.AddWithValue("data", data);
+            command.Parameters.AddWithValue("version", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            command.Parameters.AddWithValue("crc", -1);
+            command.ExecuteNonQuery();
+
+            // TODO: Use actual version and CRC.
         }
 
         private void OpenConnections()
         {
             for (var indexId = 0; indexId <= 255; indexId++)
             {
-                var indexPath = Path.Combine(this.CacheDirectory, $"js5-{indexId}.jcache");
+                this.OpenConnection((CacheIndex)indexId, false);
+            }
+        }
 
-                if (!System.IO.File.Exists(indexPath))
+        private void OpenConnection(CacheIndex index, bool force)
+        {
+            var indexPath = Path.Combine(this.CacheDirectory, $"js5-{(int)index}.jcache");
+
+            var createTables = false;
+            if (!System.IO.File.Exists(indexPath))
+            {
+                if (!force)
                 {
-                    continue;
+                    return;
                 }
 
-                var connection = new SQLiteConnection(
-                    new SQLiteConnectionStringBuilder
-                    {
-                        DataSource = indexPath,
-                        ReadOnly = this.ReadOnly,
-                    }.ToString()
-                );
-                connection.Open();
-
-                this._connections.Add((CacheIndex)indexId, connection);
+                createTables = true;
             }
+
+            var connection = new SQLiteConnection(
+                new SQLiteConnectionStringBuilder
+                {
+                    DataSource = indexPath,
+                    ReadOnly = this.ReadOnly,
+                }.ToString()
+            );
+            connection.Open();
+
+            if (createTables)
+            {
+                using var cacheCommand = connection.CreateCommand();
+                cacheCommand.CommandText = "CREATE TABLE cache (KEY INTEGER PRIMARY KEY, DATA BLOB, VERSION INTEGER, CRC INTEGER)";
+                cacheCommand.ExecuteNonQuery();
+                using var cacheIndexCommand = connection.CreateCommand();
+                cacheIndexCommand.CommandText = "CREATE TABLE cache_index (KEY INTEGER PRIMARY KEY, DATA BLOB, VERSION INTEGER, CRC INTEGER)";
+                cacheIndexCommand.ExecuteNonQuery();
+            }
+
+            this._connections[index] = connection;
         }
 
         private void CloseConnections()
