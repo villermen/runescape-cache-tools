@@ -169,7 +169,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         FileName = "sox",
                         UseShellExecute = false,
                         CreateNoWindow = true,
-                        // RedirectStandardError = true,
+                        RedirectStandardError = true,
                         Arguments = string.Join(" ", soxArguments),
                     }
                 };
@@ -178,14 +178,14 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
                 combineProcess.Start();
 
-                // combineProcess.ErrorDataReceived += (sender, args) =>
-                // {
-                //     if (!string.IsNullOrEmpty(args.Data))
-                //     {
-                //         Log.Debug($"[SoX] {args.Data}");
-                //     }
-                // };
-                // combineProcess.BeginErrorReadLine();
+                combineProcess.ErrorDataReceived += (sender, args) =>
+                {
+                    if (!string.IsNullOrEmpty(args.Data))
+                    {
+                        Log.Debug($"[SoX] {args.Data}");
+                    }
+                };
+                combineProcess.BeginErrorReadLine();
 
                 combineProcess.WaitForExit();
 
