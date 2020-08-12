@@ -56,6 +56,11 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                         (value) => this.SetSourceCache(new JavaClientCache(value))
                     );
                     this.Add(
+                        "nxt:",
+                        "Obtain cache files from the NXT client. Pass a directory to use a directory different from the default.",
+                        (value) => this.SetSourceCache(new NxtClientCache(value))
+                    );
+                    this.Add(
                         "download",
                         "Obtain cache files directly from Jagex's servers.",
                         (value) => this.SetSourceCache(new DownloaderCache())
