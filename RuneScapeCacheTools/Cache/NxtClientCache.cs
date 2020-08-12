@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.Sqlite;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         private readonly object _ioLock = new object();
 
-        private readonly Dictionary<CacheIndex, SQLiteConnection> _connections = new Dictionary<CacheIndex, SQLiteConnection>();
+        private readonly Dictionary<CacheIndex, SqliteConnection> _connections = new Dictionary<CacheIndex, SqliteConnection>();
 
         public NxtClientCache(string? cacheDirectory = null, bool readOnly = true) : base(new RuneTek7CacheFileDecoder())
         {
@@ -138,13 +138,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 createTables = true;
             }
 
-            var connectionStringBuilder = new SQLiteConnectionStringBuilder
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
             {
                 DataSource = indexPath,
-                ReadOnly = this.ReadOnly,
-                FailIfMissing = this.ReadOnly,
+                Mode = this.ReadOnly ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWriteCreate,
             };
-            var connection = new SQLiteConnection(connectionStringBuilder.ToString());
+            var connection = new SqliteConnection(connectionStringBuilder.ConnectionString);
             connection.Open();
 
             if (createTables)
