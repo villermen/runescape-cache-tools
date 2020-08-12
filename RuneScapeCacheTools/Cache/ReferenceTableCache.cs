@@ -61,7 +61,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         public CacheFile GetFile(CacheIndex index, int fileId)
         {
             var fileInfo = this.GetFileInfo(index, fileId);
-            var fileData = this.GetFileData(index, fileId);
+            var fileData = this.GetFileData(index, fileId, fileInfo);
 
             return this.FileDecoder.DecodeFile(fileData, fileInfo);
         }
@@ -82,7 +82,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this.GetReferenceTable(index).GetFileInfo(fileId);
         }
 
-        public abstract byte[] GetFileData(CacheIndex index, int fileId);
+        public abstract byte[] GetFileData(CacheIndex index, int fileId, CacheFileInfo? info);
 
         public void PutFile(CacheIndex index, int fileId, CacheFile file)
         {
@@ -93,7 +93,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
             var info = file.Info.Clone();
 
-            this.PutFileData(index, fileId, this.FileDecoder.EncodeFile(file, info));
+            this.PutFileData(index, fileId, this.FileDecoder.EncodeFile(file, info), info);
 
             // Write updated reference table.
             var referenceTable = this.GetReferenceTable(index, true);
@@ -102,11 +102,12 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.PutFileData(
                 CacheIndex.ReferenceTables,
                 (int)index,
-                this.FileDecoder.EncodeFile(referenceTableFile, null)
+                this.FileDecoder.EncodeFile(referenceTableFile, null),
+                null
             );
         }
 
-        protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data);
+        protected abstract void PutFileData(CacheIndex index, int fileId, byte[] data, CacheFileInfo? info);
 
         public void ClearCachedReferenceTables()
         {

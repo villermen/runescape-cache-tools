@@ -46,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this._connections.Keys;
         }
 
-        public override byte[] GetFileData(CacheIndex index, int fileId)
+        public override byte[] GetFileData(CacheIndex index, int fileId, CacheFileInfo? info)
         {
             // Reference tables are stored as file 1 in a separate table in the database of the index.
             var dbTable = "cache";
@@ -67,22 +67,34 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 var connection = this._connections[index];
 
                 using var command = connection.CreateCommand();
-                command.CommandText = $"SELECT DATA FROM {dbTable} WHERE KEY = @fileId";
-                command.Parameters.AddWithValue("fileId", fileId);
-
-                var data = (byte[]?)command.ExecuteScalar();
-                if (data == null)
+                command.CommandText = $"SELECT DATA, VERSION, CRC FROM {dbTable} WHERE KEY = @key";
+                command.Parameters.AddWithValue("key", fileId);
+                using var resultReader = command.ExecuteReader();
+                if (!resultReader.HasRows)
                 {
                     throw new CacheFileNotFoundException($"File {(int)index}/{fileId} does not exist in the cache.");
                 }
 
-                // TODO: We can verify the checksum/version here, or maybe allow overriding GetFile() to put it in the info.
+                resultReader.Read();
+                var data = (byte[])resultReader.GetValue(0);
+                var version = resultReader.GetInt32(1);
+                var crc = resultReader.GetInt32(2);
+
+                // Version and CRC do not match data but do have to match the passed info.
+                if (info?.Version != null && version != info.Version)
+                {
+                    throw new DecodeException($"Retrieved version ({version}) does not match expected ({info.Version}).");
+                }
+                if (info?.Crc != null && crc != info.Crc)
+                {
+                    throw new DecodeException($"Retrieved CRC ({crc}) does not match expected ({info.Crc}).");
+                }
 
                 return data;
             }
         }
 
-        protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
+        protected override void PutFileData(CacheIndex index, int fileId, byte[] data, CacheFileInfo? info)
         {
             if (this.ReadOnly)
             {
@@ -110,11 +122,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 command.CommandText = $"INSERT OR REPLACE INTO {dbTable} (KEY, DATA, VERSION, CRC) VALUES (@key, @data, @version, @crc)";
                 command.Parameters.AddWithValue("key", fileId);
                 command.Parameters.AddWithValue("data", data);
-                command.Parameters.AddWithValue("version", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-                command.Parameters.AddWithValue("crc", -1);
+                command.Parameters.AddWithValue("version", info?.Version ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                command.Parameters.AddWithValue("crc", info?.Crc ?? 0);
                 command.ExecuteNonQuery();
-
-                // TODO: Use actual version and CRC.
             }
         }
 

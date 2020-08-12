@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache.Downloader;
+using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -48,7 +48,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this._cachedMasterReferenceTable;
         }
 
-        public override byte[] GetFileData(CacheIndex index, int fileId)
+        public override byte[] GetFileData(CacheIndex index, int fileId, CacheFileInfo? info)
         {
             if (DownloaderCache.HttpInterfaceIndexes.Contains(index))
             {
@@ -60,9 +60,9 @@ namespace Villermen.RuneScapeCacheTools.Cache
             return this._tcpFileDownloader.DownloadFileData(index, fileId);
         }
 
-        protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
+        protected override void PutFileData(CacheIndex index, int fileId, byte[] data, CacheFileInfo? info)
         {
-            throw new NotSupportedException("I am a downloader, stop trying to put things in me!");
+            throw new CacheException("If only what you were trying to do made sense...");
         }
 
         public override void Dispose()
