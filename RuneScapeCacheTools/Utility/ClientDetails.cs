@@ -29,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         private static Dictionary<string, string>? _cachedAppletParams;
 
-        private static Tuple<int, int> _buildNumber = new Tuple<int, int>(913, 1);
+        private static Tuple<int, int> _buildNumber = new Tuple<int, int>(914, 1);
 
         public static string GetContentServerHostname()
         {
