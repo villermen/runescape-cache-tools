@@ -15,7 +15,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             this.Fixture = fixture;
         }
 
-        [Fact]
+        [Fact(Skip = "Downloader machine broke.")]
         public void TestDownloadReferenceTable()
         {
             this.Fixture.DownloaderCache.GetReferenceTable(CacheIndex.ClientScripts);
@@ -27,7 +27,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.InRange(referenceTable17.FileIds.Count(), 48, 1000);
         }
 
-        [Theory]
+        [Theory(Skip = "Downloader machine broke.")]
         [InlineData(57, 42)]
         public void TestDownloadMasterReferenceTable(int expectedTableCount, int expectedAvailableTableCount)
         {
@@ -37,7 +37,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.Equal(expectedAvailableTableCount, masterReferenceTable.AvailableReferenceTables.Count());
         }
 
-        [Theory]
+        [Theory(Skip = "Downloader machine broke.")]
         [InlineData(CacheIndex.Enums, 47)]
         public void TestGetFileIds(CacheIndex index, int expectedFileCount)
         {
@@ -46,7 +46,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.InRange(reportedFileCount, expectedFileCount, 1000);
         }
 
-        [Fact]
+        [Fact(Skip = "Downloader machine broke.")]
         public void TestHttpInterface()
         {
             var httpFile = this.Fixture.DownloaderCache.GetFile(CacheIndex.Music, 30498);
@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.True(httpFile.Data.Length > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "Downloader machine broke.")]
         public void TestReferenceTableCaching()
         {
             var referenceTable1 = this.Fixture.DownloaderCache.GetReferenceTable(CacheIndex.Enums);
@@ -63,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
             Assert.Same(referenceTable1, referenceTable2);
         }
 
-        [Fact]
+        [Fact(Skip = "Downloader machine broke.")]
         public void TestMasterReferenceTableCaching()
         {
             var masterReferenceTable1 = this.Fixture.DownloaderCache.GetMasterReferenceTable();
