@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -6,6 +7,7 @@ using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Test.Fixture;
+using Villermen.RuneScapeCacheTools.Utility;
 using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test

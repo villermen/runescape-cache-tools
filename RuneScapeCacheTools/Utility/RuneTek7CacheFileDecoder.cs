@@ -88,13 +88,15 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             // Read the delta-encoded chunk sizes.
             var entryChunkSizes = new int[amountOfEntries, amountOfChunks];
-            var chunkSize = headerLength;
+            var delta = headerLength;
             for (var chunkIndex = 0; chunkIndex < amountOfChunks; chunkIndex++)
             {
                 for (var entryIndex = 0; entryIndex < amountOfEntries; entryIndex++)
                 {
-                    var delta = dataReader.ReadInt32BigEndian();
-                    chunkSize = delta - chunkSize;
+                    var previousDelta = delta;
+                    delta = dataReader.ReadInt32BigEndian();
+
+                    var chunkSize = delta - previousDelta;
                     entryChunkSizes[entryIndex, chunkIndex] = chunkSize;
                 }
             }
@@ -188,15 +190,11 @@ namespace Villermen.RuneScapeCacheTools.Utility
             dataWriter.WriteInt32BigEndian(headerSize);
 
             // Write delta-difference encoded entry sizes.
-            var previousEntrySize = headerSize;
+            var delta = headerSize;
             foreach (var entryData in entries.Values)
             {
-                var entrySize = entryData.Length;
-                var delta = previousEntrySize + entrySize;
-
+                delta += entryData.Length;
                 dataWriter.WriteInt32BigEndian(delta);
-
-                previousEntrySize = entrySize;
             }
 
             // I don't know why splitting into chunks is necessary/desired so I just use one. This also happens to

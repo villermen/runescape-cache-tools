@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Serilog;
@@ -112,6 +113,12 @@ namespace Villermen.RuneScapeCacheTools.CLI
                 while (exception is AggregateException && exception.InnerException != null)
                 {
                     exception = exception.InnerException;
+                }
+
+                // Rethrow for debugger to process.
+                if (Debugger.IsAttached)
+                {
+                    throw;
                 }
 
                 Log.Fatal(exception.Message + "\n" + exception.StackTrace);

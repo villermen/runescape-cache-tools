@@ -74,7 +74,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         {
             IEnumerable<KeyValuePair<int, string>> trackNames = this.GetTrackNames(includeUnnamed);
 
-            Log.Information("Obtained soundtrack names and file IDs.");
+            Log.Information($"Obtained {trackNames.Count()} soundtrack names and file IDs.");
 
             if (trackNameFilters.Length > 0)
             {
@@ -99,9 +99,15 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 },
                 trackNamePair =>
                 {
-                    Log.Information($"Combining {trackNamePair.Value}...");
-                    var jagaCacheFile = this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key);
-                    this.ExtractIfJagaFile(jagaCacheFile, trackNamePair.Value, overwrite, lossless);
+                    try
+                    {
+                        var jagaCacheFile = this.Cache.GetFile(CacheIndex.Music, trackNamePair.Key);
+                        this.ExtractIfJagaFile(jagaCacheFile, trackNamePair.Value, overwrite, lossless);
+                    }
+                    catch (CacheFileNotFoundException)
+                    {
+                        Log.Information($"Skipped incomplete \"{trackNamePair.Value}\".");
+                    }
                 }
             );
         }
@@ -118,7 +124,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             if (!this.IsExtractionRequired(outputPath, cacheFile.Info.Version, overwrite))
             {
-                Log.Debug($"Skipped {trackName} because it already exists with the same version.");
+                Log.Debug($"Skipped existing \"{trackName}\".");
                 return;
             }
 
@@ -207,11 +213,11 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 System.IO.File.Delete(outputPath);
                 System.IO.File.Move(temporaryOutputPath, outputPath);
 
-                Log.Information($"Combined {trackName}.");
+                Log.Information($"Combined \"{trackName}\".");
             }
             catch (CacheFileNotFoundException)
             {
-                Log.Information($"Skipped {trackName} because of incomplete data.");
+                Log.Information($"Skipped incomplete \"{trackName}\".");
             }
             catch (Win32Exception exception)
             {
