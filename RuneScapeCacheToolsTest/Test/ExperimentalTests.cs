@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -6,6 +7,7 @@ using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Test.Fixture;
+using Villermen.RuneScapeCacheTools.Utility;
 using Xunit;
 
 namespace Villermen.RuneScapeCacheTools.Test
@@ -33,7 +35,7 @@ namespace Villermen.RuneScapeCacheTools.Test
                 {
                     try
                     {
-                        var entryFile = EntryFile.DecodeFromCacheFile(this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId));
+                        var entryFile = this.Fixture.DownloaderCache.GetFile(CacheIndex.ItemDefinitions, fileId);
 
                         foreach (var entry in entryFile.Entries.Values)
                         {
@@ -95,21 +97,6 @@ namespace Villermen.RuneScapeCacheTools.Test
                     csvWriter.WriteLine(line);
                 }
             }
-        }
-
-        [Fact(
-            Skip = "Only enable when needed."
-        )]
-        public void TestExtractUndecodedFile()
-        {
-            var data = this.Fixture.DownloaderCache.GetFileData(CacheIndex.Music, 1);
-            System.IO.File.WriteAllBytes("undecodedfile", data);
-        }
-
-        [Fact]
-        public void TextNxt()
-        {
-            using var cache = new NxtClientCache();
         }
     }
 }

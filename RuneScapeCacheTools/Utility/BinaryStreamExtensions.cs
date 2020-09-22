@@ -8,7 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
     public static class BinaryStreamExtensions
     {
         /// <summary>
-        ///     Reads a 2-byte signed big endian integer and advances the current position of the stream by 2 bytes.
+        /// Reads a 2-byte signed big endian integer and advances the current position of the stream by 2 bytes.
         /// </summary>
         public static short ReadInt16BigEndian(this BinaryReader reader)
         {
@@ -16,7 +16,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a 4-byte signed big endian integer and advances the current position of the stream by 4 bytes.
+        /// Reads a 4-byte signed big endian integer and advances the current position of the stream by 4 bytes.
         /// </summary>
         public static int ReadInt32BigEndian(this BinaryReader reader)
         {
@@ -24,7 +24,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.
+        /// Reads a 2-byte unsigned big endian integer and advances the current position of the stream by 2 bytes.
         /// </summary>
         public static ushort ReadUInt16BigEndian(this BinaryReader reader)
         {
@@ -32,7 +32,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
+        /// Reads a 3-byte unsigned big endian integer and advances the current position of the stream by 3 bytes.
         /// </summary>
         public static int ReadUInt24BigEndian(this BinaryReader reader)
         {
@@ -40,7 +40,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
+        /// Reads a 4-byte unsigned big endian integer and advances the current position of the stream by 4 bytes.
         /// </summary>
         public static uint ReadUInt32BigEndian(this BinaryReader reader)
         {
@@ -49,7 +49,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a 6-byte unsigned big endian integer and advances the current position of the stream by 6 bytes.
+        /// Reads a 6-byte unsigned big endian integer and advances the current position of the stream by 6 bytes.
         /// </summary>
         public static long ReadUInt48BigEndian(this BinaryReader reader)
         {
@@ -131,7 +131,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         };
 
         /// <summary>
-        ///     Reads characters based on the current stream text encoding into a string until \0 or EOF occurs.
+        /// Reads characters based on the current stream text encoding into a string until \0 or EOF occurs.
         /// </summary>
         public static string ReadNullTerminatedString(this BinaryReader reader)
         {
@@ -159,10 +159,10 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Reads a byte, and turns it into a char using some awkward ruleset Jagex came up with.
-        ///     I mean...
-        ///     It could've just been a regular char.
-        ///     But no, that would've been too normal for Jagex.
+        /// Reads a byte, and turns it into a char using some awkward ruleset Jagex came up with.
+        /// I mean...
+        /// It could've just been a regular char.
+        /// But no, that would've been too normal for Jagex.
         /// </summary>
         /// <param name="reader"></param>
         public static char ReadAwkwardChar(this BinaryReader reader)
@@ -224,7 +224,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         }
 
         /// <summary>
-        ///     Writes characters into a string and suffixes it with \0.
+        /// Writes characters into a string and suffixes it with \0.
         /// </summary>
         public static void WriteNullTerminatedString(this BinaryWriter writer, string str)
         {

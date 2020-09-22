@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Test.File
         public void TestItemDefinitionFile(CacheIndex index, int fileId, int entryId, string expectedName, int expectedPropertyCount)
         {
             var itemDefinitionFile = ItemDefinitionFile.Decode(
-                RuneScapeCacheTools.File.EntryFile.DecodeFromCacheFile(this.Fixture.JavaClientCache.GetFile(index, fileId)).Entries[entryId]
+                this.Fixture.JavaClientCache.GetFile(index, fileId).Entries[entryId]
             );
 
             Assert.Equal(expectedName, itemDefinitionFile.Name);

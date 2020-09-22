@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
         /// </summary>
         /// <param name="cacheDirectory"></param>
         /// <param name="readOnly"></param>
-        public JavaClientCache(string? cacheDirectory = null, bool readOnly = true)
+        public JavaClientCache(string? cacheDirectory = null, bool readOnly = true) : base(new RuneTek5CacheFileDecoder())
         {
             this.CacheDirectory = PathExtensions.FixDirectory(cacheDirectory ?? JavaClientCache.DefaultCacheDirectory);
             this.ReadOnly = readOnly;
@@ -65,7 +65,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
             this.CloseStreams();
         }
 
-        public override byte[] GetFileData(CacheIndex index, int fileId)
+        public override byte[] GetFileData(CacheIndex index, int fileId, CacheFileInfo? info)
         {
             // Read the sectors and take their payload data up to the size of the contained file.
             return this
@@ -79,7 +79,7 @@ namespace Villermen.RuneScapeCacheTools.Cache
                 .ToArray();
         }
 
-        protected override void PutFileData(CacheIndex index, int fileId, byte[] data)
+        protected override void PutFileData(CacheIndex index, int fileId, byte[] data, CacheFileInfo? info)
         {
             if (this.ReadOnly)
             {

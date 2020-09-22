@@ -10,7 +10,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class AudioCommand : BaseCommand
     {
-        /// <summary>Limits the amount of SoX instances to not fry your PC.</summary>
+        /// <summary>
+        /// Limits the amount of SoX instances to not fry your PC.
+        /// </summary>
         private const int Parallelism = 10;
 
         private bool _lossless = false;

@@ -12,7 +12,9 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
         /// <summary>
         /// Downloads and stores files necessary to perform all tests.
         /// </summary>
-        [Fact(Skip = "Only run manually to construct a new test cache")]
+        [Fact(
+            Skip = "Only run manually to construct a new test cache"
+        )]
         public void ConstructTestCache()
         {
             var files = new List<Tuple<CacheIndex, int>>
@@ -120,7 +122,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
                 new Tuple<CacheIndex, int>(CacheIndex.Music, 45216),
                 new Tuple<CacheIndex, int>(CacheIndex.Music, 45217),
                 new Tuple<CacheIndex, int>(CacheIndex.Music, 45218),
-                new Tuple<CacheIndex, int>(CacheIndex.Music, 45219)
+                new Tuple<CacheIndex, int>(CacheIndex.Music, 45219),
             };
 
             if (Directory.Exists("generated"))
@@ -131,27 +133,28 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
             var expectedFileSizes = new Queue<int>();
 
             // Download and write the files.
+            using (var downloaderCache = new DownloaderCache())
+            using (var flatFileCache = new FlatFileCache("generated/file"))
+            using (var javaCache = new JavaClientCache("generated/java", false))
+            using (var nxtCache = new NxtClientCache("generated/nxt", false))
             {
-                using var downloaderCache = new DownloaderCache();
-                using var flatFileCache = new FlatFileCache("generated/file");
-                using var javaCache = new JavaClientCache("generated/java", false);
-
                 foreach (var fileTuple in files)
                 {
                     var file = downloaderCache.GetFile(fileTuple.Item1, fileTuple.Item2);
 
                     flatFileCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
                     javaCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
+                    nxtCache.PutFile(fileTuple.Item1, fileTuple.Item2, file);
 
-                    expectedFileSizes.Enqueue(file.Data.Length);
+                    expectedFileSizes.Enqueue(file.Data.Length); // Note: Encodes entries in RT5 format.
                 }
             }
 
             // Verify that the files are now obtainable and unchanged.
+            using (var flatFileCache = new FlatFileCache("generated/file"))
+            using (var javaCache = new JavaClientCache("generated/java"))
+            using (var nxtCache = new NxtClientCache("generated/nxt"))
             {
-                using var flatFileCache = new FlatFileCache("generated/file");
-                using var javaCache = new JavaClientCache("generated/java");
-
                 foreach (var fileTuple in files)
                 {
                     var expectedFileSize = expectedFileSizes.Dequeue();
@@ -161,6 +164,9 @@ namespace Villermen.RuneScapeCacheTools.Test.Fixture
 
                     var javaFile = javaCache.GetFile(fileTuple.Item1, fileTuple.Item2);
                     Assert.Equal(expectedFileSize, javaFile.Data.Length);
+
+                    var nxtFile = nxtCache.GetFile(fileTuple.Item1, fileTuple.Item2);
+                    Assert.Equal(expectedFileSize, nxtFile.Data.Length);
                 }
             }
         }
