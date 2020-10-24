@@ -29,7 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         private static Dictionary<string, string>? _cachedAppletParams;
 
-        private static Tuple<int, int> _buildNumber = new Tuple<int, int>(914, 1);
+        private static Tuple<int, int>? _buildNumber = null;
 
         public static string GetContentServerHostname()
         {
@@ -53,6 +53,11 @@ namespace Villermen.RuneScapeCacheTools.Utility
             return ClientDetails.GetAppletParamWithLength(32);
         }
 
+        public static bool HasBuildNumber()
+        {
+            return ClientDetails._buildNumber != null;
+        }
+
         /// <summary>
         /// Fetches the current build number of the game client. Will most likely return an outdated build number unless
         /// <see cref="TcpFileDownloader" /> has successfully connected.
@@ -61,6 +66,11 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// </summary>
         public static Tuple<int, int> GetBuildNumber()
         {
+            if (!ClientDetails.HasBuildNumber())
+            {
+                throw new InvalidOperationException("Build number has not been obtained yet.");
+            }
+
             return ClientDetails._buildNumber;
         }
 

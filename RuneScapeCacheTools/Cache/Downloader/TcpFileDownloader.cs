@@ -19,16 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private const int BlockSize = 102400;
 
-        /// <summary>
-        /// Required to correctly connect to the content server.
-        /// </summary>
-        private const byte HandshakeType = 15;
-
-        /**
-         * No idea what these are for but this is the amount of integers read out directly after connecting to the
-         * content server.
-         */
-        private const int LoadingRequirements = 27;
+        private const int StartBuildNumber = 915;
 
         /// <summary>
         /// Only one processor may be running at a time.
@@ -105,9 +96,17 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         // Request the file.
                         var writer = new BinaryWriter(this._contentClient.GetStream());
 
-                        writer.Write((byte)(requestPair.Key.Item1 == CacheIndex.ReferenceTables ? 1 : 0));
+                        byte unknownByte1 = 0x01;
+                        if (requestPair.Key.Item1 == CacheIndex.ReferenceTables && requestPair.Key.Item2 == 255)
+                        {
+                            unknownByte1 = 0x21; // Note: equals 0b00100001 so this might be a bitmask.
+                        }
+
+                        writer.Write(unknownByte1);
                         writer.Write((byte)requestPair.Key.Item1);
-                        writer.WriteInt32BigEndian(requestPair.Key.Item2);
+                        writer.WriteUInt32BigEndian((uint)requestPair.Key.Item2);
+                        writer.WriteUInt16BigEndian((ushort)ClientDetails.GetBuildNumber().Item1);
+                        writer.WriteUInt16BigEndian(0x0000); // Same value as unknownShort2 used during connect.
 
                         requestPair.Value.MarkRequested(stopwatch.ElapsedMilliseconds);
                     }
@@ -237,7 +236,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            var currentBuildNumber = ClientDetails.GetBuildNumber();
+            var currentBuildNumber = ClientDetails.HasBuildNumber()
+                ? ClientDetails.GetBuildNumber()
+                : new Tuple<int, int>(TcpFileDownloader.StartBuildNumber, 1);
+
             var connected = false;
             while (!connected)
             {
@@ -253,12 +255,10 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                 Log.Debug($"Attempting to connect to TCP content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}...");
 
-                var handshakeLength = (byte) (9 + handshakeKey.Length + 1);
-
-                handshakeWriter.Write(TcpFileDownloader.HandshakeType);
-                handshakeWriter.Write(handshakeLength);
-                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item1);
-                handshakeWriter.WriteInt32BigEndian(currentBuildNumber.Item2);
+                handshakeWriter.Write((byte)15); // Handshake type
+                handshakeWriter.Write((byte)(9 + handshakeKey.Length + 1)); // Handshake length (42)
+                handshakeWriter.WriteUInt32BigEndian((uint)currentBuildNumber.Item1);
+                handshakeWriter.WriteUInt32BigEndian((uint)currentBuildNumber.Item2);
                 handshakeWriter.WriteNullTerminatedString(handshakeKey);
                 handshakeWriter.Write((byte)Language.English);
                 handshakeWriter.Flush();
@@ -269,6 +269,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case HandshakeResponse.Success:
                         connected = true;
+                        // Make build number globally available.
                         ClientDetails.SetBuildNumber(currentBuildNumber);
                         break;
 
@@ -289,20 +290,28 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             // Required loading element sizes.
             var contentReader = new BinaryReader(this._contentClient.GetStream());
-            contentReader.ReadBytesExactly(TcpFileDownloader.LoadingRequirements * 4);
+            var loadingRequirements = contentReader.ReadBytesExactly(27 * 4); // Loading requirements
 
             // Send the initial connection status and login packets to the server. I don't know what the individual
             // writes mean but they do the trick.
             Log.Debug("Sending initial connection status and login packets...");
-            var writer = new BinaryWriter(this._contentClient.GetStream());
-            writer.Write((byte)6);
-            writer.WriteUInt24BigEndian(4);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
-            writer.Write((byte)3);
-            writer.WriteUInt24BigEndian(0);
-            writer.WriteInt16BigEndian(0);
-            writer.Flush();
+            var contentWriter = new BinaryWriter(this._contentClient.GetStream());
+
+            const int unknownTribyte1 = 0x000005;
+            const ushort unknownShort1 = 0x0000;
+            const ushort unknownShort2 = 0x0000; // Observed to be different and is used in every file request.
+            contentWriter.Write((byte)0x06);
+            contentWriter.WriteUInt24BigEndian(unknownTribyte1);
+            contentWriter.WriteUInt16BigEndian(unknownShort1);
+            contentWriter.WriteUInt16BigEndian((ushort)currentBuildNumber.Item1);
+            contentWriter.WriteUInt16BigEndian(unknownShort2);
+            contentWriter.Flush();
+            contentWriter.Write((byte)0x03);
+            contentWriter.WriteUInt24BigEndian(unknownTribyte1);
+            contentWriter.WriteUInt16BigEndian(unknownShort1);
+            contentWriter.WriteUInt16BigEndian((ushort)currentBuildNumber.Item1);
+            contentWriter.WriteUInt16BigEndian(unknownShort2);
+            contentWriter.Flush();
 
             this._connected = true;
         }
