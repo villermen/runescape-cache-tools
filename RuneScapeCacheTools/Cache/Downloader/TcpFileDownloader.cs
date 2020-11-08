@@ -288,9 +288,19 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             Log.Debug($"Successfully connected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
 
-            // Required loading element sizes.
             var contentReader = new BinaryReader(this._contentClient.GetStream());
-            var loadingRequirements = contentReader.ReadBytesExactly(27 * 4); // Loading requirements
+            // Loading requirements. Whatever that might mean:
+            // 00 00 0c ea
+            // 00 01 10 a3
+            // 00 00 a2 b3
+            // 00 00 8c 1a
+            // 00 05 79 3c
+            // 00 42 d4 96
+            // 00 00 ad 57
+            // 00 00 47 3f
+            // 00 01 0b 50
+            // 00 06 b6 55 00 13 dd 79 00 0a 1f cf 00 0a b2 93 00 13 d9 2a 00 15 dd e7 00 00 a4 3c 00 14 10 50 00 00 5a e3 00 00 97 75 00 00 04 dc 00 01 70 0d 00 00 09 20 00 00 00 77 00 13 73 f2 00 51 66 05 00 00 ab ee 00 00 61 ba 00 02 2d 43
+            var loadingRequirements = contentReader.ReadBytesExactly(28 * 4);
 
             // Send the initial connection status and login packets to the server. I don't know what the individual
             // writes mean but they do the trick.

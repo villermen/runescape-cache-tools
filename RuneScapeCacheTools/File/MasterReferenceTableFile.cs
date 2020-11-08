@@ -39,6 +39,9 @@ namespace Villermen.RuneScapeCacheTools.File
 
             var rsaEncryptedWhirlpoolDigest = reader.ReadBytesExactly(512);
 
+            // 0x1E (30)
+            var unknownByte = reader.ReadByte();
+
             if (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 throw new DecodeException($"Not all bytes read while decoding master reference table. {reader.BaseStream.Length - reader.BaseStream.Position} bytes remain.");
