@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Villermen.RuneScapeCacheTools.Cache.Downloader;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -38,9 +37,6 @@ namespace Villermen.RuneScapeCacheTools.File
             }
 
             var rsaEncryptedWhirlpoolDigest = reader.ReadBytesExactly(512);
-
-            // 0x1E (30)
-            var unknownByte = reader.ReadByte();
 
             if (reader.BaseStream.Position < reader.BaseStream.Length)
             {

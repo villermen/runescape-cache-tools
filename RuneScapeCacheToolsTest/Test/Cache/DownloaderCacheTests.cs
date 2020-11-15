@@ -55,6 +55,14 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         }
 
         [Fact]
+        public void TestTcpInterface()
+        {
+            var tcpFile = this.Fixture.DownloaderCache.GetFile(CacheIndex.SoundEffects, 18);
+
+            Assert.True(tcpFile.Data.Length > 0);
+        }
+
+        [Fact]
         public void TestReferenceTableCaching()
         {
             var referenceTable1 = this.Fixture.DownloaderCache.GetReferenceTable(CacheIndex.Enums);
