@@ -110,7 +110,7 @@
     <Compile Include="Cache\ReferenceTableCache.cs" />
     <Compile Include="Exception\CacheException.cs" />
     <Compile Include="Exception\CacheFileNotFoundException.cs" />
-    <Compile Include="Exception\ClientDetailsException.cs" />
+    <Compile Include="Exception\ClientPropertiesException.cs" />
     <Compile Include="Exception\DecodeException.cs" />
     <Compile Include="Exception\DownloaderException.cs" />
     <Compile Include="Exception\EncodeException.cs" />
@@ -137,7 +137,7 @@
     <Compile Include="Utility\BinaryStreamExtensions.cs" />
     <Compile Include="Utility\ICacheFileDecoder.cs" />
     <Compile Include="Utility\RuneTek5CacheFileDecoder.cs" />
-    <Compile Include="Utility\ClientDetails.cs" />
+    <Compile Include="Utility\ClientProperties.cs" />
     <Compile Include="Utility\ExtensionGuesser.cs" />
     <Compile Include="Utility\Formatter.cs" />
     <Compile Include="Utility\PathExtensions.cs" />

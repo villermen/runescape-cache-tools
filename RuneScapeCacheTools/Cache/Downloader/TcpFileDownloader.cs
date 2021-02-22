@@ -19,7 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private const int BlockSize = 102400;
 
-        private const int StartBuildNumber = 915;
+        private const int StartBuildNumber = 917;
 
         /// <summary>
         /// Only one processor may be running at a time.
@@ -105,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         writer.Write(unknownByte1);
                         writer.Write((byte)requestPair.Key.Item1);
                         writer.WriteUInt32BigEndian((uint)requestPair.Key.Item2);
-                        writer.WriteUInt16BigEndian((ushort)ClientDetails.GetBuildNumber().Item1);
+                        writer.WriteUInt16BigEndian((ushort)ClientProperties.GetBuildNumber().Item1);
                         writer.WriteUInt16BigEndian(0x0000); // Same value as unknownShort2 used during connect.
 
                         requestPair.Value.MarkRequested(stopwatch.ElapsedMilliseconds);
@@ -236,22 +236,22 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            var currentBuildNumber = ClientDetails.HasBuildNumber()
-                ? ClientDetails.GetBuildNumber()
+            var currentBuildNumber = ClientProperties.HasBuildNumber()
+                ? ClientProperties.GetBuildNumber()
                 : new Tuple<int, int>(TcpFileDownloader.StartBuildNumber, 1);
 
             var connected = false;
             while (!connected)
             {
                 this._contentClient = new TcpClient(
-                    ClientDetails.GetContentServerHostname(),
-                    ClientDetails.GetContentServerTcpPort()
+                    ClientProperties.GetContentServerHostname(),
+                    ClientProperties.GetContentServerTcpPort()
                 );
 
                 var handshakeWriter = new BinaryWriter(this._contentClient.GetStream());
                 var handshakeReader = new BinaryReader(this._contentClient.GetStream());
 
-                var handshakeKey = ClientDetails.GetContentServerTcpHandshakeKey();
+                var handshakeKey = ClientProperties.GetContentServerTcpHandshakeKey();
 
                 Log.Debug($"Attempting to connect to TCP content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}...");
 
@@ -270,7 +270,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                     case HandshakeResponse.Success:
                         connected = true;
                         // Make build number globally available.
-                        ClientDetails.SetBuildNumber(currentBuildNumber);
+                        ClientProperties.SetBuildNumber(currentBuildNumber);
                         break;
 
                     case HandshakeResponse.Outdated:
