@@ -27,7 +27,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             var webRequest = WebRequest.CreateHttp(
-                $"https://{ClientProperties.GetContentServerHostname()}/ms?m=0&a={(int)index}&k={ClientProperties.GetBuildNumber().Item1}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}"
+                $"https://{ClientProperties.GetContentServerHostname()}/ms?m=0&a={(int)index}&k={ClientProperties.GetServerVersion().Item1}&g={fileId}&c={fileInfo.Crc}&v={fileInfo.Version}"
             );
 
             try

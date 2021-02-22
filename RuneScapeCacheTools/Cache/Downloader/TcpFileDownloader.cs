@@ -19,14 +19,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
         /// </summary>
         private const int BlockSize = 102400;
 
-        private const int StartBuildNumber = 917;
-
         /// <summary>
         /// Only one processor may be running at a time.
         /// </summary>
         private readonly object _processorLock = new object();
 
         private TcpClient _contentClient;
+
+        private Tuple<int, int> _cachedServerVersion = null;
 
         private bool _connected = false;
 
@@ -105,7 +105,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                         writer.Write(unknownByte1);
                         writer.Write((byte)requestPair.Key.Item1);
                         writer.WriteUInt32BigEndian((uint)requestPair.Key.Item2);
-                        writer.WriteUInt16BigEndian((ushort)ClientProperties.GetBuildNumber().Item1);
+                        writer.WriteUInt16BigEndian((ushort)ClientProperties.GetServerVersion().Item1);
                         writer.WriteUInt16BigEndian(0x0000); // Same value as unknownShort2 used during connect.
 
                         requestPair.Value.MarkRequested(stopwatch.ElapsedMilliseconds);
@@ -236,9 +236,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             }
 
             // Retry connecting with an increasing major version until the server no longer reports we're outdated
-            var currentBuildNumber = ClientProperties.HasBuildNumber()
-                ? ClientProperties.GetBuildNumber()
-                : new Tuple<int, int>(TcpFileDownloader.StartBuildNumber, 1);
+            var serverVersion = this._cachedServerVersion ?? ClientProperties.GetServerVersion();
 
             var connected = false;
             while (!connected)
@@ -253,12 +251,12 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
                 var handshakeKey = ClientProperties.GetContentServerTcpHandshakeKey();
 
-                Log.Debug($"Attempting to connect to TCP content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}...");
+                Log.Debug($"Attempting to connect to TCP content server with version {serverVersion.Item1}.{serverVersion.Item2}...");
 
                 handshakeWriter.Write((byte)15); // Handshake type
                 handshakeWriter.Write((byte)(9 + handshakeKey.Length + 1)); // Handshake length (42)
-                handshakeWriter.WriteUInt32BigEndian((uint)currentBuildNumber.Item1);
-                handshakeWriter.WriteUInt32BigEndian((uint)currentBuildNumber.Item2);
+                handshakeWriter.WriteUInt32BigEndian((uint)serverVersion.Item1);
+                handshakeWriter.WriteUInt32BigEndian((uint)serverVersion.Item2);
                 handshakeWriter.WriteNullTerminatedString(handshakeKey);
                 handshakeWriter.Write((byte)Language.English);
                 handshakeWriter.Flush();
@@ -269,14 +267,14 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 {
                     case HandshakeResponse.Success:
                         connected = true;
-                        // Make build number globally available.
-                        ClientProperties.SetBuildNumber(currentBuildNumber);
+                        // Remember version for future connections.
+                        this._cachedServerVersion = serverVersion;
                         break;
 
                     case HandshakeResponse.Outdated:
                         this._contentClient.Dispose();
                         this._contentClient = null;
-                        currentBuildNumber = new Tuple<int, int>(currentBuildNumber.Item1 + 1, 1);
+                        serverVersion = new Tuple<int, int>(serverVersion.Item1 + 1, 1);
                         break;
 
                     default:
@@ -286,7 +284,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
                 }
             }
 
-            Log.Debug($"Successfully connected to content server with version {currentBuildNumber.Item1}.{currentBuildNumber.Item2}.");
+            Log.Debug($"Successfully connected to content server with version {serverVersion.Item1}.{serverVersion.Item2}.");
 
             var contentReader = new BinaryReader(this._contentClient.GetStream());
             // Loading requirements. Whatever that might mean:
@@ -313,13 +311,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             contentWriter.Write((byte)0x06);
             contentWriter.WriteUInt24BigEndian(unknownTribyte1);
             contentWriter.WriteUInt16BigEndian(unknownShort1);
-            contentWriter.WriteUInt16BigEndian((ushort)currentBuildNumber.Item1);
+            contentWriter.WriteUInt16BigEndian((ushort)serverVersion.Item1);
             contentWriter.WriteUInt16BigEndian(unknownShort2);
             contentWriter.Flush();
             contentWriter.Write((byte)0x03);
             contentWriter.WriteUInt24BigEndian(unknownTribyte1);
             contentWriter.WriteUInt16BigEndian(unknownShort1);
-            contentWriter.WriteUInt16BigEndian((ushort)currentBuildNumber.Item1);
+            contentWriter.WriteUInt16BigEndian((ushort)serverVersion.Item1);
             contentWriter.WriteUInt16BigEndian(unknownShort2);
             contentWriter.Flush();
 

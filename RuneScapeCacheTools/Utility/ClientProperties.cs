@@ -51,33 +51,12 @@ namespace Villermen.RuneScapeCacheTools.Utility
             return ClientProperties.GetParamWithLength(32);
         }
 
-        public static bool HasBuildNumber()
-        {
-            return ClientProperties._buildNumber != null;
-        }
-
         /// <summary>
-        /// Fetches the current build number of the game client. Will most likely return an outdated build number unless
-        /// <see cref="TcpFileDownloader" /> has successfully connected.
-        ///
-        /// TODO: Figure out a way to retrieve just the build number in an efficient way. Update: properties contain server_version which we can use!
+        /// Fetches the current server version of the game.
         /// </summary>
-        public static Tuple<int, int> GetBuildNumber()
+        public static Tuple<int, int> GetServerVersion()
         {
-            if (!ClientProperties.HasBuildNumber())
-            {
-                throw new InvalidOperationException("Build number has not been obtained yet.");
-            }
-
-            return ClientProperties._buildNumber;
-        }
-
-        /// <summary>
-        /// Build number must be set from outside this class for now.
-        /// </summary>
-        public static void SetBuildNumber(Tuple<int, int> buildNumber)
-        {
-            ClientProperties._buildNumber = buildNumber;
+            return new Tuple<int, int>(int.Parse(ClientProperties.GetApplicationProperties()["server_version"]), 1);
         }
 
         /// <summary>
@@ -129,7 +108,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         {
             var properties = ClientProperties.GetApplicationProperties();
             var matchingParams = properties.Where(property =>
-                property.Key.StartsWith("param=") && property.Value.Length == length
+                property.Key.StartsWith("param[") && property.Value.Length == length
             ).ToArray();
 
             if (matchingParams.Length == 1)
