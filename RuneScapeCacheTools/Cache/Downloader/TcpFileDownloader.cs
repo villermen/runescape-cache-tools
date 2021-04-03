@@ -288,7 +288,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             var contentReader = new BinaryReader(this._contentClient.GetStream());
             // Loading requirements. Whatever that might mean:
-            // 00 00 0c ea
+            // 00 00 0c e5
             // 00 01 10 a3
             // 00 00 a2 b3
             // 00 00 8c 1a
@@ -296,8 +296,13 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
             // 00 42 d4 96
             // 00 00 ad 57
             // 00 00 47 3f
-            // 00 01 0b 50
-            // 00 06 b6 55 00 13 dd 79 00 0a 1f cf 00 0a b2 93 00 13 d9 2a 00 15 dd e7 00 00 a4 3c 00 14 10 50 00 00 5a e3 00 00 97 75 00 00 04 dc 00 01 70 0d 00 00 09 20 00 00 00 77 00 13 73 f2 00 51 66 05 00 00 ab ee 00 00 61 ba 00 02 2d 43
+            // 00 01 18 f2
+            // 00 07 18 2b 00 14 1d 3a 00 0a 20 38 00 0a dc 75
+            // 00 14 28 e2 00 16 0a fd 00 00 a5 76 00 14 5a e2
+            // 00 00 5f ab 00 00 98 2b 00 00 04 dc 00 01 74 d5
+            // 00 00 09 20 00 00 00 77 00 13 46 c0 00 52 72 03
+            // 00 00 ab ee 00 00 61 e7 00 02 34 41 00 00 ae 95
+            // 00 07 b8 ba
             var loadingRequirements = contentReader.ReadBytesExactly(30 * 4);
 
             // Send the initial connection status and login packets to the server. I don't know what the individual
