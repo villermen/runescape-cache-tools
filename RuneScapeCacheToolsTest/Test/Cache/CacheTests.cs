@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [Theory]
         [InlineData(typeof(JavaClientCache))]
         [InlineData(typeof(FlatFileCache))]
-        [InlineData(typeof(DownloaderCache), Skip = "Downloader machine broke.")]
+        [InlineData(typeof(DownloaderCache))]
         [InlineData(typeof(NxtClientCache))]
         public void TestGetFile(Type cacheType)
         {
@@ -47,7 +47,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [InlineData(typeof(JavaClientCache), CacheIndex.Music)]
         [InlineData(typeof(JavaClientCache), CacheIndex.Enums)]
         [InlineData(typeof(JavaClientCache), CacheIndex.ClientScripts)]
-        [InlineData(typeof(DownloaderCache), CacheIndex.Enums, Skip = "Downloader machine broke.")]
+        [InlineData(typeof(DownloaderCache), CacheIndex.Enums)]
         [InlineData(typeof(NxtClientCache), CacheIndex.Enums)]
         public void TestGetReferenceTableFile(Type cacheType, CacheIndex index)
         {
@@ -85,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [InlineData(typeof(JavaClientCache), 7)]
         [InlineData(typeof(FlatFileCache), 7)]
         [InlineData(typeof(NxtClientCache), 7)]
-        [InlineData(typeof(DownloaderCache), 42, Skip = "Downloader machine broke.")]
+        [InlineData(typeof(DownloaderCache), 46)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.Caches[cacheType].GetAvailableIndexes();

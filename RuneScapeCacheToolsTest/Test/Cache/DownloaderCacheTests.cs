@@ -28,7 +28,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         }
 
         [Theory]
-        [InlineData(60, 45)]
+        [InlineData(61, 46)]
         public void TestDownloadMasterReferenceTable(int expectedTableCount, int expectedAvailableTableCount)
         {
             var masterReferenceTable = this.Fixture.DownloaderCache.GetMasterReferenceTable();
