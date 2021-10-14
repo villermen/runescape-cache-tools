@@ -76,6 +76,7 @@
     <Compile Include="Command\ExtractCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />
     <Compile Include="Command\AudioCommand.cs" />
+    <Compile Include="Command\ItemsCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
