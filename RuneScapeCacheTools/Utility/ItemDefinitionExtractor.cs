@@ -1,12 +1,10 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Serilog.Formatting.Json;
+using Newtonsoft.Json;
+using Serilog;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.File;
 using Villermen.RuneScapeCacheTools.Model;
-using System.Text.Json;
 
 namespace Villermen.RuneScapeCacheTools.Utility
 {
@@ -31,32 +29,46 @@ namespace Villermen.RuneScapeCacheTools.Utility
             this.OutputDirectory = outputDirectory;
         }
 
-        public void ExtractItemDefinitions()
+        public void ExtractItemDefinitions(bool skipUndecodableItems = false)
         {
-            using var jsonWriter = new Utf8JsonWriter(System.IO.File.Open(Path.Combine(this.OutputDirectory, "items.json"), FileMode.Create));
+            using var streamWriter = new StreamWriter(System.IO.File.Open(Path.Combine(this.OutputDirectory, "items.json"), FileMode.Create));
+            using var jsonWriter = new JsonTextWriter(streamWriter);
             var itemReferenceTable = this.Cache.GetReferenceTable(CacheIndex.ItemDefinitions);
 
             jsonWriter.WriteStartObject();
-            jsonWriter.WriteNumber("version", itemReferenceTable.Version.GetValueOrDefault());
-            jsonWriter.WriteStartArray("items");
+            jsonWriter.WritePropertyName("version");
+            jsonWriter.WriteValue(itemReferenceTable.Version.GetValueOrDefault());
+            jsonWriter.WritePropertyName("items");
+            jsonWriter.WriteStartArray();
 
             foreach (var fileId in this.Cache.GetAvailableFileIds(CacheIndex.ItemDefinitions))
             {
                 var entryFile = this.Cache.GetFile(CacheIndex.ItemDefinitions, fileId);
 
-                jsonWriter.WriteStartObject();
-
-                foreach (var entry in entryFile.Entries.Values)
+                foreach (var entry in entryFile.Entries)
                 {
-                    var itemDefinitionFile = ItemDefinitionFile.Decode(entry);
-
-                    foreach (var field in itemDefinitionFile.GetFields())
+                    try
                     {
-                        jsonWriter.WriteString(field.Key, field.Value);
+                        var itemDefinitionFile = ItemDefinitionFile.Decode(entry.Value);
+
+                        jsonWriter.WriteStartObject();
+                        foreach (var field in itemDefinitionFile.GetFields())
+                        {
+                            jsonWriter.WritePropertyName(field.Key);
+                            jsonWriter.WriteValue(field.Value);
+                        }
+                        jsonWriter.WriteEndObject();
+                    }
+                    catch (DecodeException exception)
+                    {
+                        if (!skipUndecodableItems)
+                        {
+                            throw;
+                        }
+
+                        Log.Information($"Could not decode {(int)CacheIndex.ItemDefinitions}/{fileId}/{entry.Key}: {exception.Message}");
                     }
                 }
-
-                jsonWriter.WriteEndObject();
             }
 
             jsonWriter.WriteEndArray();

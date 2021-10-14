@@ -1,19 +1,22 @@
 using System;
-using System.Threading.Tasks;
-using Serilog;
 using Villermen.RuneScapeCacheTools.CLI.Argument;
-using Villermen.RuneScapeCacheTools.Exception;
-using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class ItemsCommand : BaseCommand
     {
+        private bool _skip = false;
+
         public ItemsCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
             this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
             this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
+            this.ArgumentParser.Add(
+                "skip",
+                "Skip items that can't be decoded.",
+                (value) => { this._skip = true; }
+            );
         }
 
         public override int Run()
@@ -30,7 +33,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 this.ArgumentParser.OutputDirectory ?? "."
             );
 
-            itemDefinitionExtractor.ExtractItemDefinitions();
+            itemDefinitionExtractor.ExtractItemDefinitions(this._skip);
             return Program.ExitCodeOk;
         }
     }
