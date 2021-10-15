@@ -14,6 +14,7 @@ namespace Villermen.RuneScapeCacheTools.File
     {
         public int ModelId { get; set; }
         public string Name { get; set; }
+        public string BuffEffect { get; set; }
         public ushort ModelZoom { get; set; }
         public ushort ModelRotation1 { get; set; }
         public ushort ModelRotation2 { get; set; }
@@ -23,6 +24,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public int Value { get; set; }
         public byte EquipSlotId { get; set; }
         public byte EquipId { get; set; }
+        public bool UnknownSwitch15 { get; set; }
         public bool MembersOnly { get; set; }
         public ushort UnknownShort1 { get; set; }
         public int MaleEquip1 { get; set; }
@@ -41,6 +43,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public ushort UnknownShort2 { get; set; }
         public ushort UnknownShort3 { get; set; }
         public bool Unnoted { get; set; }
+        public int GeBuyLimit { get; set; }
         public int ColorEquip1 { get; set; }
         public int ColorEquip2 { get; set; }
         public int UnknownAwkwardInt1 { get; set; }
@@ -86,7 +89,9 @@ namespace Villermen.RuneScapeCacheTools.File
         public ushort UnknownShort20 { get; set; }
         public ushort ShardAmount { get; set; }
         public string ShardName { get; set; }
-        public bool UnknownSwitch2 { get; set; }
+        public bool UnknownSwitch165 { get; set; }
+        public bool UnknownSwitch167 { get; set; }
+        public bool UnknownSwitch168 { get; set; }
         public Dictionary<PropertyKey, object> Properties { get; set; } = new Dictionary<PropertyKey, object>();
 
         public static ItemDefinitionFile Decode(byte[] data)
@@ -111,6 +116,10 @@ namespace Villermen.RuneScapeCacheTools.File
 
                     case Opcode.Name:
                         file.Name = reader.ReadNullTerminatedString();
+                        break;
+
+                    case Opcode.BuffEffect:
+                        file.BuffEffect = reader.ReadNullTerminatedString();
                         break;
 
                     case Opcode.ModelZoom:
@@ -147,6 +156,10 @@ namespace Villermen.RuneScapeCacheTools.File
 
                     case Opcode.EquipId:
                         file.EquipId = reader.ReadByte();
+                        break;
+
+                    case Opcode.UnknownSwitch15:
+                        file.UnknownSwitch15 = true;
                         break;
 
                     case Opcode.MembersOnly:
@@ -262,6 +275,10 @@ namespace Villermen.RuneScapeCacheTools.File
 
                     case Opcode.Unnoted:
                         file.Unnoted = true;
+                        break;
+
+                    case Opcode.GeBuyLimit:
+                        file.GeBuyLimit = reader.ReadInt32BigEndian();
                         break;
 
                     case Opcode.ColorEquip1:
@@ -505,8 +522,16 @@ namespace Villermen.RuneScapeCacheTools.File
                         file.ShardName = reader.ReadNullTerminatedString();
                         break;
 
-                    case Opcode.UnknownSwitch2:
-                        file.UnknownSwitch2 = true;
+                    case Opcode.UnknownSwitch165:
+                        file.UnknownSwitch165 = true;
+                        break;
+
+                    case Opcode.UnknownSwitch167:
+                        file.UnknownSwitch167 = true;
+                        break;
+
+                    case Opcode.UnknownSwitch168:
+                        file.UnknownSwitch168 = true;
                         break;
 
                     case Opcode.Properties:
@@ -581,6 +606,7 @@ namespace Villermen.RuneScapeCacheTools.File
             End = 0,
             ModelId = 1,
             Name = 2,
+            BuffEffect = 3,
             ModelZoom = 4,
             ModelRotation1 = 5,
             ModelRotation2 = 6,
@@ -590,6 +616,7 @@ namespace Villermen.RuneScapeCacheTools.File
             Value = 12,
             EquipSlotId = 13,
             EquipId = 14,
+            UnknownSwitch15 = 15,
             MembersOnly = 16,
             UnknownShort1 = 18,
             MaleEquip1 = 23,
@@ -614,6 +641,7 @@ namespace Villermen.RuneScapeCacheTools.File
             UnknownShort2 = 44,
             UnknownShort3 = 45,
             Unnoted = 65,
+            GeBuyLimit = 69,
             ColorEquip1 = 78,
             ColorEquip2 = 79,
             UnknownAwkwardInt1 = 90,
@@ -668,7 +696,9 @@ namespace Villermen.RuneScapeCacheTools.File
             UnknownShort20 = 162,
             ShardAmount = 163,
             ShardName = 164,
-            UnknownSwitch2 = 165,
+            UnknownSwitch165 = 165,
+            UnknownSwitch167 = 167,
+            UnknownSwitch168 = 168,
             Properties = 249
         }
 
