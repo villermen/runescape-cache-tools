@@ -82,6 +82,57 @@ namespace Villermen.RuneScapeCacheTools.Utility
             return bytes;
         }
 
+        public static ushort[] ReadUInt16BigEndians(this BinaryReader reader, int count)
+        {
+            var result = new ushort[count];
+            for (var i = 0; i < count; i++)
+            {
+                result[i] = reader.ReadUInt16BigEndian();
+            }
+
+            return result;
+        }
+
+        public static void WriteUInt16BigEndians(this BinaryWriter writer, ushort[] value)
+        {
+            foreach (var item in value)
+            {
+                writer.WriteUInt16BigEndian(item);
+            }
+        }
+
+        /// <summary>
+        /// Reads <paramref name="count" /> interlaced arrays of 2-byte unsigned big endian integers with a length of
+        /// <paramref name="length" />.
+        /// </summary>
+        public static ushort[,] ReadInterlacedUInt16BigEndianArrays(this BinaryReader reader, int count, int length)
+        {
+            var result = new ushort[count, length];
+            for (var i = 0; i < length; i++)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    result[j, i] = reader.ReadUInt16BigEndian();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Writes interlaced arrays of 2-byte unsigned big endian integers.
+        /// </summary>
+        public static void WriteInterlacedUInt16BigEndianArrays(this BinaryWriter writer, ushort[,] value)
+        {
+            for (var i = 0; i < value.GetLength(1); i++)
+            {
+                for (var j = 0; j < value.GetLength(0); j++)
+                {
+                    writer.WriteUInt16BigEndian(value[j, i]);
+                }
+            }
+        }
+
         public static void WriteInt16BigEndian(this BinaryWriter writer, short value)
         {
             writer.Write((byte)(value >> 8));

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
 using Serilog;
 using Villermen.RuneScapeCacheTools.Cache;
@@ -52,8 +53,13 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         var itemDefinitionFile = ItemDefinitionFile.Decode(entry.Value);
 
                         jsonWriter.WriteStartObject();
-                        foreach (var field in itemDefinitionFile.GetFields())
+                        foreach (var field in itemDefinitionFile.GetDefinedProperties())
                         {
+                            if (!(field.Value is string) && !(field.Value is ushort))
+                            {
+                                continue;
+                            }
+
                             jsonWriter.WritePropertyName(field.Key);
                             jsonWriter.WriteValue(field.Value);
                         }
