@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Serilog;
@@ -33,7 +36,13 @@ namespace Villermen.RuneScapeCacheTools.Utility
         public void ExtractItemDefinitions(bool skipUndecodableItems = false)
         {
             using var streamWriter = new StreamWriter(System.IO.File.Open(Path.Combine(this.OutputDirectory, "items.json"), FileMode.Create));
-            using var jsonWriter = new JsonTextWriter(streamWriter);
+            using var jsonWriter = new JsonTextWriter(streamWriter)
+            {
+                Formatting = Formatting.Indented,
+                Indentation = 2,
+            };
+            var jsonSerializer = new JsonSerializer();
+
             var itemReferenceTable = this.Cache.GetReferenceTable(CacheIndex.ItemDefinitions);
 
             jsonWriter.WriteStartObject();
@@ -41,6 +50,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
             jsonWriter.WriteValue(itemReferenceTable.Version.GetValueOrDefault());
             jsonWriter.WritePropertyName("items");
             jsonWriter.WriteStartArray();
+
+            var serializableProperties = typeof(ItemDefinitionFile).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (var fileId in this.Cache.GetAvailableFileIds(CacheIndex.ItemDefinitions))
             {
@@ -53,15 +64,29 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         var itemDefinitionFile = ItemDefinitionFile.Decode(entry.Value);
 
                         jsonWriter.WriteStartObject();
-                        foreach (var field in itemDefinitionFile.GetDefinedProperties())
+                        foreach (var property in serializableProperties)
                         {
-                            if (!(field.Value is string) && !(field.Value is ushort))
+                            var propertyName = Formatter.StringToLowerCamelCase(property.Name);
+                            var propertyValue = property.GetValue(itemDefinitionFile);
+                            if (propertyValue == null)
                             {
                                 continue;
                             }
 
-                            jsonWriter.WritePropertyName(field.Key);
-                            jsonWriter.WriteValue(field.Value);
+                            // camelCase item properties and prefix with "unknown" when undefined.
+                            if (propertyName == "properties")
+                            {
+                                propertyValue = ((Dictionary<ItemProperty, object>)propertyValue)
+                                    .ToDictionary(
+                                        itemProperty => Formatter.StringToLowerCamelCase(Enum.GetName(typeof(ItemProperty), itemProperty.Key) ?? $"unknown{(int)itemProperty.Key}"),
+                                        itemProperty => itemProperty.Value
+                                    );
+                            }
+
+                            // I tried using JsonSerializer for the entire file. Overriding individual properties
+                            // requires way to much boilerplate and changes on the original model.
+                            jsonWriter.WritePropertyName(propertyName);
+                            jsonSerializer.Serialize(jsonWriter, propertyValue);
                         }
                         jsonWriter.WriteEndObject();
                     }

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Newtonsoft.Json.Converters;
 using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.File
@@ -109,7 +107,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public bool?  Unknown165 { get; set; }
         public bool? Unknown167 { get; set; }
         public bool? Unknown168 { get; set; }
-        public Dictionary<PropertyKey, object>? Properties { get; set; }
+        public Dictionary<ItemProperty, object>? Properties { get; set; }
 
         public static ItemDefinitionFile Decode(byte[] data)
         {
@@ -233,22 +231,9 @@ namespace Villermen.RuneScapeCacheTools.File
             return file;
         }
 
-        /// <summary>
-        /// Returns all properties of the item that are defined (not null).
-        /// </summary>
-        public Dictionary<string, object> GetDefinedProperties()
+        private static Dictionary<ItemProperty, object> ReadProperties(BinaryReader reader)
         {
-            // TODO: This feels very hacky but so does listing every property (which would be harder to maintain too). Think about how this could work better reusable for encoding. Maybe do list it but in the extractor?
-            return typeof(ItemDefinitionFile)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Select(typeProperty => new KeyValuePair<string, object>(typeProperty.Name, typeProperty.GetValue(this)))
-                .Where(typeProperty => typeProperty.Value != null)
-                .ToDictionary(typeProperty => typeProperty.Key, typeProperty => typeProperty.Value);
-        }
-
-        private static Dictionary<PropertyKey, object> ReadProperties(BinaryReader reader)
-        {
-            var properties = new Dictionary<PropertyKey, object>();
+            var properties = new Dictionary<ItemProperty, object>();
 
             var propertyCount = reader.ReadByte();
             for (var i = 0; i < propertyCount; i++)
@@ -261,7 +246,7 @@ namespace Villermen.RuneScapeCacheTools.File
                     : (object)reader.ReadInt32BigEndian();
 
                 // Note: Duplicate properties exist and are probably caused by improper tooling at Jagex HQ.
-                properties[(PropertyKey)key] = value;
+                properties[(ItemProperty)key] = value;
             }
 
             return properties;
@@ -366,34 +351,6 @@ namespace Villermen.RuneScapeCacheTools.File
             Unknown167 = 167,
             Unknown168 = 168,
             Properties = 249
-        }
-
-        public enum PropertyKey
-        {
-            EquipOption1 = 528,
-            EquipOption2 = 529,
-            EquipOption3 = 530,
-            EquipOption4 = 531,
-            EquipSkillRequired = 749,
-            EquipLevelRequired = 750,
-            LifePointBonus = 1326,
-            MeleeAffinity = 2866,
-            RangedAffinity = 2867,
-            MagicAffinity = 2868,
-            ArmourBonus = 2870,
-            PotionEffectValue = 3000,
-            PortentOfDegradationHealAmount = 3698,
-            Broken = 3793,
-            UnknownMtxDescription = 4085,
-            SpecialAttackCost = 4332,
-            SpecialAttackName = 4333,
-            SpecialAttackDescription = 4334,
-            DestroyText = 5417,
-            ZarosItem = 5440,
-            UnknownFayreTokenRelated = 6405,
-            SigilCooldownDefault = 6520,
-            SigilCooldown = 6521,
-            SigilMaxCharges = 6522
         }
     }
 }

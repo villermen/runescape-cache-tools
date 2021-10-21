@@ -144,6 +144,7 @@
     <Compile Include="Model\CacheFileInfo.cs" />
     <Compile Include="Model\CacheIndex.cs" />
     <Compile Include="Model\CompressionType.cs" />
+    <Compile Include="Model\ItemProperty.cs" />
     <Compile Include="Model\Language.cs" />
     <Compile Include="Model\ReferenceTableInfo.cs" />
     <Compile Include="Model\ReferenceTableOptions.cs" />
