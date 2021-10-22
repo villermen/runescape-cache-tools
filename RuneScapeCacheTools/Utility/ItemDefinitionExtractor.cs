@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Serilog;
 using Villermen.RuneScapeCacheTools.Cache;
 using Villermen.RuneScapeCacheTools.Exception;
@@ -17,26 +19,24 @@ namespace Villermen.RuneScapeCacheTools.Utility
     /// </summary>
     public class ItemDefinitionExtractor
     {
-        public string OutputDirectory
-        {
-            get => this._outputDirectory;
-            set => this._outputDirectory = PathExtensions.FixDirectory(value);
-        }
-
         public ReferenceTableCache Cache { get; private set; }
+        public string? OutputPath { get; }
 
-        private string _outputDirectory;
-
-        public ItemDefinitionExtractor(ReferenceTableCache cache, string outputDirectory)
+        public ItemDefinitionExtractor(ReferenceTableCache cache, string? outputPath)
         {
             this.Cache = cache;
-            this.OutputDirectory = outputDirectory;
+            this.OutputPath = outputPath;
         }
 
-        public void ExtractItemDefinitions(bool skipUndecodableItems = false)
+        public void ExtractItemDefinitions(string? filter = null, bool skipUndecodableItems = false)
         {
-            using var streamWriter = new StreamWriter(System.IO.File.Open(Path.Combine(this.OutputDirectory, "items.json"), FileMode.Create));
-            using var jsonWriter = new JsonTextWriter(streamWriter)
+            // Write JSON to string before writing it to file to intercept partial output.
+            using var streamWriter = (this.OutputPath != null
+                ? new StreamWriter(System.IO.File.Open(this.OutputPath, FileMode.Create))
+                : null
+            );
+            using var stringWriter = new StringWriter();
+            using var jsonWriter = new JsonTextWriter(stringWriter)
             {
                 Formatting = Formatting.Indented,
                 Indentation = 2,
@@ -48,8 +48,18 @@ namespace Villermen.RuneScapeCacheTools.Utility
             jsonWriter.WriteStartObject();
             jsonWriter.WritePropertyName("version");
             jsonWriter.WriteValue(itemReferenceTable.Version.GetValueOrDefault());
+            jsonWriter.WritePropertyName("filter");
+            jsonWriter.WriteValue(filter);
             jsonWriter.WritePropertyName("items");
             jsonWriter.WriteStartArray();
+            // TODO: Commit to file (reused). Needs abstraction.
+            streamWriter?.Write(stringWriter.ToString());
+            stringWriter.GetStringBuilder().Clear();
+
+            var itemCount = 0;
+            var undecodedItemCount = 0;
+
+            var filterParts = filter?.Split(':');
 
             var serializableProperties = typeof(ItemDefinitionFile).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
@@ -89,6 +99,33 @@ namespace Villermen.RuneScapeCacheTools.Utility
                             jsonSerializer.Serialize(jsonWriter, propertyValue);
                         }
                         jsonWriter.WriteEndObject();
+
+                        var itemJson = stringWriter.ToString();
+                        stringWriter.GetStringBuilder().Clear();
+
+                        if (filterParts != null)
+                        {
+                            var token = (string?)JObject.Parse(itemJson.Trim(',', ' ', '\n')).SelectToken(filterParts[0]);
+                            if (token == null)
+                            {
+                                continue;
+                            }
+                            if (filterParts.Length == 2 && token.IndexOf(filterParts[1], StringComparison.CurrentCultureIgnoreCase) == -1)
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (streamWriter != null)
+                        {
+                            streamWriter.Write(itemJson);
+                        }
+                        else
+                        {
+                            Console.WriteLine(itemJson);
+                        }
+
+                        itemCount++;
                     }
                     catch (DecodeException exception)
                     {
@@ -98,12 +135,19 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         }
 
                         Log.Information($"Could not decode {(int)CacheIndex.ItemDefinitions}/{fileId}/{entry.Key}: {exception.Message}");
+                        undecodedItemCount++;
                     }
                 }
             }
 
             jsonWriter.WriteEndArray();
+            jsonWriter.WritePropertyName("itemCount");
+            jsonWriter.WriteValue(itemCount);
+            jsonWriter.WritePropertyName("undecodedItemCount");
+            jsonWriter.WriteValue(undecodedItemCount);
             jsonWriter.WriteEndObject();
+            streamWriter?.Write(stringWriter.ToString());
+            stringWriter.GetStringBuilder().Clear();
         }
     }
 }
