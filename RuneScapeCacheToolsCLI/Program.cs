@@ -23,7 +23,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
             {
                 {"extract", "Extract cache files from various sources into an easily explorable directory structure."},
                 {"audio", "Extract and combine the game's soundtrack."},
-                {"items", "Extract item definitions."},
+                {"items", "Extract and filter item definitions."},
                 {"info", "Obtain information about a stored cache index or its files."},
             }
         );

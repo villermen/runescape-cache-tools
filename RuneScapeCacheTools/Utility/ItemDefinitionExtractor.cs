@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
@@ -19,53 +18,86 @@ namespace Villermen.RuneScapeCacheTools.Utility
     /// </summary>
     public class ItemDefinitionExtractor
     {
-        public ReferenceTableCache Cache { get; private set; }
-        public string? OutputPath { get; }
+        /// <summary>
+        /// Invalidates item JSON when bumped. Bump whenever output of tool changes.
+        /// </summary>
+        private const int Protocol = 1;
 
-        public ItemDefinitionExtractor(ReferenceTableCache cache, string? outputPath)
+        /// <summary>
+        /// Returns whether the JSON file's version matches the version in cache. Means extraction can be skipped.
+        /// </summary>
+        public bool JsonMatchesCache(ReferenceTableCache cache, string jsonFilePath)
         {
-            this.Cache = cache;
-            this.OutputPath = outputPath;
+            try
+            {
+                using var streamReader = new StreamReader(System.IO.File.Open(jsonFilePath, FileMode.Open));
+                using var jsonReader = new JsonTextReader(streamReader);
+
+                int? jsonVersion = null;
+                int? jsonProtocol = null;
+                while (jsonReader.Read())
+                {
+                    if (jsonReader.TokenType == JsonToken.PropertyName && jsonReader.Path == "version")
+                    {
+                        jsonVersion = jsonReader.ReadAsInt32();
+                    }
+
+                    if (jsonReader.TokenType == JsonToken.PropertyName && jsonReader.Path == "protocol")
+                    {
+                        jsonProtocol = jsonReader.ReadAsInt32();
+                    }
+
+                    if (jsonVersion != null && jsonProtocol != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (jsonVersion == null || jsonProtocol != ItemDefinitionExtractor.Protocol)
+                {
+                    return false;
+                }
+
+                var itemReferenceTable = cache.GetReferenceTable(CacheIndex.ItemDefinitions);
+                var cacheVersion = itemReferenceTable.Version.GetValueOrDefault();
+
+                return (jsonVersion == cacheVersion);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return false;
+            }
         }
 
-        public void ExtractItemDefinitions(string? filter = null, bool skipUndecodableItems = false)
+        public void ExtractItemDefinitions(ReferenceTableCache cache, string jsonFilePath, bool skipUndecodableItems = false)
         {
             // Write JSON to string before writing it to file to intercept partial output.
-            using var streamWriter = (this.OutputPath != null
-                ? new StreamWriter(System.IO.File.Open(this.OutputPath, FileMode.Create))
-                : null
-            );
-            using var stringWriter = new StringWriter();
-            using var jsonWriter = new JsonTextWriter(stringWriter)
+            using var streamWriter = new StreamWriter(System.IO.File.Open(jsonFilePath, FileMode.Create));
+            using var jsonWriter = new JsonTextWriter(streamWriter)
             {
                 Formatting = Formatting.Indented,
                 Indentation = 2,
             };
             var jsonSerializer = new JsonSerializer();
 
-            var itemReferenceTable = this.Cache.GetReferenceTable(CacheIndex.ItemDefinitions);
+            var itemReferenceTable = cache.GetReferenceTable(CacheIndex.ItemDefinitions);
 
             jsonWriter.WriteStartObject();
             jsonWriter.WritePropertyName("version");
             jsonWriter.WriteValue(itemReferenceTable.Version.GetValueOrDefault());
-            jsonWriter.WritePropertyName("filter");
-            jsonWriter.WriteValue(filter);
+            jsonWriter.WritePropertyName("protocol");
+            jsonWriter.WriteValue(ItemDefinitionExtractor.Protocol);
             jsonWriter.WritePropertyName("items");
             jsonWriter.WriteStartArray();
-            // TODO: Commit to file (reused). Needs abstraction.
-            streamWriter?.Write(stringWriter.ToString());
-            stringWriter.GetStringBuilder().Clear();
 
             var itemCount = 0;
             var undecodedItemCount = 0;
 
-            var filterParts = filter?.Split(':');
-
             var serializableProperties = typeof(ItemDefinitionFile).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            foreach (var fileId in this.Cache.GetAvailableFileIds(CacheIndex.ItemDefinitions))
+            foreach (var fileId in cache.GetAvailableFileIds(CacheIndex.ItemDefinitions))
             {
-                var entryFile = this.Cache.GetFile(CacheIndex.ItemDefinitions, fileId);
+                var entryFile = cache.GetFile(CacheIndex.ItemDefinitions, fileId);
 
                 foreach (var entry in entryFile.Entries)
                 {
@@ -100,31 +132,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
                         }
                         jsonWriter.WriteEndObject();
 
-                        var itemJson = stringWriter.ToString();
-                        stringWriter.GetStringBuilder().Clear();
-
-                        if (filterParts != null)
-                        {
-                            var token = (string?)JObject.Parse(itemJson.Trim(',', ' ', '\n')).SelectToken(filterParts[0]);
-                            if (token == null)
-                            {
-                                continue;
-                            }
-                            if (filterParts.Length == 2 && token.IndexOf(filterParts[1], StringComparison.CurrentCultureIgnoreCase) == -1)
-                            {
-                                continue;
-                            }
-                        }
-
-                        if (streamWriter != null)
-                        {
-                            streamWriter.Write(itemJson);
-                        }
-                        else
-                        {
-                            Console.WriteLine(itemJson);
-                        }
-
                         itemCount++;
                     }
                     catch (DecodeException exception)
@@ -146,8 +153,42 @@ namespace Villermen.RuneScapeCacheTools.Utility
             jsonWriter.WritePropertyName("undecodedItemCount");
             jsonWriter.WriteValue(undecodedItemCount);
             jsonWriter.WriteEndObject();
-            streamWriter?.Write(stringWriter.ToString());
-            stringWriter.GetStringBuilder().Clear();
+        }
+
+        public void PrintItemDefinitions(string jsonFilePath, string filter)
+        {
+            throw new NotImplementedException();
+
+            // using var streamReader = new StreamReader(System.IO.File.Open(jsonFilePath, FileMode.Open));
+            // using var jsonReader = new JsonTextReader(streamReader);
+            //
+            // while (jsonReader.Read())
+            // {
+            // }
+
+            // var filterParts = filter?.Split(':');
+            //
+            // if (filterParts != null)
+            // {
+            //     var token = (string?)JObject.Parse(itemJson.Trim(',', ' ', '\n')).SelectToken(filterParts[0]);
+            //     if (token == null)
+            //     {
+            //         continue;
+            //     }
+            //     if (filterParts.Length == 2 && token.IndexOf(filterParts[1], StringComparison.CurrentCultureIgnoreCase) == -1)
+            //     {
+            //         continue;
+            //     }
+            // }
+            //
+            // if (streamWriter != null)
+            // {
+            //     streamWriter.Write(itemJson);
+            // }
+            // else
+            // {
+            //     Console.WriteLine(itemJson);
+            // }
         }
     }
 }
