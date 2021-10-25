@@ -74,11 +74,11 @@ namespace Villermen.RuneScapeCacheTools.Utility
             // Courtesy backup.
             if (System.IO.File.Exists(jsonFilePath))
             {
+                Log.Information("Backing up existing items JSON file...");
                 var backupFilepath = jsonFilePath + ".bak";
                 System.IO.File.Delete(backupFilepath);
                 System.IO.File.Move(jsonFilePath, backupFilepath);
             }
-
 
             // Write JSON to string before writing it to file to intercept partial output.
             using var streamWriter = new StreamWriter(System.IO.File.Open(jsonFilePath, FileMode.Create));
@@ -88,6 +88,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 Indentation = 2,
             };
             var jsonSerializer = new JsonSerializer();
+
+            Log.Information("Downloading and writing items JSON...");
 
             var itemReferenceTable = cache.GetReferenceTable(CacheIndex.ItemDefinitions);
 
@@ -164,40 +166,93 @@ namespace Villermen.RuneScapeCacheTools.Utility
             jsonWriter.WriteEndObject();
         }
 
-        public void PrintItemDefinitions(string jsonFilePath, string filter)
+        public void PrintItemDefinitions(string jsonFilePath, string filter, TextWriter output)
         {
-            throw new NotImplementedException();
+            // Note: Method purposefully doesn't log anything so output can be piped in print-only mode.
+            var itemFilters = filter
+                .Split(',')
+                .Select(itemFilter =>
+                {
+                    var split = itemFilter.Split(':');
+                    if (split.Length < 1 || split.Length > 2 || split[0].Length == 0)
+                    {
+                        throw new ArgumentException($"Invalid item filter \"{itemFilter}\".");
+                    }
 
-            // using var streamReader = new StreamReader(System.IO.File.Open(jsonFilePath, FileMode.Open));
-            // using var jsonReader = new JsonTextReader(streamReader);
-            //
-            // while (jsonReader.Read())
-            // {
-            // }
+                    return new KeyValuePair<string, string?>(split[0], (split[1] ?? null));
+                })
+                .ToList();
 
-            // var filterParts = filter?.Split(':');
-            //
-            // if (filterParts != null)
-            // {
-            //     var token = (string?)JObject.Parse(itemJson.Trim(',', ' ', '\n')).SelectToken(filterParts[0]);
-            //     if (token == null)
-            //     {
-            //         continue;
-            //     }
-            //     if (filterParts.Length == 2 && token.IndexOf(filterParts[1], StringComparison.CurrentCultureIgnoreCase) == -1)
-            //     {
-            //         continue;
-            //     }
-            // }
-            //
-            // if (streamWriter != null)
-            // {
-            //     streamWriter.Write(itemJson);
-            // }
-            // else
-            // {
-            //     Console.WriteLine(itemJson);
-            // }
+            using var streamReader = new StreamReader(System.IO.File.Open(jsonFilePath, FileMode.Open));
+            using var jsonReader = new JsonTextReader(streamReader);
+
+            // Read to first item start token.
+            var itemArrayFound = false;
+            while (jsonReader.Read())
+            {
+                if (jsonReader.Path == "items" && jsonReader.TokenType == JsonToken.StartArray)
+                {
+                    itemArrayFound = true;
+                    break;
+                }
+            }
+            if (!itemArrayFound)
+            {
+                throw new InvalidOperationException("Specified JSON has an unexpected format.");
+            }
+
+            using var jsonWriter = new JsonTextWriter(output)
+            {
+                Formatting = Formatting.Indented,
+                Indentation = 2,
+            };
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("filter");
+            jsonWriter.WriteValue(filter);
+            jsonWriter.WritePropertyName("items");
+            jsonWriter.WriteStartArray();
+
+            var totalItemCount = 0;
+            var itemCount = 0;
+            while (jsonReader.Read())
+            {
+                if (jsonReader.TokenType != JsonToken.StartObject)
+                {
+                    break;
+                }
+
+                var itemObject = JObject.Load(jsonReader);
+                totalItemCount++;
+
+                var itemMatchesFilters = true;
+                foreach (var itemFilter in itemFilters)
+                {
+                    var token = (string?)itemObject.SelectToken(itemFilter.Key);
+                    if (token == null)
+                    {
+                        itemMatchesFilters = false;
+                        break;
+                    }
+                    if (itemFilter.Value != null && token.IndexOf(itemFilter.Value, StringComparison.CurrentCultureIgnoreCase) == -1)
+                    {
+                        itemMatchesFilters = false;
+                        break;
+                    }
+                }
+
+                if (itemMatchesFilters)
+                {
+                    itemCount++;
+                    itemObject.WriteTo(jsonWriter);
+                }
+            }
+
+            jsonWriter.WriteEndArray();
+            jsonWriter.WritePropertyName("itemCount");
+            jsonWriter.WriteValue(itemCount);
+            jsonWriter.WritePropertyName("totalItemCount");
+            jsonWriter.WriteValue(totalItemCount);
+            jsonWriter.WriteEndObject();
         }
     }
 }

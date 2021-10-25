@@ -31,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             );
             this.ArgumentParser.Add(
                 "print=",
-                "Prints items matching the given filter. E.g., \"name:kwuarm\" or \"properties.unknown2195\".",
+                "Prints items matching the given filter. E.g., \"name:kwuarm,properties.unknown2195\" for items whose name contain kwuarm and have properties.unknown2195 set.",
                 (value) => this._print=value
             );
         }
@@ -56,7 +56,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
             if (this._print != null)
             {
-                itemDefinitionExtractor.PrintItemDefinitions(this._file, this._print);
+                itemDefinitionExtractor.PrintItemDefinitions(this._file, this._print, Console.Out);
             }
 
             return Program.ExitCodeOk;
