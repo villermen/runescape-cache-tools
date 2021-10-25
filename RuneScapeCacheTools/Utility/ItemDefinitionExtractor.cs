@@ -71,6 +71,15 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         public void ExtractItemDefinitions(ReferenceTableCache cache, string jsonFilePath, bool skipUndecodableItems = false)
         {
+            // Courtesy backup.
+            if (System.IO.File.Exists(jsonFilePath))
+            {
+                var backupFilepath = jsonFilePath + ".bak";
+                System.IO.File.Delete(backupFilepath);
+                System.IO.File.Move(jsonFilePath, backupFilepath);
+            }
+
+
             // Write JSON to string before writing it to file to intercept partial output.
             using var streamWriter = new StreamWriter(System.IO.File.Open(jsonFilePath, FileMode.Create));
             using var jsonWriter = new JsonTextWriter(streamWriter)
