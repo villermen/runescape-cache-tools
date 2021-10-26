@@ -31,7 +31,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             );
             this.ArgumentParser.Add(
                 "print=",
-                "Prints items matching the given filter. E.g., \"name:kwuarm,properties.unknown2195\" for items whose name contain kwuarm and have properties.unknown2195 set.",
+                "Prints items matching the given filter. E.g., \"name:kwuarm*,properties.unknown2195\" for items whose name start with kwuarm and have properties.unknown2195 set.",
                 (value) => this._print=value
             );
         }
@@ -44,13 +44,21 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             using var sourceCache = this.ArgumentParser.SourceCache;
             if (sourceCache != null)
             {
-                if (itemDefinitionExtractor.JsonMatchesCache(sourceCache, this._file))
+                if (this._force || !itemDefinitionExtractor.JsonMatchesCache(sourceCache, this._file))
                 {
-                    Console.WriteLine("Skipping extraction because JSON is up to date with cache.");
+                    itemDefinitionExtractor.ExtractItemDefinitions(sourceCache, this._file, this._skip);
                 }
                 else
                 {
-                    itemDefinitionExtractor.ExtractItemDefinitions(sourceCache, this._file, this._skip);
+                    Console.WriteLine("Skipping extraction because JSON is up to date with cache.");
+                }
+            }
+            else
+            {
+                if (this._force)
+                {
+                    Console.WriteLine("A source cache is required when forcing item extraction.");
+                    return Program.ExitCodeInvalidArgument;
                 }
             }
 
