@@ -20,7 +20,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
     public class ItemDefinitionExtractor
     {
         /// <summary>
-        /// Invalidates item JSON when bumped. Bump whenever output of tool changes.
+        /// Invalidates item JSON when bumped. Bump whenever output of tool (e.g., property names) changes.
         /// </summary>
         private const int Protocol = 1;
 
