@@ -8,7 +8,7 @@ Extract the archive and run `rsct.exe` to list available options.
  - Extract the entire cache or single indexes into separate files in a given directory (`rsct.exe extract`). Decompressing and handing out extensions where appropriate.
  - Combine sound chunks into full-fledged, named tracks (`rsct.exe audio`). By default the lossy OGG format is used, but there is also an option to combine the tracks into FLAC files without (minor) loss of quality.
  - Download files straight from Jagex's servers instead of your own incomplete cache.
- 
+
 ## "The program opens and closes right after"
 RSCT is a command-line application.
 That means it is a text-only application that should be run from your terminal with arguments.
@@ -18,6 +18,7 @@ If you're not familiar with the command-line give [this page on getting started]
 ## Example commands
 - Extract and save files 1-100 from the soundtrack index (40) of your java client's cache: `rsct.exe extract --java 40/1-100`.
 - Download and combine the track "Soundscape": `rsct.exe audio --download --filter=soundscape`.
+- Download and print all items that start with "kwuarm": `rsct.exe items --download --print="name:kwuarm*"`
 
 ## Soundtrack
 I've uploaded all named tracks to YouTube.
@@ -32,11 +33,7 @@ On non-Windows platforms this can be accomplished by installing the sox package 
 For Windows, either put the SoX binary and its dependencies (dlls) into the same directory as the cache tools, or install the application and add it to your PATH.
 
 ## Credits
-I would like to thank some great community members who helped me in getting the cache figured out:
-- Pea2nuts
-- Method
-- Graham
-- \`Discardedx2
-- Sean
+Thanks to all the great community members who helped me in getting the cache figured out and making this a better tool.
+I'm not listing you here for privacy reasons (unless you want to), but you know who you are!
 
 If you have any remaining questions feel free to [send me an email](mailto:villermen@gmail.com).
