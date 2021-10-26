@@ -7,27 +7,66 @@ namespace Villermen.RuneScapeCacheTools.Model
         Identikit = 3,
         FloorOverlay = 4,
         Inventories = 5,
-        UsedToBeLocations = 6, // Pre 488.
-        Unknown7 = 7, // Server only.
-        UsedToBeEnums = 8, // Pre 488.
-        UsedToBeNpcs = 9, // Pre 488.
-        UsedToBeObjects = 10, // Pre 488.
+        /// <summary>
+        /// Before build 488: Locations.
+        /// </summary>
+        Empty6 = 6,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Unknown7 = 7,
+        /// <summary>
+        /// Before build 488: Enums.
+        /// </summary>
+        Empty8 = 8,
+        /// <summary>
+        /// Before build 488: NPCs.
+        /// </summary>
+        Empty9 = 9,
+        /// <summary>
+        /// Before build 488: Objects.
+        /// </summary>
+        Empty10 = 10,
         Params = 11,
-        UsedToBeSequences = 12, // Pre 488.
-        UsedToBeSpotAnimations = 13, // // Pre 488.
-        UsedToBeVarBit = 14, // Pre 488.
-        UsedToBeVarClientStrings = 15, // Pre 745.
-        UsedToBeVarPlayer = 16, // Pre 745.
+        /// <summary>
+        /// Before build 488: Sequences.
+        /// </summary>
+        Empty12 = 12,
+        /// <summary>
+        /// Before build 488: SpotAnimations.
+        /// </summary>
+        Empty13 = 13,
+        /// <summary>
+        /// Before build 488: VarBit.
+        /// </summary>
+        Empty14 = 14,
+        /// <summary>
+        /// Before build 745: VarClientStrings.
+        /// </summary>
+        Empty15 = 15,
+        /// <summary>
+        /// Before build 745: VarPlayer.
+        /// </summary>
+        Empty16 = 16,
         Unknown17 = 17,
-        Areas = 18, // Server only.
-        UsedToBeVarClient = 19, // Pre 745.
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Areas = 18,
+        /// <summary>
+        /// Before build 745: VarClient.
+        /// </summary>
+        Empty19 = 19,
         Unknown20 = 20,
         Unknown21 = 21,
         Unknown22 = 22,
         Unknown23 = 23,
         Unknown24 = 24,
         Unknown25 = 25,
-        UsedToBeStructs = 26, // Pre 763,
+        /// <summary>
+        /// Before build 763: Structs.
+        /// </summary>
+        Empty26 = 26,
         Unknown27 = 27,
         Unknown28 = 28,
         Skyboxes = 29,
@@ -41,21 +80,42 @@ namespace Villermen.RuneScapeCacheTools.Model
         Unknown37 = 37,
         Unknown38 = 38,
         Unknown39 = 39,
-        DatabaseTables = 40, // Server only.
-        DatabaseRows = 41, // Server only.
-        Unknown42 = 42, // Server only.
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        DatabaseTables = 40,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        DatabaseRows = 41,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Unknown42 = 42,
         Unknown43 = 43,
         Unknown44 = 44,
         Unknown45 = 45,
         Hitmarks = 46,
-        UsedToBeVarClan = 47, // Pre 745.
-        ItemCodes = 48, // Server only.
-        Categories = 49, // Server only.
+        /// <summary>
+        /// Before build 745: VarClan.
+        /// </summary>
+        Empty47 = 47,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        ItemCodes = 48,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Categories = 49,
         Unknown50 = 50,
         Unknown51 = 51,
         Unknown52 = 52,
         Unknown53 = 53,
-        UsedToBeVarClanSettings = 54, // Pre 745.
+        /// <summary>
+        /// Before build 745: VarClanSettings.
+        /// </summary>
+        Empty54 = 54,
         Unknown55 = 55,
         Unknown56 = 56,
         Unknown57 = 57,
@@ -64,20 +124,44 @@ namespace Villermen.RuneScapeCacheTools.Model
         VarPlayer = 60,
         VarNpc = 61,
         VarClient = 62,
-        VarWorld = 63, // Server only.
-        VarRegion = 64, // Server only.
-        VarObject = 65, // Server only
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        VarWorld = 63,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        VarRegion = 64,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        VarObject = 65,
         VarClan = 66,
         VarClanSettings = 67,
-        Unknown68 = 68, // Varlike, server only.
+        /// <summary>
+        /// Server only. Var-like.
+        /// </summary>
+        Unknown68 = 68,
         VarBit = 69,
-        GameLogEvents = 70, // Server only.
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        GameLogEvents = 70,
         Unknown71 = 71,
         Hitbars = 72,
-        Unknown73 = 73, // Server only.
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Unknown73 = 73,
         Unknown74 = 74,
-        Unknown75 = 75, // Varlike, server only.
-        Unknown76 = 76, // Server only.
+        /// <summary>
+        /// Server only. Var-like.
+        /// </summary>
+        Unknown75 = 75,
+        /// <summary>
+        /// Server only.
+        /// </summary>
+        Unknown76 = 76,
         AnimationFlowControl = 77,
         Unknown78 = 78,
         Unknown79 = 79,

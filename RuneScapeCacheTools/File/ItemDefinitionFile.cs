@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using Villermen.RuneScapeCacheTools.Exception;
+using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
 
 namespace Villermen.RuneScapeCacheTools.File
@@ -12,82 +12,114 @@ namespace Villermen.RuneScapeCacheTools.File
     /// </summary>
     public class ItemDefinitionFile
     {
-        public int ModelId { get; set; }
-        public string Name { get; set; }
-        public ushort ModelZoom { get; set; }
-        public ushort ModelRotation1 { get; set; }
-        public ushort ModelRotation2 { get; set; }
-        public short ModelOffset1 { get; set; }
-        public short ModelOffset2 { get; set; }
-        public bool Stackable { get; set; }
-        public int Value { get; set; }
-        public byte EquipSlotId { get; set; }
-        public byte EquipId { get; set; }
-        public bool MembersOnly { get; set; }
-        public ushort UnknownShort1 { get; set; }
-        public int MaleEquip1 { get; set; }
-        public int MaleEquip2 { get; set; }
-        public int FemaleEquip1 { get; set; }
-        public int FemaleEquip2 { get; set; }
-        public byte UnknownByte1 { get; set; }
-        public string[] GroundOptions { get; set; } = new string[5];
-        public string[] InventoryOptions { get; set; } = new string[5];
-        public ushort[] OriginalModelColors { get; set; }
-        public ushort[] ModifiedModelColors { get; set; }
-        public ushort[] OriginalTextureColors { get; set; }
-        public ushort[] ModifiedTextureColors { get; set; }
-        public byte[] UnknownByteArray1 { get; set; }
-        public uint UnknownInt1 { get; set; }
-        public ushort UnknownShort2 { get; set; }
-        public ushort UnknownShort3 { get; set; }
-        public bool Unnoted { get; set; }
-        public int ColorEquip1 { get; set; }
-        public int ColorEquip2 { get; set; }
-        public int UnknownAwkwardInt1 { get; set; }
-        public int UnknownAwkwardInt2 { get; set; }
-        public int UnknownAwkwardInt3 { get; set; }
-        public int UnknownAwkwardInt4 { get; set; }
-        public ushort UnknownShort4 { get; set; }
-        public ushort UnknownShort5 { get; set; }
-        public byte UnknownByte2 { get; set; }
-        public ushort NoteId { get; set; }
-        public ushort NoteTemplateId { get; set; }
-        public Tuple<ushort, ushort>[] Stacks { get; set; } = new Tuple<ushort, ushort>[10];
-        public ushort UnknownShort6 { get; set; }
-        public ushort UnknownShort7 { get; set; }
-        public ushort UnknownShort8 { get; set; }
-        public byte UnknownByte3 { get; set; }
-        public byte UnknownByte4 { get; set; }
-        public byte TeamId { get; set; }
-        public ushort LendId { get; set; }
-        public ushort LendTemplateId { get; set; }
-        public int UnknownTribyte1 { get; set; }
-        public int UnknownTribyte2 { get; set; }
-        public int UnknownTribyte3 { get; set; }
-        public int UnknownTribyte4 { get; set; }
-        public int UnknownTribyte5 { get; set; }
-        public int UnknownTribyte6 { get; set; }
-        public ushort[] UnknownShortArray1 { get; set; }
-        public byte UnknownByte5 { get; set; }
-        public ushort BindId { get; set; }
-        public ushort BindTemplateId { get; set; }
-        public ushort UnknownShort9 { get; set; }
-        public ushort UnknownShort10 { get; set; }
-        public ushort UnknownShort11 { get; set; }
-        public ushort UnknownShort12 { get; set; }
-        public ushort UnknownShort13 { get; set; }
-        public ushort UnknownShort14 { get; set; }
-        public ushort UnknownShort15 { get; set; }
-        public ushort UnknownShort16 { get; set; }
-        public ushort UnknownShort17 { get; set; }
-        public ushort UnknownShort18 { get; set; }
-        public bool Is25Gp { get; set; }
-        public ushort UnknownShort19 { get; set; }
-        public ushort UnknownShort20 { get; set; }
-        public ushort ShardAmount { get; set; }
-        public string ShardName { get; set; }
-        public bool UnknownSwitch2 { get; set; }
-        public Dictionary<PropertyKey, object> Properties { get; set; } = new Dictionary<PropertyKey, object>();
+        public int? ModelId { get; set; }
+        public string? Name { get; set; }
+        public string? BuffEffect { get; set; }
+        public ushort? ModelZoom { get; set; }
+        public ushort? ModelRotation1 { get; set; }
+        public ushort? ModelRotation2 { get; set; }
+        public short? ModelOffset1 { get; set; }
+        public short? ModelOffset2 { get; set; }
+        public bool? Stackable { get; set; }
+        public int? Value { get; set; }
+        public byte? EquipSlotId { get; set; }
+        public byte? EquipId { get; set; }
+        public bool? Unknown15 { get; set; }
+        public bool? MembersOnly { get; set; }
+        public ushort? Unknown18 { get; set; }
+        public int? MaleEquip1 { get; set; }
+        public int? MaleEquip2 { get; set; }
+        public int? FemaleEquip1 { get; set; }
+        public int? FemaleEquip2 { get; set; }
+        public byte? Unknown27 { get; set; }
+        public string? GroundOption1 { get; set; }
+        public string? GroundOption2 { get; set; }
+        public string? GroundOption3 { get; set; }
+        public string? GroundOption4 { get; set; }
+        public string? GroundOption5 { get; set; }
+        public string? InventoryOption1 { get; set; }
+        public string? InventoryOption2 { get; set; }
+        public string? InventoryOption3 { get; set; }
+        public string? InventoryOption4 { get; set; }
+        public string? InventoryOption5 { get; set; }
+        public ushort[,]? ModelColors { get; set; }
+        public ushort[,]? TextureColors { get; set; }
+        public byte[]? Unknown42 { get; set; }
+        public uint? Unknown43 { get; set; }
+        public ushort? Unknown44 { get; set; }
+        public ushort? Unknown45 { get; set; }
+        public bool? Tradeable { get; set; }
+        public int? GeBuyLimit { get; set; }
+        public int? ColorEquip1 { get; set; }
+        public int? ColorEquip2 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
+        public int? Unknown90 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
+        public int? Unknown91 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
+        public int? Unknown92 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
+        public int? Unknown93 { get; set; }
+        public ushort? Unknown94 { get; set; }
+        public ushort? Unknown95 { get; set; }
+        public byte? Unknown96 { get; set; }
+        public ushort? NoteId { get; set; }
+        public ushort? NoteTemplateId { get; set; }
+        public Tuple<ushort, ushort>? Stack1 { get; set; }
+        public Tuple<ushort, ushort>? Stack2 { get; set; }
+        public Tuple<ushort, ushort>? Stack3 { get; set; }
+        public Tuple<ushort, ushort>? Stack4 { get; set; }
+        public Tuple<ushort, ushort>? Stack5 { get; set; }
+        public Tuple<ushort, ushort>? Stack6 { get; set; }
+        public Tuple<ushort, ushort>? Stack7 { get; set; }
+        public Tuple<ushort, ushort>? Stack8 { get; set; }
+        public Tuple<ushort, ushort>? Stack9 { get; set; }
+        public Tuple<ushort, ushort>? Stack10 { get; set; }
+        public ushort? Unknown110 { get; set; }
+        public ushort? Unknown111 { get; set; }
+        public ushort? Unknown112 { get; set; }
+        public byte? Unknown113 { get; set; }
+        public byte? Unknown114 { get; set; }
+        public byte? TeamId { get; set; }
+        public ushort? LendId { get; set; }
+        public ushort? LendTemplateId { get; set; }
+        public int? Unknown125 { get; set; }
+        public int? Unknown126 { get; set; }
+        public int? Unknown127 { get; set; }
+        public int? Unknown128 { get; set; }
+        public int? Unknown129 { get; set; }
+        public int? Unknown130 { get; set; }
+        public ushort[]? Unknown132 { get; set; }
+        public byte? Unknown134 { get; set; }
+        public ushort? BindId { get; set; }
+        public ushort? BindTemplateId { get; set; }
+        public ushort? Unknown142 { get; set; }
+        public ushort? Unknown143 { get; set; }
+        public ushort? Unknown144 { get; set; }
+        public ushort? Unknown145 { get; set; }
+        public ushort? Unknown146 { get; set; }
+        public ushort? Unknown150 { get; set; }
+        public ushort? Unknown151 { get; set; }
+        public ushort? Unknown152 { get; set; }
+        public ushort? Unknown153 { get; set; }
+        public ushort? Unknown154 { get; set; }
+        public bool? Is25Gp { get; set; }
+        public ushort? Unknown161 { get; set; }
+        public ushort? Unknown162 { get; set; }
+        public ushort? ShardAmount { get; set; }
+        public string? ShardName { get; set; }
+        public bool? Unknown165 { get; set; }
+        public bool? Unknown167 { get; set; }
+        public bool? Unknown168 { get; set; }
+        public Dictionary<ItemProperty, object>? Properties { get; set; }
 
         public static ItemDefinitionFile Decode(byte[] data)
         {
@@ -99,443 +131,107 @@ namespace Villermen.RuneScapeCacheTools.File
             do
             {
                 opcode = (Opcode)reader.ReadByte();
-
-                switch (opcode)
+                object? _ = opcode switch
                 {
-                    case Opcode.End:
-                        break;
-
-                    case Opcode.ModelId:
-                        file.ModelId = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.Name:
-                        file.Name = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.ModelZoom:
-                        file.ModelZoom = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.ModelRotation1:
-                        file.ModelRotation1 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.ModelRotation2:
-                        file.ModelRotation2 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.ModelOffset1:
-                        file.ModelOffset1 = reader.ReadInt16BigEndian();
-                        break;
-
-                    case Opcode.ModelOffset2:
-                        file.ModelOffset2 = reader.ReadInt16BigEndian();
-                        break;
-
-                    case Opcode.Stackable:
-                        file.Stackable = true;
-                        break;
-
-                    case Opcode.Value:
-                        file.Value = reader.ReadInt32BigEndian();
-                        break;
-
-                    case Opcode.EquipSlotId:
-                        file.EquipSlotId = reader.ReadByte();
-                        break;
-
-                    case Opcode.EquipId:
-                        file.EquipId = reader.ReadByte();
-                        break;
-
-                    case Opcode.MembersOnly:
-                        file.MembersOnly = true;
-                        break;
-
-                    case Opcode.UnknownShort1:
-                        file.UnknownShort1 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.MaleEquip1:
-                        file.MaleEquip1 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.MaleEquip2:
-                        file.MaleEquip2 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.FemaleEquip1:
-                        file.FemaleEquip1 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.FemaleEquip2:
-                        file.FemaleEquip2 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownByte1:
-                        file.UnknownByte1 = reader.ReadByte();
-                        break;
-
-                    case Opcode.GroundOption1:
-                        file.GroundOptions[0] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.GroundOption2:
-                        file.GroundOptions[1] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.GroundOption3:
-                        file.GroundOptions[2] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.GroundOption4:
-                        file.GroundOptions[3] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.GroundOption5:
-                        file.GroundOptions[4] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.InventoryOption1:
-                        file.InventoryOptions[0] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.InventoryOption2:
-                        file.InventoryOptions[1] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.InventoryOption3:
-                        file.InventoryOptions[2] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.InventoryOption4:
-                        file.InventoryOptions[3] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.InventoryOption5:
-                        file.InventoryOptions[4] = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.ModelColors:
-                        var modelColorCount = reader.ReadByte();
-                        file.OriginalModelColors = new ushort[modelColorCount];
-                        file.ModifiedModelColors = new ushort[modelColorCount];
-                        for (var i = 0; i < modelColorCount; i++)
-                        {
-                            file.OriginalModelColors[i] = reader.ReadUInt16BigEndian();
-                            file.ModifiedModelColors[i] = reader.ReadUInt16BigEndian();
-                        }
-                        break;
-
-                    case Opcode.TextureColors:
-                        var textureColorCount = reader.ReadByte();
-                        file.OriginalTextureColors = new ushort[textureColorCount];
-                        file.ModifiedTextureColors = new ushort[textureColorCount];
-                        for (var i = 0; i < textureColorCount; i++)
-                        {
-                            file.OriginalTextureColors[i] = reader.ReadUInt16BigEndian();
-                            file.ModifiedTextureColors[i] = reader.ReadUInt16BigEndian();
-                        }
-                        break;
-
-                    case Opcode.UnknownByteArray1:
-                        var unknownByteArray1Length = reader.ReadByte();
-                        file.UnknownByteArray1 = new byte[unknownByteArray1Length];
-                        for (var i = 0; i < unknownByteArray1Length; i++)
-                        {
-                            file.UnknownByteArray1[i] = reader.ReadByte();
-                        }
-                        break;
-
-                    case Opcode.UnknownInt1:
-                        file.UnknownInt1 = reader.ReadUInt32BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort2:
-                        file.UnknownShort2 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort3:
-                        file.UnknownShort3 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.Unnoted:
-                        file.Unnoted = true;
-                        break;
-
-                    case Opcode.ColorEquip1:
-                        file.ColorEquip1 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.ColorEquip2:
-                        file.ColorEquip2 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownAwkwardInt1:
-                        file.UnknownAwkwardInt1 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownAwkwardInt2:
-                        file.UnknownAwkwardInt2 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownAwkwardInt3:
-                        file.UnknownAwkwardInt3 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownAwkwardInt4:
-                        file.UnknownAwkwardInt4 = reader.ReadAwkwardInt();
-                        break;
-
-                    case Opcode.UnknownShort4:
-                        file.UnknownShort4 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort5:
-                        file.UnknownShort5 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownByte2:
-                        file.UnknownByte2 = reader.ReadByte();
-                        break;
-
-                    case Opcode.NoteId:
-                        file.NoteId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.NoteTemplateId:
-                        file.NoteTemplateId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.Stack1:
-                        file.Stacks[0] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack2:
-                        file.Stacks[1] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack3:
-                        file.Stacks[2] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack4:
-                        file.Stacks[3] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack5:
-                        file.Stacks[4] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack6:
-                        file.Stacks[5] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack7:
-                        file.Stacks[6] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack8:
-                        file.Stacks[7] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack9:
-                        file.Stacks[8] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.Stack10:
-                        file.Stacks[9] = new Tuple<ushort, ushort>(
-                            reader.ReadUInt16BigEndian(),
-                            reader.ReadUInt16BigEndian());
-                        break;
-
-                    case Opcode.UnknownShort6:
-                        file.UnknownShort6 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort7:
-                        file.UnknownShort7 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort8:
-                        file.UnknownShort8 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownByte3:
-                        file.UnknownByte3 = reader.ReadByte();
-                        break;
-
-                    case Opcode.UnknownByte4:
-                        file.UnknownByte4 = reader.ReadByte();
-                        break;
-
-                    case Opcode.TeamId:
-                        file.TeamId = reader.ReadByte();
-                        break;
-
-                    case Opcode.LendId:
-                        file.LendId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.LendTemplateId:
-                        file.LendTemplateId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte1:
-                        file.UnknownTribyte1 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte2:
-                        file.UnknownTribyte2 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte3:
-                        file.UnknownTribyte3 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte4:
-                        file.UnknownTribyte4 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte5:
-                        file.UnknownTribyte5 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownTribyte6:
-                        file.UnknownTribyte6 = reader.ReadUInt24BigEndian();
-                        break;
-
-                    case Opcode.UnknownShortArray1:
-                        var unknownShortArray1Length = reader.ReadByte();
-                        file.UnknownShortArray1 = new ushort[unknownShortArray1Length];
-                        for (var i = 0; i < unknownShortArray1Length; i++)
-                        {
-                            file.UnknownShortArray1[i] = reader.ReadUInt16BigEndian();
-                        }
-                        break;
-
-                    case Opcode.UnknownByte5:
-                        file.UnknownByte5 = reader.ReadByte();
-                        break;
-
-                    case Opcode.BindId:
-                        file.BindId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.BindTemplateId:
-                        file.BindTemplateId = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort9:
-                        file.UnknownShort9 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort10:
-                        file.UnknownShort10 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort11:
-                        file.UnknownShort11 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort12:
-                        file.UnknownShort12 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort13:
-                        file.UnknownShort13 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort14:
-                        file.UnknownShort14 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort15:
-                        file.UnknownShort15 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort16:
-                        file.UnknownShort16 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort17:
-                        file.UnknownShort17 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort18:
-                        file.UnknownShort18 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.Is25Gp:
-                        file.Is25Gp = true;
-                        break;
-
-                    case Opcode.UnknownShort19:
-                        file.UnknownShort19 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.UnknownShort20:
-                        file.UnknownShort20 = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.ShardAmount:
-                        file.ShardAmount = reader.ReadUInt16BigEndian();
-                        break;
-
-                    case Opcode.ShardName:
-                        file.ShardName = reader.ReadNullTerminatedString();
-                        break;
-
-                    case Opcode.UnknownSwitch2:
-                        file.UnknownSwitch2 = true;
-                        break;
-
-                    case Opcode.Properties:
-                        var propertyCount = reader.ReadByte();
-
-                        for (var i = 0; i < propertyCount; i++)
-                        {
-                            var valueIsString = reader.ReadByte() != 0;
-                            var key = reader.ReadUInt24BigEndian();
-
-                            var value = valueIsString
-                                ? (object)reader.ReadNullTerminatedString()
-                                : reader.ReadInt32BigEndian();
-
-                            if (!file.Properties.ContainsKey((PropertyKey)key))
-                            {
-                                file.Properties.Add((PropertyKey)key, value);
-                            }
-                            else
-                            {
-                                // Duplicate properties are probably caused by improper tooling at Jagex HQ
-                                file.Properties[(PropertyKey)key] = value;
-                            }
-                        }
-                        break;
-
-                    default:
-                        throw new DecodeException($"Unknown opcode {opcode}.");
-                }
+                    Opcode.End => null,
+                    Opcode.ModelId => file.ModelId = reader.ReadAwkwardInt(),
+                    Opcode.Name => file.Name = reader.ReadNullTerminatedString(),
+                    Opcode.BuffEffect => file.BuffEffect = reader.ReadNullTerminatedString(),
+                    Opcode.ModelZoom => file.ModelZoom = reader.ReadUInt16BigEndian(),
+                    Opcode.ModelRotation1 => file.ModelRotation1 = reader.ReadUInt16BigEndian(),
+                    Opcode.ModelRotation2 => file.ModelRotation2 = reader.ReadUInt16BigEndian(),
+                    Opcode.ModelOffset1 => file.ModelOffset1 = reader.ReadInt16BigEndian(),
+                    Opcode.ModelOffset2 => file.ModelOffset2 = reader.ReadInt16BigEndian(),
+                    Opcode.Stackable => file.Stackable = true,
+                    Opcode.Value => file.Value = reader.ReadInt32BigEndian(),
+                    Opcode.EquipSlotId => file.EquipSlotId = reader.ReadByte(),
+                    Opcode.EquipId => file.EquipId = reader.ReadByte(),
+                    Opcode.Unknown15 => file.Unknown15 = true,
+                    Opcode.MembersOnly => file.MembersOnly = true,
+                    Opcode.Unknown18 => file.Unknown18 = reader.ReadUInt16BigEndian(),
+                    Opcode.MaleEquip1 => file.MaleEquip1 = reader.ReadAwkwardInt(),
+                    Opcode.MaleEquip2 => file.MaleEquip2 = reader.ReadAwkwardInt(),
+                    Opcode.FemaleEquip1 => file.FemaleEquip1 = reader.ReadAwkwardInt(),
+                    Opcode.FemaleEquip2 => file.FemaleEquip2 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown27 => file.Unknown27 = reader.ReadByte(),
+                    Opcode.GroundOption1 => file.GroundOption1 = reader.ReadNullTerminatedString(),
+                    Opcode.GroundOption2 => file.GroundOption2 = reader.ReadNullTerminatedString(),
+                    Opcode.GroundOption3 => file.GroundOption3 = reader.ReadNullTerminatedString(),
+                    Opcode.GroundOption4 => file.GroundOption4 = reader.ReadNullTerminatedString(),
+                    Opcode.GroundOption5 => file.GroundOption5 = reader.ReadNullTerminatedString(),
+                    Opcode.InventoryOption1 => file.InventoryOption1 = reader.ReadNullTerminatedString(),
+                    Opcode.InventoryOption2 => file.InventoryOption2 = reader.ReadNullTerminatedString(),
+                    Opcode.InventoryOption3 => file.InventoryOption3 = reader.ReadNullTerminatedString(),
+                    Opcode.InventoryOption4 => file.InventoryOption4 = reader.ReadNullTerminatedString(),
+                    Opcode.InventoryOption5 => file.InventoryOption5 = reader.ReadNullTerminatedString(),
+                    Opcode.ModelColors => file.ModelColors = reader.ReadInterlacedUInt16BigEndianArrays(2, reader.ReadByte()),
+                    Opcode.TextureColors => file.TextureColors = reader.ReadInterlacedUInt16BigEndianArrays(2, reader.ReadByte()),
+                    Opcode.Unknown42 => file.Unknown42 = reader.ReadBytesExactly(reader.ReadByte()),
+                    Opcode.Unknown43 => file.Unknown43 = reader.ReadUInt32BigEndian(),
+                    Opcode.Unknown44 => file.Unknown44 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown45 => file.Unknown45 = reader.ReadUInt16BigEndian(),
+                    Opcode.Tradeable => file.Tradeable = true,
+                    Opcode.GeBuyLimit => file.GeBuyLimit = reader.ReadInt32BigEndian(),
+                    Opcode.ColorEquip1 => file.ColorEquip1 = reader.ReadAwkwardInt(),
+                    Opcode.ColorEquip2 => file.ColorEquip2 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown90 => file.Unknown90 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown91 => file.Unknown91 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown92 => file.Unknown92 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown93 => file.Unknown93 = reader.ReadAwkwardInt(),
+                    Opcode.Unknown94 => file.Unknown94 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown95 => file.Unknown95 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown96 => file.Unknown96 = reader.ReadByte(),
+                    Opcode.NoteId => file.NoteId = reader.ReadUInt16BigEndian(),
+                    Opcode.NoteTemplateId => file.NoteTemplateId = reader.ReadUInt16BigEndian(),
+                    Opcode.Stack1 => file.Stack1 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack2 => file.Stack2 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack3 => file.Stack3 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack4 => file.Stack4 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack5 => file.Stack5 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack6 => file.Stack6 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack7 => file.Stack7 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack8 => file.Stack8 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack9 => file.Stack9 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Stack10 => file.Stack10 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
+                    Opcode.Unknown110 => file.Unknown110 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown111 => file.Unknown111 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown112 => file.Unknown112 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown113 => file.Unknown113 = reader.ReadByte(),
+                    Opcode.Unknown114 => file.Unknown114 = reader.ReadByte(),
+                    Opcode.TeamId => file.TeamId = reader.ReadByte(),
+                    Opcode.LendId => file.LendId = reader.ReadUInt16BigEndian(),
+                    Opcode.LendTemplateId => file.LendTemplateId = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown125 => file.Unknown125 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown126 => file.Unknown126 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown127 => file.Unknown127 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown128 => file.Unknown128 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown129 => file.Unknown129 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown130 => file.Unknown130 = reader.ReadUInt24BigEndian(),
+                    Opcode.Unknown132 => file.Unknown132 = reader.ReadUInt16BigEndians(reader.ReadByte()),
+                    Opcode.Unknown134 => file.Unknown134 = reader.ReadByte(),
+                    Opcode.BindId => file.BindId = reader.ReadUInt16BigEndian(),
+                    Opcode.BindTemplateId => file.BindTemplateId = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown142 => file.Unknown142 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown143 => file.Unknown143 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown144 => file.Unknown144 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown145 => file.Unknown145 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown146 => file.Unknown146 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown150 => file.Unknown150 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown151 => file.Unknown151 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown152 => file.Unknown152 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown153 => file.Unknown153 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown154 => file.Unknown154 = reader.ReadUInt16BigEndian(),
+                    Opcode.Is25Gp => file.Is25Gp = true,
+                    Opcode.Unknown161 => file.Unknown161 = reader.ReadUInt16BigEndian(),
+                    Opcode.Unknown162 => file.Unknown162 = reader.ReadUInt16BigEndian(),
+                    Opcode.ShardAmount => file.ShardAmount = reader.ReadUInt16BigEndian(),
+                    Opcode.ShardName => file.ShardName = reader.ReadNullTerminatedString(),
+                    Opcode.Unknown165 => file.Unknown165 = true,
+                    Opcode.Unknown167 => file.Unknown167 = true,
+                    Opcode.Unknown168 => file.Unknown168 = true,
+                    Opcode.Properties => file.Properties = ItemDefinitionFile.ReadProperties(reader),
+                    _ => throw new DecodeException($"Unknown opcode {opcode}."),
+                };
             }
             while (opcode != Opcode.End);
 
@@ -547,33 +243,25 @@ namespace Villermen.RuneScapeCacheTools.File
             return file;
         }
 
-        public Dictionary<string, string> GetFields()
+        private static Dictionary<ItemProperty, object> ReadProperties(BinaryReader reader)
         {
-            var result = new Dictionary<string, string>();
+            var properties = new Dictionary<ItemProperty, object>();
 
-            // Add all public properties' names and values (except "Properties") to the list
-            foreach (var typeProperty in typeof(ItemDefinitionFile).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            var propertyCount = reader.ReadByte();
+            for (var i = 0; i < propertyCount; i++)
             {
-                if (typeProperty.Name == "Properties")
-                {
-                    continue;
-                }
+                var valueIsString = reader.ReadByte() != 0;
+                var key = reader.ReadUInt24BigEndian();
 
-                result.Add(typeProperty.Name, Formatter.GetValueRepresentation(typeProperty.GetValue(this)));
+                var value = valueIsString
+                    ? (object)reader.ReadNullTerminatedString()
+                    : (object)reader.ReadInt32BigEndian();
+
+                // Note: Duplicate properties exist and are probably caused by improper tooling at Jagex HQ.
+                properties[(ItemProperty)key] = value;
             }
 
-            // Every property will get its own key
-            foreach (var property in this.Properties)
-            {
-                result.Add(
-                    Enum.IsDefined(typeof(PropertyKey), property.Key)
-                        ? $"Property{property.Key}"
-                        : $"PropertyUnknown{property.Key}",
-                    Formatter.GetValueRepresentation(property.Value)
-                );
-            }
-
-            return result;
+            return properties;
         }
 
         private enum Opcode
@@ -581,6 +269,7 @@ namespace Villermen.RuneScapeCacheTools.File
             End = 0,
             ModelId = 1,
             Name = 2,
+            BuffEffect = 3,
             ModelZoom = 4,
             ModelRotation1 = 5,
             ModelRotation2 = 6,
@@ -590,13 +279,14 @@ namespace Villermen.RuneScapeCacheTools.File
             Value = 12,
             EquipSlotId = 13,
             EquipId = 14,
+            Unknown15 = 15,
             MembersOnly = 16,
-            UnknownShort1 = 18,
+            Unknown18 = 18,
             MaleEquip1 = 23,
             MaleEquip2 = 24,
             FemaleEquip1 = 25,
             FemaleEquip2 = 26,
-            UnknownByte1 = 27,
+            Unknown27 = 27,
             GroundOption1 = 30,
             GroundOption2 = 31,
             GroundOption3 = 32,
@@ -609,20 +299,21 @@ namespace Villermen.RuneScapeCacheTools.File
             InventoryOption5 = 39,
             ModelColors = 40,
             TextureColors = 41,
-            UnknownByteArray1 = 42,
-            UnknownInt1 = 43,
-            UnknownShort2 = 44,
-            UnknownShort3 = 45,
-            Unnoted = 65,
+            Unknown42 = 42,
+            Unknown43 = 43,
+            Unknown44 = 44,
+            Unknown45 = 45,
+            Tradeable = 65,
+            GeBuyLimit = 69,
             ColorEquip1 = 78,
             ColorEquip2 = 79,
-            UnknownAwkwardInt1 = 90,
-            UnknownAwkwardInt2 = 91,
-            UnknownAwkwardInt3 = 92,
-            UnknownAwkwardInt4 = 93,
-            UnknownShort4 = 94,
-            UnknownShort5 = 95,
-            UnknownByte2 = 96,
+            Unknown90 = 90,
+            Unknown91 = 91,
+            Unknown92 = 92,
+            Unknown93 = 93,
+            Unknown94 = 94,
+            Unknown95 = 95,
+            Unknown96 = 96,
             NoteId = 97,
             NoteTemplateId = 98,
             Stack1 = 100,
@@ -635,69 +326,43 @@ namespace Villermen.RuneScapeCacheTools.File
             Stack8 = 107,
             Stack9 = 108,
             Stack10 = 109,
-            UnknownShort6 = 110,
-            UnknownShort7 = 111,
-            UnknownShort8 = 112,
-            UnknownByte3 = 113,
-            UnknownByte4 = 114,
+            Unknown110 = 110,
+            Unknown111 = 111,
+            Unknown112 = 112,
+            Unknown113 = 113,
+            Unknown114 = 114,
             TeamId = 115,
             LendId = 121,
             LendTemplateId = 122,
-            UnknownTribyte1 = 125,
-            UnknownTribyte2 = 126,
-            UnknownTribyte3 = 127,
-            UnknownTribyte4 = 128,
-            UnknownTribyte5 = 129,
-            UnknownTribyte6 = 130,
-            UnknownShortArray1 = 132,
-            UnknownByte5 = 134,
+            Unknown125 = 125,
+            Unknown126 = 126,
+            Unknown127 = 127,
+            Unknown128 = 128,
+            Unknown129 = 129,
+            Unknown130 = 130,
+            Unknown132 = 132,
+            Unknown134 = 134,
             BindId = 139,
             BindTemplateId = 140,
-            UnknownShort9 = 142,
-            UnknownShort10 = 143,
-            UnknownShort11 = 144,
-            UnknownShort12 = 145,
-            UnknownShort13 = 146,
-            UnknownShort14 = 150,
-            UnknownShort15 = 151,
-            UnknownShort16 = 152,
-            UnknownShort17 = 153,
-            UnknownShort18 = 154,
+            Unknown142 = 142,
+            Unknown143 = 143,
+            Unknown144 = 144,
+            Unknown145 = 145,
+            Unknown146 = 146,
+            Unknown150 = 150,
+            Unknown151 = 151,
+            Unknown152 = 152,
+            Unknown153 = 153,
+            Unknown154 = 154,
             Is25Gp = 157,
-            UnknownShort19 = 161,
-            UnknownShort20 = 162,
+            Unknown161 = 161,
+            Unknown162 = 162,
             ShardAmount = 163,
             ShardName = 164,
-            UnknownSwitch2 = 165,
+            Unknown165 = 165,
+            Unknown167 = 167,
+            Unknown168 = 168,
             Properties = 249
-        }
-
-        public enum PropertyKey
-        {
-            EquipOption1 = 528,
-            EquipOption2 = 529,
-            EquipOption3 = 530,
-            EquipOption4 = 531,
-            EquipSkillRequired = 749,
-            EquipLevelRequired = 750,
-            LifePointBonus = 1326,
-            MeleeAffinity = 2866,
-            RangedAffinity = 2867,
-            MagicAffinity = 2868,
-            ArmourBonus = 2870,
-            PotionEffectValue = 3000,
-            PortentOfDegradationHealAmount = 3698,
-            Broken = 3793,
-            UnknownMtxDescription = 4085,
-            SpecialAttackCost = 4332,
-            SpecialAttackName = 4333,
-            SpecialAttackDescription = 4334,
-            DestroyText = 5417,
-            ZarosItem = 5440,
-            UnknownFayreTokenRelated = 6405,
-            SigilCooldownDefault = 6520,
-            SigilCooldown = 6521,
-            SigilMaxCharges = 6522
         }
     }
 }

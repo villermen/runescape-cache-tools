@@ -67,7 +67,6 @@
     <Compile Include="Test\Fixture\TestCacheCollection.cs" />
     <Compile Include="Test\Fixture\TestCacheConstructor.cs" />
     <Compile Include="Test\Fixture\TestCacheFixture.cs" />
-    <Compile Include="Test\ExperimentalTests.cs" />
     <Compile Include="Test\Utility\BinaryStreamExtensionsTests.cs" />
     <Compile Include="Test\Utility\CacheFileDecoderTests.cs" />
     <Compile Include="Test\Utility\FormatterTests.cs" />

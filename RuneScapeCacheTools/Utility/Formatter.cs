@@ -79,5 +79,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
             return new string(mappedChars);
         }
+
+        public static string StringToLowerCamelCase(string str) => (char.ToLower(str[0]) + str.Substring(1));
     }
 }
