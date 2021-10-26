@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
@@ -169,19 +170,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         public void PrintItemDefinitions(string jsonFilePath, string filter, TextWriter output)
         {
             // Note: Method purposefully doesn't log anything so output can be piped in print-only mode.
-            var itemFilters = filter
-                .Split(',')
-                .Select(itemFilter =>
-                {
-                    var split = itemFilter.Split(':');
-                    if (split.Length < 1 || split.Length > 2 || split[0].Length == 0)
-                    {
-                        throw new ArgumentException($"Invalid item filter \"{itemFilter}\".");
-                    }
-
-                    return new KeyValuePair<string, string?>(split[0], (split[1] ?? null));
-                })
-                .ToList();
+            var itemFilter = this.CreateItemFilter(filter);
 
             using var streamReader = new StreamReader(System.IO.File.Open(jsonFilePath, FileMode.Open));
             using var jsonReader = new JsonTextReader(streamReader);
@@ -224,27 +213,13 @@ namespace Villermen.RuneScapeCacheTools.Utility
                 var itemObject = JObject.Load(jsonReader);
                 totalItemCount++;
 
-                var itemMatchesFilters = true;
-                foreach (var itemFilter in itemFilters)
+                if (!itemFilter(itemObject))
                 {
-                    var token = (string?)itemObject.SelectToken(itemFilter.Key);
-                    if (token == null)
-                    {
-                        itemMatchesFilters = false;
-                        break;
-                    }
-                    if (itemFilter.Value != null && token.IndexOf(itemFilter.Value, StringComparison.CurrentCultureIgnoreCase) == -1)
-                    {
-                        itemMatchesFilters = false;
-                        break;
-                    }
+                    continue;
                 }
 
-                if (itemMatchesFilters)
-                {
-                    itemCount++;
-                    itemObject.WriteTo(jsonWriter);
-                }
+                itemCount++;
+                itemObject.WriteTo(jsonWriter);
             }
 
             jsonWriter.WriteEndArray();
@@ -253,6 +228,77 @@ namespace Villermen.RuneScapeCacheTools.Utility
             jsonWriter.WritePropertyName("totalItemCount");
             jsonWriter.WriteValue(totalItemCount);
             jsonWriter.WriteEndObject();
+        }
+
+        private Func<JObject, bool> CreateItemFilter(string filter)
+        {
+            // Parse and validate filters ahead of time.
+            var itemFilters = filter
+                .Split(',')
+                .Select(itemFilter =>
+                {
+                    var split = itemFilter.Split(':');
+                    if (split.Length < 1 || split.Length > 2 || split[0].Length == 0)
+                    {
+                        throw new ArgumentException($"Invalid item filter \"{itemFilter}\".");
+                    }
+
+                    var filterPath = split[0];
+
+                    // Only verify that path exists on the item.
+                    if (split.Length == 1)
+                    {
+                        return new Tuple<string, Func<JToken, bool>>(filterPath, (token) => true);
+                    }
+
+                    var filterValue = split[1];
+
+                    // Verify numeric greater/less than.
+                    if (split[1].StartsWith(">") || split[1].StartsWith("<"))
+                    {
+                        if (!int.TryParse(split[1].Substring(1), out var intFilterValue))
+                        {
+                            throw new ArgumentException("Filters > and < require a numeric value.");
+                        }
+
+                        return new Tuple<string, Func<JToken, bool>>(filterPath, (token) =>
+                        {
+                            if (!int.TryParse((string)token, out var tokenValue))
+                            {
+                                return false;
+                            }
+
+                            return (split[0].StartsWith(">")
+                                ? tokenValue > intFilterValue
+                                : tokenValue < intFilterValue
+                            );
+                        });
+                    }
+
+                    // Verify string match with wildcard support.
+                    var regex = new Regex(
+                        $"^{Regex.Escape(filterValue).Replace("\\*", ".*")}$",
+                        RegexOptions.IgnoreCase
+                    );
+                    return new Tuple<string, Func<JToken, bool>>(filterPath, (token) => regex.IsMatch((string)token));
+                })
+                .ToList();
+
+            return (JObject itemObject) =>
+            {
+                foreach (var itemFilter in itemFilters)
+                {
+                    var token = (string?)itemObject.SelectToken(itemFilter.Item1);
+                    if (token == null)
+                    {
+                        return false;
+                    }
+
+                    return itemFilter.Item2(token);
+                }
+
+                return true;
+            };
         }
     }
 }

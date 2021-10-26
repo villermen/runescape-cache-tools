@@ -52,9 +52,21 @@ namespace Villermen.RuneScapeCacheTools.File
         public int? GeBuyLimit { get; set; }
         public int? ColorEquip1 { get; set; }
         public int? ColorEquip2 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
         public int? Unknown90 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
         public int? Unknown91 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
         public int? Unknown92 { get; set; }
+        /// <summary>
+        /// Only set for head slot items.
+        /// </summary>
         public int? Unknown93 { get; set; }
         public ushort? Unknown94 { get; set; }
         public ushort? Unknown95 { get; set; }
@@ -104,7 +116,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public ushort? Unknown162 { get; set; }
         public ushort? ShardAmount { get; set; }
         public string? ShardName { get; set; }
-        public bool?  Unknown165 { get; set; }
+        public bool? Unknown165 { get; set; }
         public bool? Unknown167 { get; set; }
         public bool? Unknown168 { get; set; }
         public Dictionary<ItemProperty, object>? Properties { get; set; }
