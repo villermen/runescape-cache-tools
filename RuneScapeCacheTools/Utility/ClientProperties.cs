@@ -27,8 +27,6 @@ namespace Villermen.RuneScapeCacheTools.Utility
 
         private static Dictionary<string, string>? _cachedProperties;
 
-        private static Tuple<int, int>? _buildNumber = null;
-
         public static string GetContentServerHostname()
         {
             // TODO: Obtain from params when we figure out how their keys work. Key 37/49 @ 22-2-2021

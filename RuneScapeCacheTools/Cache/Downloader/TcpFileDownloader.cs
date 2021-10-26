@@ -26,7 +26,7 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
         private TcpClient _contentClient;
 
-        private Tuple<int, int> _cachedServerVersion = null;
+        private Tuple<int, int>? _cachedServerVersion = null;
 
         private bool _connected = false;
 
