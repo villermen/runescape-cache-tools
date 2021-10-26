@@ -71,6 +71,7 @@ namespace Villermen.RuneScapeCacheTools.CLI
 
                     case "help":
                     case "--help":
+                    case "--version":
                         commandArgument = "help";
                         break;
                 }
