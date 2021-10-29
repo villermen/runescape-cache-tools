@@ -25,7 +25,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
         {
             var trackNames = this.Fixture.SoundtrackExtractor.GetTrackNames();
 
-            Assert.Equal(1320, trackNames.Count);
+            Assert.Equal(1344, trackNames.Count);
 
             Assert.True(
                 trackNames.Any(trackNamePair => trackNamePair.Value == "Soundscape"),
@@ -38,7 +38,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Utility
         {
             var trackNames = this.Fixture.SoundtrackExtractor.GetTrackNames(true);
 
-            Assert.Equal(1499, trackNames.Count);
+            Assert.Equal(1523, trackNames.Count);
             Assert.True(
                 trackNames.Any(trackNamePair => trackNamePair.Value == "20386"),
                 "\"20386\" did not occur in the list of track names."

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Org.BouncyCastle.Asn1.X509;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -9,6 +11,8 @@ namespace Villermen.RuneScapeCacheTools.File
 {
     /// <summary>
     /// Contains the properties of an item.
+    ///
+    /// Note: All properties starting with "unknown" are subject to change on minor version updates.
     /// </summary>
     public class ItemDefinitionFile
     {
@@ -22,6 +26,9 @@ namespace Villermen.RuneScapeCacheTools.File
         public short? ModelOffset2 { get; set; }
         public bool? Stackable { get; set; }
         public int? Value { get; set; }
+        /// <summary>
+        /// EquipSlotId: 3 = main hand
+        /// </summary>
         public byte? EquipSlotId { get; set; }
         public byte? EquipId { get; set; }
         public bool? Unknown15 { get; set; }
@@ -241,6 +248,84 @@ namespace Villermen.RuneScapeCacheTools.File
             }
 
             return file;
+        }
+
+        public int? GetIntegerProperty(ItemProperty itemProperty)
+        {
+            var property = this.GetProperty(itemProperty);
+            return property switch
+            {
+                null => null,
+                int intProperty => intProperty,
+                _ => throw new InvalidOperationException($"Property {itemProperty} is not configured as an integer.")
+            };
+        }
+
+        public string? GetStringProperty(ItemProperty itemProperty)
+        {
+            var property = this.GetProperty(itemProperty);
+            return property switch
+            {
+                null => null,
+                string stringProperty => stringProperty,
+                _ => throw new InvalidOperationException($"Property {itemProperty} is not configured as a string.")
+            };
+        }
+
+        /// <summary>
+        /// Convenience method for parsing an integer property as a boolean. Properties are never actually stored as
+        /// booleans.
+        /// </summary>
+        public bool GetBooleanProperty(ItemProperty itemProperty)
+        {
+            var integerProperty = this.GetIntegerProperty(itemProperty);
+            return integerProperty switch
+            {
+                null => false,
+                0 => false,
+                1 => true,
+                _ => throw new InvalidOperationException($"Property {itemProperty} does not contain a boolean-like value.")
+            };
+        }
+
+        public object? GetProperty(ItemProperty itemProperty)
+        {
+            if (!(this.Properties?.ContainsKey(itemProperty) ?? false))
+            {
+                return null;
+            }
+
+            return this.Properties[itemProperty];
+        }
+
+        /**
+         * Returns a compiled array of inventory options with defaults like in the game.
+         */
+        public string?[] GetInventoryOptions()
+        {
+            return new[]
+            {
+                this.InventoryOption1,
+                this.InventoryOption2,
+                this.InventoryOption3,
+                "Use",
+                this.InventoryOption4,
+                this.InventoryOption5 ?? "Drop",
+                "Examine",
+            };
+        }
+
+        public string?[] GetEquipOptions()
+        {
+            return new[]
+            {
+                "Remove",
+                this.GetStringProperty(ItemProperty.EquipOption1),
+                this.GetStringProperty(ItemProperty.EquipOption2),
+                this.GetStringProperty(ItemProperty.EquipOption3),
+                this.GetStringProperty(ItemProperty.EquipOption4),
+                "Examine"
+            };
         }
 
         private static Dictionary<ItemProperty, object> ReadProperties(BinaryReader reader)
