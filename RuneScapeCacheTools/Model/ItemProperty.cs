@@ -3,7 +3,7 @@ using Villermen.RuneScapeCacheTools.File;
 namespace Villermen.RuneScapeCacheTools.Model
 {
     /// <summary>
-    /// The identifier for a property of an <see cref="ItemDefinitionFile" />.
+    /// The identifier for a parameter of an <see cref="ItemDefinitionFile" />.
     /// </summary>
     public enum ItemProperty
     {
@@ -12,6 +12,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipOption2 = 529,
         EquipOption3 = 530,
         EquipOption4 = 531,
+        DropSoundId = 537,
         StrengthBonus = 641,
         RangedBonus = 643,
         MobilisingArmiesSquad = 802,
@@ -24,6 +25,8 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipSkillRequired2 = 751,
         EquipLevelRequired2 = 752,
         LifePointBonus = 1326,
+        GeCategory = 2195,
+        BeastOfBurdenStorable = 2240,
         MeleeAffinity = 2866,
         RangedAffinity = 2867,
         MagicAffinity = 2868,

@@ -16,6 +16,10 @@ namespace Villermen.RuneScapeCacheTools.File
     /// </summary>
     public class ItemDefinitionFile
     {
+        /// <summary>
+        /// ID is not decoded from the file's data but can be determined from the file's location in cache.
+        /// </summary>
+        public int? Id { get; set; }
         public int? ModelId { get; set; }
         public string? Name { get; set; }
         public string? BuffEffect { get; set; }
@@ -27,9 +31,9 @@ namespace Villermen.RuneScapeCacheTools.File
         public bool? Stackable { get; set; }
         public int? Value { get; set; }
         /// <summary>
-        /// EquipSlotId: 3 = main hand
+        /// 0 = head, 3 = main hand, 4 = body, 5 = off-hand, 7 = legs, 9 = hands, 10 = feet,
         /// </summary>
-        public byte? EquipSlotId { get; set; }
+        public byte? EquipSlot { get; set; }
         public byte? EquipId { get; set; }
         public bool? Unknown15 { get; set; }
         public bool? MembersOnly { get; set; }
@@ -75,9 +79,12 @@ namespace Villermen.RuneScapeCacheTools.File
         /// Only set for head slot items.
         /// </summary>
         public int? Unknown93 { get; set; }
-        public ushort? Unknown94 { get; set; }
+        public ushort? Category { get; set; }
         public ushort? Unknown95 { get; set; }
-        public byte? Unknown96 { get; set; }
+        /// <summary>
+        /// Either 1 or 2.
+        /// </summary>
+        public byte? DummyType { get; set; }
         public ushort? NoteId { get; set; }
         public ushort? NoteTemplateId { get; set; }
         public Tuple<ushort, ushort>? Stack1 { get; set; }
@@ -151,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.File
                     Opcode.ModelOffset2 => file.ModelOffset2 = reader.ReadInt16BigEndian(),
                     Opcode.Stackable => file.Stackable = true,
                     Opcode.Value => file.Value = reader.ReadInt32BigEndian(),
-                    Opcode.EquipSlotId => file.EquipSlotId = reader.ReadByte(),
+                    Opcode.EquipSlot => file.EquipSlot = reader.ReadByte(),
                     Opcode.EquipId => file.EquipId = reader.ReadByte(),
                     Opcode.Unknown15 => file.Unknown15 = true,
                     Opcode.MembersOnly => file.MembersOnly = true,
@@ -185,9 +192,9 @@ namespace Villermen.RuneScapeCacheTools.File
                     Opcode.Unknown91 => file.Unknown91 = reader.ReadAwkwardInt(),
                     Opcode.Unknown92 => file.Unknown92 = reader.ReadAwkwardInt(),
                     Opcode.Unknown93 => file.Unknown93 = reader.ReadAwkwardInt(),
-                    Opcode.Unknown94 => file.Unknown94 = reader.ReadUInt16BigEndian(),
+                    Opcode.Category => file.Category = reader.ReadUInt16BigEndian(),
                     Opcode.Unknown95 => file.Unknown95 = reader.ReadUInt16BigEndian(),
-                    Opcode.Unknown96 => file.Unknown96 = reader.ReadByte(),
+                    Opcode.DummyType => file.DummyType = reader.ReadByte(),
                     Opcode.NoteId => file.NoteId = reader.ReadUInt16BigEndian(),
                     Opcode.NoteTemplateId => file.NoteTemplateId = reader.ReadUInt16BigEndian(),
                     Opcode.Stack1 => file.Stack1 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
@@ -362,7 +369,7 @@ namespace Villermen.RuneScapeCacheTools.File
             ModelOffset2 = 8,
             Stackable = 11,
             Value = 12,
-            EquipSlotId = 13,
+            EquipSlot = 13,
             EquipId = 14,
             Unknown15 = 15,
             MembersOnly = 16,
@@ -396,9 +403,9 @@ namespace Villermen.RuneScapeCacheTools.File
             Unknown91 = 91,
             Unknown92 = 92,
             Unknown93 = 93,
-            Unknown94 = 94,
+            Category = 94,
             Unknown95 = 95,
-            Unknown96 = 96,
+            DummyType = 96,
             NoteId = 97,
             NoteTemplateId = 98,
             Stack1 = 100,
