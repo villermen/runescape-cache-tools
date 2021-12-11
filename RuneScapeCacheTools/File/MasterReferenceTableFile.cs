@@ -37,7 +37,7 @@ namespace Villermen.RuneScapeCacheTools.File
             }
 
             var rsaEncryptedWhirlpoolDigest = reader.ReadBytesExactly(512);
-            var unknownByte = reader.ReadByte(); // 0xA3/163 on build 921.
+            // var unknownByte = reader.ReadByte(); // 0xA3/163 on build 921 (maybe because of minor version).
 
             if (reader.BaseStream.Position < reader.BaseStream.Length)
             {
