@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Test\BaseTests.cs" />
+    <Compile Include="Test\CacheTests.cs" />
     <Compile Include="Test\Cache\CacheTests.cs" />
     <Compile Include="Test\Cache\DownloaderCacheTests.cs" />
     <Compile Include="Test\Cache\FlatFileCacheTests.cs" />
