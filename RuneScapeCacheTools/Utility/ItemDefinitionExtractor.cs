@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// <summary>
         /// Invalidates item JSON when bumped. Bump whenever output of tool (e.g., property names) changes.
         /// </summary>
-        private const int Protocol = 1;
+        private const int Protocol = 2;
 
         /// <summary>
         /// Returns whether the JSON file's version matches the version in cache. Means extraction can be skipped.
@@ -116,6 +116,8 @@ namespace Villermen.RuneScapeCacheTools.Utility
                     try
                     {
                         var itemDefinitionFile = ItemDefinitionFile.Decode(entry.Value);
+                        // TODO: An abstraction could be made to turn file ID into file + entry and vice versa.
+                        itemDefinitionFile.Id = fileId * 256 + entry.Key;
 
                         jsonWriter.WriteStartObject();
                         foreach (var property in serializableProperties)
@@ -233,68 +235,88 @@ namespace Villermen.RuneScapeCacheTools.Utility
         private Func<JObject, bool> CreateItemFilter(string filter)
         {
             // Parse and validate filters ahead of time.
-            var itemFilters = filter
+            var itemFilterLookup = filter
                 .Split(',')
                 .Select(itemFilter =>
                 {
-                    var split = itemFilter.Split(':');
-                    if (split.Length < 1 || split.Length > 2 || split[0].Length == 0)
+                    var filterParts = itemFilter.Split(':');
+                    if (filterParts.Length < 1 || filterParts.Length > 2)
                     {
                         throw new ArgumentException($"Invalid item filter \"{itemFilter}\".");
                     }
 
-                    var filterPath = split[0];
-
-                    // Only verify that path exists on the item.
-                    if (split.Length == 1)
+                    return filterParts;
+                })
+                .ToLookup<string[], string, Func<JToken?, bool>>(
+                    filterParts =>
                     {
-                        return new Tuple<string, Func<JToken, bool>>(filterPath, (token) => true);
-                    }
-
-                    var filterValue = split[1];
-
-                    // Verify numeric greater/less than.
-                    if (split[1].StartsWith(">") || split[1].StartsWith("<"))
-                    {
-                        if (!int.TryParse(split[1].Substring(1), out var intFilterValue))
+                        if (string.IsNullOrWhiteSpace(filterParts[0]))
                         {
-                            throw new ArgumentException("Filters > and < require a numeric value.");
+                            throw new ArgumentException($"Invalid item filter path \"{filterParts[0]}\"");
                         }
 
-                        return new Tuple<string, Func<JToken, bool>>(filterPath, (token) =>
+                        return filterParts[0];
+                    },
+                    filterParts =>
+                    {
+                        // Only verify that path exists on the item.
+                        if (filterParts.Length == 1)
                         {
-                            if (!int.TryParse((string)token, out var tokenValue))
+                            return (token) => token != null;
+                        }
+
+                        var filterValue = filterParts[1];
+
+                        // Verify that path _doesn't_ exist on the item (null).
+                        if (filterValue == "~")
+                        {
+                            return (token) => token == null;
+                        }
+
+                        // Verify numeric greater/less than.
+                        if (filterValue.StartsWith(">") || filterValue.StartsWith("<"))
+                        {
+                            if (!int.TryParse(filterValue.Substring(1), out var intFilterValue))
                             {
-                                return false;
+                                throw new ArgumentException("Filters > and < require an integer value.");
                             }
 
-                            return (split[0].StartsWith(">")
-                                ? tokenValue > intFilterValue
-                                : tokenValue < intFilterValue
-                            );
-                        });
-                    }
+                            return (token) =>
+                            {
+                                if (token == null || !int.TryParse(token.ToString(), out var tokenValue))
+                                {
+                                    return false;
+                                }
 
-                    // Verify string match with wildcard support.
-                    var regex = new Regex(
-                        $"^{Regex.Escape(filterValue).Replace("\\*", ".*")}$",
-                        RegexOptions.IgnoreCase
-                    );
-                    return new Tuple<string, Func<JToken, bool>>(filterPath, (token) => regex.IsMatch((string)token));
-                })
-                .ToList();
+                                return (filterValue.StartsWith(">")
+                                    ? tokenValue > intFilterValue
+                                    : tokenValue < intFilterValue
+                                );
+                            };
+                        }
+
+                        // Verify string match with wildcard support.
+                        var regex = new Regex(
+                            $"^{Regex.Escape(filterValue).Replace("\\*", ".*")}$",
+                            RegexOptions.IgnoreCase
+                        );
+                        return (token) => token != null && regex.IsMatch(token.ToString());
+                    }
+                );
 
             return (JObject itemObject) =>
             {
-                foreach (var itemFilter in itemFilters)
+                foreach (var grouping in itemFilterLookup)
                 {
-                    var token = (string?)itemObject.SelectToken(itemFilter.Item1);
-                    if (token == null)
-                    {
-                        return false;
-                    }
+                    var token = itemObject.SelectToken(grouping.Key);
 
-                    return itemFilter.Item2(token);
+                    foreach (var itemFilter in grouping)
+                    {
+                        if (!itemFilter(token))
+                        {
+                            return false;
+                        }
+                    }
                 }
 
                 return true;

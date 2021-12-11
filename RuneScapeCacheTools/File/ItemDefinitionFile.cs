@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Org.BouncyCastle.Asn1.X509;
 using Villermen.RuneScapeCacheTools.Exception;
 using Villermen.RuneScapeCacheTools.Model;
 using Villermen.RuneScapeCacheTools.Utility;
@@ -9,9 +11,15 @@ namespace Villermen.RuneScapeCacheTools.File
 {
     /// <summary>
     /// Contains the properties of an item.
+    ///
+    /// Note: All properties starting with "unknown" are subject to change on minor version updates.
     /// </summary>
     public class ItemDefinitionFile
     {
+        /// <summary>
+        /// ID is not decoded from the file's data but can be determined from the file's location in cache.
+        /// </summary>
+        public int? Id { get; set; }
         public int? ModelId { get; set; }
         public string? Name { get; set; }
         public string? BuffEffect { get; set; }
@@ -22,7 +30,10 @@ namespace Villermen.RuneScapeCacheTools.File
         public short? ModelOffset2 { get; set; }
         public bool? Stackable { get; set; }
         public int? Value { get; set; }
-        public byte? EquipSlotId { get; set; }
+        /// <summary>
+        /// 0 = head, 3 = main hand, 4 = body, 5 = off-hand, 7 = legs, 9 = hands, 10 = feet,
+        /// </summary>
+        public byte? EquipSlot { get; set; }
         public byte? EquipId { get; set; }
         public bool? Unknown15 { get; set; }
         public bool? MembersOnly { get; set; }
@@ -68,9 +79,12 @@ namespace Villermen.RuneScapeCacheTools.File
         /// Only set for head slot items.
         /// </summary>
         public int? Unknown93 { get; set; }
-        public ushort? Unknown94 { get; set; }
+        public ushort? Category { get; set; }
         public ushort? Unknown95 { get; set; }
-        public byte? Unknown96 { get; set; }
+        /// <summary>
+        /// Either 1 or 2.
+        /// </summary>
+        public byte? DummyType { get; set; }
         public ushort? NoteId { get; set; }
         public ushort? NoteTemplateId { get; set; }
         public Tuple<ushort, ushort>? Stack1 { get; set; }
@@ -144,7 +158,7 @@ namespace Villermen.RuneScapeCacheTools.File
                     Opcode.ModelOffset2 => file.ModelOffset2 = reader.ReadInt16BigEndian(),
                     Opcode.Stackable => file.Stackable = true,
                     Opcode.Value => file.Value = reader.ReadInt32BigEndian(),
-                    Opcode.EquipSlotId => file.EquipSlotId = reader.ReadByte(),
+                    Opcode.EquipSlot => file.EquipSlot = reader.ReadByte(),
                     Opcode.EquipId => file.EquipId = reader.ReadByte(),
                     Opcode.Unknown15 => file.Unknown15 = true,
                     Opcode.MembersOnly => file.MembersOnly = true,
@@ -178,9 +192,9 @@ namespace Villermen.RuneScapeCacheTools.File
                     Opcode.Unknown91 => file.Unknown91 = reader.ReadAwkwardInt(),
                     Opcode.Unknown92 => file.Unknown92 = reader.ReadAwkwardInt(),
                     Opcode.Unknown93 => file.Unknown93 = reader.ReadAwkwardInt(),
-                    Opcode.Unknown94 => file.Unknown94 = reader.ReadUInt16BigEndian(),
+                    Opcode.Category => file.Category = reader.ReadUInt16BigEndian(),
                     Opcode.Unknown95 => file.Unknown95 = reader.ReadUInt16BigEndian(),
-                    Opcode.Unknown96 => file.Unknown96 = reader.ReadByte(),
+                    Opcode.DummyType => file.DummyType = reader.ReadByte(),
                     Opcode.NoteId => file.NoteId = reader.ReadUInt16BigEndian(),
                     Opcode.NoteTemplateId => file.NoteTemplateId = reader.ReadUInt16BigEndian(),
                     Opcode.Stack1 => file.Stack1 = new Tuple<ushort, ushort>(reader.ReadUInt16BigEndian(), reader.ReadUInt16BigEndian()),
@@ -243,6 +257,84 @@ namespace Villermen.RuneScapeCacheTools.File
             return file;
         }
 
+        public int? GetIntegerProperty(ItemProperty itemProperty)
+        {
+            var property = this.GetProperty(itemProperty);
+            return property switch
+            {
+                null => null,
+                int intProperty => intProperty,
+                _ => throw new InvalidOperationException($"Property {itemProperty} is not configured as an integer.")
+            };
+        }
+
+        public string? GetStringProperty(ItemProperty itemProperty)
+        {
+            var property = this.GetProperty(itemProperty);
+            return property switch
+            {
+                null => null,
+                string stringProperty => stringProperty,
+                _ => throw new InvalidOperationException($"Property {itemProperty} is not configured as a string.")
+            };
+        }
+
+        /// <summary>
+        /// Convenience method for parsing an integer property as a boolean. Properties are never actually stored as
+        /// booleans.
+        /// </summary>
+        public bool GetBooleanProperty(ItemProperty itemProperty)
+        {
+            var integerProperty = this.GetIntegerProperty(itemProperty);
+            return integerProperty switch
+            {
+                null => false,
+                0 => false,
+                1 => true,
+                _ => throw new InvalidOperationException($"Property {itemProperty} does not contain a boolean-like value.")
+            };
+        }
+
+        public object? GetProperty(ItemProperty itemProperty)
+        {
+            if (!(this.Properties?.ContainsKey(itemProperty) ?? false))
+            {
+                return null;
+            }
+
+            return this.Properties[itemProperty];
+        }
+
+        /**
+         * Returns a compiled array of inventory options with defaults like in the game.
+         */
+        public string?[] GetInventoryOptions()
+        {
+            return new[]
+            {
+                this.InventoryOption1,
+                this.InventoryOption2,
+                this.InventoryOption3,
+                "Use",
+                this.InventoryOption4,
+                this.InventoryOption5 ?? "Drop",
+                "Examine",
+            };
+        }
+
+        public string?[] GetEquipOptions()
+        {
+            return new[]
+            {
+                "Remove",
+                this.GetStringProperty(ItemProperty.EquipOption1),
+                this.GetStringProperty(ItemProperty.EquipOption2),
+                this.GetStringProperty(ItemProperty.EquipOption3),
+                this.GetStringProperty(ItemProperty.EquipOption4),
+                "Examine"
+            };
+        }
+
         private static Dictionary<ItemProperty, object> ReadProperties(BinaryReader reader)
         {
             var properties = new Dictionary<ItemProperty, object>();
@@ -277,7 +369,7 @@ namespace Villermen.RuneScapeCacheTools.File
             ModelOffset2 = 8,
             Stackable = 11,
             Value = 12,
-            EquipSlotId = 13,
+            EquipSlot = 13,
             EquipId = 14,
             Unknown15 = 15,
             MembersOnly = 16,
@@ -311,9 +403,9 @@ namespace Villermen.RuneScapeCacheTools.File
             Unknown91 = 91,
             Unknown92 = 92,
             Unknown93 = 93,
-            Unknown94 = 94,
+            Category = 94,
             Unknown95 = 95,
-            Unknown96 = 96,
+            DummyType = 96,
             NoteId = 97,
             NoteTemplateId = 98,
             Stack1 = 100,
