@@ -23,8 +23,8 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
         public AudioCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-            this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
-            this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
+            this.ArgumentParser.AddCommon(CommonArgument.Cache);
+            this.ArgumentParser.AddCommon(CommonArgument.Directory);
             this.ArgumentParser.Add(
                 "flac",
                 "Use FLAC format instead of original OGG for a (tiny) quality improvement.",
@@ -54,7 +54,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
         public override int Run()
         {
-            using var sourceCache = this.ArgumentParser.SourceCache;
+            using var sourceCache = this.ArgumentParser.Cache;
             if (sourceCache == null)
             {
                 Console.WriteLine("No cache source specified.");
@@ -63,7 +63,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
             var soundtrackExtractor = new SoundtrackExtractor(
                 sourceCache,
-                this.ArgumentParser.OutputDirectory ?? "audio"
+                this.ArgumentParser.Directory ?? "audio"
             );
 
             if (this._scrapeFiles == null)

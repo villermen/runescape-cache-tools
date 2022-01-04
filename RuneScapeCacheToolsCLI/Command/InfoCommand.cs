@@ -11,13 +11,13 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
     {
         public InfoCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-            this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
+            this.ArgumentParser.AddCommon(CommonArgument.Cache);
             this.ArgumentParser.AddCommon(CommonArgument.Files);
         }
 
         public override int Run()
         {
-            using var sourceCache = this.ArgumentParser.SourceCache;
+            using var sourceCache = this.ArgumentParser.Cache;
             if (sourceCache == null)
             {
                 Console.WriteLine("No cache source specified.");

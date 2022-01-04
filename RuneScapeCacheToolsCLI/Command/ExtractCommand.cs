@@ -9,24 +9,17 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 {
     public class ExtractCommand : BaseCommand
     {
-        private bool _preserve = false;
-
         public ExtractCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-            this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
-            this.ArgumentParser.AddCommon(CommonArgument.OutputDirectory);
+            this.ArgumentParser.AddCommon(CommonArgument.Cache);
+            this.ArgumentParser.AddCommon(CommonArgument.Directory);
             this.ArgumentParser.AddCommon(CommonArgument.Files);
-
-            this.ArgumentParser.Add(
-                "preserve",
-                "Preserve existing files.",
-                (value) => { this._preserve = true; }
-            );
+            this.ArgumentParser.AddCommon(CommonArgument.Preserve);
         }
 
         public override int Run()
         {
-            using var sourceCache = this.ArgumentParser.SourceCache;
+            using var sourceCache = this.ArgumentParser.Cache;
             if (sourceCache == null)
             {
                 Console.WriteLine("No cache source specified.");
@@ -39,9 +32,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
                 return Program.ExitCodeInvalidArgument;
             }
 
-            using var outputCache = new FlatFileCache(this.ArgumentParser.OutputDirectory ?? "files")
+            using var outputCache = new FlatFileCache(this.ArgumentParser.Directory ?? "files")
             {
-                OverwriteFiles = !this._preserve,
+                OverwriteFiles = !this.ArgumentParser.Preserve,
             };
 
             foreach (var index in this.ArgumentParser.FileFilter.Item1)

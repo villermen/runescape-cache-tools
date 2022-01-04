@@ -13,7 +13,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
 
         public ItemsCommand(ArgumentParser argumentParser) : base(argumentParser)
         {
-            this.ArgumentParser.AddCommon(CommonArgument.SourceCache);
+            this.ArgumentParser.AddCommon(CommonArgument.Cache);
             this.ArgumentParser.Add(
                 "file=",
                 "Save item JSON to the given file (instead of \"items.json\").",
@@ -41,7 +41,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Command
             var itemDefinitionExtractor = new ItemDefinitionExtractor();
 
             // Try to extract only when source is specified.
-            using var sourceCache = this.ArgumentParser.SourceCache;
+            using var sourceCache = this.ArgumentParser.Cache;
             if (sourceCache != null)
             {
                 if (this._force || !itemDefinitionExtractor.JsonMatchesCache(sourceCache, this._file))
