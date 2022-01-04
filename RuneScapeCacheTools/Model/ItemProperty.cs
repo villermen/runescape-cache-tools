@@ -8,6 +8,7 @@ namespace Villermen.RuneScapeCacheTools.Model
     public enum ItemProperty
     {
         WeaponRange = 13,
+        Unbankable = 59,
         EquipOption1 = 528,
         EquipOption2 = 529,
         EquipOption3 = 530,
@@ -21,6 +22,10 @@ namespace Villermen.RuneScapeCacheTools.Model
         RestrictedTrade = 689,
         UnusedHandCannonWarning = 690,
         MobilisingArmiesSquad = 802,
+        /// <summary>
+        /// Used instead of the default ("A magical force prevents you from banking this item").
+        /// </summary>
+        UnbankableMessage = 824,
         MagicBonus = 965,
         /// <summary>
         /// 0 = attack, 1 = defence, 2= strength, 4 = ranged, 5 = prayer, 6 = magic
@@ -30,7 +35,6 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipSkillRequired2 = 751,
         EquipLevelRequired2 = 752,
         LifePointBonus = 1326,
-        UnknownRestrictedTradeRelated = 1397,
         GeCategory = 2195,
         BeastOfBurdenStorable = 2240,
         MeleeAffinity = 2866,
