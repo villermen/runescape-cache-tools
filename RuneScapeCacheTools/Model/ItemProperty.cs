@@ -19,6 +19,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         /// Can only be traded for an equal amount of items with the same category.
         /// </summary>
         RestrictedTrade = 689,
+        UnusedHandCannonWarning = 690,
         MobilisingArmiesSquad = 802,
         MagicBonus = 965,
         /// <summary>
