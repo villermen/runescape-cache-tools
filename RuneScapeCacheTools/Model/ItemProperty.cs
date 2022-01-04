@@ -61,6 +61,10 @@ namespace Villermen.RuneScapeCacheTools.Model
         DestroyText = 5417,
         ZarosItem = 5440,
         UnknownBookcaseReclaimCost = 5637,
+        /// <summary>
+        /// Lowercase (not always) plural version of the item only used for the Arc expansion.
+        /// </summary>
+        ArcPluralForm = 5854,
         UnknownFayreTokenRelated = 6405,
         SigilCooldownDefault = 6520,
         SigilCooldown = 6521,
