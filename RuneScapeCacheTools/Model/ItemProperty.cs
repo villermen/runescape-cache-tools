@@ -34,6 +34,8 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipLevelRequired = 750,
         EquipSkillRequired2 = 751,
         EquipLevelRequired2 = 752,
+        BankInventoryOption1 = 1264,
+        BankInventoryOption2 = 1265,
         LifePointBonus = 1326,
         GeCategory = 2195,
         BeastOfBurdenStorable = 2240,
