@@ -34,11 +34,13 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipLevelRequired = 750,
         EquipSkillRequired2 = 751,
         EquipLevelRequired2 = 752,
+        EquipOption5 = 1211,
         BankInventoryOption1 = 1264,
         BankInventoryOption2 = 1265,
         LifePointBonus = 1326,
         GeCategory = 2195,
         BeastOfBurdenStorable = 2240,
+        ConstructionMaterialsRequired = 2522,
         MeleeAffinity = 2866,
         RangedAffinity = 2867,
         MagicAffinity = 2868,
@@ -63,6 +65,9 @@ namespace Villermen.RuneScapeCacheTools.Model
         SigilCooldownDefault = 6520,
         SigilCooldown = 6521,
         SigilMaxCharges = 6522,
+        EquipOption6 = 6712,
+        EquipOption7 = 6713,
+        EquipOption8 = 6714,
         PofFarmLevel = 7477,
     }
 }
