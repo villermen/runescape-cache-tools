@@ -16,10 +16,6 @@ namespace Villermen.RuneScapeCacheTools.Model
         DropSoundId = 537,
         StrengthBonus = 641,
         RangedBonus = 643,
-        /// <summary>
-        /// Can only be traded for an equal amount of items with the same category.
-        /// </summary>
-        RestrictedTrade = 689,
         UnusedHandCannonWarning = 690,
         MobilisingArmiesSquad = 802,
         /// <summary>
