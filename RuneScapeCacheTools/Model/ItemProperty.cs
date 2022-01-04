@@ -15,6 +15,10 @@ namespace Villermen.RuneScapeCacheTools.Model
         DropSoundId = 537,
         StrengthBonus = 641,
         RangedBonus = 643,
+        /// <summary>
+        /// Can only be traded for an equal amount of items with the same category.
+        /// </summary>
+        RestrictedTrade = 689,
         MobilisingArmiesSquad = 802,
         MagicBonus = 965,
         /// <summary>
@@ -25,6 +29,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         EquipSkillRequired2 = 751,
         EquipLevelRequired2 = 752,
         LifePointBonus = 1326,
+        UnknownRestrictedTradeRelated = 1397,
         GeCategory = 2195,
         BeastOfBurdenStorable = 2240,
         MeleeAffinity = 2866,
@@ -43,6 +48,7 @@ namespace Villermen.RuneScapeCacheTools.Model
         SpecialAttackCost = 4332,
         SpecialAttackName = 4333,
         SpecialAttackDescription = 4334,
+        DestroyForGp = 4907,
         DestroyText = 5417,
         ZarosItem = 5440,
         UnknownBookcaseReclaimCost = 5637,
