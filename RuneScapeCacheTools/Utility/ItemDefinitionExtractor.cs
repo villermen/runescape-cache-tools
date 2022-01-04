@@ -22,7 +22,7 @@ namespace Villermen.RuneScapeCacheTools.Utility
         /// <summary>
         /// Invalidates item JSON when bumped. Bump whenever output of tool (e.g., property names) changes.
         /// </summary>
-        private const int Protocol = 2;
+        private const int Protocol = 3;
 
         /// <summary>
         /// Returns whether the JSON file's version matches the version in cache. Means extraction can be skipped.
