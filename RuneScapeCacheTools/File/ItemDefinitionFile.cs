@@ -59,7 +59,7 @@ namespace Villermen.RuneScapeCacheTools.File
         public uint? Unknown43 { get; set; }
         public ushort? Unknown44 { get; set; }
         public ushort? Unknown45 { get; set; }
-        public bool? Tradeable { get; set; }
+        public bool? Exchangeable { get; set; }
         public int? GeBuyLimit { get; set; }
         public int? ColorEquip1 { get; set; }
         public int? ColorEquip2 { get; set; }
@@ -184,7 +184,7 @@ namespace Villermen.RuneScapeCacheTools.File
                     Opcode.Unknown43 => file.Unknown43 = reader.ReadUInt32BigEndian(),
                     Opcode.Unknown44 => file.Unknown44 = reader.ReadUInt16BigEndian(),
                     Opcode.Unknown45 => file.Unknown45 = reader.ReadUInt16BigEndian(),
-                    Opcode.Tradeable => file.Tradeable = true,
+                    Opcode.Exchangeable => file.Exchangeable = true,
                     Opcode.GeBuyLimit => file.GeBuyLimit = reader.ReadInt32BigEndian(),
                     Opcode.ColorEquip1 => file.ColorEquip1 = reader.ReadAwkwardInt(),
                     Opcode.ColorEquip2 => file.ColorEquip2 = reader.ReadAwkwardInt(),
@@ -395,7 +395,7 @@ namespace Villermen.RuneScapeCacheTools.File
             Unknown43 = 43,
             Unknown44 = 44,
             Unknown45 = 45,
-            Tradeable = 65,
+            Exchangeable = 65,
             GeBuyLimit = 69,
             ColorEquip1 = 78,
             ColorEquip2 = 79,
