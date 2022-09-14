@@ -286,10 +286,6 @@ namespace Villermen.RuneScapeCacheTools.Cache.Downloader
 
             Log.Debug($"Successfully connected to content server with version {serverVersion.Item1}.{serverVersion.Item2}.");
 
-            var contentReader = new BinaryReader(this._contentClient.GetStream());
-            // Not sure what loading requirements mean, but they grow every once in a while.
-            var loadingRequirements = contentReader.ReadBytesExactly(32 * 4);
-
             // Send the initial connection status and login packets to the server. I don't know what the individual
             // writes mean but they do the trick.
             Log.Debug("Sending initial connection status and login packets...");
