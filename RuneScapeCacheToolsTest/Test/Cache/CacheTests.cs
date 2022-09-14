@@ -85,7 +85,7 @@ namespace Villermen.RuneScapeCacheTools.Test.Cache
         [InlineData(typeof(JavaClientCache), 7)]
         [InlineData(typeof(FlatFileCache), 7)]
         [InlineData(typeof(NxtClientCache), 7)]
-        [InlineData(typeof(DownloaderCache), 46)]
+        [InlineData(typeof(DownloaderCache), 45)]
         public void TestGetIndexes(Type cacheType, int amountOfIndexes)
         {
             var indexes = this._fixture.Caches[cacheType].GetAvailableIndexes();
