@@ -2,8 +2,9 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public enum CommonArgument
     {
-        SourceCache,
+        Cache,
         Files,
-        OutputDirectory,
+        Directory,
+        Preserve,
     }
 }

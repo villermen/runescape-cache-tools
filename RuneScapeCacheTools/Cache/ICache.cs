@@ -28,5 +28,8 @@ namespace Villermen.RuneScapeCacheTools.Cache
 
         /// <exception cref="CacheException"></exception>
         void PutFile(CacheIndex index, int fileId, CacheFile file);
+
+        // TODO: Rewrite to abtract "Cache" or "BaseCache"
+        // TODO: Import ReadOnly property to implement in all caches.
     }
 }

@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Argument\ArgumentParser.cs" />
     <Compile Include="Argument\CommonArgument.cs" />
+    <Compile Include="Command\ImportCommand.cs" />
     <Compile Include="Command\InfoCommand.cs" />
     <Compile Include="Command\ExtractCommand.cs" />
     <Compile Include="Command\BaseCommand.cs" />

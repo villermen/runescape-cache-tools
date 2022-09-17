@@ -11,7 +11,7 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 {
     public class ArgumentParser
     {
-        public ReferenceTableCache? SourceCache { get; private set; }
+        public ReferenceTableCache? Cache { get; private set; }
 
         public Tuple<CacheIndex[], int[]>? FileFilter { get; private set; }
 
@@ -19,13 +19,15 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
         public IEnumerable<string> PositionalArgumentNames => this._positionalArguments.Select(argument => argument.Item1);
 
-        public string? OutputDirectory { get; private set; }
+        public string? Directory { get; private set; }
 
         private readonly IList<CommonArgument> _commonArguments = new List<CommonArgument>();
 
         private readonly OptionSet _optionSet = new OptionSet();
 
         private readonly IList<Tuple<string, string, Action<string>>> _positionalArguments = new List<Tuple<string, string, Action<string>>>();
+
+        public bool Preserve { get; private set; } = false;
 
         public void Add(string prototype, string description, Action<string> action)
         {
@@ -41,23 +43,23 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
             switch (commonArgument)
             {
-                case CommonArgument.OutputDirectory:
+                case CommonArgument.Directory:
                     this.Add(
-                        "output=",
-                        "Write to this directory.",
-                        (value) => this.OutputDirectory = value
+                        "directory=|dir=|output=",
+                        "Write to or read from this directory.",
+                        (value) => this.Directory = value
                     );
                     break;
 
-                case CommonArgument.SourceCache:
+                case CommonArgument.Cache:
                     this.Add(
                         "java:",
-                        "Obtain cache files from the Java client. Pass a directory to use a directory different from the default.",
+                        "Use cache files of the Java client. Pass a directory to use a directory different from the default.",
                         (value) => this.SetSourceCache(new JavaClientCache(value))
                     );
                     this.Add(
                         "nxt:",
-                        "Obtain cache files from the NXT client. Pass a directory to use a directory different from the default.",
+                        "Use cache files of the NXT client. Pass a directory to use a directory different from the default.",
                         (value) => this.SetSourceCache(new NxtClientCache(value))
                     );
                     this.Add(
@@ -72,6 +74,14 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
                         "files",
                         "Index(es)/file(s) to process. E.g., \"15\", \"15/12\" or \"15,40/1-100\".",
                         (value) => this.FileFilter = ArgumentParser.ParseFileFilter(value)
+                    );
+                    break;
+
+                case CommonArgument.Preserve:
+                    this.Add(
+                        "preserve",
+                        "Preserve existing files.",
+                        (value) => { this.Preserve = true; }
                     );
                     break;
 
@@ -193,12 +203,12 @@ namespace Villermen.RuneScapeCacheTools.CLI.Argument
 
         private void SetSourceCache(ReferenceTableCache sourceCache)
         {
-            if (this.SourceCache != null)
+            if (this.Cache != null)
             {
                 throw new ArgumentException("Source cache is already defined. Make sure to use only one source argument.");
             }
 
-            this.SourceCache = sourceCache;
+            this.Cache = sourceCache;
         }
     }
 }
